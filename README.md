@@ -1,7 +1,9 @@
 # raviranjan.org.in
-contains my website contant
+Project of raviranjan.org.in website 
 
+Docker link https://hub.docker.com/r/ravirnjn/raviranjan.org.inc/
+nginx home folder in docker /usr/share/nginx/html
 
-raviranjan.org.in
+http://raviranjan.org.in
+https://raviranjan.org.in
 www.raviranjan.org.in
-profile.raviranjan.org.in
