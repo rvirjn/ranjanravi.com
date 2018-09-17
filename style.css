@@ -382,6 +382,7 @@ html {
 	float:left;
 	background-image:url('images/css/logo.png');
 	background-repeat:no-repeat;
+	cursor: pointer;
 	width:300px;
 	height:80px;
 }
