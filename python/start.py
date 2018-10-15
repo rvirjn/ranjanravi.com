@@ -16,8 +16,10 @@ def index():
     message = "Hello, World"
     #return render_template('index.html')
     return render_template_string('''
-         <h1>Python Flask Server</h1>
-         <p>Welcome to InterARC </p>
+         <title>Ravi Ranjan</title>
+         <h2>You are accessing domain over https </h2>
+         <p>Secure site creation inprogress </p>
+        <p> Kindly use http  <a href="http://www.ranjanravi.com"> www.ranjanravi.com</a></p>
          ''')
 
 if __name__ == "__main__":
