@@ -58,7 +58,7 @@ def insert():
     return json.dumps({'id': mongo_id})
 
 
-@app.route('/read')
+@app.route('/read/<emp_id>', methods=['GET'])
 def get(emp_id):
     app.logger.debug('GET emp_id: %s' % emp_id)
     try:
