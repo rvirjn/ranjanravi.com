@@ -6,9 +6,11 @@ client = None
 import json
 _db = None
 _results = None
+import requests
 from flask import Flask, render_template_string, request, jsonify, render_template
 app = Flask(__name__, static_url_path='/static')
 
+headers = {'Content-Type': 'application/json'}
 __author__ = 'raviranjan'
 
 @app.route('/')
@@ -17,23 +19,23 @@ def index():
     #return render_template('index.html')
     return render_template_string('''
          <title>Ravi Ranjan</title>
-         <h2>You are accessing domain over https </h2>
-         <p>Secure site creation inprogress </p>
-        <p> Kindly use http  <a href="http://www.ranjanravi.com"> www.ranjanravi.com</a></p>
+         <h2>HI </h2>
          ''')
 
 
 @app.route('/main')
 def main():
-    _id = insert('339591', 'Ravi Ranjan', '28', 'india')
-    print _id
-    get()
-    update('339591', 'Ravi Ranjan', '29', 'india')
+    resp = requests.post('http://0.0.0.0/insert', data={'339591', 'Ravi Ranjan', '28', 'india'}, headers=headers,
+                         verify=False)
+    print resp.json()
+    # get()
+    # update('339591', 'Ravi Ranjan', '29', 'india')
     # delete('339591')
 
 
 @app.route('/insert', methods=['POST'])
 def insert():
+    app.logger.debug('insert method called')
     content_type = request.headers.get('Content-Type')
     app.logger.debug('Content-Type %s', content_type)
     data = {}
@@ -122,16 +124,15 @@ if __name__ == "__main__":
 # if SERVER_PORT, DB_PORT is not passed then default DB will run.
     if 'DB_PORT' in os.environ:
         db_port = int(os.environ['DB_PORT'])
-        client = MongoClient('localhost:%s' % db_port)
-        # creating connections for communicating with Mongo DB
-        _db = client['EmployeeData']
-        _results = _db['results']
-    elif 'SERVER_PORT' in os.environ:
-        server_port = int(os.environ['SERVER_PORT'])
-        app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
     else:
         db_port = 8081
-        client = MongoClient('localhost:%s' % db_port)
-        # creating connections for communicating with Mongo DB
-        _db = client['EmployeeData']
-        _results = _db['results']
+    client = MongoClient('localhost:%s' % db_port)
+    # creating connections for communicating with Mongo DB
+    _db = client['EmployeeData']
+    _results = _db['results']
+    if 'SERVER_PORT' in os.environ:
+        server_port = int(os.environ['SERVER_PORT'])
+        app.run('0.0.0.0', port=server_port, debug=True)
+    else:
+        server_port = 80
+        app.run('0.0.0.0', port=server_port, debug=True)
