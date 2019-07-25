@@ -4,8 +4,8 @@ import traceback
 import pymongo
 client = None
 import json
-interarc_db = None
-interarc_results = None
+_db = None
+_results = None
 from flask import Flask, render_template_string, request, jsonify, render_template
 app = Flask(__name__, static_url_path='/static')
 
@@ -22,6 +22,7 @@ def index():
         <p> Kindly use http  <a href="http://www.ranjanravi.com"> www.ranjanravi.com</a></p>
          ''')
 
+
 if __name__ == "__main__":
     if 'SERVER_PORT' in os.environ:
         server_port = int(os.environ['SERVER_PORT'])
@@ -33,10 +34,10 @@ if __name__ == "__main__":
         db_port = int(os.environ['DB_PORT'])
     else:
         db_port = 8082
-    client = MongoClient('10.198.10.70:%s' % db_port)
+    client = MongoClient('localhost:%s' % db_port)
     # creating connections for communicating with Mongo DB
-    interarc_db = client['EmployeeData']
-    interarc_results = interarc_db['results']
+    _db = client['EmployeeData']
+    _results = _db['results']
 
 
 #@app.route('/main')
@@ -60,7 +61,7 @@ def insert():
     app.logger.debug('POST emp data: %s' % data)
     mongo_id = None
     try:
-        insert = interarc_results.insert_one(data)
+        insert = _results.insert_one(data)
         mongo_id = str(insert.inserted_id)
     except (pymongo.errors.AutoReconnect,
             pymongo.errors.NotMasterError,
@@ -76,7 +77,7 @@ def insert():
 def get(emp_id):
     app.logger.debug('GET emp_id: %s' % emp_id)
     try:
-        values = cursor.Cursor(interarc_results, {'emp_id':
+        values = cursor.Cursor(_results, {'emp_id':
                                                       emp_id}, limit=5) \
             .sort('interopTestDate', pymongo.DESCENDING)
     except:
@@ -93,7 +94,7 @@ def get(emp_id):
 def update(criteria, name, age, country):
     # Function to update record to mongo db
     try:
-        interarc_db.Employees.update_one(
+        _db.Employees.update_one(
             {"id": criteria},
             {
                 "$set": {
@@ -112,7 +113,7 @@ def update(criteria, name, age, country):
 def delete(criteria):
     # Function to delete record from mongo db
     try:
-        interarc_db.Employees.delete_many({"id":criteria})
+        _db.Employees.delete_many({"id":criteria})
         print '\nDeletion successful\n'
     except Exception, e:
         print str(e)
