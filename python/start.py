@@ -24,21 +24,23 @@ def index():
 
 
 if __name__ == "__main__":
-    if 'SERVER_PORT' in os.environ:
-        server_port = int(os.environ['SERVER_PORT'])
-    else:
-        server_port = 443
-    app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
 
+# if SERVER_PORT, DB_PORT is not passed then default DB will run.
     if 'DB_PORT' in os.environ:
         db_port = int(os.environ['DB_PORT'])
+        client = MongoClient('localhost:%s' % db_port)
+        # creating connections for communicating with Mongo DB
+        _db = client['EmployeeData']
+        _results = _db['results']
+    elif 'SERVER_PORT' in os.environ:
+        server_port = int(os.environ['SERVER_PORT'])
+        app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
     else:
         db_port = 8081
-    client = MongoClient('localhost:%s' % db_port)
-    # creating connections for communicating with Mongo DB
-    _db = client['EmployeeData']
-    _results = _db['results']
-
+        client = MongoClient('localhost:%s' % db_port)
+        # creating connections for communicating with Mongo DB
+        _db = client['EmployeeData']
+        _results = _db['results']
 
 #@app.route('/main')
 def main():
