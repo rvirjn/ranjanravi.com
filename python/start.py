@@ -25,10 +25,16 @@ def index():
 
 @app.route('/main')
 def main():
-    resp = requests.post('http://0.0.0.0/insert', data={'339591', 'Ravi Ranjan', '28', 'india'}, headers=headers,
+    data = {
+          "emp_id": "339591",
+          "name": "Ravi Ranjan",
+          "age": "28",
+          "counrty": "india"
+        }
+    resp = requests.post('http://0.0.0.0/insert', data=data, headers=headers,
                          verify=False)
     print resp.json()
-    # get()
+    get()
     # update('339591', 'Ravi Ranjan', '29', 'india')
     # delete('339591')
 
@@ -55,16 +61,14 @@ def insert():
             pymongo.errors.NetworkTimeout,
             pymongo.errors.ServerSelectionTimeoutError) as ex:
         log_exception(ex)
-    return json.dumps({'id': mongo_id})
+    return json.dumps({'_id': mongo_id})
 
 
 @app.route('/read/<emp_id>', methods=['GET'])
 def get(emp_id):
     app.logger.debug('GET emp_id: %s' % emp_id)
     try:
-        values = cursor.Cursor(_results, {'emp_id':
-                                                      emp_id}, limit=5) \
-            .sort('interopTestDate', pymongo.DESCENDING)
+        values = cursor.Cursor(_results, {'emp_id': emp_id}, limit=5)
     except:
         return not_found()
     data = list()
