@@ -33,7 +33,7 @@ if __name__ == "__main__":
     if 'DB_PORT' in os.environ:
         db_port = int(os.environ['DB_PORT'])
     else:
-        db_port = 8082
+        db_port = 8081
     client = MongoClient('localhost:%s' % db_port)
     # creating connections for communicating with Mongo DB
     _db = client['EmployeeData']
