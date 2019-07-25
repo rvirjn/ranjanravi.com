@@ -33,8 +33,14 @@ def main():
         }
     resp = requests.post('http://0.0.0.0/insert', data=data, headers=headers,
                          verify=False)
-    print resp.json()
-    get()
+    # print resp.json()
+    resp = requests.get('http://0.0.0.0/read/339591', headers=headers,
+                         verify=False)
+    return render_template_string('''
+             <title>Ravi Ranjan</title>
+             <h2>data added</h2>
+             ''')
+    # print resp.json()
     # update('339591', 'Ravi Ranjan', '29', 'india')
     # delete('339591')
 
