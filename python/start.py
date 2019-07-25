@@ -23,26 +23,7 @@ def index():
          ''')
 
 
-if __name__ == "__main__":
-
-# if SERVER_PORT, DB_PORT is not passed then default DB will run.
-    if 'DB_PORT' in os.environ:
-        db_port = int(os.environ['DB_PORT'])
-        client = MongoClient('localhost:%s' % db_port)
-        # creating connections for communicating with Mongo DB
-        _db = client['EmployeeData']
-        _results = _db['results']
-    elif 'SERVER_PORT' in os.environ:
-        server_port = int(os.environ['SERVER_PORT'])
-        app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
-    else:
-        db_port = 8081
-        client = MongoClient('localhost:%s' % db_port)
-        # creating connections for communicating with Mongo DB
-        _db = client['EmployeeData']
-        _results = _db['results']
-
-#@app.route('/main')
+@app.route('/main')
 def main():
     _id = insert('339591', 'Ravi Ranjan', '28', 'india')
     print _id
@@ -135,3 +116,22 @@ def not_found(error=None):
     response = jsonify(message)
     response.status_code = 404
     return response
+
+if __name__ == "__main__":
+
+# if SERVER_PORT, DB_PORT is not passed then default DB will run.
+    if 'DB_PORT' in os.environ:
+        db_port = int(os.environ['DB_PORT'])
+        client = MongoClient('localhost:%s' % db_port)
+        # creating connections for communicating with Mongo DB
+        _db = client['EmployeeData']
+        _results = _db['results']
+    elif 'SERVER_PORT' in os.environ:
+        server_port = int(os.environ['SERVER_PORT'])
+        app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
+    else:
+        db_port = 8081
+        client = MongoClient('localhost:%s' % db_port)
+        # creating connections for communicating with Mongo DB
+        _db = client['EmployeeData']
+        _results = _db['results']
