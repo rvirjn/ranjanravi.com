@@ -19,7 +19,7 @@ def index():
     #return render_template('index.html')
     return render_template_string('''
          <title>Ravi Ranjan</title>
-         <h2>HI </h2>
+         <h2>HI Ravi</h2>
          ''')
 
 
@@ -121,19 +121,21 @@ def not_found(error=None):
 
 if __name__ == "__main__":
 
-# if SERVER_PORT, DB_PORT is not passed then default DB will run.
+    # if SERVER_PORT, DB_PORT is not passed then default DB will run.
     if 'DB_PORT' in os.environ:
         db_port = int(os.environ['DB_PORT'])
     else:
         db_port = 27017
+
+    if 'SERVER_PORT' in os.environ:
+        server_port = int(os.environ['SERVER_PORT'])
+    else:
+        server_port = 80
+
+    app.logger.debug("DB_PORT: %s | SERVER_PORT: %s" % (db_port, server_port))
     client = MongoClient('localhost:%s' % db_port)
     # creating connections for communicating with Mongo DB
     _db = client['EmployeeData']
     _results = _db['results']
-    if 'SERVER_PORT' in os.environ:
-        server_port = int(os.environ['SERVER_PORT'])
-        app.run('0.0.0.0', port=server_port, debug=True)
-    else:
-        server_port = 80
-        app.run('0.0.0.0', port=server_port, debug=True)
-        # app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
+    app.run('0.0.0.0', port=server_port, debug=True)
+    # app.run('0.0.0.0', port=server_port, ssl_context='adhoc', debug=True)
