@@ -1,10 +1,12 @@
 #!/bin/bash
-echo 'Performing post action for updating raviranjan.org.in'
-chmod 600 key.pem
-mv .git ../
-scp -r -i key.pem index.html ubuntu@13.127.120.189:/home/ubuntu/html/
-echo 'Project copied to aws vm 13.127.120.189'
-ssh -i key.pem ubuntu@13.127.120.189 'sudo docker cp /home/ubuntu/html/ ranjanravi.com:/usr/share/nginx/'
-ssh -i key.pem ubuntu@13.127.120.189 'sudo docker cp /home/ubuntu/html/ ranjanravi.org:/usr/share/nginx/'
-echo 'Project copied to aws docker location /usr/share/nginx/html/'
-mv ../.git .
+echo 'Performing post action for updating ranjanravi.com'
+#mv .git ../
+scp -r -i gcloud_ranjanravi_instance_1 ranjanravi.com raviranjan_amu@ranjanbooking.com:/home/raviranjan_amu/
+
+echo 'Project copied to vm ranjanbooking.com'
+#ssh -i gcloud_ranjanravi_instance_1 raviranjan_amu@ranjanbooking.com 'sudo docker cp /home/ubuntu/html/ nginx:/usr/share/nginx/'
+#ssh -i gcloud_ranjanravi_instance_1 raviranjan_amu@ranjanbooking.com 'sudo docker cp /home/ubuntu/html/ tomcat:/usr/local/tomcat/webapps/ROOT/'
+#ssh -i gcloud_ranjanravi_instance_1 raviranjan_amu@ranjanbooking.com 'sudo docker cp /home/ubuntu/html/ ranjanravi.org:/usr/share/nginx/'
+#ssh -i gcloud_ranjanravi_instance_1 raviranjan_amu@ranjanbooking.com 'sudo docker cp /home/ubuntu/html/ /usr/local/apache2/htdocs'
+#echo 'Project copied to docker'
+#mv ../.git .
