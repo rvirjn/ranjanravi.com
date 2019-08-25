@@ -1,5 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
-
+.git
+gcloud_ranjanravi_instance_1
+ranjanravi_instance_1.pub
 # compiled output
 /dist
 /tmp
