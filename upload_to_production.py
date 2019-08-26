@@ -21,7 +21,7 @@ GOAT_PWD = ""
 port = 22
 PRIVATEKEY = 'gcloud_ranjanravi_instance_1'
 REMOTE_GOAT_LOCATION = "/home/raviranjan_amu/ranjanravi.com/"
-IGNORE_FILES = ["upload_to_production",  "gitignore"]
+IGNORE_FILES = ["upload_changed_files_to_remote",  "gitignore"]
 
 
 class Server(object):
@@ -35,6 +35,7 @@ class Server(object):
         self.transport = paramiko.Transport((host, port))
         rsa_key = paramiko.RSAKey.from_private_key_file(PRIVATEKEY)
         self.transport.connect(username=username, pkey=rsa_key)
+        # self.transport.connect(username=username, password=password)
         self.sftp = paramiko.SFTPClient.from_transport(self.transport)
 
     def upload(self, local, remote):
@@ -126,7 +127,9 @@ def get_commited_files():
 
 
 def upload_change_to(ip, usr, pwd, dest_goat_path):
-    local_goat_path = os.path.dirname(os.path.dirname(__file__))
+    print (__file__)
+    # local_goat_path = os.path.dirname(os.path.dirname(__file__))
+    local_goat_path = os.path.dirname(__file__)
     logging.info("local goat path : %s" % local_goat_path)
     os.chdir(local_goat_path)
     server_object = None
