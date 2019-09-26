@@ -15,13 +15,13 @@ warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 __author__ = 'raviranjan'
 
 # Changes will be uploaded to below location
-GOAT_IP = "ranjanbooking.com"
-GOAT_USERNAME = "raviranjan_amu"
+GOAT_IP = "13.234.239.179"
+GOAT_USERNAME = "ubuntu"
 GOAT_PWD = ""
 port = 22
-PRIVATEKEY = 'gcloud_ranjanravi_instance_1'
-REMOTE_GOAT_LOCATION = "/home/raviranjan_amu/ranjanravi.com/"
-IGNORE_FILES = ["upload_changed_files_to_remote",  "gitignore"]
+PRIVATEKEY = 'aws-new-key-sg-new.pem'
+REMOTE_GOAT_LOCATION = "/home/ubuntu/ranjanravi.com/"
+IGNORE_FILES = ["upload_changed_files_to_remote",  "gitignore", '.git']
 
 
 class Server(object):

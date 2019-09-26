@@ -1,35 +1,79 @@
-09/26/2019 07:44:38 PM IST:INFO :local goat path : /home/ravi/workspace/ranjanravi.com
-09/26/2019 07:44:38 PM IST:DEBUG:Creating ranjanbooking.com connection object (raviranjan_amu/)
-09/26/2019 07:44:39 PM IST:DEBUG:starting thread (client mode): 0xa560be80
-09/26/2019 07:44:39 PM IST:DEBUG:Local version/idstring: SSH-2.0-paramiko_2.0.0
-09/26/2019 07:44:39 PM IST:DEBUG:Remote version/idstring: SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.3
-09/26/2019 07:44:39 PM IST:INFO :Connected (version 2.0, client OpenSSH_7.6p1)
-09/26/2019 07:44:39 PM IST:DEBUG:kex algos:['curve25519-sha256', 'curve25519-sha256@libssh.org', 'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521', 'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group14-sha256', 'diffie-hellman-group14-sha1'] server key:['ssh-rsa', 'rsa-sha2-512', 'rsa-sha2-256', 'ecdsa-sha2-nistp256', 'ssh-ed25519'] client encrypt:['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com'] server encrypt:['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com'] client mac:['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1'] server mac:['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1'] client compress:['none', 'zlib@openssh.com'] server compress:['none', 'zlib@openssh.com'] client lang:[''] server lang:[''] kex follows?False
-09/26/2019 07:44:39 PM IST:DEBUG:Kex agreed: diffie-hellman-group-exchange-sha256
-09/26/2019 07:44:39 PM IST:DEBUG:Cipher agreed: aes128-ctr
-09/26/2019 07:44:39 PM IST:DEBUG:MAC agreed: hmac-sha2-256
-09/26/2019 07:44:39 PM IST:DEBUG:Compression agreed: none
-09/26/2019 07:44:40 PM IST:DEBUG:Got server p (2048 bits)
-09/26/2019 07:44:40 PM IST:DEBUG:kex engine KexGexSHA256 specified hash_algo <built-in function openssl_sha256>
-09/26/2019 07:44:40 PM IST:DEBUG:Switch to new keys ...
-09/26/2019 07:44:40 PM IST:DEBUG:Attempting public-key auth...
-09/26/2019 07:44:41 PM IST:DEBUG:userauth is OK
-09/26/2019 07:44:41 PM IST:INFO :Authentication (publickey) successful!
-09/26/2019 07:44:41 PM IST:DEBUG:[chan 0] Max packet in: 32768 bytes
-09/26/2019 07:44:42 PM IST:DEBUG:Received global request "hostkeys-00@openssh.com"
-09/26/2019 07:44:42 PM IST:DEBUG:Rejecting "hostkeys-00@openssh.com" global request from server.
-09/26/2019 07:44:43 PM IST:DEBUG:[chan 0] Max packet out: 32768 bytes
-09/26/2019 07:44:43 PM IST:DEBUG:Secsh channel 0 opened.
-09/26/2019 07:44:43 PM IST:DEBUG:[chan 0] Sesch channel 0 request ok
-09/26/2019 07:44:43 PM IST:INFO :[chan 0] Opened sftp connection (server version 3)
-09/26/2019 07:44:43 PM IST:DEBUG:git status output: b' M upload_changed_files_to_remote.log\n'
-09/26/2019 07:44:43 PM IST:INFO :Checking older commited data
-09/26/2019 07:44:43 PM IST:DEBUG:git cherry output: b''
-09/26/2019 07:44:43 PM IST:DEBUG:List of files to be copied: ['upload_changed_files_to_remote.log'] 
-09/26/2019 07:44:43 PM IST:INFO :skipping upload_changed_files_to_remote.log. Since not required
-09/26/2019 07:44:43 PM IST:INFO :File copying completed
-09/26/2019 07:44:43 PM IST:DEBUG:Closing the active connection ranjanbooking.com
-09/26/2019 07:44:43 PM IST:INFO :[chan 0] sftp session closed.
-09/26/2019 07:44:43 PM IST:DEBUG:[chan 0] EOF sent (0)
-09/26/2019 07:44:43 PM IST:DEBUG:EOF in transport thread
-09/26/2019 07:44:43 PM IST:DEBUG:Connection closed
+09/26/2019 09:40:36 PM IST:INFO :local goat path : /home/ravi/workspace/ranjanravi.com
+09/26/2019 09:40:36 PM IST:DEBUG:Creating 13.234.239.179 connection object (ubuntu/)
+09/26/2019 09:40:36 PM IST:DEBUG:starting thread (client mode): 0x8296be80
+09/26/2019 09:40:36 PM IST:DEBUG:Local version/idstring: SSH-2.0-paramiko_2.0.0
+09/26/2019 09:40:36 PM IST:DEBUG:Remote version/idstring: SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.8
+09/26/2019 09:40:36 PM IST:INFO :Connected (version 2.0, client OpenSSH_7.2p2)
+09/26/2019 09:40:36 PM IST:DEBUG:kex algos:['curve25519-sha256@libssh.org', 'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521', 'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group14-sha1'] server key:['ssh-rsa', 'rsa-sha2-512', 'rsa-sha2-256', 'ecdsa-sha2-nistp256', 'ssh-ed25519'] client encrypt:['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com'] server encrypt:['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com'] client mac:['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1'] server mac:['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1'] client compress:['none', 'zlib@openssh.com'] server compress:['none', 'zlib@openssh.com'] client lang:[''] server lang:[''] kex follows?False
+09/26/2019 09:40:36 PM IST:DEBUG:Kex agreed: diffie-hellman-group-exchange-sha256
+09/26/2019 09:40:36 PM IST:DEBUG:Cipher agreed: aes128-ctr
+09/26/2019 09:40:36 PM IST:DEBUG:MAC agreed: hmac-sha2-256
+09/26/2019 09:40:36 PM IST:DEBUG:Compression agreed: none
+09/26/2019 09:40:37 PM IST:DEBUG:Got server p (2048 bits)
+09/26/2019 09:40:37 PM IST:DEBUG:kex engine KexGexSHA256 specified hash_algo <built-in function openssl_sha256>
+09/26/2019 09:40:37 PM IST:DEBUG:Switch to new keys ...
+09/26/2019 09:40:37 PM IST:DEBUG:Attempting public-key auth...
+09/26/2019 09:40:37 PM IST:DEBUG:userauth is OK
+09/26/2019 09:40:37 PM IST:INFO :Authentication (publickey) successful!
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] Max packet in: 32768 bytes
+09/26/2019 09:40:37 PM IST:DEBUG:Received global request "hostkeys-00@openssh.com"
+09/26/2019 09:40:37 PM IST:DEBUG:Rejecting "hostkeys-00@openssh.com" global request from server.
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] Max packet out: 32768 bytes
+09/26/2019 09:40:37 PM IST:DEBUG:Secsh channel 0 opened.
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] Sesch channel 0 request ok
+09/26/2019 09:40:37 PM IST:INFO :[chan 0] Opened sftp connection (server version 3)
+09/26/2019 09:40:37 PM IST:DEBUG:git status output: b' M booking/index.html\n M shopping/index.html\n M update_website.sh\n M upload_changed_files_to_remote.log\n M upload_to_production.py\n'
+09/26/2019 09:40:37 PM IST:INFO :Checking older commited data
+09/26/2019 09:40:37 PM IST:DEBUG:git cherry output: b''
+09/26/2019 09:40:37 PM IST:DEBUG:List of files to be copied: ['booking/index.html', 'shopping/index.html', 'upload_to_production.py', 'upload_changed_files_to_remote.log', 'update_website.sh'] 
+09/26/2019 09:40:37 PM IST:DEBUG:Full dest path per file: /home/ubuntu/ranjanravi.com/booking/index.html
+09/26/2019 09:40:37 PM IST:INFO :Copying file to 13.234.239.179/home/ubuntu/ranjanravi.com//booking/index.html
+09/26/2019 09:40:37 PM IST:DEBUG:Checking if 13.234.239.179:/home/ubuntu/ranjanravi.com/booking directory exists
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/booking')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] normalize(b'/home/ubuntu/ranjanravi.com/booking')
+09/26/2019 09:40:37 PM IST:INFO :Dir /home/ubuntu/ranjanravi.com/booking exists: True
+09/26/2019 09:40:37 PM IST:DEBUG:uploading file /home/ravi/workspace/ranjanravi.com/booking/index.html to 13.234.239.179:/home/ubuntu/ranjanravi.com/booking/index.html
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/booking/index.html', 'wb')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/booking/index.html', 'wb') -> b'00000000'
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] close(b'00000000')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/booking/index.html')
+09/26/2019 09:40:37 PM IST:DEBUG:Full dest path per file: /home/ubuntu/ranjanravi.com/shopping/index.html
+09/26/2019 09:40:37 PM IST:INFO :Copying file to 13.234.239.179/home/ubuntu/ranjanravi.com//shopping/index.html
+09/26/2019 09:40:37 PM IST:DEBUG:Checking if 13.234.239.179:/home/ubuntu/ranjanravi.com/shopping directory exists
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/shopping')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] normalize(b'/home/ubuntu/ranjanravi.com/shopping')
+09/26/2019 09:40:37 PM IST:INFO :Dir /home/ubuntu/ranjanravi.com/shopping exists: True
+09/26/2019 09:40:37 PM IST:DEBUG:uploading file /home/ravi/workspace/ranjanravi.com/shopping/index.html to 13.234.239.179:/home/ubuntu/ranjanravi.com/shopping/index.html
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/shopping/index.html', 'wb')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/shopping/index.html', 'wb') -> b'00000000'
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] close(b'00000000')
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/shopping/index.html')
+09/26/2019 09:40:37 PM IST:DEBUG:Full dest path per file: /home/ubuntu/ranjanravi.com/upload_to_production.py
+09/26/2019 09:40:37 PM IST:INFO :Copying file to 13.234.239.179/home/ubuntu/ranjanravi.com//upload_to_production.py
+09/26/2019 09:40:37 PM IST:DEBUG:Checking if 13.234.239.179:/home/ubuntu/ranjanravi.com directory exists
+09/26/2019 09:40:37 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] normalize(b'/home/ubuntu/ranjanravi.com')
+09/26/2019 09:40:38 PM IST:INFO :Dir /home/ubuntu/ranjanravi.com exists: True
+09/26/2019 09:40:38 PM IST:DEBUG:uploading file /home/ravi/workspace/ranjanravi.com/upload_to_production.py to 13.234.239.179:/home/ubuntu/ranjanravi.com/upload_to_production.py
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/upload_to_production.py', 'wb')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/upload_to_production.py', 'wb') -> b'00000000'
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] close(b'00000000')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/upload_to_production.py')
+09/26/2019 09:40:38 PM IST:INFO :skipping upload_changed_files_to_remote.log. Since not required
+09/26/2019 09:40:38 PM IST:DEBUG:Full dest path per file: /home/ubuntu/ranjanravi.com/update_website.sh
+09/26/2019 09:40:38 PM IST:INFO :Copying file to 13.234.239.179/home/ubuntu/ranjanravi.com//update_website.sh
+09/26/2019 09:40:38 PM IST:DEBUG:Checking if 13.234.239.179:/home/ubuntu/ranjanravi.com directory exists
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] normalize(b'/home/ubuntu/ranjanravi.com')
+09/26/2019 09:40:38 PM IST:INFO :Dir /home/ubuntu/ranjanravi.com exists: True
+09/26/2019 09:40:38 PM IST:DEBUG:uploading file /home/ravi/workspace/ranjanravi.com/update_website.sh to 13.234.239.179:/home/ubuntu/ranjanravi.com/update_website.sh
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/update_website.sh', 'wb')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] open(b'/home/ubuntu/ranjanravi.com/update_website.sh', 'wb') -> b'00000000'
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] close(b'00000000')
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] stat(b'/home/ubuntu/ranjanravi.com/update_website.sh')
+09/26/2019 09:40:38 PM IST:INFO :File copying completed
+09/26/2019 09:40:38 PM IST:DEBUG:Closing the active connection 13.234.239.179
+09/26/2019 09:40:38 PM IST:INFO :[chan 0] sftp session closed.
+09/26/2019 09:40:38 PM IST:DEBUG:[chan 0] EOF sent (0)
+09/26/2019 09:40:38 PM IST:DEBUG:EOF in transport thread
+09/26/2019 09:40:38 PM IST:DEBUG:Connection closed

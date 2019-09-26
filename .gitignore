@@ -3,6 +3,7 @@
 gcloud_ranjanravi_instance_1
 ranjanravi_instance_1.pub
 aws-new-key-sg-new.pem
+upload_changed_files_to_remote.log
 *.log
 # compiled output
 /dist
