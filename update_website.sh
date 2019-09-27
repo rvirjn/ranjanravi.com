@@ -1,5 +1,8 @@
 #!/bin/bash
-echo 'Run upload_to_production.py first'
+echo 'Upload localhost'
+sudo cp -r . /var/www/html/
+sudo rm -rf /var/www/html/.git
+echo 'Run upload_to_production.py'
 #python upload_to_production.py
 echo 'Performing post action for updating ranjanravi.com'
 ssh -i aws-new-key-sg-new.pem ubuntu@13.234.239.179 'sudo docker cp /home/ubuntu/ranjanravi.com/shopping/. shopping:/usr/share/nginx/html/'
