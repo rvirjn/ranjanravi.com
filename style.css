@@ -289,7 +289,7 @@ html {
 	background-color:#090d10;
 	background-position:center top;
 	background-repeat:repeat;
-	background-image:url('images/css/wrapper-bg-x.jpg');
+	background-image:url('profile/images/css/wrapper-bg-x.jpg');
 	border-top:none;
 }
 
@@ -379,7 +379,7 @@ html {
 
 #logo {
 	float:left;
-	background-image:url('images/css/logo.png');
+	background-image:url('profile/images/css/logo.png');
 	background-repeat:no-repeat;
 	cursor: pointer;
 	width:300px;
@@ -392,7 +392,7 @@ html {
 	height:350px;
 	background-position:center top;
 	background-color:transparent;
-	background-image:url('images/css/banner-bg-new.jpg');
+	background-image:url('profile/images/css/banner-bg-new.jpg');
 	background-repeat:no-repeat;
 	overflow:hidden;
 	border-radius:0px 0px 0 0;
