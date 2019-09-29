@@ -1,9 +1,11 @@
 #!/bin/bash
 echo 'Upload localhost'
+sudo rm -rf /var/www/html/*
 sudo cp -r . /var/www/html/
 sudo rm -rf /var/www/html/.git
-echo 'Run upload_to_production.py'
-#python upload_to_production.py
+if [ $# -eq 1 ]
+  then
+echo 'Run upload_to_production.py first'
 echo 'Performing post action for updating ranjanravi.com'
 ssh -i aws-new-key-sg-new.pem ubuntu@13.234.239.179 'sudo docker cp /home/ubuntu/ranjanravi.com/shopping/. shopping:/usr/share/nginx/html/'
 ssh -i aws-new-key-sg-new.pem ubuntu@13.234.239.179 'sudo docker cp /home/ubuntu/ranjanravi.com/booking/. tomcat:/usr/local/tomcat/webapps/ROOT/'
@@ -15,3 +17,5 @@ ssh -i aws-new-key-sg-new.pem ubuntu@13.234.239.179 'sudo docker cp /home/ubuntu
 ssh -i aws-new-key-sg-new.pem ubuntu@13.234.239.179 'sudo docker cp /home/ubuntu/ranjanravi.com/social/. social:/usr/share/nginx/html/'
 
 echo 'Project copied to docker'
+
+fi
