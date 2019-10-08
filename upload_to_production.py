@@ -112,7 +112,8 @@ def get_commited_files():
     status_output, status_err = status_check_process.communicate()
     logging.debug("git cherry output: %s" % status_output)
     if not status_output:
-        return updated_list
+        pass
+        # return updated_list
     logging.info("Getting older commited files")
     status_check_process = Popen(['git', 'show', '--name-only', '--oneline',
                                   'HEAD'], shell=False,
