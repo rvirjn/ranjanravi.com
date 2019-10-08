@@ -21,7 +21,7 @@ GOAT_PWD = ""
 port = 22
 PRIVATEKEY = 'aws-new-key-sg-new.pem'
 REMOTE_GOAT_LOCATION = "/home/ubuntu/ranjanravi.com/"
-IGNORE_FILES = ["upload_changed_files_to_remote",  "gitignore", '.git']
+IGNORE_FILES = ["upload_to_production"]
 
 
 class Server(object):
