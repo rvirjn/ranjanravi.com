@@ -27,7 +27,7 @@ sudo docker create --name checkspell --network my-net --publish 2222:80 raviranj
 sudo docker start checkspell
 
 # sudo docker network create hierarchy-net
-sudo docker create --name hierarchy --network my-net --publish 5555:80 raviranjanamu/tomcat
+sudo docker create --name hierarchy --network my-net --publish 5555:8080 raviranjanamu/tomcat
 sudo docker start hierarchy
 
 # sudo docker network create onlinetest-net
