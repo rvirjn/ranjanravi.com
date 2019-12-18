@@ -1,4 +1,5 @@
 #!/bin/bash
+#13.127.99.82
 sudo curl https://get.docker.com/ -sSL | sh
 sudo usermod -aG docker ubuntu
 sudo sysctl net.ipv4.conf.all.forwarding=1
@@ -15,7 +16,7 @@ sudo docker create --name shopping --network my-net --publish 9999:80 raviranjan
 sudo docker start shopping
 
 # sudo docker network create booking-net
-sudo docker create --name booking --network my-net --publish 8888:8080 raviranjanamu/tomcat
+sudo docker create --name booking --network my-net --publish 6666:8080 raviranjanamu/tomcat
 sudo docker start booking
 
 # sudo docker network create profile-net
@@ -39,7 +40,7 @@ sudo docker create --name social --network my-net --publish 3333:80 raviranjanam
 sudo docker start social
 
 # sudo docker network create jupyter-net
-sudo docker create --name jupyter --network my-net --publish 8082:8888 jupyter/datascience-notebook
+sudo docker create --name jupyter --network my-net --publish 8888:8888 jupyter/datascience-notebook
 sudo docker start jupyter
 
 sudo docker ps -a
