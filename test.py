@@ -1,21 +1,31 @@
 import webbrowser
 try:
-    # webbrowser.open_new_tab('https://ranjanravi.com')
-    webbrowser.open_new_tab('https://profile.ranjanravi.com')
-    webbrowser.open_new_tab('http://shopping.ranjanravi.com')
-    webbrowser.open_new_tab('http://booking.ranjanravi.com')
-    webbrowser.open_new_tab('http://checkspell.ranjanravi.com')
-    webbrowser.open_new_tab('http://hierarchy.ranjanravi.com')
-    webbrowser.open_new_tab('http://onlinetest.ranjanravi.com')
-    webbrowser.open_new_tab('http://social.ranjanravi.com')
+    webbrowser.open_new_tab('https://ranjanravi.com')
 
-    webbrowser.open_new_tab('http://13.234.239.179:2222')
-    webbrowser.open_new_tab('http://13.234.239.179:3333')
-    webbrowser.open_new_tab('http://13.234.239.179:4444')
-    webbrowser.open_new_tab('http://13.234.239.179:5555')
-    webbrowser.open_new_tab('https://13.234.239.179:7777')
-    webbrowser.open_new_tab('http://13.234.239.179:8888')
-    webbrowser.open_new_tab('http://13.234.239.179:9999')
+    webbrowser.open_new_tab('http://checkspell.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:2222')
+
+    webbrowser.open_new_tab('http://social.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:3333')
+
+    webbrowser.open_new_tab('http://onlinetest.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:4444')
+
+    webbrowser.open_new_tab('http://booking.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:6666')
+
+    webbrowser.open_new_tab('http://hierarchy.ranjanravi.com')
+    webbrowser.open_new_tab('http://mpsjaisinghpur.com')
+    webbrowser.open_new_tab('http://13.127.99.82:5555') # school
+
+    webbrowser.open_new_tab('https://profile.ranjanravi.com')
+    webbrowser.open_new_tab('https://13.127.99.82:7777')
+
+    webbrowser.open_new_tab('http://jupyter.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:8888') # jupiter
+
+    webbrowser.open_new_tab('http://shopping.ranjanravi.com')
+    webbrowser.open_new_tab('http://13.127.99.82:9999')
 
 except Exception as e:
     print(e)

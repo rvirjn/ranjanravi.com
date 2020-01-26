@@ -15,7 +15,7 @@ warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 __author__ = 'raviranjan'
 
 # Changes will be uploaded to below location
-GOAT_IP = "13.234.239.179"
+GOAT_IP = "13.127.99.82"
 GOAT_USERNAME = "ubuntu"
 GOAT_PWD = ""
 port = 22
