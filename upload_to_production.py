@@ -169,4 +169,6 @@ if __name__ == '__main__':
         datefmt='%m/%d/%Y %I:%M:%S %p IST', filemode='w', level=logging.DEBUG)
     print("Writing logs at %s" % log_file)
     upload_change_to(GOAT_IP, GOAT_USERNAME, GOAT_PWD, REMOTE_GOAT_LOCATION)
+    # import os
+    # os.system('sh update_website.sh production')
     print("Program Execution completed")

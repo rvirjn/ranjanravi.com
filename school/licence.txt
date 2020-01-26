@@ -1,11 +1,11 @@
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Template Name: Academic Education V2
+Template Name: M.S Public School
 File: Licence
-Author: OS Templates
-Author URI: http://www.os-templates.com/
-Licence URI: http://www.os-templates.com/template-terms
+Author: M.S Public School
+Author URI: http://mpsjaisinghpur.com/
+Licence URI: http://mpsjaisinghpur.com/template-terms
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ Licence URI: http://www.os-templates.com/template-terms
 IPR
 ---
 
-Intellectual Property Rights (IPR) belong to and stay with OS Templates and the their owner(s).
+Intellectual Property Rights (IPR) belong to and stay with M.S Public School and the their owner(s).
 
 
 TERMS OF USE
@@ -21,11 +21,11 @@ TERMS OF USE
 
 This template can be used for private and commercial websites under the following terms:
 
-    * You must attribute the work in the manner specified by OS Templates (author and licensor - see Attribution section below).
+    * You must attribute the work in the manner specified by M.S Public School (author and licensor - see Attribution section below).
 
     * If you use our work for your clients or friends website(s), you have to inform them of the licence that comes with the template(s)
 
-    * You can not claim intellectual property rights or exclusive ownership to any of our templates, modified or unmodified. All templates are the property of OS Templates.
+    * You can not claim intellectual property rights or exclusive ownership to any of our templates, modified or unmodified. All templates are the property of M.S Public School.
 
     * You are not permitted to place any of our templates either modified or unmodified, on a diskette, CD, website or any other medium for distribution or re-distribution, rent, lease, sale or resale.
 
@@ -46,23 +46,23 @@ All templates that can be found within this site have copyright information and 
 
 Credit link(s) and copyright information must stay unmodified in all web pages that use our template(s).
 
-The default credit link that can be found in the (source code) template footer is: <p class="fl_right">Template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+The default credit link that can be found in the (source code) template footer is: <p class="fl_right">Sponsored by <a href="http://mpsjaisinghpur.com/" title="Free Website Templates">M.S Public School</a></p>
 
 The default footer link may be changed to:
 
-    Code by OS Templates
-    <p class="fl_right">Code by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    Code by M.S Public School
+    <p class="fl_right">Code by <a href="http://mpsjaisinghpur.com/" title="Free Website Templates">M.S Public School</a></p>
 
-    Design by OS Templates
-    <p class="fl_right">Design by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    Design by M.S Public School
+    <p class="fl_right">Design by <a href="http://mpsjaisinghpur.com/" title="Free Website Templates">M.S Public School</a></p>
 
-    Thanks to OS Templates
-    <p class="fl_right">Thanks to <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    Thanks to M.S Public School
+    <p class="fl_right">Thanks to <a href="http://mpsjaisinghpur.com/" title="Free Website Templates">M.S Public School</a></p>
 
 For companies or individuals that wish to add their information to the template footer please feel free to modify the link as such:
 
-    Website by YOURDETAILS & OS Templates
-    <p class="fl_right">Website by <a href="YOURURL">YOURDETAILS</a> & <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    Website by YOURDETAILS & M.S Public School
+    <p class="fl_right">Website by <a href="YOURURL">YOURDETAILS</a> & <a href="http://mpsjaisinghpur.com/" title="Free Website Templates">M.S Public School</a></p>
 
 
 COPYRIGHT INFO & CREDIT LINKS
@@ -70,9 +70,9 @@ COPYRIGHT INFO & CREDIT LINKS
 
 YOU ARE NOT PERMITTED TO REMOVE CREDIT LINKS AND/OR COPYRIGHT INFORMATION FROM THE TEMPLATE FOOTER OR ACCOMPANYING CSS OR JAVASCRIPT FILES
 
-OS Templates DOES NOT offer paid link removals or paid copyright removals.
+M.S Public School DOES NOT offer paid link removals or paid copyright removals.
 
-All of the templates and digital work that can be found on http://www.os-templates.com/ have been filed globally with various Copyright Offices. If you misuse our digital work we will seek damages and you will be prosecuted.
+All of the templates and digital work that can be found on http://mpsjaisinghpur.com/ have been filed globally with various Copyright Offices. If you misuse our digital work we will seek damages and you will be prosecuted.
 
 If credit links and/or copyright information are/is intentionally removed from our digital work, legal action will be taken against those doing so.
 
