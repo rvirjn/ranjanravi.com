@@ -3,6 +3,7 @@ try:
     webbrowser.open_new_tab('https://ranjanravi.com')
 
     webbrowser.open_new_tab('http://checkspell.ranjanravi.com')
+    webbrowser.open_new_tab('http://farmination.com')
     webbrowser.open_new_tab('http://13.127.99.82:2222')
 
     webbrowser.open_new_tab('http://social.ranjanravi.com')
