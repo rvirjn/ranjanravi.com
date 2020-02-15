@@ -16,7 +16,7 @@ sudo docker create --name shopping --network my-net --publish 9999:80 raviranjan
 sudo docker start shopping
 
 # sudo docker network create booking-net
-sudo docker create --name booking --network my-net --publish 6666:8080 raviranjanamu/tomcat
+sudo docker create --name booking --network my-net --publish 6660:8080 raviranjanamu/tomcat
 sudo docker start booking
 
 # sudo docker network create profile-net
