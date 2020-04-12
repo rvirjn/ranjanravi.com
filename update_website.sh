@@ -8,11 +8,11 @@ if [ $# -eq 1 ]
 echo 'Running upload_to_production.py first'
 # python upload_to_production.py
 echo 'Performing post action for updating ranjanravi.com'
-ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/farmination/. checkspell:/usr/local/apache2/htdocs/'
+ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/farmination/. farmination:/usr/local/apache2/htdocs/'
 # ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/checkspell/. checkspell:/usr/local/apache2/htdocs/'
 
 # ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/hierarchy/. hierarchy:/usr/local/tomcat/webapps/ROOT/'
-# ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/school/. hierarchy:/usr/local/tomcat/webapps/ROOT/'
+ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/school/. school:/usr/local/tomcat/webapps/ROOT/'
 
 ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/shopping/. shopping:/usr/share/nginx/html/'
 ssh -i aws-new-key-sg-new.pem ubuntu@13.127.99.82 'sudo docker cp /home/ubuntu/ranjanravi.com/booking/. booking:/usr/local/tomcat/webapps/ROOT/'
