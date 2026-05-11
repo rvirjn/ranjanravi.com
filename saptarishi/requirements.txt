@@ -1,0 +1,4 @@
+pymongo
+pytesseract
+Pillow
+opencv-python-headless

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nakshatra Chakra Table</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="saptarishi-page">
+  <div id="saptarishi" class="container main-shell">
+    <h1>Nakshatra Chakra Table View</h1>
+    <p class="lead">Enter a janma nakshatra to see details.</p>
+
+    <form id="nakshatra-form" class="search-form">
+      <select id="nakshatra-select" required>
+        <option value="">Select janma nakshatra</option>
+      </select>
+      <button type="submit">Show Data</button>
+    </form>
+
+    <p id="status" class="status"></p>
+
+    <section>
+      <h2>Chakras With Nakshatras</h2>
+      <div class="table-wrap">
+        <table id="chakra-table">
+          <thead>
+            <tr>
+              <th>chakra_name</th>
+              <th>auspicious</th>
+              <th>nakshatra</th>
+              <th>ruling_planet</th>
+              <th>helpful_god</th>
+              <th>tree</th>
+              <th>lucky_colors</th>
+              <th>result</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="./nakshatra-ui.js"></script>
+</body>
+</html>
