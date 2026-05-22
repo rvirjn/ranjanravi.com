@@ -493,16 +493,17 @@ tbody tr:last-child td {
   margin-top: 0;
 }
 
-#kundali-summary-table th[scope="row"] {
+#summary-table th[scope="row"] {
   width: 12rem;
   text-align: left;
   font-weight: 600;
   color: var(--color-heading);
-  vertical-align: top;
+  vertical-align: middle;
 }
 
-#kundali-summary-table td {
-  vertical-align: top;
+#summary-table td {
+  vertical-align: middle;
+  min-width: 14rem;
 }
 
 .kundali-hint {
@@ -583,18 +584,48 @@ tbody tr:last-child td {
 .summary-chart-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-lg);
-  align-items: flex-start;
+  gap: var(--space-md);
+  align-items: center;
+  justify-content: flex-start;
   margin-bottom: var(--space-md);
 }
 
-.summary-chart-row__summary {
-  flex: 1 1 280px;
-  min-width: 0;
+.summary-chart-row__summary.table-wrap {
+  flex: 1 1 28rem;
+  min-width: 26rem;
+  max-width: 42rem;
+  margin-bottom: 0;
+  overflow: visible;
+}
+
+#summary-table {
+  width: 100%;
+  min-width: 26rem;
+  max-width: 42rem;
+}
+
+#summary-table th,
+#summary-table td {
+  padding: 0.85rem 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+#summary-table td {
+  overflow-wrap: anywhere;
+}
+
+#summary-table tr:last-child th,
+#summary-table tr:last-child td {
+  border-bottom: none;
 }
 
 .summary-chart-row__chart {
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .kundali-chart-lagna {
@@ -652,14 +683,36 @@ tbody tr:last-child td {
   font-size: 4.2px;
 }
 
+.kundali-chart-planet {
+  font-size: 5px;
+  font-weight: 700;
+  stroke: none;
+  paint-order: fill;
+}
+
+/* Same hues as #planets-table row backgrounds; stronger opacity for readable text */
+.kundali-chart-planet--friend {
+  fill: rgb(46, 125, 50);
+  opacity: calc(0.65 + var(--planet-strength, 0.5) * 0.35);
+}
+
+.kundali-chart-planet--enemy {
+  fill: rgb(183, 28, 28);
+  opacity: calc(0.65 + var(--planet-strength, 0.5) * 0.35);
+}
+
+.kundali-chart-planet--neutral {
+  fill: rgb(92, 100, 120);
+  opacity: calc(0.65 + var(--planet-strength, 0.5) * 0.35);
+}
+
 .kundali-chart-label-rashi {
   font-size: 6px;
   font-weight: 700;
   fill: var(--color-heading);
 }
 
-.kundali-chart-house--lagna .kundali-chart-label-rashi,
-.kundali-chart-house--lagna .kundali-chart-label-planets {
+.kundali-chart-house--lagna .kundali-chart-label-rashi {
   fill: #8b6914;
 }
 
