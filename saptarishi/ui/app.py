@@ -1,26 +1,29 @@
+"""Minimal Flask API: one endpoint runs ``get_kundali.build_full_kundali`` and returns JSON."""
+
+from __future__ import annotations
+
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 from flask import Flask, jsonify, request
 
-
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = ROOT / "database" / "nakshatra.json"
+MAIN_DIR = ROOT / "main"
+if str(MAIN_DIR) not in sys.path:
+    sys.path.insert(0, str(MAIN_DIR))
+
+from constant import (  # noqa: E402
+    DEFAULT_HOUSE_SYSTEM,
+    FLASK_HOST,
+    FLASK_PORT,
+    MAX_PLACE_QUERY_LENGTH,
+    SERVICE_NAME,
+    VALID_HOUSE_SYSTEMS,
+)
+from get_kundali import build_full_kundali  # noqa: E402
 
 app = Flask(__name__)
-
-
-def _load_all_nakshatras():
-    with DB_PATH.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-    return [item["nakshatra"] for item in data.get("nakshatras", [])]
-
-
-def _output_path_for(nakshatra_name):
-    slug = nakshatra_name.strip().lower().replace(" ", "_")
-    return ROOT / "output" / ("chakras_{}.json".format(slug))
 
 
 @app.after_request
@@ -35,44 +38,33 @@ def add_cors_headers(response):
 def home():
     return jsonify(
         {
-            "service": "saptarishi_flask_api",
-            "ui_url": "http://localhost:9999/ui/hompage.html",
-            "nakshatras_api": "/api/nakshatras",
-            "chakras_api_example": "/api/chakras?nakshatra=rohini",
+            "service": SERVICE_NAME,
+            "ui": "/ui/kundali.html",
+            "api": "/api/kundali?date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India",
         }
     )
 
 
-@app.route("/api/nakshatras", methods=["GET"])
-def api_nakshatras():
-    return jsonify(_load_all_nakshatras())
-
-
-@app.route("/api/chakras", methods=["GET"])
-def api_chakras():
-    nakshatra = (request.args.get("nakshatra") or "").strip()
-    if not nakshatra:
-        return jsonify({"error": "nakshatra query param is required"}), 400
-
-    command = [sys.executable, str(ROOT / "main" / "get_chakras.py"), nakshatra]
-    result = subprocess.run(
-        command,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return jsonify({"error": result.stdout.strip() or result.stderr.strip() or "failed"}), 400
-
-    output_path = _output_path_for(nakshatra)
-    if not output_path.exists():
-        return jsonify({"error": "output file not generated"}), 500
-
-    with output_path.open("r", encoding="utf-8") as file:
-        payload = json.load(file)
-    return jsonify(payload)
+@app.route("/api/kundali", methods=["GET"], strict_slashes=False)
+def api_kundali():
+    date_s = (request.args.get("date") or "").strip()
+    time_s = (request.args.get("time") or "").strip()
+    place = (request.args.get("place") or "").strip()
+    house_system = (request.args.get("house_system") or DEFAULT_HOUSE_SYSTEM).strip().upper()
+    if not date_s or not time_s or not place:
+        return jsonify({"error": "date, time, and place are required"}), 400
+    if len(place) > MAX_PLACE_QUERY_LENGTH:
+        return jsonify({"error": "place is too long"}), 400
+    if house_system not in VALID_HOUSE_SYSTEMS:
+        return jsonify({"error": f"house_system must be one of {', '.join(VALID_HOUSE_SYSTEMS)}"}), 400
+    try:
+        payload = build_full_kundali(ROOT, date_s, time_s, place, house_system)
+        return jsonify(payload)
+    except (RuntimeError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"invalid JSON: {e}"}), 500
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8081, debug=False)
+    app.run(host=FLASK_HOST, port=FLASK_PORT, debug=False)

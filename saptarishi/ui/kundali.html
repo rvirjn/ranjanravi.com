@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kundali by Saptarishi</title>
+  <link rel="stylesheet" href="./styles.css?v=26">
+</head>
+<body class="saptarishi-page">
+  <div id="saptarishi" class="container main-shell">
+    <h1>Kundali by Saptarishi</h1>
+    <p class="lead">Birth chart and Moon janma navatara tables</p>
+
+    <form id="birth-form" class="search-form kundali-form" autocomplete="off">
+      <div class="form-field">
+        <label for="place-preset">Place</label>
+        <select id="place-preset">
+          <option value="">Select place…</option>
+          <option value="New Delhi, India">New Delhi, India</option>
+          <option value="Mumbai, India">Mumbai, India</option>
+          <option value="Kolkata, India">Kolkata, India</option>
+          <option value="Bengaluru, India">Bengaluru, India</option>
+          <option value="Patna, India">Patna, India</option>
+          <option value="Motihari, India">Motihari, India</option>
+          <option value="__custom__">Other…</option>
+        </select>
+      </div>
+      <div class="form-field" id="custom-place-wrap" hidden>
+        <label for="place-custom">Custom place</label>
+        <input type="text" id="place-custom" maxlength="240" placeholder="City, Country" />
+      </div>
+      <div class="form-field">
+        <label for="birth-date">Date</label>
+        <input type="date" id="birth-date" required />
+      </div>
+      <div class="form-field">
+        <label for="birth-time">Time</label>
+        <input type="time" id="birth-time" step="1" required />
+      </div>
+      <div class="form-field form-field--submit">
+        <button type="submit" id="submit-btn">Show</button>
+      </div>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <div id="results" hidden>
+      <h2 class="result-heading">Summary</h2>
+      <div class="summary-chart-row">
+        <div class="summary-chart-row__summary table-wrap">
+          <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+        </div>
+        <div class="summary-chart-row__chart">
+          <p class="kundali-chart-lagna" id="kundali-chart-lagna" hidden></p>
+          <div id="kundali-chart" class="kundali-chart-host"></div>
+        </div>
+      </div>
+
+      <h2 class="result-heading">Planets</h2>
+      <div class="table-wrap">
+        <table id="planets-table" class="navatara-data-table kundali-table">
+          <thead>
+            <tr>
+              <th>House</th>
+              <th>Planet</th>
+              <th>Rashi</th>
+              <th>Strength</th>
+              <th>Status in Rashi</th>
+              <th>Retrograde</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h2 class="result-heading">Navatara</h2>
+      <div class="table-wrap">
+        <table id="navatara-table" class="navatara-data-table kundali-table">
+          <thead>
+            <tr>
+              <th>For</th>
+              <th>Helpful</th>
+              <th>Navatara</th>
+              <th>Nakshatra</th>
+              <th>Ruling planet</th>
+              <th>Deity</th>
+              <th>Tree</th>
+              <th>Colors</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="./constants.js?v=18"></script>
+  <script src="./kundali.js?v=29"></script>
+</body>
+</html>

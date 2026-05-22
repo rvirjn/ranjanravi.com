@@ -2,3 +2,10 @@ pymongo
 pytesseract
 Pillow
 opencv-python-headless
+pyswisseph>=2.10.0
+tzdata
+backports.zoneinfo; python_version < "3.9"
+# Installed in the saptarishi_flask Docker image (see README).
+flask>=3.0.0
+pyswisseph>=2.10.0
+tzdata

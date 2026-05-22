@@ -1,0 +1,560 @@
+{
+  "planets": [
+    {
+      "name": "sun",
+      "rashi": ["leo"],
+      "friends": ["moon","mars","jupiter"],
+      "enemies": ["venus","saturn","rahu"],
+      "neutral": ["mercury"],
+      "karak_house": [1,9,10],
+      "nakshatras": [
+        {
+          "sequence": 3,
+          "nakshatra": "krittika",
+          "deity": "agni dev",
+          "tree": "gular",
+          "lucky_colors": ["white","golden"]
+        },
+        {
+          "sequence": 12,
+          "nakshatra": "uttara phalguni",
+          "deity": "bhaga (sun)",
+          "tree": "pakar",
+          "lucky_colors": ["golden","red"]
+        },
+        {
+          "sequence": 21,
+          "nakshatra": "uttara ashadha",
+          "deity": "vishwadeva",
+          "tree": "jackfruit/panas",
+          "lucky_colors": ["copper","golden"]
+        }
+      ]
+    },
+    {
+      "name": "moon",
+      "rashi": ["cancer"],
+      "friends": ["sun","mercury"],
+      "enemies": ["rahu","ketu"],
+      "neutral": ["saturn","venus","jupiter","mars"],
+      "karak_house": [4],
+      "nakshatras": [
+        {
+          "sequence": 4,
+          "nakshatra": "rohini",
+          "deity": "brahma",
+          "tree": "jamun",
+          "lucky_colors": ["white","cream"]
+        },
+        {
+          "sequence": 13,
+          "nakshatra": "hasta",
+          "deity": "savitar (sun)",
+          "tree": "jai/guava",
+          "lucky_colors": ["dark green"]
+        },
+        {
+          "sequence": 22,
+          "nakshatra": "shravana",
+          "deity": "vishnu",
+          "tree": "madar/aak",
+          "lucky_colors": ["light blue","green"]
+        }
+      ]
+    },
+    {
+      "name": "mars",
+      "rashi": ["aries","scorpio"],
+      "friends": ["sun","moon","jupiter"],
+      "enemies": ["saturn","venus"],
+      "neutral": ["mercury","rahu","ketu"],
+      "karak_house": [3,6],
+      "nakshatras": [
+        {
+          "sequence": 5,
+          "nakshatra": "mrigashira",
+          "deity": "moon",
+          "tree": "khair",
+          "lucky_colors": ["silver","red"]
+        },
+        {
+          "sequence": 14,
+          "nakshatra": "chitra",
+          "deity": "tvashta (vishwakarma)",
+          "tree": "bel",
+          "lucky_colors": ["red","silver"]
+        },
+        {
+          "sequence": 23,
+          "nakshatra": "dhanishta",
+          "deity": "eight vasus",
+          "tree": "shami",
+          "lucky_colors": ["red","silver"]
+        }
+      ]
+    },
+    {
+      "name": "mercury",
+      "rashi": ["gemini","virgo"],
+      "friends": ["sun","venus","rahu"],
+      "enemies": ["moon","jupiter"],
+      "neutral": ["mars","saturn","ketu"],
+      "karak_house": [4,10],
+      "nakshatras": [
+        {
+          "sequence": 9,
+          "nakshatra": "ashlesha",
+          "deity": "serpent",
+          "tree": "nagkesar",
+          "lucky_colors": ["light blue"]
+        },
+        {
+          "sequence": 18,
+          "nakshatra": "jyeshtha",
+          "deity": "indra",
+          "tree": "red cotton",
+          "lucky_colors": ["red","blue"]
+        },
+        {
+          "sequence": 27,
+          "nakshatra": "revati",
+          "deity": "pushan",
+          "tree": "mahua",
+          "lucky_colors": ["light blue","green"]
+        }
+      ]
+    },
+    {
+      "name": "jupiter",
+      "rashi": ["sagittarius","pisces"],
+      "friends": ["sun","moon","mars"],
+      "enemies": ["mercury","venus"],
+      "neutral": ["rahu","saturn","ketu"],
+      "karak_house": [2,5,9,10,11],
+      "nakshatras": [
+        {
+          "sequence": 7,
+          "nakshatra": "punarvasu",
+          "deity": "aditi",
+          "tree": "bamboo",
+          "lucky_colors": ["yellow","cream"]
+        },
+        {
+          "sequence": 16,
+          "nakshatra": "vishakha",
+          "deity": "indra-agni",
+          "tree": "nagkesar",
+          "lucky_colors": ["yellow","golden"]
+        },
+        {
+          "sequence": 25,
+          "nakshatra": "purva bhadrapada",
+          "deity": "ajaikapada",
+          "tree": "mango",
+          "lucky_colors": ["yellow","golden"]
+        }
+      ]
+    },
+    {
+      "name": "venus",
+      "rashi": ["taurus","libra"],
+      "friends": ["mercury","saturn","rahu"],
+      "enemies": ["sun","moon"],
+      "neutral": ["jupiter","mars","ketu"],
+      "karak_house": [7],
+      "nakshatras": [
+        {
+          "sequence": 2,
+          "nakshatra": "bharani",
+          "deity": "yamraj",
+          "tree": "amla",
+          "lucky_colors": ["red","white"]
+        },
+        {
+          "sequence": 11,
+          "nakshatra": "purva phalguni",
+          "deity": "bhaga (aryaman)",
+          "tree": "palash/dhak",
+          "lucky_colors": ["brown","light red"]
+        },
+        {
+          "sequence": 20,
+          "nakshatra": "purva ashadha",
+          "deity": "apah (water)",
+          "tree": "water cane",
+          "lucky_colors": ["white","cream"]
+        }
+      ]
+    },
+    {
+      "name": "saturn",
+      "rashi": ["capricorn","aquarius"],
+      "friends": ["mercury","venus","rahu"],
+      "enemies": ["sun","mars","moon"],
+      "neutral": ["jupiter","ketu"],
+      "karak_house": [6,8,10,12],
+      "nakshatras": [
+        {
+          "sequence": 8,
+          "nakshatra": "pushya",
+          "deity": "brihaspati",
+          "tree": "peepal",
+          "lucky_colors": ["golden","yellow"]
+        },
+        {
+          "sequence": 17,
+          "nakshatra": "anuradha",
+          "deity": "mitra (aditya)",
+          "tree": "moulshree/bakul",
+          "lucky_colors": ["red","blue"]
+        },
+        {
+          "sequence": 26,
+          "nakshatra": "uttara bhadrapada",
+          "deity": "ahirbudhnya",
+          "tree": "neem",
+          "lucky_colors": ["blue","black"]
+        }
+      ]
+    },
+    {
+      "name": "rahu",
+      "rashi": [],
+      "friends": ["mercury","venus","saturn"],
+      "enemies": ["sun","mars","moon"],
+      "neutral": ["jupiter","ketu"],
+      "karak_house": [],
+      "nakshatras": [
+        {
+          "sequence": 6,
+          "nakshatra": "ardra",
+          "deity": "rudra (shiva)",
+          "tree": "krishnaguru/agaru",
+          "lucky_colors": ["blue","black"]
+        },
+        {
+          "sequence": 15,
+          "nakshatra": "swati",
+          "deity": "vayu",
+          "tree": "arjuna",
+          "lucky_colors": ["black","dark color"]
+        },
+        {
+          "sequence": 24,
+          "nakshatra": "shatabhisha",
+          "deity": "varuna",
+          "tree": "kadamba",
+          "lucky_colors": ["dark blue","black"]
+        }
+      ]
+    },
+    {
+      "name": "ketu",
+      "rashi": [],
+      "friends": ["venus","saturn","mercury"],
+      "enemies": ["sun","mars","moon"],
+      "neutral": ["jupiter","rahu"],
+      "karak_house": [],
+      "nakshatras": [
+        {
+          "sequence": 1,
+          "nakshatra": "ashwini",
+          "deity": "ashwini kumar",
+          "tree": "kuchla/peepal",
+          "lucky_colors": ["red","white"]
+        },
+        {
+          "sequence": 10,
+          "nakshatra": "magha",
+          "deity": "pitru gan",
+          "tree": "banyan",
+          "lucky_colors": ["black","red"]
+        },
+        {
+          "sequence": 19,
+          "nakshatra": "mula",
+          "deity": "nirriti (kaal)",
+          "tree": "sal/saraj",
+          "lucky_colors": ["black","red"]
+        }
+      ]
+    }
+  ],
+  "nakshatras": [
+    {
+      "sequence": 1,
+      "nakshatra": "ashwini",
+      "ruling_planet": "ketu",
+      "deity": "ashwini kumar",
+      "tree": "kuchla/peepal",
+      "lucky_colors": ["red","white"]
+    },
+    {
+      "sequence": 2,
+      "nakshatra": "bharani",
+      "ruling_planet": "venus",
+      "deity": "yamraj",
+      "tree": "amla",
+      "lucky_colors": ["red","white"]
+    },
+    {
+      "sequence": 3,
+      "nakshatra": "krittika",
+      "ruling_planet": "sun",
+      "deity": "agni dev",
+      "tree": "gular",
+      "lucky_colors": ["white","golden"]
+    },
+    {
+      "sequence": 4,
+      "nakshatra": "rohini",
+      "ruling_planet": "moon",
+      "deity": "brahma",
+      "tree": "jamun",
+      "lucky_colors": ["white","cream"]
+    },
+    {
+      "sequence": 5,
+      "nakshatra": "mrigashira",
+      "ruling_planet": "mars",
+      "deity": "moon",
+      "tree": "khair",
+      "lucky_colors": ["silver","red"]
+    },
+    {
+      "sequence": 6,
+      "nakshatra": "ardra",
+      "ruling_planet": "rahu",
+      "deity": "rudra (shiva)",
+      "tree": "krishnaguru/agaru",
+      "lucky_colors": ["blue","black"]
+    },
+    {
+      "sequence": 7,
+      "nakshatra": "punarvasu",
+      "ruling_planet": "jupiter",
+      "deity": "aditi",
+      "tree": "bamboo",
+      "lucky_colors": ["yellow","cream"]
+    },
+    {
+      "sequence": 8,
+      "nakshatra": "pushya",
+      "ruling_planet": "saturn",
+      "deity": "brihaspati",
+      "tree": "peepal",
+      "lucky_colors": ["golden","yellow"]
+    },
+    {
+      "sequence": 9,
+      "nakshatra": "ashlesha",
+      "ruling_planet": "mercury",
+      "deity": "serpent",
+      "tree": "nagkesar",
+      "lucky_colors": ["light blue"]
+    },
+    {
+      "sequence": 10,
+      "nakshatra": "magha",
+      "ruling_planet": "ketu",
+      "deity": "pitru gan",
+      "tree": "banyan",
+      "lucky_colors": ["black","red"]
+    },
+    {
+      "sequence": 11,
+      "nakshatra": "purva phalguni",
+      "ruling_planet": "venus",
+      "deity": "bhaga (aryaman)",
+      "tree": "palash/dhak",
+      "lucky_colors": ["brown","light red"]
+    },
+    {
+      "sequence": 12,
+      "nakshatra": "uttara phalguni",
+      "ruling_planet": "sun",
+      "deity": "bhaga (sun)",
+      "tree": "pakar",
+      "lucky_colors": ["golden","red"]
+    },
+    {
+      "sequence": 13,
+      "nakshatra": "hasta",
+      "ruling_planet": "moon",
+      "deity": "savitar (sun)",
+      "tree": "jai/guava",
+      "lucky_colors": ["dark green"]
+    },
+    {
+      "sequence": 14,
+      "nakshatra": "chitra",
+      "ruling_planet": "mars",
+      "deity": "tvashta (vishwakarma)",
+      "tree": "bel",
+      "lucky_colors": ["red","silver"]
+    },
+    {
+      "sequence": 15,
+      "nakshatra": "swati",
+      "ruling_planet": "rahu",
+      "deity": "vayu",
+      "tree": "arjuna",
+      "lucky_colors": ["black","dark color"]
+    },
+    {
+      "sequence": 16,
+      "nakshatra": "vishakha",
+      "ruling_planet": "jupiter",
+      "deity": "indra-agni",
+      "tree": "nagkesar",
+      "lucky_colors": ["yellow","golden"]
+    },
+    {
+      "sequence": 17,
+      "nakshatra": "anuradha",
+      "ruling_planet": "saturn",
+      "deity": "mitra (aditya)",
+      "tree": "moulshree/bakul",
+      "lucky_colors": ["red","blue"]
+    },
+    {
+      "sequence": 18,
+      "nakshatra": "jyeshtha",
+      "ruling_planet": "mercury",
+      "deity": "indra",
+      "tree": "red cotton",
+      "lucky_colors": ["red","blue"]
+    },
+    {
+      "sequence": 19,
+      "nakshatra": "mula",
+      "ruling_planet": "ketu",
+      "deity": "nirriti (kaal)",
+      "tree": "sal/saraj",
+      "lucky_colors": ["black","red"]
+    },
+    {
+      "sequence": 20,
+      "nakshatra": "purva ashadha",
+      "ruling_planet": "venus",
+      "deity": "apah (water)",
+      "tree": "water cane",
+      "lucky_colors": ["white","cream"]
+    },
+    {
+      "sequence": 21,
+      "nakshatra": "uttara ashadha",
+      "ruling_planet": "sun",
+      "deity": "vishwadeva",
+      "tree": "jackfruit/panas",
+      "lucky_colors": ["copper","golden"]
+    },
+    {
+      "sequence": 22,
+      "nakshatra": "shravana",
+      "ruling_planet": "moon",
+      "deity": "vishnu",
+      "tree": "madar/aak",
+      "lucky_colors": ["light blue","green"]
+    },
+    {
+      "sequence": 23,
+      "nakshatra": "dhanishta",
+      "ruling_planet": "mars",
+      "deity": "eight vasus",
+      "tree": "shami",
+      "lucky_colors": ["red","silver"]
+    },
+    {
+      "sequence": 24,
+      "nakshatra": "shatabhisha",
+      "ruling_planet": "rahu",
+      "deity": "varuna",
+      "tree": "kadamba",
+      "lucky_colors": ["dark blue","black"]
+    },
+    {
+      "sequence": 25,
+      "nakshatra": "purva bhadrapada",
+      "ruling_planet": "jupiter",
+      "deity": "ajaikapada",
+      "tree": "mango",
+      "lucky_colors": ["yellow","golden"]
+    },
+    {
+      "sequence": 26,
+      "nakshatra": "uttara bhadrapada",
+      "ruling_planet": "saturn",
+      "deity": "ahirbudhnya",
+      "tree": "neem",
+      "lucky_colors": ["blue","black"]
+    },
+    {
+      "sequence": 27,
+      "nakshatra": "revati",
+      "ruling_planet": "mercury",
+      "deity": "pushan",
+      "tree": "mahua",
+      "lucky_colors": ["light blue","green"]
+    }
+  ],
+  "nava_tara": {
+    "description": "in vedic astrology, a sequence of 9 stars used to analyze planetary transits and dashas based on the 27 nakshatras.",
+    "navatara": [
+      {
+        "name": "janma",
+        "sequences": [1,10,19],
+        "result": "physical and mental condition, general wellbeing",
+        "auspicious": "yes"
+      },
+      {
+        "name": "sampat",
+        "sequence": [2,11,20],
+        "result": "wealth, prosperity, and happiness",
+        "auspicious": "yes"
+      },
+      {
+        "name": "vipat",
+        "sequences": [3,12,21],
+        "result": "obstacles, accidents, and troubles",
+        "auspicious": "no"
+      },
+      {
+        "name": "kshema",
+        "sequences": [4,13,22],
+        "result": "safety, health, and stability",
+        "auspicious": "yes"
+      },
+      {
+        "name": "pratyari",
+        "sequences": [5,14,23],
+        "result": "enemies, opposition, and conflicts",
+        "auspicious": "no"
+      },
+      {
+        "name": "sadhaka",
+        "sequences": [6,15,24],
+        "result": "success, achievement, and progress",
+        "auspicious": "yes"
+      },
+      {
+        "name": "vadha",
+        "sequences": [7,16,25],
+        "result": "severe suffering, destruction, and loss",
+        "auspicious": "no"
+      },
+      {
+        "name": "maitri",
+        "sequences": [8,17,26],
+        "result": "friendship, cooperation, and happiness",
+        "auspicious": "yes"
+      },
+      {
+        "name": "ati-maitri",
+        "sequences": [9,18,27],
+        "result": "special friendship, extremely auspicious",
+        "auspicious": "yes"
+      }
+    ]
+  }
+}

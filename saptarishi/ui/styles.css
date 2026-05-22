@@ -167,6 +167,31 @@ body.saptarishi-page {
   margin-bottom: var(--space-md);
 }
 
+/* Birth / kundali forms: label above each control; align submit with input baselines */
+.search-form.kundali-form {
+  align-items: flex-end;
+}
+
+.search-form.kundali-form .form-field--submit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-xs);
+}
+
+.search-form.kundali-form .form-field--submit .form-field__submit-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  line-height: 1.25;
+  min-height: calc(0.9rem * 1.25);
+  display: block;
+}
+
+.search-form.kundali-form .form-field--submit button[type="submit"] {
+  align-self: flex-start;
+  min-width: 7rem;
+}
+
 .search-form select {
   min-width: 220px;
   max-width: 100%;
@@ -178,6 +203,16 @@ body.saptarishi-page {
   border: 1px solid var(--color-surface-border);
   border-radius: var(--radius-sm);
   box-shadow: inset 0 1px 2px rgba(30, 58, 95, 0.06);
+}
+
+.search-form.kundali-form select,
+.search-form.kundali-form input[type="date"],
+.search-form.kundali-form input[type="time"],
+.search-form.kundali-form input[type="text"] {
+  width: 100%;
+  min-width: 12rem;
+  max-width: 280px;
+  box-sizing: border-box;
 }
 
 .search-form button[type="submit"] {
@@ -200,6 +235,24 @@ body.saptarishi-page {
 .search-form input {
   width: 260px;
   padding: var(--space-sm);
+}
+
+.search-form .form-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+/* Ensure preset flex layout does not show rows meant to be hidden */
+.search-form .form-field[hidden] {
+  display: none !important;
+}
+
+.search-form .form-field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-heading);
 }
 
 .status {
@@ -226,6 +279,21 @@ table {
   min-width: 900px;
 }
 
+#saptarishi.main-shell table caption {
+  caption-side: top;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: 0 0 var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+#saptarishi.main-shell .nakshatra-tables .table-wrap:first-child table caption {
+  margin-top: 0;
+}
+
 th,
 td {
   padding: var(--space-sm) var(--space-md);
@@ -245,10 +313,393 @@ th {
   white-space: nowrap;
 }
 
+/* Nakshatra tables: fixed columns so Planet / About do not crowd together */
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 720px;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table col.navatara-col-planet {
+  width: 11%;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table col.navatara-col-god {
+  width: 17%;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table col.navatara-col-tree {
+  width: 16%;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table col.navatara-col-color {
+  width: 13%;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table col.navatara-col-about {
+  width: 43%;
+}
+
+/* Nakshatra: caption ("Helpful" / "Not Helpful Things") = dark bar; column headers = light strip (swapped from earlier) */
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table caption {
+  caption-side: top;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fffef8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  padding: 1rem 0.85rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  background: linear-gradient(165deg, #2a5080 0%, var(--color-primary) 42%, #0f1f33 100%);
+  border-bottom: 3px solid var(--color-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+#saptarishi.main-shell .nakshatra-tables .table-wrap:first-child table.navatara-data-table caption {
+  margin-top: 0;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table thead th {
+  white-space: normal;
+  vertical-align: bottom;
+  line-height: 1.3;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-heading);
+  text-shadow: none;
+  padding: 0.7rem 0.65rem;
+  background: linear-gradient(
+    180deg,
+    #fffdf9 0%,
+    rgba(245, 238, 226, 0.96) 100%
+  );
+  border-bottom: 3px solid var(--color-accent);
+  border-left: 1px solid rgba(30, 58, 95, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table thead th:first-child {
+  border-left: none;
+  border-top-left-radius: 0;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table thead th:last-child {
+  border-top-right-radius: 0;
+}
+
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table tbody td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  vertical-align: top;
+  border-right: 1px solid rgba(30, 58, 95, 0.1);
+}
+
+/* Logical Planet column only — not :last-child (rowspan rows omit cells, so God was last-child and lost its border). */
+#saptarishi.main-shell .nakshatra-tables table.navatara-data-table tbody td.navatara-td-ruling_planet {
+  border-right: none;
+}
+
 tbody tr:hover {
   background: rgba(184, 134, 11, 0.06);
 }
 
 tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* ---------- Nakshatra page: full sequence + auspicious highlight ---------- */
+
+.result-panel {
+  margin-bottom: var(--space-xl);
+}
+
+.result-panel[hidden] {
+  display: none !important;
+}
+
+.result-heading {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-sm);
+}
+
+#saptarishi.main-shell table.overview-table {
+  min-width: 640px;
+}
+
+#saptarishi.main-shell table.overview-table tbody td:first-child {
+  width: 2.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+#saptarishi.main-shell table.overview-table tbody td.cell-auspicious-yes {
+  font-weight: 600;
+  color: #1b5e20;
+  background: rgba(46, 125, 50, 0.08);
+}
+
+#saptarishi.main-shell table.overview-table tbody td.cell-auspicious-no {
+  font-weight: 600;
+  color: #6d1b1b;
+  background: rgba(183, 28, 28, 0.06);
+}
+
+/* ---------- Kundali (birth chart) section ---------- */
+
+.kundali-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-surface-border);
+}
+
+/* Birth chart placed first on Nakshatra page */
+.kundali-section.kundali-section--lead {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+.janma-section {
+  margin-bottom: var(--space-md);
+}
+
+.kundali-lead code {
+  font-size: 0.9em;
+}
+
+.kundali-panel[hidden] {
+  display: none !important;
+}
+
+.kundali-panel .result-heading {
+  margin-top: var(--space-md);
+}
+
+.kundali-panel .result-heading:first-of-type {
+  margin-top: 0;
+}
+
+#kundali-summary-table th[scope="row"] {
+  width: 12rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-heading);
+  vertical-align: top;
+}
+
+#kundali-summary-table td {
+  vertical-align: top;
+}
+
+.kundali-hint {
+  margin-top: var(--space-sm);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  max-width: 42rem;
+}
+
+.moon-janma-hint {
+  margin-top: var(--space-sm);
+  font-size: 0.93rem;
+  color: var(--color-text-muted);
+  max-width: 42rem;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-surface-border);
+}
+
+.kundali-hint a {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.kundali-summary-content {
+  margin-top: var(--space-md);
+}
+
+.summary-block-title {
+  margin-top: var(--space-lg);
+}
+
+.summary-block-title:first-child {
+  margin-top: var(--space-sm);
+}
+
+
+.kundali-actions {
+  margin-top: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.kundali-actions .action-primary,
+.kundali-actions .action-secondary {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.kundali-actions .action-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.kundali-actions .action-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.kundali-actions .action-secondary {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-surface-border);
+}
+
+.kundali-actions .action-secondary:hover {
+  border-color: var(--color-primary);
+}
+
+/* ---------- Kundali page: summary + chart side by side ---------- */
+
+.summary-chart-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+}
+
+.summary-chart-row__summary {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.summary-chart-row__chart {
+  flex: 0 0 auto;
+}
+
+.kundali-chart-lagna {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-align: center;
+  text-decoration: none;
+}
+
+#kundali-chart {
+  max-width: 22rem;
+}
+
+.kundali-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.kundali-chart-frame {
+  fill: var(--color-surface);
+  stroke: var(--color-primary);
+  stroke-width: 1.2;
+}
+
+.kundali-chart-line {
+  stroke: var(--color-primary);
+  stroke-width: 0.65;
+  vector-effect: non-scaling-stroke;
+}
+
+.kundali-chart-labels {
+  pointer-events: none;
+}
+
+.kundali-chart-label {
+  font-family: var(--font-ui);
+  pointer-events: none;
+  text-decoration: none;
+  paint-order: stroke fill;
+  stroke: var(--color-surface);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.kundali-chart-label-planets {
+  font-size: 5px;
+  font-weight: 700;
+  fill: var(--color-primary);
+}
+
+.kundali-chart-label-planets--dense {
+  font-size: 4.2px;
+}
+
+.kundali-chart-label-rashi {
+  font-size: 6px;
+  font-weight: 700;
+  fill: var(--color-heading);
+}
+
+.kundali-chart-house--lagna .kundali-chart-label-rashi,
+.kundali-chart-house--lagna .kundali-chart-label-planets {
+  fill: #8b6914;
+}
+
+/* ---------- Kundali page: planets + navatara row colors ---------- */
+
+#planets-table tbody tr.planet-row {
+  --planet-strength: 0.25;
+}
+
+#planets-table tbody tr.planet-row--friend {
+  background-color: rgba(46, 125, 50, calc(0.1 + var(--planet-strength) * 0.5));
+}
+
+#planets-table tbody tr.planet-row--enemy {
+  background-color: rgba(183, 28, 28, calc(0.08 + var(--planet-strength) * 0.42));
+}
+
+#planets-table tbody tr.planet-row--neutral {
+  background-color: rgba(92, 100, 120, calc(0.06 + var(--planet-strength) * 0.28));
+}
+
+#navatara-table tbody tr.navatara-row--helpful td {
+  background-color: rgba(46, 125, 50, calc(0.06 + var(--navatara-intensity, 0.5) * 0.44));
+}
+
+#navatara-table tbody tr.navatara-row--harmful td {
+  background-color: rgba(183, 28, 28, calc(0.06 + var(--navatara-intensity, 0.5) * 0.4));
+}
+
+#navatara-table tbody tr.navatara-row--helpful td:nth-child(2) {
+  font-weight: 600;
+  color: #1b5e20;
+}
+
+#navatara-table tbody tr.navatara-row--harmful td:nth-child(2) {
+  font-weight: 600;
+  color: #6d1b1b;
+}
+
+#navatara-table tbody tr + tr.navatara-row--helpful,
+#navatara-table tbody tr + tr.navatara-row--harmful {
+  border-top: 1px solid rgba(30, 58, 95, 0.08);
 }

@@ -8,8 +8,9 @@ This project uses two containers:
 ## Prerequisites
 
 - Docker installed and running
-- Open terminal in project root:
-  - `C:\Users\drkum\Documents\workspace\saptarishi`
+- Open terminal in this repo’s **saptarishi** root (the folder that contains `ui/`, `main/`, and `database/`). For example:
+  - `C:\Users\drkum\Documents\workspace\ranjanravi.com\saptarishi`
+- Run `cd` there before the `docker run` commands so `${PWD}` mounts the correct tree for **both** UI and Flask.
 
 ## 1) Create network (once)
 
@@ -35,12 +36,21 @@ UI URL:
 
 - `http://localhost:9999/ui/hompage.html`
 - `http://localhost:9999/ui/nakshatra.html`
+- `http://localhost:9999/ui/kundali-summary.html` (after “Calculate kundali” on the Nakshatra page)
 
 Important:
 
 - UI must be opened from port `9999` only.
 
-## 3) Run Flask container (`saptarishi_flask`)
+## 3) Flask image and container (`saptarishi_flask`)
+
+The API needs **Flask**, **pyswisseph** (Swiss Ephemeris; compiles briefly, needs a C compiler during the image build only), and **tzdata**. Build once from the `saptarishi` directory:
+
+```powershell
+docker build -f Dockerfile.flask -t saptarishi-flask:latest .
+```
+
+Run the container (mounts your live code under `/app`):
 
 ```powershell
 docker rm -f saptarishi_flask
@@ -50,14 +60,17 @@ docker run -d `
   --publish 8081:8081 `
   -v "${PWD}:/app" `
   --workdir /app `
-  python:3.12-slim `
-  sh -lc "pip install --no-cache-dir flask && python ui/app.py"
+  saptarishi-flask:latest
 ```
+
+After you change `requirements-flask.txt`, rebuild the image and recreate the container.
+
+**Reload Python after editing `ui/app.py`:** Flask only loads routes at process start. If you see **404** on `/api/kundali` while the file on disk has that route, run `docker restart saptarishi_flask`. If you still use the old one-liner image that only runs `pip install flask`, switch to the `Dockerfile.flask` flow here so **pyswisseph** is available (otherwise kundali returns a `ModuleNotFoundError` after the route exists).
 
 Flask API URL:
 
 - `http://localhost:8081/api/nakshatras`
-- `http://localhost:8081/api/chakras?nakshatra=rohini`
+- `http://localhost:8081/api/navatara?nakshatra=rohini`
 
 Important:
 
@@ -80,7 +93,10 @@ curl.exe -s "http://localhost:9999/ui/hompage.html"
 curl.exe -s "http://localhost:8081/"
 
 # API endpoint
-curl.exe -s "http://localhost:8081/api/chakras?nakshatra=rohini"
+curl.exe -s "http://localhost:8081/api/navatara?nakshatra=rohini"
+
+# Kundali (expects 200 JSON after Dockerfile.flask build; 404 means Flask needs restart)
+curl.exe -s "http://localhost:8081/api/kundali?date=1988-03-29&time=16:29&place=Bengaluru%2C%20India&house_system=W"
 ```
 
 ## 5) Useful commands
