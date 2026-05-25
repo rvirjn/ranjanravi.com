@@ -1,228 +1,983 @@
 {
+  "planet_strength_rules": {
+    "exalted_bonus": 100,
+    "debilitated_penalty": 100,
+    "min_percent": 0,
+    "max_percent": 200
+  },
   "planets": [
     {
       "name": "sun",
-      "rashi": ["leo"],
-      "friends": ["moon","mars","jupiter"],
-      "enemies": ["venus","saturn","rahu"],
-      "neutral": ["mercury"],
-      "karak_house": [1,9,10],
+      "rashi": [
+        "leo"
+      ],
+      "exalted": "aries",
+      "debilitated": "libra",
+      "friends": [
+        "moon",
+        "mars",
+        "jupiter"
+      ],
+      "enemies": [
+        "venus",
+        "saturn",
+        "rahu"
+      ],
+      "neutral": [
+        "mercury"
+      ],
+      "karak_house": [
+        1,
+        9,
+        10
+      ],
       "nakshatras": [
         {
           "sequence": 3,
           "nakshatra": "krittika",
           "deity": "agni dev",
           "tree": "gular",
-          "lucky_colors": ["white","golden"]
+          "lucky_colors": [
+            "white",
+            "golden"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            7
+          ],
+          "lucky_day": [
+            "sunday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
         },
         {
           "sequence": 12,
           "nakshatra": "uttara phalguni",
           "deity": "bhaga (sun)",
           "tree": "pakar",
-          "lucky_colors": ["golden","red"]
+          "lucky_colors": [
+            "golden",
+            "red"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            7
+          ],
+          "lucky_day": [
+            "sunday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
         },
         {
           "sequence": 21,
           "nakshatra": "uttara ashadha",
           "deity": "vishwadeva",
           "tree": "jackfruit/panas",
-          "lucky_colors": ["copper","golden"]
+          "lucky_colors": [
+            "copper",
+            "golden"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            7
+          ],
+          "lucky_day": [
+            "sunday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 20
+        },
+        {
+          "sign": "taurus",
+          "degree": 9
+        },
+        {
+          "sign": "gemini",
+          "degree": 12
+        },
+        {
+          "sign": "cancer",
+          "degree": 6
+        },
+        {
+          "sign": "leo",
+          "degree": 8
+        },
+        {
+          "sign": "virgo",
+          "degree": 24
+        },
+        {
+          "sign": "libra",
+          "degree": 16
+        },
+        {
+          "sign": "scorpio",
+          "degree": 17
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 22
+        },
+        {
+          "sign": "capricorn",
+          "degree": 2
+        },
+        {
+          "sign": "aquarius",
+          "degree": 3
+        },
+        {
+          "sign": "pisces",
+          "degree": 23
         }
       ]
     },
     {
       "name": "moon",
-      "rashi": ["cancer"],
-      "friends": ["sun","mercury"],
-      "enemies": ["rahu","ketu"],
-      "neutral": ["saturn","venus","jupiter","mars"],
-      "karak_house": [4],
+      "rashi": [
+        "cancer"
+      ],
+      "exalted": "taurus",
+      "debilitated": "scorpio",
+      "friends": [
+        "sun",
+        "mercury"
+      ],
+      "enemies": [
+        "rahu",
+        "ketu"
+      ],
+      "neutral": [
+        "saturn",
+        "venus",
+        "jupiter",
+        "mars"
+      ],
+      "karak_house": [
+        4
+      ],
       "nakshatras": [
         {
           "sequence": 4,
           "nakshatra": "rohini",
           "deity": "brahma",
           "tree": "jamun",
-          "lucky_colors": ["white","cream"]
+          "lucky_colors": [
+            "white",
+            "cream"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "monday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
         },
         {
           "sequence": 13,
           "nakshatra": "hasta",
           "deity": "savitar (sun)",
           "tree": "jai/guava",
-          "lucky_colors": ["dark green"]
+          "lucky_colors": [
+            "dark green"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "monday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
         },
         {
           "sequence": 22,
           "nakshatra": "shravana",
           "deity": "vishnu",
           "tree": "madar/aak",
-          "lucky_colors": ["light blue","green"]
+          "lucky_colors": [
+            "light blue",
+            "green"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "monday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 26
+        },
+        {
+          "sign": "taurus",
+          "degree": 12
+        },
+        {
+          "sign": "gemini",
+          "degree": 13
+        },
+        {
+          "sign": "cancer",
+          "degree": 25
+        },
+        {
+          "sign": "leo",
+          "degree": 14
+        },
+        {
+          "sign": "virgo",
+          "degree": 11
+        },
+        {
+          "sign": "libra",
+          "degree": 26
+        },
+        {
+          "sign": "scorpio",
+          "degree": 14
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 13
+        },
+        {
+          "sign": "capricorn",
+          "degree": 25
+        },
+        {
+          "sign": "aquarius",
+          "degree": 5
+        },
+        {
+          "sign": "pisces",
+          "degree": 12
         }
       ]
     },
     {
       "name": "mars",
-      "rashi": ["aries","scorpio"],
-      "friends": ["sun","moon","jupiter"],
-      "enemies": ["saturn","venus"],
-      "neutral": ["mercury","rahu","ketu"],
-      "karak_house": [3,6],
+      "rashi": [
+        "aries",
+        "scorpio"
+      ],
+      "exalted": "capricorn",
+      "debilitated": "cancer",
+      "friends": [
+        "sun",
+        "moon",
+        "jupiter"
+      ],
+      "enemies": [
+        "saturn",
+        "venus"
+      ],
+      "neutral": [
+        "mercury",
+        "rahu",
+        "ketu"
+      ],
+      "karak_house": [
+        3,
+        6
+      ],
       "nakshatras": [
         {
           "sequence": 5,
           "nakshatra": "mrigashira",
           "deity": "moon",
           "tree": "khair",
-          "lucky_colors": ["silver","red"]
+          "lucky_colors": [
+            "silver",
+            "red"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            9
+          ],
+          "lucky_day": [
+            "tuesday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
         },
         {
           "sequence": 14,
           "nakshatra": "chitra",
           "deity": "tvashta (vishwakarma)",
           "tree": "bel",
-          "lucky_colors": ["red","silver"]
+          "lucky_colors": [
+            "red",
+            "silver"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            9
+          ],
+          "lucky_day": [
+            "tuesday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
         },
         {
           "sequence": 23,
           "nakshatra": "dhanishta",
           "deity": "eight vasus",
           "tree": "shami",
-          "lucky_colors": ["red","silver"]
+          "lucky_colors": [
+            "red",
+            "silver"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            9
+          ],
+          "lucky_day": [
+            "tuesday"
+          ],
+          "lucky_time": "6:00 AM - 10:00 AM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 19
+        },
+        {
+          "sign": "taurus",
+          "degree": 28
+        },
+        {
+          "sign": "gemini",
+          "degree": 25
+        },
+        {
+          "sign": "cancer",
+          "degree": 23
+        },
+        {
+          "sign": "leo",
+          "degree": 29
+        },
+        {
+          "sign": "virgo",
+          "degree": 28
+        },
+        {
+          "sign": "libra",
+          "degree": 14
+        },
+        {
+          "sign": "scorpio",
+          "degree": 21
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 2
+        },
+        {
+          "sign": "capricorn",
+          "degree": 15
+        },
+        {
+          "sign": "aquarius",
+          "degree": 11
+        },
+        {
+          "sign": "pisces",
+          "degree": 6
         }
       ]
     },
     {
       "name": "mercury",
-      "rashi": ["gemini","virgo"],
-      "friends": ["sun","venus","rahu"],
-      "enemies": ["moon","jupiter"],
-      "neutral": ["mars","saturn","ketu"],
-      "karak_house": [4,10],
+      "rashi": [
+        "gemini",
+        "virgo"
+      ],
+      "exalted": "virgo",
+      "debilitated": "pisces",
+      "friends": [
+        "sun",
+        "venus",
+        "rahu"
+      ],
+      "enemies": [
+        "moon",
+        "jupiter"
+      ],
+      "neutral": [
+        "mars",
+        "saturn",
+        "ketu"
+      ],
+      "karak_house": [
+        4,
+        10
+      ],
       "nakshatras": [
         {
           "sequence": 9,
           "nakshatra": "ashlesha",
           "deity": "serpent",
           "tree": "nagkesar",
-          "lucky_colors": ["light blue"]
+          "lucky_colors": [
+            "light blue"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            8
+          ],
+          "lucky_day": [
+            "wednesday"
+          ],
+          "lucky_time": "10:00 AM - 1:00 PM"
         },
         {
           "sequence": 18,
           "nakshatra": "jyeshtha",
           "deity": "indra",
           "tree": "red cotton",
-          "lucky_colors": ["red","blue"]
+          "lucky_colors": [
+            "red",
+            "blue"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            8
+          ],
+          "lucky_day": [
+            "wednesday"
+          ],
+          "lucky_time": "10:00 AM - 1:00 PM"
         },
         {
           "sequence": 27,
           "nakshatra": "revati",
           "deity": "pushan",
           "tree": "mahua",
-          "lucky_colors": ["light blue","green"]
+          "lucky_colors": [
+            "light blue",
+            "green"
+          ],
+          "lucky_number": [
+            1,
+            5,
+            8
+          ],
+          "lucky_day": [
+            "wednesday"
+          ],
+          "lucky_time": "10:00 AM - 1:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 15
+        },
+        {
+          "sign": "taurus",
+          "degree": 14
+        },
+        {
+          "sign": "gemini",
+          "degree": 13
+        },
+        {
+          "sign": "cancer",
+          "degree": 12
+        },
+        {
+          "sign": "leo",
+          "degree": 8
+        },
+        {
+          "sign": "virgo",
+          "degree": 18
+        },
+        {
+          "sign": "libra",
+          "degree": 20
+        },
+        {
+          "sign": "scorpio",
+          "degree": 10
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 21
+        },
+        {
+          "sign": "capricorn",
+          "degree": 22
+        },
+        {
+          "sign": "aquarius",
+          "degree": 7
+        },
+        {
+          "sign": "pisces",
+          "degree": 5
         }
       ]
     },
     {
       "name": "jupiter",
-      "rashi": ["sagittarius","pisces"],
-      "friends": ["sun","moon","mars"],
-      "enemies": ["mercury","venus"],
-      "neutral": ["rahu","saturn","ketu"],
-      "karak_house": [2,5,9,10,11],
+      "rashi": [
+        "sagittarius",
+        "pisces"
+      ],
+      "exalted": "cancer",
+      "debilitated": "capricorn",
+      "friends": [
+        "sun",
+        "moon",
+        "mars"
+      ],
+      "enemies": [
+        "mercury",
+        "venus"
+      ],
+      "neutral": [
+        "rahu",
+        "saturn",
+        "ketu"
+      ],
+      "karak_house": [
+        2,
+        5,
+        9,
+        10,
+        11
+      ],
       "nakshatras": [
         {
           "sequence": 7,
           "nakshatra": "punarvasu",
           "deity": "aditi",
           "tree": "bamboo",
-          "lucky_colors": ["yellow","cream"]
+          "lucky_colors": [
+            "yellow",
+            "cream"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "thursday"
+          ],
+          "lucky_time": "6:00 AM - 12:00 PM"
         },
         {
           "sequence": 16,
           "nakshatra": "vishakha",
           "deity": "indra-agni",
           "tree": "nagkesar",
-          "lucky_colors": ["yellow","golden"]
+          "lucky_colors": [
+            "yellow",
+            "golden"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "tuesday"
+          ],
+          "lucky_time": "6:00 AM - 12:00 PM"
         },
         {
           "sequence": 25,
           "nakshatra": "purva bhadrapada",
           "deity": "ajaikapada",
           "tree": "mango",
-          "lucky_colors": ["yellow","golden"]
+          "lucky_colors": [
+            "yellow",
+            "golden"
+          ],
+          "lucky_number": [
+            2,
+            3,
+            9
+          ],
+          "lucky_day": [
+            "thursday"
+          ],
+          "lucky_time": "6:00 AM - 12:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 19
+        },
+        {
+          "sign": "taurus",
+          "degree": 29
+        },
+        {
+          "sign": "gemini",
+          "degree": 12
+        },
+        {
+          "sign": "cancer",
+          "degree": 27
+        },
+        {
+          "sign": "leo",
+          "degree": 6
+        },
+        {
+          "sign": "virgo",
+          "degree": 4
+        },
+        {
+          "sign": "libra",
+          "degree": 13
+        },
+        {
+          "sign": "scorpio",
+          "degree": 10
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 17
+        },
+        {
+          "sign": "capricorn",
+          "degree": 11
+        },
+        {
+          "sign": "aquarius",
+          "degree": 15
+        },
+        {
+          "sign": "pisces",
+          "degree": 18
         }
       ]
     },
     {
       "name": "venus",
-      "rashi": ["taurus","libra"],
-      "friends": ["mercury","saturn","rahu"],
-      "enemies": ["sun","moon"],
-      "neutral": ["jupiter","mars","ketu"],
-      "karak_house": [7],
+      "rashi": [
+        "taurus",
+        "libra"
+      ],
+      "exalted": "pisces",
+      "debilitated": "virgo",
+      "friends": [
+        "mercury",
+        "saturn",
+        "rahu"
+      ],
+      "enemies": [
+        "sun",
+        "moon"
+      ],
+      "neutral": [
+        "jupiter",
+        "mars",
+        "ketu"
+      ],
+      "karak_house": [
+        7
+      ],
       "nakshatras": [
         {
           "sequence": 2,
           "nakshatra": "bharani",
           "deity": "yamraj",
           "tree": "amla",
-          "lucky_colors": ["red","white"]
+          "lucky_colors": [
+            "red",
+            "white"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "tuesday",
+            "friday"
+          ],
+          "lucky_time": "4:00 PM - 7:00 PM"
         },
         {
           "sequence": 11,
           "nakshatra": "purva phalguni",
           "deity": "bhaga (aryaman)",
           "tree": "palash/dhak",
-          "lucky_colors": ["brown","light red"]
+          "lucky_colors": [
+            "brown",
+            "light red"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "friday",
+            "sunday"
+          ],
+          "lucky_time": "4:00 PM - 7:00 PM"
         },
         {
           "sequence": 20,
           "nakshatra": "purva ashadha",
           "deity": "apah (water)",
           "tree": "water cane",
-          "lucky_colors": ["white","cream"]
+          "lucky_colors": [
+            "white",
+            "cream"
+          ],
+          "lucky_number": [
+            3,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "friday"
+          ],
+          "lucky_time": "4:00 PM - 7:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 28
+        },
+        {
+          "sign": "taurus",
+          "degree": 15
+        },
+        {
+          "sign": "gemini",
+          "degree": 11
+        },
+        {
+          "sign": "cancer",
+          "degree": 17
+        },
+        {
+          "sign": "leo",
+          "degree": 10
+        },
+        {
+          "sign": "virgo",
+          "degree": 13
+        },
+        {
+          "sign": "libra",
+          "degree": 4
+        },
+        {
+          "sign": "scorpio",
+          "degree": 6
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 27
+        },
+        {
+          "sign": "capricorn",
+          "degree": 12
+        },
+        {
+          "sign": "aquarius",
+          "degree": 29
+        },
+        {
+          "sign": "pisces",
+          "degree": 19
         }
       ]
     },
     {
       "name": "saturn",
-      "rashi": ["capricorn","aquarius"],
-      "friends": ["mercury","venus","rahu"],
-      "enemies": ["sun","mars","moon"],
-      "neutral": ["jupiter","ketu"],
-      "karak_house": [6,8,10,12],
+      "rashi": [
+        "capricorn",
+        "aquarius"
+      ],
+      "exalted": "libra",
+      "debilitated": "aries",
+      "friends": [
+        "mercury",
+        "venus",
+        "rahu"
+      ],
+      "enemies": [
+        "sun",
+        "mars",
+        "moon"
+      ],
+      "neutral": [
+        "jupiter",
+        "ketu"
+      ],
+      "karak_house": [
+        6,
+        8,
+        10,
+        12
+      ],
       "nakshatras": [
         {
           "sequence": 8,
           "nakshatra": "pushya",
           "deity": "brihaspati",
           "tree": "peepal",
-          "lucky_colors": ["golden","yellow"]
+          "lucky_colors": [
+            "golden",
+            "yellow"
+          ],
+          "lucky_number": [
+            5,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "saturday"
+          ],
+          "lucky_time": "6:00 PM - 8:00 PM"
         },
         {
           "sequence": 17,
           "nakshatra": "anuradha",
           "deity": "mitra (aditya)",
           "tree": "moulshree/bakul",
-          "lucky_colors": ["red","blue"]
+          "lucky_colors": [
+            "red",
+            "blue"
+          ],
+          "lucky_number": [
+            5,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "saturday"
+          ],
+          "lucky_time": "6:00 PM - 8:00 PM"
         },
         {
           "sequence": 26,
           "nakshatra": "uttara bhadrapada",
           "deity": "ahirbudhnya",
           "tree": "neem",
-          "lucky_colors": ["blue","black"]
+          "lucky_colors": [
+            "blue",
+            "black"
+          ],
+          "lucky_number": [
+            5,
+            6,
+            8
+          ],
+          "lucky_day": [
+            "saturday"
+          ],
+          "lucky_time": "6:00 PM - 8:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 10
+        },
+        {
+          "sign": "taurus",
+          "degree": 4
+        },
+        {
+          "sign": "gemini",
+          "degree": 7
+        },
+        {
+          "sign": "cancer",
+          "degree": 9
+        },
+        {
+          "sign": "leo",
+          "degree": 12
+        },
+        {
+          "sign": "virgo",
+          "degree": 16
+        },
+        {
+          "sign": "libra",
+          "degree": 3
+        },
+        {
+          "sign": "scorpio",
+          "degree": 18
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 28
+        },
+        {
+          "sign": "capricorn",
+          "degree": 14
+        },
+        {
+          "sign": "aquarius",
+          "degree": 13
+        },
+        {
+          "sign": "pisces",
+          "degree": 15
         }
       ]
     },
     {
       "name": "rahu",
       "rashi": [],
-      "friends": ["mercury","venus","saturn"],
-      "enemies": ["sun","mars","moon"],
-      "neutral": ["jupiter","ketu"],
+      "exalted": "gemini",
+      "debilitated": "sagittarius",
+      "friends": [
+        "mercury",
+        "venus",
+        "saturn"
+      ],
+      "enemies": [
+        "sun",
+        "mars",
+        "moon"
+      ],
+      "neutral": [
+        "jupiter",
+        "ketu"
+      ],
       "karak_house": [],
       "nakshatras": [
         {
@@ -230,30 +985,130 @@
           "nakshatra": "ardra",
           "deity": "rudra (shiva)",
           "tree": "krishnaguru/agaru",
-          "lucky_colors": ["blue","black"]
+          "lucky_colors": [
+            "blue",
+            "black"
+          ],
+          "lucky_number": [
+            1,
+            4,
+            7
+          ],
+          "lucky_day": [
+            "friday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
         },
         {
           "sequence": 15,
           "nakshatra": "swati",
           "deity": "vayu",
           "tree": "arjuna",
-          "lucky_colors": ["black","dark color"]
+          "lucky_colors": [
+            "black",
+            "dark color"
+          ],
+          "lucky_number": [
+            1,
+            4,
+            7
+          ],
+          "lucky_day": [
+            "friday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
         },
         {
           "sequence": 24,
           "nakshatra": "shatabhisha",
           "deity": "varuna",
           "tree": "kadamba",
-          "lucky_colors": ["dark blue","black"]
+          "lucky_colors": [
+            "dark blue",
+            "black"
+          ],
+          "lucky_number": [
+            1,
+            4,
+            7
+          ],
+          "lucky_day": [
+            "friday",
+            "saturday"
+          ],
+          "lucky_time": "6:00 PM - 9:00 PM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 14
+        },
+        {
+          "sign": "taurus",
+          "degree": 13
+        },
+        {
+          "sign": "gemini",
+          "degree": 12
+        },
+        {
+          "sign": "cancer",
+          "degree": 11
+        },
+        {
+          "sign": "leo",
+          "degree": 24
+        },
+        {
+          "sign": "virgo",
+          "degree": 23
+        },
+        {
+          "sign": "libra",
+          "degree": 22
+        },
+        {
+          "sign": "scorpio",
+          "degree": 21
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 10
+        },
+        {
+          "sign": "capricorn",
+          "degree": 20
+        },
+        {
+          "sign": "aquarius",
+          "degree": 18
+        },
+        {
+          "sign": "pisces",
+          "degree": 8
         }
       ]
     },
     {
       "name": "ketu",
       "rashi": [],
-      "friends": ["venus","saturn","mercury"],
-      "enemies": ["sun","mars","moon"],
-      "neutral": ["jupiter","rahu"],
+      "exalted": "sagittarius",
+      "debilitated": "gemini",
+      "friends": [
+        "venus",
+        "saturn",
+        "mercury"
+      ],
+      "enemies": [
+        "sun",
+        "mars",
+        "moon"
+      ],
+      "neutral": [
+        "jupiter",
+        "rahu"
+      ],
       "karak_house": [],
       "nakshatras": [
         {
@@ -261,21 +1116,107 @@
           "nakshatra": "ashwini",
           "deity": "ashwini kumar",
           "tree": "kuchla/peepal",
-          "lucky_colors": ["red","white"]
+          "lucky_colors": [
+            "red",
+            "white"
+          ],
+          "lucky_number": [
+            5,
+            7,
+            9
+          ],
+          "lucky_day": [
+            "tuesday"
+          ],
+          "lucky_time": "6:00 AM - 7:00 AM"
         },
         {
           "sequence": 10,
           "nakshatra": "magha",
           "deity": "pitru gan",
           "tree": "banyan",
-          "lucky_colors": ["black","red"]
+          "lucky_colors": [
+            "black",
+            "red"
+          ],
+          "lucky_number": [
+            5,
+            7,
+            9
+          ],
+          "lucky_day": [
+            "friday"
+          ],
+          "lucky_time": "6:00 AM - 7:00 AM"
         },
         {
           "sequence": 19,
           "nakshatra": "mula",
           "deity": "nirriti (kaal)",
           "tree": "sal/saraj",
-          "lucky_colors": ["black","red"]
+          "lucky_colors": [
+            "black",
+            "red"
+          ],
+          "lucky_number": [
+            5,
+            7,
+            9
+          ],
+          "lucky_day": [
+            "friday"
+          ],
+          "lucky_time": "6:00 AM - 7:00 AM"
+        }
+      ],
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 8
+        },
+        {
+          "sign": "taurus",
+          "degree": 18
+        },
+        {
+          "sign": "gemini",
+          "degree": 20
+        },
+        {
+          "sign": "cancer",
+          "degree": 10
+        },
+        {
+          "sign": "leo",
+          "degree": 21
+        },
+        {
+          "sign": "virgo",
+          "degree": 22
+        },
+        {
+          "sign": "libra",
+          "degree": 23
+        },
+        {
+          "sign": "scorpio",
+          "degree": 24
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 11
+        },
+        {
+          "sign": "capricorn",
+          "degree": 12
+        },
+        {
+          "sign": "aquarius",
+          "degree": 13
+        },
+        {
+          "sign": "pisces",
+          "degree": 14
         }
       ]
     }
@@ -287,7 +1228,19 @@
       "ruling_planet": "ketu",
       "deity": "ashwini kumar",
       "tree": "kuchla/peepal",
-      "lucky_colors": ["red","white"]
+      "lucky_colors": [
+        "red",
+        "white"
+      ],
+      "lucky_number": [
+        5,
+        7,
+        9
+      ],
+      "lucky_day": [
+        "tuesday"
+      ],
+      "lucky_time": "6:00 AM - 7:00 AM"
     },
     {
       "sequence": 2,
@@ -295,7 +1248,20 @@
       "ruling_planet": "venus",
       "deity": "yamraj",
       "tree": "amla",
-      "lucky_colors": ["red","white"]
+      "lucky_colors": [
+        "red",
+        "white"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "tuesday",
+        "friday"
+      ],
+      "lucky_time": "4:00 PM - 7:00 PM"
     },
     {
       "sequence": 3,
@@ -303,7 +1269,19 @@
       "ruling_planet": "sun",
       "deity": "agni dev",
       "tree": "gular",
-      "lucky_colors": ["white","golden"]
+      "lucky_colors": [
+        "white",
+        "golden"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        7
+      ],
+      "lucky_day": [
+        "sunday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 4,
@@ -311,7 +1289,19 @@
       "ruling_planet": "moon",
       "deity": "brahma",
       "tree": "jamun",
-      "lucky_colors": ["white","cream"]
+      "lucky_colors": [
+        "white",
+        "cream"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "monday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 5,
@@ -319,7 +1309,19 @@
       "ruling_planet": "mars",
       "deity": "moon",
       "tree": "khair",
-      "lucky_colors": ["silver","red"]
+      "lucky_colors": [
+        "silver",
+        "red"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        9
+      ],
+      "lucky_day": [
+        "tuesday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 6,
@@ -327,7 +1329,19 @@
       "ruling_planet": "rahu",
       "deity": "rudra (shiva)",
       "tree": "krishnaguru/agaru",
-      "lucky_colors": ["blue","black"]
+      "lucky_colors": [
+        "blue",
+        "black"
+      ],
+      "lucky_number": [
+        1,
+        4,
+        7
+      ],
+      "lucky_day": [
+        "friday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 7,
@@ -335,7 +1349,19 @@
       "ruling_planet": "jupiter",
       "deity": "aditi",
       "tree": "bamboo",
-      "lucky_colors": ["yellow","cream"]
+      "lucky_colors": [
+        "yellow",
+        "cream"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "thursday"
+      ],
+      "lucky_time": "6:00 AM - 12:00 PM"
     },
     {
       "sequence": 8,
@@ -343,7 +1369,19 @@
       "ruling_planet": "saturn",
       "deity": "brihaspati",
       "tree": "peepal",
-      "lucky_colors": ["golden","yellow"]
+      "lucky_colors": [
+        "golden",
+        "yellow"
+      ],
+      "lucky_number": [
+        5,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "saturday"
+      ],
+      "lucky_time": "6:00 PM - 8:00 PM"
     },
     {
       "sequence": 9,
@@ -351,7 +1389,18 @@
       "ruling_planet": "mercury",
       "deity": "serpent",
       "tree": "nagkesar",
-      "lucky_colors": ["light blue"]
+      "lucky_colors": [
+        "light blue"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        8
+      ],
+      "lucky_day": [
+        "wednesday"
+      ],
+      "lucky_time": "10:00 AM - 1:00 PM"
     },
     {
       "sequence": 10,
@@ -359,7 +1408,19 @@
       "ruling_planet": "ketu",
       "deity": "pitru gan",
       "tree": "banyan",
-      "lucky_colors": ["black","red"]
+      "lucky_colors": [
+        "black",
+        "red"
+      ],
+      "lucky_number": [
+        5,
+        7,
+        9
+      ],
+      "lucky_day": [
+        "friday"
+      ],
+      "lucky_time": "6:00 AM - 7:00 AM"
     },
     {
       "sequence": 11,
@@ -367,7 +1428,20 @@
       "ruling_planet": "venus",
       "deity": "bhaga (aryaman)",
       "tree": "palash/dhak",
-      "lucky_colors": ["brown","light red"]
+      "lucky_colors": [
+        "brown",
+        "light red"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "friday",
+        "sunday"
+      ],
+      "lucky_time": "4:00 PM - 7:00 PM"
     },
     {
       "sequence": 12,
@@ -375,7 +1449,19 @@
       "ruling_planet": "sun",
       "deity": "bhaga (sun)",
       "tree": "pakar",
-      "lucky_colors": ["golden","red"]
+      "lucky_colors": [
+        "golden",
+        "red"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        7
+      ],
+      "lucky_day": [
+        "sunday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 13,
@@ -383,7 +1469,18 @@
       "ruling_planet": "moon",
       "deity": "savitar (sun)",
       "tree": "jai/guava",
-      "lucky_colors": ["dark green"]
+      "lucky_colors": [
+        "dark green"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "monday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 14,
@@ -391,7 +1488,19 @@
       "ruling_planet": "mars",
       "deity": "tvashta (vishwakarma)",
       "tree": "bel",
-      "lucky_colors": ["red","silver"]
+      "lucky_colors": [
+        "red",
+        "silver"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        9
+      ],
+      "lucky_day": [
+        "tuesday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 15,
@@ -399,7 +1508,19 @@
       "ruling_planet": "rahu",
       "deity": "vayu",
       "tree": "arjuna",
-      "lucky_colors": ["black","dark color"]
+      "lucky_colors": [
+        "black",
+        "dark color"
+      ],
+      "lucky_number": [
+        1,
+        4,
+        7
+      ],
+      "lucky_day": [
+        "friday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 16,
@@ -407,7 +1528,19 @@
       "ruling_planet": "jupiter",
       "deity": "indra-agni",
       "tree": "nagkesar",
-      "lucky_colors": ["yellow","golden"]
+      "lucky_colors": [
+        "yellow",
+        "golden"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "tuesday"
+      ],
+      "lucky_time": "6:00 AM - 12:00 PM"
     },
     {
       "sequence": 17,
@@ -415,7 +1548,19 @@
       "ruling_planet": "saturn",
       "deity": "mitra (aditya)",
       "tree": "moulshree/bakul",
-      "lucky_colors": ["red","blue"]
+      "lucky_colors": [
+        "red",
+        "blue"
+      ],
+      "lucky_number": [
+        5,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "saturday"
+      ],
+      "lucky_time": "6:00 PM - 8:00 PM"
     },
     {
       "sequence": 18,
@@ -423,7 +1568,19 @@
       "ruling_planet": "mercury",
       "deity": "indra",
       "tree": "red cotton",
-      "lucky_colors": ["red","blue"]
+      "lucky_colors": [
+        "red",
+        "blue"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        8
+      ],
+      "lucky_day": [
+        "wednesday"
+      ],
+      "lucky_time": "10:00 AM - 1:00 PM"
     },
     {
       "sequence": 19,
@@ -431,7 +1588,19 @@
       "ruling_planet": "ketu",
       "deity": "nirriti (kaal)",
       "tree": "sal/saraj",
-      "lucky_colors": ["black","red"]
+      "lucky_colors": [
+        "black",
+        "red"
+      ],
+      "lucky_number": [
+        5,
+        7,
+        9
+      ],
+      "lucky_day": [
+        "friday"
+      ],
+      "lucky_time": "6:00 AM - 7:00 AM"
     },
     {
       "sequence": 20,
@@ -439,7 +1608,19 @@
       "ruling_planet": "venus",
       "deity": "apah (water)",
       "tree": "water cane",
-      "lucky_colors": ["white","cream"]
+      "lucky_colors": [
+        "white",
+        "cream"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "friday"
+      ],
+      "lucky_time": "4:00 PM - 7:00 PM"
     },
     {
       "sequence": 21,
@@ -447,7 +1628,19 @@
       "ruling_planet": "sun",
       "deity": "vishwadeva",
       "tree": "jackfruit/panas",
-      "lucky_colors": ["copper","golden"]
+      "lucky_colors": [
+        "copper",
+        "golden"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        7
+      ],
+      "lucky_day": [
+        "sunday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 22,
@@ -455,7 +1648,19 @@
       "ruling_planet": "moon",
       "deity": "vishnu",
       "tree": "madar/aak",
-      "lucky_colors": ["light blue","green"]
+      "lucky_colors": [
+        "light blue",
+        "green"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "monday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 23,
@@ -463,7 +1668,19 @@
       "ruling_planet": "mars",
       "deity": "eight vasus",
       "tree": "shami",
-      "lucky_colors": ["red","silver"]
+      "lucky_colors": [
+        "red",
+        "silver"
+      ],
+      "lucky_number": [
+        3,
+        6,
+        9
+      ],
+      "lucky_day": [
+        "tuesday"
+      ],
+      "lucky_time": "6:00 AM - 10:00 AM"
     },
     {
       "sequence": 24,
@@ -471,7 +1688,20 @@
       "ruling_planet": "rahu",
       "deity": "varuna",
       "tree": "kadamba",
-      "lucky_colors": ["dark blue","black"]
+      "lucky_colors": [
+        "dark blue",
+        "black"
+      ],
+      "lucky_number": [
+        1,
+        4,
+        7
+      ],
+      "lucky_day": [
+        "friday",
+        "saturday"
+      ],
+      "lucky_time": "6:00 PM - 9:00 PM"
     },
     {
       "sequence": 25,
@@ -479,7 +1709,19 @@
       "ruling_planet": "jupiter",
       "deity": "ajaikapada",
       "tree": "mango",
-      "lucky_colors": ["yellow","golden"]
+      "lucky_colors": [
+        "yellow",
+        "golden"
+      ],
+      "lucky_number": [
+        2,
+        3,
+        9
+      ],
+      "lucky_day": [
+        "thursday"
+      ],
+      "lucky_time": "6:00 AM - 12:00 PM"
     },
     {
       "sequence": 26,
@@ -487,7 +1729,19 @@
       "ruling_planet": "saturn",
       "deity": "ahirbudhnya",
       "tree": "neem",
-      "lucky_colors": ["blue","black"]
+      "lucky_colors": [
+        "blue",
+        "black"
+      ],
+      "lucky_number": [
+        5,
+        6,
+        8
+      ],
+      "lucky_day": [
+        "saturday"
+      ],
+      "lucky_time": "6:00 PM - 8:00 PM"
     },
     {
       "sequence": 27,
@@ -495,7 +1749,19 @@
       "ruling_planet": "mercury",
       "deity": "pushan",
       "tree": "mahua",
-      "lucky_colors": ["light blue","green"]
+      "lucky_colors": [
+        "light blue",
+        "green"
+      ],
+      "lucky_number": [
+        1,
+        5,
+        8
+      ],
+      "lucky_day": [
+        "wednesday"
+      ],
+      "lucky_time": "10:00 AM - 1:00 PM"
     }
   ],
   "nava_tara": {
@@ -503,58 +1769,350 @@
     "navatara": [
       {
         "name": "janma",
-        "sequences": [1,10,19],
+        "sequences": [
+          1,
+          10,
+          19
+        ],
         "result": "physical and mental condition, general wellbeing",
         "auspicious": "yes"
       },
       {
         "name": "sampat",
-        "sequence": [2,11,20],
+        "sequence": [
+          2,
+          11,
+          20
+        ],
         "result": "wealth, prosperity, and happiness",
         "auspicious": "yes"
       },
       {
         "name": "vipat",
-        "sequences": [3,12,21],
+        "sequences": [
+          3,
+          12,
+          21
+        ],
         "result": "obstacles, accidents, and troubles",
         "auspicious": "no"
       },
       {
         "name": "kshema",
-        "sequences": [4,13,22],
+        "sequences": [
+          4,
+          13,
+          22
+        ],
         "result": "safety, health, and stability",
         "auspicious": "yes"
       },
       {
         "name": "pratyari",
-        "sequences": [5,14,23],
+        "sequences": [
+          5,
+          14,
+          23
+        ],
         "result": "enemies, opposition, and conflicts",
         "auspicious": "no"
       },
       {
         "name": "sadhaka",
-        "sequences": [6,15,24],
+        "sequences": [
+          6,
+          15,
+          24
+        ],
         "result": "success, achievement, and progress",
         "auspicious": "yes"
       },
       {
         "name": "vadha",
-        "sequences": [7,16,25],
+        "sequences": [
+          7,
+          16,
+          25
+        ],
         "result": "severe suffering, destruction, and loss",
         "auspicious": "no"
       },
       {
         "name": "maitri",
-        "sequences": [8,17,26],
+        "sequences": [
+          8,
+          17,
+          26
+        ],
         "result": "friendship, cooperation, and happiness",
         "auspicious": "yes"
       },
       {
         "name": "ati-maitri",
-        "sequences": [9,18,27],
+        "sequences": [
+          9,
+          18,
+          27
+        ],
         "result": "special friendship, extremely auspicious",
         "auspicious": "yes"
       }
     ]
-  }
+  },
+  "houses": [
+    {
+      "house": 1,
+      "for": [
+        "body",
+        "physique",
+        "health",
+        "efforts",
+        "discipline",
+        "complexion",
+        "appearance",
+        "knowledge",
+        "strength",
+        "brain",
+        "wisdom",
+        "character",
+        "pride",
+        "humility",
+        "nature",
+        "lagna"
+      ]
+    },
+    {
+      "house": 2,
+      "for": [
+        "wealth",
+        "job",
+        "family",
+        "education",
+        "grain",
+        "property",
+        "death",
+        "speech",
+        "truth",
+        "untruth",
+        "charity",
+        "tongue",
+        "right eye",
+        "neighbors"
+      ]
+    },
+    {
+      "house": 3,
+      "for": [
+        "younger siblings",
+        "adventures",
+        "travel",
+        "intelligence",
+        "courage",
+        "patience",
+        "longevity",
+        "mother's death",
+        "hidden enemies",
+        "throat",
+        "neck",
+        "ear and breathing-related ailments"
+      ]
+    },
+    {
+      "house": 4,
+      "for": [
+        "mother",
+        "home",
+        "personal life",
+        "vehicles",
+        "land",
+        "immovable property",
+        "buried treasure",
+        "happiness",
+        "lungs",
+        "upper chest",
+        "upper heart"
+      ]
+    },
+    {
+      "house": 5,
+      "for": [
+        "children",
+        "study",
+        "emotions",
+        "intellect",
+        "education",
+        "fame",
+        "followers",
+        "religion",
+        "auspicious deeds",
+        "maternal home",
+        "heart ailments",
+        "lower-chest ailments"
+      ]
+    },
+    {
+      "house": 6,
+      "for": [
+        "enemies",
+        "diseases",
+        "slaves",
+        "separation",
+        "worry",
+        "debt",
+        "litigation",
+        "upper-abdomen ailments",
+        "disgrace",
+        "grief",
+        "sorrow"
+      ]
+    },
+    {
+      "house": 7,
+      "for": [
+        "spouse",
+        "husband",
+        "wife",
+        "friends",
+        "partnership",
+        "business partners",
+        "desire",
+        "lust",
+        "marriage",
+        "daily occupation",
+        "death",
+        "reproductive organs",
+        "open enemies"
+      ]
+    },
+    {
+      "house": 8,
+      "for": [
+        "age",
+        "longevity",
+        "research",
+        "bad luck",
+        "death",
+        "sudden financial gain",
+        "foreign travel",
+        "sudden change",
+        "accident",
+        "incurable disease",
+        "lower-abdomen ailments"
+      ]
+    },
+    {
+      "house": 9,
+      "for": [
+        "luck",
+        "religion",
+        "foreign travel",
+        "pilgrimage",
+        "dreams",
+        "education",
+        "guru",
+        "fame",
+        "wife's brother",
+        "wife's sister",
+        "renunciation"
+      ]
+    },
+    {
+      "house": 10,
+      "for": [
+        "work",
+        "career",
+        "profession",
+        "father",
+        "reputation",
+        "kingdom",
+        "state",
+        "karma",
+        "business",
+        "rank",
+        "authority",
+        "power",
+        "raja yoga"
+      ]
+    },
+    {
+      "house": 11,
+      "for": [
+        "gains",
+        "benefits",
+        "income",
+        "profit",
+        "achievement",
+        "fulfillment of wishes",
+        "elder brother",
+        "sister",
+        "daughter-in-law",
+        "victory",
+        "ears"
+      ]
+    },
+    {
+      "house": 12,
+      "for": [
+        "expenses",
+        "losses",
+        "debts",
+        "foreign lands",
+        "moksha",
+        "bed comfort",
+        "hospitalization",
+        "death",
+        "left eye"
+      ]
+    }
+  ],
+  "death_degree_lagna": [
+    {
+      "sign": "aries",
+      "degree": 1
+    },
+    {
+      "sign": "taurus",
+      "degree": 9
+    },
+    {
+      "sign": "gemini",
+      "degree": 22
+    },
+    {
+      "sign": "cancer",
+      "degree": 22
+    },
+    {
+      "sign": "leo",
+      "degree": 25
+    },
+    {
+      "sign": "virgo",
+      "degree": 2
+    },
+    {
+      "sign": "libra",
+      "degree": 4
+    },
+    {
+      "sign": "scorpio",
+      "degree": 23
+    },
+    {
+      "sign": "sagittarius",
+      "degree": 18
+    },
+    {
+      "sign": "capricorn",
+      "degree": 20
+    },
+    {
+      "sign": "aquarius",
+      "degree": 10
+    },
+    {
+      "sign": "pisces",
+      "degree": 10
+    }
+  ]
 }

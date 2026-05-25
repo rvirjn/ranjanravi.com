@@ -628,13 +628,10 @@ tbody tr:last-child td {
   justify-content: center;
 }
 
-.kundali-chart-lagna {
+.kundali-chart-heading {
   margin: 0 0 var(--space-sm);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-primary);
   text-align: center;
-  text-decoration: none;
+  width: 100%;
 }
 
 #kundali-chart {
@@ -690,10 +687,25 @@ tbody tr:last-child td {
   paint-order: fill;
 }
 
-/* Same hues as #planets-table row backgrounds; stronger opacity for readable text */
+/* Exalted / debilitated: full green or full red */
+.kundali-chart-planet--high {
+  fill: rgb(46, 125, 50);
+  opacity: 1;
+}
+
+.kundali-chart-planet--low {
+  fill: rgb(183, 28, 28);
+  opacity: 1;
+}
+
 .kundali-chart-planet--friend {
   fill: rgb(46, 125, 50);
   opacity: calc(0.65 + var(--planet-strength, 0.5) * 0.35);
+}
+
+.kundali-chart-planet--own {
+  fill: rgb(46, 125, 50);
+  opacity: calc(0.75 + var(--planet-strength, 0.5) * 0.25);
 }
 
 .kundali-chart-planet--enemy {
@@ -718,22 +730,220 @@ tbody tr:last-child td {
 
 /* ---------- Kundali page: planets + navatara row colors ---------- */
 
-#planets-table tbody tr.planet-row {
-  --planet-strength: 0.25;
+#planets-table .planets-td-house {
+  min-width: 9rem;
+  max-width: 14rem;
+  vertical-align: top;
 }
 
-#planets-table tbody tr.planet-row--friend {
-  background-color: rgba(46, 125, 50, calc(0.1 + var(--planet-strength) * 0.5));
+#planets-table .planets-house-num {
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin-bottom: 0.25rem;
 }
 
-#planets-table tbody tr.planet-row--enemy {
-  background-color: rgba(183, 28, 28, calc(0.08 + var(--planet-strength) * 0.42));
+#planets-table .planets-house-for {
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-#planets-table tbody tr.planet-row--neutral {
-  background-color: rgba(92, 100, 120, calc(0.06 + var(--planet-strength) * 0.28));
+/* Planets: per-cell tint (status + yes/no flags). Navatara keeps row-wise rules below. */
+#planets-table tbody td.planet-cell {
+  --planet-strength: 0.35;
 }
 
+#planets-table tbody td.planet-cell--high {
+  background-color: rgba(46, 125, 50, calc(0.28 + var(--planet-strength) * 0.5)) !important;
+  color: rgb(27, 94, 32) !important;
+  font-weight: 600;
+}
+
+#planets-table tbody td.planet-cell--low {
+  background-color: rgba(183, 28, 28, calc(0.24 + var(--planet-strength) * 0.45)) !important;
+  color: rgb(109, 16, 16) !important;
+  font-weight: 600;
+}
+
+#planets-table tbody td.planet-cell--friend {
+  background-color: rgba(46, 125, 50, calc(0.2 + var(--planet-strength) * 0.45)) !important;
+  color: #1b5e20 !important;
+  font-weight: 600;
+}
+
+#planets-table tbody td.planet-cell--own {
+  background-color: rgba(46, 125, 50, calc(0.26 + var(--planet-strength) * 0.5)) !important;
+  color: #1b5e20 !important;
+  font-weight: 600;
+}
+
+#planets-table tbody td.planet-cell--enemy {
+  background-color: rgba(183, 28, 28, calc(0.18 + var(--planet-strength) * 0.4)) !important;
+  color: #6d1b1b !important;
+  font-weight: 600;
+}
+
+.navatara-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1rem;
+  margin-bottom: var(--space-sm);
+}
+
+.navatara-section-header .result-heading {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.navatara-section-desc {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  max-width: 42rem;
+}
+
+.navatara-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+#navatara-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+#navatara-table thead th {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  padding: 0.7rem 0.3rem;
+  white-space: normal;
+  vertical-align: bottom;
+  word-break: break-word;
+}
+
+#navatara-table tbody td {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  padding: 0.85rem 0.3rem;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#navatara-table .navatara-td-navatara {
+  font-weight: 700;
+}
+
+#navatara-table .navatara-col-toggle {
+  width: 2.25rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  text-align: center;
+}
+
+#navatara-table .navatara-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#navatara-table .navatara-group-toggle:hover {
+  border-color: var(--color-primary);
+}
+
+#navatara-table tr.navatara-group-row {
+  cursor: pointer;
+}
+
+#navatara-table:not(.navatara-table--has-open-row) .navatara-detail-col,
+#navatara-table tr.navatara-group-row:not(.navatara-group-row--open) .navatara-detail-cell {
+  display: none;
+}
+
+#navatara-table th:nth-child(1),
+#navatara-table td:nth-child(1) {
+  width: 9%;
+}
+
+#navatara-table th:nth-child(2),
+#navatara-table td:nth-child(2) {
+  width: 2.5rem;
+}
+
+#navatara-table th:nth-child(3),
+#navatara-table td:nth-child(3) {
+  width: 22%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(4),
+#navatara-table.navatara-table--has-open-row td:nth-child(4) {
+  width: 10%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(5),
+#navatara-table.navatara-table--has-open-row td:nth-child(5) {
+  width: 9%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(6),
+#navatara-table.navatara-table--has-open-row td:nth-child(6) {
+  width: 10%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(7),
+#navatara-table.navatara-table--has-open-row td:nth-child(7) {
+  width: 8%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(8),
+#navatara-table.navatara-table--has-open-row td:nth-child(8) {
+  width: 8%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(9),
+#navatara-table.navatara-table--has-open-row td:nth-child(9) {
+  width: 7%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(10),
+#navatara-table.navatara-table--has-open-row td:nth-child(10) {
+  width: 7%;
+}
+
+#navatara-table.navatara-table--has-open-row th:nth-child(11),
+#navatara-table.navatara-table--has-open-row td:nth-child(11) {
+  width: 12%;
+}
+
+#navatara-table tr.navatara-group-row--open .navatara-td-about {
+  font-weight: 600;
+}
+
+#navatara-table .navatara-td-lucky-time {
+  line-height: 1.45;
+}
+
+/* Navatara: full-row background (unchanged). */
 #navatara-table tbody tr.navatara-row--helpful td {
   background-color: rgba(46, 125, 50, calc(0.06 + var(--navatara-intensity, 0.5) * 0.44));
 }
@@ -742,12 +952,12 @@ tbody tr:last-child td {
   background-color: rgba(183, 28, 28, calc(0.06 + var(--navatara-intensity, 0.5) * 0.4));
 }
 
-#navatara-table tbody tr.navatara-row--helpful td:nth-child(2) {
+#navatara-table tbody tr.navatara-row--helpful .navatara-td-about {
   font-weight: 600;
   color: #1b5e20;
 }
 
-#navatara-table tbody tr.navatara-row--harmful td:nth-child(2) {
+#navatara-table tbody tr.navatara-row--harmful .navatara-td-about {
   font-weight: 600;
   color: #6d1b1b;
 }

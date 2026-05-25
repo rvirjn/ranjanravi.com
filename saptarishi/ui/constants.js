@@ -9,6 +9,8 @@ const SAPTARISHI_CONSTANTS = {
    * Nava-tara helpfulness intensity (0–1) for row shading.
    * Ati-maitri & janma strongest; maitri moderate; harmful taras scale red depth.
    */
+  /** Fixed shade for Status In Rashi / Nakshatra cells (not tied to planet strength %). */
+  PLANET_STATUS_COLOR_INTENSITY: 0.72,
   NAVATARA_INTENSITY: {
     "ati-maitri": 1,
     janma: 1,
@@ -63,5 +65,7 @@ const SAPTARISHI_CONSTANTS = {
     [12, "", 74, 12]
   ],
   /** Display order for planet abbreviations in each house cell */
-  PLANET_DISPLAY_ORDER: ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"]
+  PLANET_DISPLAY_ORDER: ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"],
+  /** Fallback if API omits planet_strength_rules (sync with planet.json / constant.py). */
+  PLANET_STRENGTH_MAX_PERCENT: 200
 };

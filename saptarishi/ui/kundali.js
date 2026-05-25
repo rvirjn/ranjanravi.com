@@ -37,10 +37,12 @@ function getFlaskApiOrigin() {
   return u.origin;
 }
 
-/** Show loading, success, or error text under the birth form. */
+/** Show loading or error text under the birth form; hide when empty. */
 function showStatusMessage(message, isError) {
   if (!statusEl) return;
-  statusEl.textContent = message || "";
+  const text = message || "";
+  statusEl.textContent = text;
+  statusEl.hidden = !text;
   statusEl.classList.toggle("error", Boolean(isError));
 }
 
@@ -51,17 +53,115 @@ function getBirthPlaceFromForm() {
   return placePreset.value.trim();
 }
 
+/** Title Case for UI labels and values (each word capitalized). */
+function toTitleCaseWords(text) {
+  return String(text ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function formatSummaryTimeValue(iso) {
+  const raw = String(iso ?? "").trim();
+  const match = raw.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}(?::\d{2})?)/);
+  if (match) return `${match[1]} ${match[2]}`;
+  return raw.replace("T", " ").replace(/[+-]\d{2}:\d{2}$/, "").trim();
+}
+
+function formatSummaryCellValue(label, value) {
+  const key = normalizeText(label);
+  const raw = String(value ?? "");
+  if (key === "time") return formatSummaryTimeValue(raw);
+  if (key === "moon type") {
+    const paksha = normalizeText(raw);
+    if (paksha === "krishna" || raw.toLowerCase().includes("krishna")) {
+      return "Krishna paksha (dark moon)";
+    }
+    if (paksha === "shukla" || paksha === "sukla" || raw.toLowerCase().includes("shukla")) {
+      return "Shukla paksha (white moon)";
+    }
+  }
+  return raw;
+}
+
 /** One label + value row for the summary facts table. */
 function createSummaryLabelValueRow(label, value) {
   const tr = document.createElement("tr");
   const th = document.createElement("th");
   th.scope = "row";
-  th.textContent = label;
+  th.textContent = toTitleCaseWords(label);
   const td = document.createElement("td");
-  td.textContent = value ?? "";
+  td.textContent = formatSummaryCellValue(label, value);
   tr.appendChild(th);
   tr.appendChild(td);
   return tr;
+}
+
+function dedupeCommaList(cell) {
+  const parts = String(cell ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (!parts.length) return "";
+  const lower = parts.map((p) => p.toLowerCase());
+  if (lower.every((p) => p === lower[0])) return parts[0];
+  return parts.join(", ");
+}
+
+function formatNavataraName(cell) {
+  return String(cell ?? "")
+    .split("-")
+    .map((part) => toTitleCaseWords(part))
+    .join("-");
+}
+
+/** Planets table cell text: prefer API ``*_display`` fields from get_kundali.py. */
+function planetsTableCellText(key, rowData) {
+  if (key === "is_planet_in_6_8_12_house") {
+    return rowData.malefic_6_8_12_display ?? rowData.malefic_6_8_12 ?? rowData[key];
+  }
+  if (key === "is_planet_lagna_lord_enemy") {
+    return rowData.is_planet_lagna_lord_enemy_display ?? rowData[key];
+  }
+  if (key === "is_planet_at_death_degree") {
+    return rowData.is_planet_at_death_degree_display ?? rowData[key];
+  }
+  return rowData[key];
+}
+
+function formatTableCellForDisplay(key, cell) {
+  if (cell == null) return "";
+  const text = String(cell);
+  if (
+    key === "is_planet_in_6_8_12_house" ||
+    key === "malefic_6_8_12" ||
+    key === "is_planet_lagna_lord_enemy" ||
+    key === "is_planet_at_death_degree" ||
+    key === "malefic_6_8_12_display" ||
+    key === "is_planet_lagna_lord_enemy_display" ||
+    key === "is_planet_at_death_degree_display"
+  ) {
+    if (/^(yes|no)$/i.test(String(text).trim())) {
+      return String(text).trim().toLowerCase() === "yes" ? "Yes" : "No";
+    }
+    return text;
+  }
+  if (key === "planet" || key === "planet_status_in_rashi" || key === "planet_status_in_nakshatra") {
+    const s = normalizeText(text);
+    if (s === "high") return "High";
+    if (s === "low") return "Low";
+    if (s === "own") return "Own";
+    return toTitleCaseWords(text);
+  }
+  if (key === "nakshatra") return formatNavataraName(text.replace(/\s*\(pada\s+\d+\)\s*$/i, ""));
+  if (key === "navatara") return formatNavataraName(text);
+  if (key === "ruling_planet") return toTitleCaseWords(dedupeCommaList(text));
+  if (key === "lucky_day") return toTitleCaseWords(text);
+  if (key === "divine_god") return toTitleCaseWords(text);
+  if (key === "lucky_time") return formatLuckyTime(text);
+  return text;
 }
 
 /** Normalize text for CSS class / comparison (lowercase, collapsed spaces). */
@@ -72,50 +172,93 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
-/** Strength 0–1 from API percent or "25%" string. */
-function strengthToOpacity(row) {
-  if (typeof row.strength_percent === "number") {
-    return Math.min(1, Math.max(0, row.strength_percent / 100));
-  }
-  const match = String(row.strength || "").match(/(\d+)/);
-  return match ? Number(match[1]) / 100 : 0.2;
+function strengthMaxFromPayload(payload) {
+  const max = payload?.planet_strength_rules?.max_percent;
+  if (typeof max === "number" && max > 0) return max;
+  return C.PLANET_STRENGTH_MAX_PERCENT || 200;
 }
 
-/** CSS classes for a planets table row from status in rashi (own uses friend green). */
-function planetRowClasses(statusInRashi) {
-  const status = normalizeText(statusInRashi);
-  const classes = ["planet-row"];
-  if (status === "own" || status === "friend") {
-    classes.push("planet-row--friend");
-  } else if (status === "enemy" || status === "neutral") {
-    classes.push(`planet-row--${status}`);
-  }
-  return classes.join(" ");
+function strengthPercentFromRow(row) {
+  if (typeof row?.strength_percent === "number") return row.strength_percent;
+  const match = String(row?.strength || "").match(/(\d+)/);
+  return match ? Number(match[1]) : 25;
 }
 
-/** Chart planet color class (same status rules as planets table). */
-function planetChartStatusClass(statusInRashi) {
-  const status = normalizeText(statusInRashi);
-  if (status === "own" || status === "friend") return "kundali-chart-planet--friend";
-  if (status === "enemy") return "kundali-chart-planet--enemy";
+/** Map 0–max% strength to 0–1 intensity (100% ≠ 125% when max is 200). */
+function planetStrengthVisualVars(strengthPercent, strengthMax) {
+  const max = Math.max(100, strengthMax || C.PLANET_STRENGTH_MAX_PERCENT || 200);
+  const pct = Math.max(0, Number(strengthPercent) || 0);
+  const intensity = Math.min(1, pct / max);
+  return { intensity };
+}
+
+function applyPlanetStrengthStyle(el, strengthPercent, strengthMax) {
+  const { intensity } = planetStrengthVisualVars(strengthPercent, strengthMax);
+  el.style.setProperty("--planet-strength", String(intensity));
+}
+
+/** Status columns use one intensity so Own/Friend/Enemy match across rashi and nakshatra. */
+function applyPlanetStatusCellColorIntensity(el) {
+  const intensity = C.PLANET_STATUS_COLOR_INTENSITY ?? 0.72;
+  el.style.setProperty("--planet-strength", String(intensity));
+}
+
+function strengthToOpacity(row, strengthMax) {
+  return planetStrengthVisualVars(strengthPercentFromRow(row), strengthMax).intensity;
+}
+
+/** Status kind for cell tint: high/low beat own/friend/enemy when combined. */
+function planetStatusKind(status) {
+  const s = normalizeText(status);
+  if (!s || s === "unknown" || s === "—") return "";
+  if (s === "high" || /\bhigh\b/.test(s)) return "high";
+  if (s === "low" || /\blow\b/.test(s)) return "low";
+  if (s === "own" || /\bown\b/.test(s)) return "own";
+  if (/\bfriend\b/.test(s)) return "friend";
+  if (/\benemy\b/.test(s)) return "enemy";
+  return "";
+}
+
+/** Apply ``cell_styles`` color from API (get_kundali.py). */
+function applyPlanetTableCellStyle(td, colorKind, columnKey) {
+  if (!colorKind) return;
+  const yesNoCol =
+    columnKey === "is_planet_in_6_8_12_house" ||
+    columnKey === "is_planet_lagna_lord_enemy" ||
+    columnKey === "is_planet_at_death_degree" ||
+    columnKey === "navatara";
+  td.className = `${yesNoCol ? "planets-td-yesno" : "planets-td-status"} planet-cell planet-cell--${colorKind}`;
+  applyPlanetStatusCellColorIntensity(td);
+}
+
+/** Chart planet color class from API ``planet_status_color`` or status text. */
+function planetChartStatusClass(planet) {
+  const kind = planet?.planet_status_color || planetStatusKind(
+    planet?.planet_status_in_rashi || planet?.planet_relation_with_rashi_lord
+  );
+  if (kind === "high") return "kundali-chart-planet--high";
+  if (kind === "low") return "kundali-chart-planet--low";
+  if (kind === "own") return "kundali-chart-planet--own";
+  if (kind === "friend") return "kundali-chart-planet--friend";
+  if (kind === "enemy") return "kundali-chart-planet--enemy";
   return "kundali-chart-planet--neutral";
 }
 
-function planetStrengthFromEntry(entry) {
-  if (typeof entry?.strength_percent === "number") {
-    return Math.min(1, Math.max(0, entry.strength_percent / 100));
-  }
-  return strengthToOpacity(entry);
-}
-
-function stylePlanetTspan(tspan, entry) {
-  tspan.setAttribute("class", `kundali-chart-planet ${planetChartStatusClass(entry.status)}`);
-  tspan.style.setProperty("--planet-strength", String(planetStrengthFromEntry(entry)));
+function stylePlanetTspan(tspan, entry, strengthMax) {
+  tspan.setAttribute("class", `kundali-chart-planet ${planetChartStatusClass(entry)}`);
+  applyPlanetStrengthStyle(tspan, entry.strength_percent, strengthMax);
 }
 
 /** Per-planet colored tspans; x/dy only on line/row starts (same layout as plain text rows). */
 function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
-  const { rowMode = false, firstDy = "0", rowDy = "1.05em", gap = " ", leadGap = false } = options;
+  const {
+    rowMode = false,
+    firstDy = "0",
+    rowDy = "1.05em",
+    gap = " ",
+    leadGap = false,
+    strengthMax
+  } = options;
   const list = planets || [];
   if (!list.length) return;
 
@@ -132,7 +275,7 @@ function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
           tspan.setAttribute("dy", ri === 0 ? firstDy : rowDy);
         }
         tspan.textContent = (pi > 0 || (leadGap && pi === 0) ? gap : "") + entry.label;
-        stylePlanetTspan(tspan, entry);
+        stylePlanetTspan(tspan, entry, options.strengthMax);
         textEl.appendChild(tspan);
       });
     });
@@ -146,7 +289,7 @@ function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
       tspan.setAttribute("dy", firstDy);
     }
     tspan.textContent = (i > 0 || (leadGap && i === 0) ? gap : "") + entry.label;
-    stylePlanetTspan(tspan, entry);
+    stylePlanetTspan(tspan, entry, options.strengthMax);
     textEl.appendChild(tspan);
   });
 }
@@ -182,26 +325,60 @@ function navataraIntensity(navataraName, isHelpful) {
   return isHelpful ? 0.5 : 0.5;
 }
 
-/** Planets table: row color by status in rashi, intensity by strength. */
+function formatHouseForList(text) {
+  return String(text ?? "")
+    .split(",")
+    .map((part) => toTitleCaseWords(part.trim()))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function appendPlanetsHouseCell(tr, rowData) {
+  const td = document.createElement("td");
+  td.className = "planets-td-house";
+  const num = rowData.house;
+  const forText = formatHouseForList(rowData.house_for);
+  if (num != null && num !== "") {
+    const numEl = document.createElement("div");
+    numEl.className = "planets-house-num";
+    numEl.textContent = String(num);
+    td.appendChild(numEl);
+  }
+  if (forText) {
+    const forEl = document.createElement("div");
+    forEl.className = "planets-house-for";
+    forEl.textContent = forText;
+    td.appendChild(forEl);
+  }
+  tr.appendChild(td);
+}
+
+/** Planets table: values and ``cell_styles`` come from API (get_kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
   const columnKeys = [
-    "house",
     "planet",
-    "rashi",
     "strength",
+    "is_planet_in_6_8_12_house",
+    "is_planet_lagna_lord_enemy",
+    "is_planet_at_death_degree",
     "planet_status_in_rashi",
-    "retrograde"
+    "planet_status_in_nakshatra",
+    "navatara",
+    "rashi",
+    "nakshatra",
+    "degree"
   ];
   for (const rowData of rows || []) {
     const tr = document.createElement("tr");
-    tr.className = planetRowClasses(rowData.planet_status_in_rashi);
-    tr.style.setProperty("--planet-strength", String(strengthToOpacity(rowData)));
+    const cellStyles = rowData.cell_styles || {};
+    appendPlanetsHouseCell(tr, rowData);
     for (const key of columnKeys) {
       const td = document.createElement("td");
-      const cell = rowData[key];
-      td.textContent = cell != null ? String(cell) : "";
+      const displayValue = planetsTableCellText(key, rowData);
+      td.textContent = formatTableCellForDisplay(key, displayValue);
+      applyPlanetTableCellStyle(td, cellStyles[key] || "", key);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -226,42 +403,138 @@ function sortNavataraRowsForDisplay(rows) {
   return [...helpful, ...notHelpful];
 }
 
+/** Normalize lucky time for display: AM/PM and hyphen ranges only. */
+function formatLuckyTime(cell) {
+  let text = String(cell ?? "").trim();
+  if (!text) return "";
+  text = text
+    .replace(/\bsunrise\b/gi, "6:00 AM")
+    .replace(/\bafter sunset\b/gi, "6:00 PM")
+    .replace(/\bsunset\b/gi, "6:00 PM")
+    .replace(/\bnoon\b/gi, "12:00 PM")
+    .replace(/\btwilight\s*\([^)]*\)/gi, "6:00 AM - 7:00 AM")
+    .replace(/\bto\b/gi, "-")
+    .replace(/\s*;\s*/g, " / ")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase());
+  return text;
+}
+
+function formatNavataraAbout(cell) {
+  const text = cell != null ? String(cell).trim() : "";
+  if (!text) return "";
+  return /^for\s/i.test(text) ? text : `For ${text}`;
+}
+
+/** Navatara summary + detail columns (thead order: navatara, toggle, title, details…). */
+const NAVATARA_SUMMARY_COLUMNS = [
+  { key: "navatara", className: "navatara-td-navatara" },
+  { key: "about", className: "navatara-td-about", format: formatNavataraAbout }
+];
+
+const NAVATARA_DETAIL_COLUMNS = [
+  { key: "nakshatra", className: "navatara-td-nakshatra" },
+  { key: "ruling_planet", className: "navatara-td-ruling_planet" },
+  { key: "divine_god", className: "navatara-td-divine_god", fallbackKey: "deity" },
+  { key: "tree", className: "navatara-td-tree" },
+  { key: "lucky_colors", className: "navatara-td-colors" },
+  { key: "lucky_number", className: "navatara-td-lucky-number" },
+  { key: "lucky_day", className: "navatara-td-lucky-day" },
+  { key: "lucky_time", className: "navatara-td-lucky-time" }
+];
+
+function navataraCellValue(rowData, col) {
+  const raw = rowData[col.key] ?? (col.fallbackKey ? rowData[col.fallbackKey] : "");
+  if (col.format) return col.format(raw);
+  return formatTableCellForDisplay(col.key, raw);
+}
+
+function applyNavataraRowColors(tr, rowData) {
+  const helpful = normalizeText(rowData.auspicious) === "yes";
+  tr.classList.add(helpful ? "navatara-row--helpful" : "navatara-row--harmful");
+  const navataraKey = normalizeText(rowData.navatara);
+  tr.style.setProperty("--navatara-intensity", String(navataraIntensity(rowData.navatara, helpful)));
+  if (navataraKey) {
+    tr.classList.add(`navatara-row--${navataraKey.replace(/[^a-z0-9]+/g, "-")}`);
+  }
+}
+
+function createNavataraToggleCell() {
+  const td = document.createElement("td");
+  td.className = "navatara-col-toggle";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "navatara-group-toggle";
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-label", "Show details");
+  btn.textContent = "▶";
+  td.appendChild(btn);
+  return td;
+}
+
+function appendNavataraColumnCell(tr, rowData, col, extraClass) {
+  const td = document.createElement("td");
+  td.className = [col.className, extraClass].filter(Boolean).join(" ");
+  td.textContent = navataraCellValue(rowData, col);
+  tr.appendChild(td);
+}
+
+function setNavataraRowOpen(row, open) {
+  if (!row) return;
+  row.classList.toggle("navatara-group-row--open", open);
+  const btn = row.querySelector(".navatara-group-toggle");
+  if (btn) {
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.setAttribute("aria-label", open ? "Hide details" : "Show details");
+    btn.textContent = open ? "▼" : "▶";
+  }
+  const table = row.closest("#navatara-table");
+  if (table) {
+    table.classList.toggle("navatara-table--has-open-row", !!table.querySelector(".navatara-group-row--open"));
+  }
+}
+
+function closeAllNavataraGroups(tbody) {
+  tbody.querySelectorAll(".navatara-group-row").forEach((row) => setNavataraRowOpen(row, false));
+}
+
+function bindNavataraAccordion(tbody) {
+  if (!tbody || tbody.dataset.accordionBound === "1") return;
+  tbody.dataset.accordionBound = "1";
+  tbody.addEventListener("click", (e) => {
+    const row = e.target.closest("tr.navatara-group-row");
+    if (!row || !tbody.contains(row)) return;
+    const willOpen = !row.classList.contains("navatara-group-row--open");
+    closeAllNavataraGroups(tbody);
+    if (willOpen) setNavataraRowOpen(row, true);
+  });
+}
+
 function renderNavataraTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
-  const columnKeys = [
-    "about",
-    "auspicious",
-    "navatara",
-    "nakshatra",
-    "ruling_planet",
-    "deity",
-    "tree",
-    "lucky_colors"
-  ];
+  delete tbody.dataset.accordionBound;
+  const table = tbody.closest("#navatara-table");
+  if (table) table.classList.remove("navatara-table--has-open-row");
   const sorted = sortNavataraRowsForDisplay(rows);
-  let lastNavatara = null;
+
   for (const rowData of sorted) {
     const tr = document.createElement("tr");
-    const helpful = normalizeText(rowData.auspicious) === "yes";
-    tr.className = helpful ? "navatara-row--helpful" : "navatara-row--harmful";
-    const navataraKey = normalizeText(rowData.navatara);
-    tr.style.setProperty("--navatara-intensity", String(navataraIntensity(rowData.navatara, helpful)));
-    if (navataraKey) {
-      tr.classList.add(`navatara-row--${navataraKey.replace(/[^a-z0-9]+/g, "-")}`);
+    tr.className = "navatara-group-row";
+    applyNavataraRowColors(tr, rowData);
+
+    appendNavataraColumnCell(tr, rowData, NAVATARA_SUMMARY_COLUMNS[0], "");
+    tr.appendChild(createNavataraToggleCell());
+    appendNavataraColumnCell(tr, rowData, NAVATARA_SUMMARY_COLUMNS[1], "");
+
+    for (const col of NAVATARA_DETAIL_COLUMNS) {
+      appendNavataraColumnCell(tr, rowData, col, "navatara-detail-cell");
     }
-    if (lastNavatara !== null && lastNavatara !== navataraKey) {
-      tr.classList.add("navatara-row--group-start");
-    }
-    lastNavatara = navataraKey;
-    for (const key of columnKeys) {
-      const td = document.createElement("td");
-      const cell = rowData[key];
-      td.textContent = cell != null ? String(cell) : "";
-      tr.appendChild(td);
-    }
+
     tbody.appendChild(tr);
   }
+
+  bindNavataraAccordion(tbody);
 }
 
 /** Planet short label from output JSON ``planets[].name`` (no retrograde brackets). */
@@ -303,7 +576,9 @@ function buildNorthIndianChartFromPayload(payload) {
     const entry = {
       label,
       order: planetOrder.indexOf(String(p.name || "").toLowerCase()),
-      status: p.planet_relation_with_rashi_lord,
+      planet_status_color: p.planet_status_color || "",
+      planet_status_in_rashi:
+        p.planet_status_in_rashi || p.planet_relation_with_rashi_lord,
       strength_percent:
         typeof p.planet_strength === "number"
           ? p.planet_strength
@@ -339,6 +614,7 @@ function buildNorthIndianChartFromPayload(payload) {
     layout: "north_indian",
     lagna_label: lagnaLabel,
     lagna_rashi_number: lagnaRashiNumber,
+    strength_max: strengthMaxFromPayload(payload),
     cells
   };
 }
@@ -346,21 +622,14 @@ function buildNorthIndianChartFromPayload(payload) {
 /** Traditional North Indian chart: diagonals + diamond house regions (SVG). */
 function renderKundaliChart(chartData) {
   const host = document.getElementById("kundali-chart");
-  const lagnaEl = document.getElementById("kundali-chart-lagna");
   if (!host) return;
   host.innerHTML = "";
   if (!chartData || !Array.isArray(chartData.cells)) {
-    if (lagnaEl) lagnaEl.hidden = true;
     return;
   }
-  if (lagnaEl) {
-    const lagnaNum =
-      chartData.lagna_rashi_number != null
-        ? String(chartData.lagna_rashi_number)
-        : chartData.lagna_label || "";
-    lagnaEl.textContent = lagnaNum ? `Lagna: ${lagnaNum}` : "";
-    lagnaEl.hidden = !lagnaNum;
-  }
+
+  const strengthMax = chartData.strength_max || C.PLANET_STRENGTH_MAX_PERCENT || 200;
+  const planetOpts = { strengthMax };
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -429,7 +698,7 @@ function renderKundaliChart(chartData) {
       if (housePlanets.length) {
         const planetsDown = cell.house === 1 ? 2.5 : 2;
         const plEl = createPlanetTextEl(cx, cy + planetsDown, "middle", densePlanets);
-        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true });
+        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
     } else if (cell.house === 6 || cell.house === 8) {
@@ -447,7 +716,7 @@ function renderKundaliChart(chartData) {
       }
       if (housePlanets.length) {
         const plEl = createPlanetTextEl(labelX, cy + 5, "middle", densePlanets);
-        appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true });
+        appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
     } else if (cell.house === 3 || cell.house === 11) {
@@ -464,7 +733,7 @@ function renderKundaliChart(chartData) {
       }
       if (housePlanets.length) {
         const plEl = createPlanetTextEl(cx, cy + 0.5, "middle", densePlanets);
-        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true });
+        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
     } else if (cell.house === 7) {
@@ -473,7 +742,8 @@ function renderKundaliChart(chartData) {
         const plEl = createPlanetTextEl(cx, cy - 3.5, "middle", densePlanets);
         appendColoredPlanetsToText(plEl, housePlanets, cx, {
           rowMode: true,
-          rowDy: "-1.05em"
+          rowDy: "-1.05em",
+          ...planetOpts
         });
         g.appendChild(plEl);
       }
@@ -505,7 +775,8 @@ function renderKundaliChart(chartData) {
         appendColoredPlanetsToText(lineEl, housePlanets, rashiNum != null ? null : signX, {
           firstDy: "0",
           gap: " ",
-          leadGap: rashiNum != null
+          leadGap: rashiNum != null,
+          ...planetOpts
         });
         hasLine = true;
       }
@@ -516,7 +787,7 @@ function renderKundaliChart(chartData) {
       const lineEl = createChartLineTextEl(signX, cy, "end");
       let hasLine = false;
       if (housePlanets.length) {
-        appendColoredPlanetsToText(lineEl, housePlanets, null, { firstDy: "0", gap: " " });
+        appendColoredPlanetsToText(lineEl, housePlanets, null, { firstDy: "0", gap: " ", ...planetOpts });
         hasLine = true;
       }
       if (rashiNum != null) {
@@ -548,7 +819,7 @@ function renderKundaliChart(chartData) {
 
       if (housePlanets.length) {
         const plEl = createPlanetTextEl(cx, planetsStartY, "middle", densePlanets);
-        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true });
+        appendColoredPlanetsToText(plEl, housePlanets, cx, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
     }
@@ -575,6 +846,8 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   const planetsBody = document.querySelector("#planets-table tbody");
   const navataraBody = document.querySelector("#navatara-table tbody");
 
+  const strengthMax = strengthMaxFromPayload(kundaliPayload);
+
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
@@ -582,7 +855,10 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderNavataraTableWithColors(navataraBody, kundaliPayload.navatara_rows || []);
 
   if (resultsEl) resultsEl.hidden = false;
-  showStatusMessage(kundaliPayload.ui_status_message || "Loaded.");
+  const saved = kundaliPayload.output_json_file;
+  showStatusMessage(
+    saved ? `Saved to ${saved}.` : kundaliPayload.ui_status_message || ""
+  );
 }
 
 /** Build query string for GET /api/kundali from form fields. */

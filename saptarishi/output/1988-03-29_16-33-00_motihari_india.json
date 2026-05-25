@@ -1,0 +1,1694 @@
+{
+  "place_query": "Motihari, India",
+  "place_resolved": {
+    "name": "Motīhāri",
+    "admin1": "Bihar",
+    "country": "India",
+    "latitude": 27.09833,
+    "longitude": 84.54916,
+    "timezone": "Asia/Kolkata"
+  },
+  "datetime_local_iso": "1988-03-29T16:33:00+05:30",
+  "datetime_utc_iso": "1988-03-29T11:03:00+00:00",
+  "julian_day_ut": 2447249.9604166667,
+  "ayanamsa": "lahiri",
+  "ayanamsa_degrees": 23.692834,
+  "house_system": "W",
+  "ascendant": {
+    "sidereal_longitude": 145.048687,
+    "rashi_index": 4,
+    "rashi_english": "leo",
+    "rashi_sanskrit": "simha",
+    "degree_in_rashi": 25.0487,
+    "is_lagna_at_death_degree": "no"
+  },
+  "houses_whole_sign": [
+    {
+      "house": 1,
+      "rashi_index": 4,
+      "rashi_english": "leo",
+      "rashi_sanskrit": "simha",
+      "cusps_longitude": 120.0
+    },
+    {
+      "house": 2,
+      "rashi_index": 5,
+      "rashi_english": "virgo",
+      "rashi_sanskrit": "kanya",
+      "cusps_longitude": 150.0
+    },
+    {
+      "house": 3,
+      "rashi_index": 6,
+      "rashi_english": "libra",
+      "rashi_sanskrit": "tula",
+      "cusps_longitude": 180.0
+    },
+    {
+      "house": 4,
+      "rashi_index": 7,
+      "rashi_english": "scorpio",
+      "rashi_sanskrit": "vrishchika",
+      "cusps_longitude": 210.0
+    },
+    {
+      "house": 5,
+      "rashi_index": 8,
+      "rashi_english": "sagittarius",
+      "rashi_sanskrit": "dhanu",
+      "cusps_longitude": 240.0
+    },
+    {
+      "house": 6,
+      "rashi_index": 9,
+      "rashi_english": "capricorn",
+      "rashi_sanskrit": "makara",
+      "cusps_longitude": 270.0
+    },
+    {
+      "house": 7,
+      "rashi_index": 10,
+      "rashi_english": "aquarius",
+      "rashi_sanskrit": "kumbha",
+      "cusps_longitude": 300.0
+    },
+    {
+      "house": 8,
+      "rashi_index": 11,
+      "rashi_english": "pisces",
+      "rashi_sanskrit": "meena",
+      "cusps_longitude": 330.0
+    },
+    {
+      "house": 9,
+      "rashi_index": 0,
+      "rashi_english": "aries",
+      "rashi_sanskrit": "mesha",
+      "cusps_longitude": 0.0
+    },
+    {
+      "house": 10,
+      "rashi_index": 1,
+      "rashi_english": "taurus",
+      "rashi_sanskrit": "vrishabha",
+      "cusps_longitude": 30.0
+    },
+    {
+      "house": 11,
+      "rashi_index": 2,
+      "rashi_english": "gemini",
+      "rashi_sanskrit": "mithuna",
+      "cusps_longitude": 60.0
+    },
+    {
+      "house": 12,
+      "rashi_index": 3,
+      "rashi_english": "cancer",
+      "rashi_sanskrit": "karka",
+      "cusps_longitude": 90.0
+    }
+  ],
+  "planets": [
+    {
+      "name": "sun",
+      "sidereal_longitude": 345.282636,
+      "rashi_index": 11,
+      "rashi_english": "pisces",
+      "rashi_sanskrit": "meena",
+      "whole_sign_house": 8,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "friend",
+      "sign_lord": "jupiter",
+      "is_planet_in_6_8_12_house": "yes",
+      "is_planet_lagna_lord_enemy": "no",
+      "sign_degree_phase": {
+        "phase_english": "youth",
+        "strength_percent": 100,
+        "range_low_deg_in_sign": 12.0,
+        "range_high_deg_in_sign": 18.0,
+        "at_birth_degrees_in_sign": 15.2826,
+        "label": "100%"
+      },
+      "planet_strength_base": 100,
+      "planet_strength": 100,
+      "planet_status_in_rashi": "friend",
+      "nakshatra": "uttara bhadrapada",
+      "nakshatra_pada": 4,
+      "nakshatra_ruling_planet": "saturn",
+      "planet_relation_with_nakshatra_lord": "enemy",
+      "planet_status_in_nakshatra": "enemy",
+      "planet_navatara": "maitri",
+      "is_planet_navatara_harmful": "no",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "enemy",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": ""
+      },
+      "planet_status_color": "friend",
+      "malefic_6_8_12_display": "Yes",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "moon",
+      "sidereal_longitude": 121.994367,
+      "rashi_index": 4,
+      "rashi_english": "leo",
+      "rashi_sanskrit": "simha",
+      "whole_sign_house": 1,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "friend",
+      "sign_lord": "sun",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "no",
+      "sign_degree_phase": {
+        "phase_english": "born",
+        "strength_percent": 25,
+        "range_low_deg_in_sign": 0.0,
+        "range_high_deg_in_sign": 6.0,
+        "at_birth_degrees_in_sign": 1.9944,
+        "label": "25%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 25,
+      "planet_status_in_rashi": "friend",
+      "nakshatra": "magha",
+      "nakshatra_pada": 1,
+      "nakshatra_ruling_planet": "ketu",
+      "planet_relation_with_nakshatra_lord": "enemy",
+      "planet_status_in_nakshatra": "enemy",
+      "planet_navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": ""
+      },
+      "planet_status_color": "friend",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "mercury",
+      "sidereal_longitude": 325.367624,
+      "rashi_index": 10,
+      "rashi_english": "aquarius",
+      "rashi_sanskrit": "kumbha",
+      "whole_sign_house": 7,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "neutral",
+      "sign_lord": "saturn",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "no",
+      "sign_degree_phase": {
+        "phase_english": "dead",
+        "strength_percent": 25,
+        "range_low_deg_in_sign": 24.0,
+        "range_high_deg_in_sign": 30.0,
+        "at_birth_degrees_in_sign": 25.3676,
+        "label": "25%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 25,
+      "planet_status_in_rashi": "neutral",
+      "nakshatra": "purva bhadrapada",
+      "nakshatra_pada": 2,
+      "nakshatra_ruling_planet": "jupiter",
+      "planet_relation_with_nakshatra_lord": "enemy",
+      "planet_status_in_nakshatra": "enemy",
+      "planet_navatara": "vadha",
+      "is_planet_navatara_harmful": "yes",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "planet_status_color": "",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "venus",
+      "sidereal_longitude": 31.066125,
+      "rashi_index": 1,
+      "rashi_english": "taurus",
+      "rashi_sanskrit": "vrishabha",
+      "whole_sign_house": 10,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "own",
+      "sign_lord": "venus",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "yes",
+      "sign_degree_phase": {
+        "phase_english": "born",
+        "strength_percent": 25,
+        "range_low_deg_in_sign": 0.0,
+        "range_high_deg_in_sign": 6.0,
+        "at_birth_degrees_in_sign": 1.0661,
+        "label": "25%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 25,
+      "planet_status_in_rashi": "own",
+      "nakshatra": "krittika",
+      "nakshatra_pada": 2,
+      "nakshatra_ruling_planet": "sun",
+      "planet_relation_with_nakshatra_lord": "enemy",
+      "planet_status_in_nakshatra": "enemy",
+      "planet_navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "own",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "planet_status_color": "own",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "mars",
+      "sidereal_longitude": 270.618597,
+      "rashi_index": 9,
+      "rashi_english": "capricorn",
+      "rashi_sanskrit": "makara",
+      "whole_sign_house": 6,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "enemy",
+      "sign_lord": "saturn",
+      "is_planet_in_6_8_12_house": "yes",
+      "is_planet_lagna_lord_enemy": "no",
+      "sign_degree_phase": {
+        "phase_english": "born",
+        "strength_percent": 125,
+        "range_low_deg_in_sign": 0.0,
+        "range_high_deg_in_sign": 6.0,
+        "at_birth_degrees_in_sign": 0.6186,
+        "label": "125%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 125,
+      "planet_dignity": "exalted",
+      "planet_status_in_rashi": "high",
+      "nakshatra": "uttara ashadha",
+      "nakshatra_pada": 2,
+      "nakshatra_ruling_planet": "sun",
+      "planet_relation_with_nakshatra_lord": "friend",
+      "planet_status_in_nakshatra": "friend",
+      "planet_navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "high",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "enemy",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "high",
+        "planet_status_in_nakshatra": "friend",
+        "navatara": "enemy"
+      },
+      "planet_status_color": "high",
+      "malefic_6_8_12_display": "Yes",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "jupiter",
+      "sidereal_longitude": 10.863173,
+      "rashi_index": 0,
+      "rashi_english": "aries",
+      "rashi_sanskrit": "mesha",
+      "whole_sign_house": 9,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "friend",
+      "sign_lord": "mars",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "no",
+      "sign_degree_phase": {
+        "phase_english": "child",
+        "strength_percent": 50,
+        "range_low_deg_in_sign": 6.0,
+        "range_high_deg_in_sign": 12.0,
+        "at_birth_degrees_in_sign": 10.8632,
+        "label": "50%"
+      },
+      "planet_strength_base": 50,
+      "planet_strength": 50,
+      "planet_status_in_rashi": "friend",
+      "nakshatra": "ashwini",
+      "nakshatra_pada": 4,
+      "nakshatra_ruling_planet": "ketu",
+      "planet_relation_with_nakshatra_lord": "neutral",
+      "planet_status_in_nakshatra": "neutral",
+      "planet_navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "",
+        "navatara": ""
+      },
+      "planet_status_color": "friend",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "saturn",
+      "sidereal_longitude": 248.728768,
+      "rashi_index": 8,
+      "rashi_english": "sagittarius",
+      "rashi_sanskrit": "dhanu",
+      "whole_sign_house": 5,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "neutral",
+      "sign_lord": "jupiter",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "yes",
+      "sign_degree_phase": {
+        "phase_english": "child",
+        "strength_percent": 50,
+        "range_low_deg_in_sign": 6.0,
+        "range_high_deg_in_sign": 12.0,
+        "at_birth_degrees_in_sign": 8.7288,
+        "label": "50%"
+      },
+      "planet_strength_base": 50,
+      "planet_strength": 50,
+      "planet_status_in_rashi": "neutral",
+      "nakshatra": "mula",
+      "nakshatra_pada": 3,
+      "nakshatra_ruling_planet": "ketu",
+      "planet_relation_with_nakshatra_lord": "neutral",
+      "planet_status_in_nakshatra": "neutral",
+      "planet_navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "",
+        "planet_status_in_nakshatra": "",
+        "navatara": ""
+      },
+      "planet_status_color": "",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "rahu",
+      "sidereal_longitude": 329.396129,
+      "rashi_index": 10,
+      "rashi_english": "aquarius",
+      "rashi_sanskrit": "kumbha",
+      "whole_sign_house": 7,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "friend",
+      "sign_lord": "saturn",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "yes",
+      "sign_degree_phase": {
+        "phase_english": "dead",
+        "strength_percent": 25,
+        "range_low_deg_in_sign": 24.0,
+        "range_high_deg_in_sign": 30.0,
+        "at_birth_degrees_in_sign": 29.3961,
+        "label": "25%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 25,
+      "planet_status_in_rashi": "friend",
+      "nakshatra": "purva bhadrapada",
+      "nakshatra_pada": 3,
+      "nakshatra_ruling_planet": "jupiter",
+      "planet_relation_with_nakshatra_lord": "neutral",
+      "planet_status_in_nakshatra": "neutral",
+      "planet_navatara": "vadha",
+      "is_planet_navatara_harmful": "yes",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "",
+        "navatara": "enemy"
+      },
+      "planet_status_color": "friend",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree_display": "No"
+    },
+    {
+      "name": "ketu",
+      "sidereal_longitude": 149.396129,
+      "rashi_index": 4,
+      "rashi_english": "leo",
+      "rashi_sanskrit": "simha",
+      "whole_sign_house": 1,
+      "retrograde": false,
+      "planet_relation_with_rashi_lord": "enemy",
+      "sign_lord": "sun",
+      "is_planet_in_6_8_12_house": "no",
+      "is_planet_lagna_lord_enemy": "yes",
+      "sign_degree_phase": {
+        "phase_english": "dead",
+        "strength_percent": 25,
+        "range_low_deg_in_sign": 24.0,
+        "range_high_deg_in_sign": 30.0,
+        "at_birth_degrees_in_sign": 29.3961,
+        "label": "25%"
+      },
+      "planet_strength_base": 25,
+      "planet_strength": 25,
+      "planet_status_in_rashi": "enemy",
+      "nakshatra": "uttara phalguni",
+      "nakshatra_pada": 1,
+      "nakshatra_ruling_planet": "sun",
+      "planet_relation_with_nakshatra_lord": "enemy",
+      "planet_status_in_nakshatra": "enemy",
+      "planet_navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "is_planet_at_death_degree": "no",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "enemy",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "planet_status_color": "enemy",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree_display": "No"
+    }
+  ],
+  "moon_nakshatra": {
+    "nakshatra_index": 10,
+    "pada": 1,
+    "nakshatra": "magha",
+    "ruling_planet": "ketu",
+    "deity": "pitru gan",
+    "tree": "banyan",
+    "lucky_colors": [
+      "black",
+      "red"
+    ],
+    "lucky_number": [
+      5,
+      7,
+      9
+    ],
+    "lucky_day": [
+      "friday"
+    ],
+    "lucky_time": "6:00 AM - 7:00 AM"
+  },
+  "ephemeris": "moshier",
+  "geocode_alternatives": [
+    {
+      "name": "Motīhāri",
+      "country": "India",
+      "timezone": "Asia/Kolkata"
+    },
+    {
+      "name": "Motihāri",
+      "country": "India",
+      "timezone": "Asia/Kolkata"
+    },
+    {
+      "name": "Motihāri",
+      "country": "India",
+      "timezone": "Asia/Kolkata"
+    }
+  ],
+  "planet_strength_rules": {
+    "exalted_bonus": 100,
+    "debilitated_penalty": 100,
+    "min_percent": 0,
+    "max_percent": 200
+  },
+  "kundali_summary": {
+    "place_query": "Motihari, India",
+    "resolved_place": "Motīhāri, Bihar, India",
+    "coordinates": {
+      "latitude": 27.09833,
+      "longitude": 84.54916
+    },
+    "timezone": "Asia/Kolkata",
+    "datetime_local_iso": "1988-03-29T16:33:00+05:30",
+    "datetime_utc_iso": "1988-03-29T11:03:00+00:00",
+    "julian_day_ut": 2447249.9604166667,
+    "ayanamsa_degrees": 23.692834,
+    "house_system": "W",
+    "ephemeris": "moshier",
+    "lagna": {
+      "rashi_english": "leo",
+      "rashi_sanskrit": "simha",
+      "degree_in_rashi": 25.0487,
+      "sidereal_longitude": 145.048687
+    },
+    "moon_janma": {
+      "nakshatra": "magha",
+      "pada": 1,
+      "ruling_planet": "ketu"
+    },
+    "lunar_calendar": {
+      "weekday_english": "Tuesday",
+      "paksha_english": "Shukla",
+      "tithi_number": 12,
+      "tithi_name_english": "Dwadashi",
+      "sun_moon_elongation_degrees": 136.711731
+    }
+  },
+  "navatara_rows": [
+    {
+      "auspicious": "yes",
+      "navatara": "janma",
+      "about": "physical and mental condition, general wellbeing",
+      "nakshatra": "magha, mula, ashwini",
+      "ruling_planet": "ketu",
+      "divine_god": "pitru gan, nirriti (kaal), ashwini kumar",
+      "tree": "banyan, sal/saraj, kuchla/peepal",
+      "lucky_colors": "black, red, black, red, red, white",
+      "lucky_number": "5, 7, 9",
+      "lucky_day": "friday, tuesday",
+      "lucky_time": "6:00 AM - 7:00 AM"
+    },
+    {
+      "auspicious": "yes",
+      "navatara": "sampat",
+      "about": "wealth, prosperity, and happiness",
+      "nakshatra": "purva phalguni, purva ashadha, bharani",
+      "ruling_planet": "venus",
+      "divine_god": "bhaga (aryaman), apah (water), yamraj",
+      "tree": "palash/dhak, water cane, amla",
+      "lucky_colors": "brown, light red, white, cream, red, white",
+      "lucky_number": "3, 6, 8",
+      "lucky_day": "friday, sunday, tuesday",
+      "lucky_time": "4:00 PM - 7:00 PM"
+    },
+    {
+      "auspicious": "yes",
+      "navatara": "kshema",
+      "about": "safety, health, and stability",
+      "nakshatra": "hasta, shravana, rohini",
+      "ruling_planet": "moon",
+      "divine_god": "savitar (sun), vishnu, brahma",
+      "tree": "jai/guava, madar/aak, jamun",
+      "lucky_colors": "dark green, light blue, green, white, cream",
+      "lucky_number": "2, 3, 9",
+      "lucky_day": "monday",
+      "lucky_time": "6:00 PM - 9:00 PM"
+    },
+    {
+      "auspicious": "yes",
+      "navatara": "sadhaka",
+      "about": "success, achievement, and progress",
+      "nakshatra": "swati, shatabhisha, ardra",
+      "ruling_planet": "rahu",
+      "divine_god": "vayu, varuna, rudra (shiva)",
+      "tree": "arjuna, kadamba, krishnaguru/agaru",
+      "lucky_colors": "black, dark color, dark blue, black, blue, black",
+      "lucky_number": "1, 4, 7",
+      "lucky_day": "friday, saturday",
+      "lucky_time": "6:00 PM - 9:00 PM"
+    },
+    {
+      "auspicious": "yes",
+      "navatara": "maitri",
+      "about": "friendship, cooperation, and happiness",
+      "nakshatra": "anuradha, uttara bhadrapada, pushya",
+      "ruling_planet": "saturn",
+      "divine_god": "mitra (aditya), ahirbudhnya, brihaspati",
+      "tree": "moulshree/bakul, neem, peepal",
+      "lucky_colors": "red, blue, blue, black, golden, yellow",
+      "lucky_number": "5, 6, 8",
+      "lucky_day": "saturday",
+      "lucky_time": "6:00 PM - 8:00 PM"
+    },
+    {
+      "auspicious": "yes",
+      "navatara": "ati-maitri",
+      "about": "special friendship, extremely auspicious",
+      "nakshatra": "jyeshtha, revati, ashlesha",
+      "ruling_planet": "mercury",
+      "divine_god": "indra, pushan, serpent",
+      "tree": "red cotton, mahua, nagkesar",
+      "lucky_colors": "red, blue, light blue, green, light blue",
+      "lucky_number": "1, 5, 8",
+      "lucky_day": "wednesday",
+      "lucky_time": "10:00 AM - 1:00 PM"
+    },
+    {
+      "auspicious": "no",
+      "navatara": "vipat",
+      "about": "obstacles, accidents, and troubles",
+      "nakshatra": "uttara phalguni, uttara ashadha, krittika",
+      "ruling_planet": "sun",
+      "divine_god": "bhaga (sun), vishwadeva, agni dev",
+      "tree": "pakar, jackfruit/panas, gular",
+      "lucky_colors": "golden, red, copper, golden, white, golden",
+      "lucky_number": "1, 5, 7",
+      "lucky_day": "sunday",
+      "lucky_time": "6:00 AM - 10:00 AM"
+    },
+    {
+      "auspicious": "no",
+      "navatara": "pratyari",
+      "about": "enemies, opposition, and conflicts",
+      "nakshatra": "chitra, dhanishta, mrigashira",
+      "ruling_planet": "mars",
+      "divine_god": "tvashta (vishwakarma), eight vasus, moon",
+      "tree": "bel, shami, khair",
+      "lucky_colors": "red, silver, red, silver, silver, red",
+      "lucky_number": "3, 6, 9",
+      "lucky_day": "tuesday",
+      "lucky_time": "6:00 AM - 10:00 AM"
+    },
+    {
+      "auspicious": "no",
+      "navatara": "vadha",
+      "about": "severe suffering, destruction, and loss",
+      "nakshatra": "vishakha, purva bhadrapada, punarvasu",
+      "ruling_planet": "jupiter",
+      "divine_god": "indra-agni, ajaikapada, aditi",
+      "tree": "nagkesar, mango, bamboo",
+      "lucky_colors": "yellow, golden, yellow, golden, yellow, cream",
+      "lucky_number": "2, 3, 9",
+      "lucky_day": "tuesday, thursday",
+      "lucky_time": "6:00 AM - 12:00 PM"
+    }
+  ],
+  "navatara": {
+    "input_nakshatra": "magha",
+    "navatara_with_nakshatras": [
+      {
+        "name": "janma",
+        "sequences": [
+          1,
+          10,
+          19
+        ],
+        "result": "physical and mental condition, general wellbeing",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 1,
+            "nakshatra": "magha",
+            "ruling_planet": "ketu",
+            "deity": "pitru gan",
+            "tree": "banyan",
+            "lucky_colors": [
+              "black",
+              "red"
+            ],
+            "lucky_number": [
+              5,
+              7,
+              9
+            ],
+            "lucky_day": [
+              "friday"
+            ],
+            "lucky_time": "6:00 AM - 7:00 AM"
+          },
+          {
+            "position_from_input": 10,
+            "nakshatra": "mula",
+            "ruling_planet": "ketu",
+            "deity": "nirriti (kaal)",
+            "tree": "sal/saraj",
+            "lucky_colors": [
+              "black",
+              "red"
+            ],
+            "lucky_number": [
+              5,
+              7,
+              9
+            ],
+            "lucky_day": [
+              "friday"
+            ],
+            "lucky_time": "6:00 AM - 7:00 AM"
+          },
+          {
+            "position_from_input": 19,
+            "nakshatra": "ashwini",
+            "ruling_planet": "ketu",
+            "deity": "ashwini kumar",
+            "tree": "kuchla/peepal",
+            "lucky_colors": [
+              "red",
+              "white"
+            ],
+            "lucky_number": [
+              5,
+              7,
+              9
+            ],
+            "lucky_day": [
+              "tuesday"
+            ],
+            "lucky_time": "6:00 AM - 7:00 AM"
+          }
+        ]
+      },
+      {
+        "name": "sampat",
+        "sequence": [
+          2,
+          11,
+          20
+        ],
+        "result": "wealth, prosperity, and happiness",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 2,
+            "nakshatra": "purva phalguni",
+            "ruling_planet": "venus",
+            "deity": "bhaga (aryaman)",
+            "tree": "palash/dhak",
+            "lucky_colors": [
+              "brown",
+              "light red"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "friday",
+              "sunday"
+            ],
+            "lucky_time": "4:00 PM - 7:00 PM"
+          },
+          {
+            "position_from_input": 11,
+            "nakshatra": "purva ashadha",
+            "ruling_planet": "venus",
+            "deity": "apah (water)",
+            "tree": "water cane",
+            "lucky_colors": [
+              "white",
+              "cream"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "friday"
+            ],
+            "lucky_time": "4:00 PM - 7:00 PM"
+          },
+          {
+            "position_from_input": 20,
+            "nakshatra": "bharani",
+            "ruling_planet": "venus",
+            "deity": "yamraj",
+            "tree": "amla",
+            "lucky_colors": [
+              "red",
+              "white"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "tuesday",
+              "friday"
+            ],
+            "lucky_time": "4:00 PM - 7:00 PM"
+          }
+        ]
+      },
+      {
+        "name": "vipat",
+        "sequences": [
+          3,
+          12,
+          21
+        ],
+        "result": "obstacles, accidents, and troubles",
+        "auspicious": "no",
+        "nakshatras": [
+          {
+            "position_from_input": 3,
+            "nakshatra": "uttara phalguni",
+            "ruling_planet": "sun",
+            "deity": "bhaga (sun)",
+            "tree": "pakar",
+            "lucky_colors": [
+              "golden",
+              "red"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              7
+            ],
+            "lucky_day": [
+              "sunday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          },
+          {
+            "position_from_input": 12,
+            "nakshatra": "uttara ashadha",
+            "ruling_planet": "sun",
+            "deity": "vishwadeva",
+            "tree": "jackfruit/panas",
+            "lucky_colors": [
+              "copper",
+              "golden"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              7
+            ],
+            "lucky_day": [
+              "sunday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          },
+          {
+            "position_from_input": 21,
+            "nakshatra": "krittika",
+            "ruling_planet": "sun",
+            "deity": "agni dev",
+            "tree": "gular",
+            "lucky_colors": [
+              "white",
+              "golden"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              7
+            ],
+            "lucky_day": [
+              "sunday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          }
+        ]
+      },
+      {
+        "name": "kshema",
+        "sequences": [
+          4,
+          13,
+          22
+        ],
+        "result": "safety, health, and stability",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 4,
+            "nakshatra": "hasta",
+            "ruling_planet": "moon",
+            "deity": "savitar (sun)",
+            "tree": "jai/guava",
+            "lucky_colors": [
+              "dark green"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "monday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          },
+          {
+            "position_from_input": 13,
+            "nakshatra": "shravana",
+            "ruling_planet": "moon",
+            "deity": "vishnu",
+            "tree": "madar/aak",
+            "lucky_colors": [
+              "light blue",
+              "green"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "monday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          },
+          {
+            "position_from_input": 22,
+            "nakshatra": "rohini",
+            "ruling_planet": "moon",
+            "deity": "brahma",
+            "tree": "jamun",
+            "lucky_colors": [
+              "white",
+              "cream"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "monday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          }
+        ]
+      },
+      {
+        "name": "pratyari",
+        "sequences": [
+          5,
+          14,
+          23
+        ],
+        "result": "enemies, opposition, and conflicts",
+        "auspicious": "no",
+        "nakshatras": [
+          {
+            "position_from_input": 5,
+            "nakshatra": "chitra",
+            "ruling_planet": "mars",
+            "deity": "tvashta (vishwakarma)",
+            "tree": "bel",
+            "lucky_colors": [
+              "red",
+              "silver"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              9
+            ],
+            "lucky_day": [
+              "tuesday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          },
+          {
+            "position_from_input": 14,
+            "nakshatra": "dhanishta",
+            "ruling_planet": "mars",
+            "deity": "eight vasus",
+            "tree": "shami",
+            "lucky_colors": [
+              "red",
+              "silver"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              9
+            ],
+            "lucky_day": [
+              "tuesday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          },
+          {
+            "position_from_input": 23,
+            "nakshatra": "mrigashira",
+            "ruling_planet": "mars",
+            "deity": "moon",
+            "tree": "khair",
+            "lucky_colors": [
+              "silver",
+              "red"
+            ],
+            "lucky_number": [
+              3,
+              6,
+              9
+            ],
+            "lucky_day": [
+              "tuesday"
+            ],
+            "lucky_time": "6:00 AM - 10:00 AM"
+          }
+        ]
+      },
+      {
+        "name": "sadhaka",
+        "sequences": [
+          6,
+          15,
+          24
+        ],
+        "result": "success, achievement, and progress",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 6,
+            "nakshatra": "swati",
+            "ruling_planet": "rahu",
+            "deity": "vayu",
+            "tree": "arjuna",
+            "lucky_colors": [
+              "black",
+              "dark color"
+            ],
+            "lucky_number": [
+              1,
+              4,
+              7
+            ],
+            "lucky_day": [
+              "friday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          },
+          {
+            "position_from_input": 15,
+            "nakshatra": "shatabhisha",
+            "ruling_planet": "rahu",
+            "deity": "varuna",
+            "tree": "kadamba",
+            "lucky_colors": [
+              "dark blue",
+              "black"
+            ],
+            "lucky_number": [
+              1,
+              4,
+              7
+            ],
+            "lucky_day": [
+              "friday",
+              "saturday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          },
+          {
+            "position_from_input": 24,
+            "nakshatra": "ardra",
+            "ruling_planet": "rahu",
+            "deity": "rudra (shiva)",
+            "tree": "krishnaguru/agaru",
+            "lucky_colors": [
+              "blue",
+              "black"
+            ],
+            "lucky_number": [
+              1,
+              4,
+              7
+            ],
+            "lucky_day": [
+              "friday"
+            ],
+            "lucky_time": "6:00 PM - 9:00 PM"
+          }
+        ]
+      },
+      {
+        "name": "vadha",
+        "sequences": [
+          7,
+          16,
+          25
+        ],
+        "result": "severe suffering, destruction, and loss",
+        "auspicious": "no",
+        "nakshatras": [
+          {
+            "position_from_input": 7,
+            "nakshatra": "vishakha",
+            "ruling_planet": "jupiter",
+            "deity": "indra-agni",
+            "tree": "nagkesar",
+            "lucky_colors": [
+              "yellow",
+              "golden"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "tuesday"
+            ],
+            "lucky_time": "6:00 AM - 12:00 PM"
+          },
+          {
+            "position_from_input": 16,
+            "nakshatra": "purva bhadrapada",
+            "ruling_planet": "jupiter",
+            "deity": "ajaikapada",
+            "tree": "mango",
+            "lucky_colors": [
+              "yellow",
+              "golden"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "thursday"
+            ],
+            "lucky_time": "6:00 AM - 12:00 PM"
+          },
+          {
+            "position_from_input": 25,
+            "nakshatra": "punarvasu",
+            "ruling_planet": "jupiter",
+            "deity": "aditi",
+            "tree": "bamboo",
+            "lucky_colors": [
+              "yellow",
+              "cream"
+            ],
+            "lucky_number": [
+              2,
+              3,
+              9
+            ],
+            "lucky_day": [
+              "thursday"
+            ],
+            "lucky_time": "6:00 AM - 12:00 PM"
+          }
+        ]
+      },
+      {
+        "name": "maitri",
+        "sequences": [
+          8,
+          17,
+          26
+        ],
+        "result": "friendship, cooperation, and happiness",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 8,
+            "nakshatra": "anuradha",
+            "ruling_planet": "saturn",
+            "deity": "mitra (aditya)",
+            "tree": "moulshree/bakul",
+            "lucky_colors": [
+              "red",
+              "blue"
+            ],
+            "lucky_number": [
+              5,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "saturday"
+            ],
+            "lucky_time": "6:00 PM - 8:00 PM"
+          },
+          {
+            "position_from_input": 17,
+            "nakshatra": "uttara bhadrapada",
+            "ruling_planet": "saturn",
+            "deity": "ahirbudhnya",
+            "tree": "neem",
+            "lucky_colors": [
+              "blue",
+              "black"
+            ],
+            "lucky_number": [
+              5,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "saturday"
+            ],
+            "lucky_time": "6:00 PM - 8:00 PM"
+          },
+          {
+            "position_from_input": 26,
+            "nakshatra": "pushya",
+            "ruling_planet": "saturn",
+            "deity": "brihaspati",
+            "tree": "peepal",
+            "lucky_colors": [
+              "golden",
+              "yellow"
+            ],
+            "lucky_number": [
+              5,
+              6,
+              8
+            ],
+            "lucky_day": [
+              "saturday"
+            ],
+            "lucky_time": "6:00 PM - 8:00 PM"
+          }
+        ]
+      },
+      {
+        "name": "ati-maitri",
+        "sequences": [
+          9,
+          18,
+          27
+        ],
+        "result": "special friendship, extremely auspicious",
+        "auspicious": "yes",
+        "nakshatras": [
+          {
+            "position_from_input": 9,
+            "nakshatra": "jyeshtha",
+            "ruling_planet": "mercury",
+            "deity": "indra",
+            "tree": "red cotton",
+            "lucky_colors": [
+              "red",
+              "blue"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              8
+            ],
+            "lucky_day": [
+              "wednesday"
+            ],
+            "lucky_time": "10:00 AM - 1:00 PM"
+          },
+          {
+            "position_from_input": 18,
+            "nakshatra": "revati",
+            "ruling_planet": "mercury",
+            "deity": "pushan",
+            "tree": "mahua",
+            "lucky_colors": [
+              "light blue",
+              "green"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              8
+            ],
+            "lucky_day": [
+              "wednesday"
+            ],
+            "lucky_time": "10:00 AM - 1:00 PM"
+          },
+          {
+            "position_from_input": 27,
+            "nakshatra": "ashlesha",
+            "ruling_planet": "mercury",
+            "deity": "serpent",
+            "tree": "nagkesar",
+            "lucky_colors": [
+              "light blue"
+            ],
+            "lucky_number": [
+              1,
+              5,
+              8
+            ],
+            "lucky_day": [
+              "wednesday"
+            ],
+            "lucky_time": "10:00 AM - 1:00 PM"
+          }
+        ]
+      }
+    ],
+    "dusthana_filter": {
+      "planets_in_dusthana_by_name": [
+        "mars",
+        "sun"
+      ],
+      "removed_count": 0,
+      "removed": []
+    }
+  },
+  "planets_table": [
+    {
+      "house": 1,
+      "house_for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
+      "planet": "ketu",
+      "degree": "29.40°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "yes",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "leo (simha)",
+      "nakshatra": "uttara phalguni (pada 1)",
+      "navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "strength": "25%",
+      "strength_percent": 25,
+      "planet_status_in_nakshatra": "enemy",
+      "planet_status_in_rashi": "enemy",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "enemy",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 1,
+      "house_for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
+      "planet": "moon",
+      "degree": "1.99°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "no",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "leo (simha)",
+      "nakshatra": "magha (pada 1)",
+      "navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "strength": "25%",
+      "strength_percent": 25,
+      "planet_status_in_nakshatra": "enemy",
+      "planet_status_in_rashi": "friend",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": ""
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 5,
+      "house_for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments",
+      "planet": "saturn",
+      "degree": "8.73°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "yes",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "sagittarius (dhanu)",
+      "nakshatra": "mula (pada 3)",
+      "navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "strength": "50%",
+      "strength_percent": 50,
+      "planet_status_in_nakshatra": "neutral",
+      "planet_status_in_rashi": "neutral",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "",
+        "planet_status_in_nakshatra": "",
+        "navatara": ""
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 6,
+      "house_for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow",
+      "planet": "mars",
+      "degree": "0.62°",
+      "is_planet_in_6_8_12_house": "yes",
+      "malefic_6_8_12": "yes",
+      "malefic_6_8_12_display": "Yes",
+      "is_planet_lagna_lord_enemy": "no",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "capricorn (makara)",
+      "nakshatra": "uttara ashadha (pada 2)",
+      "navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "strength": "125%",
+      "strength_percent": 125,
+      "planet_status_in_nakshatra": "friend",
+      "planet_status_in_rashi": "high",
+      "cell_styles": {
+        "strength": "high",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "enemy",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "high",
+        "planet_status_in_nakshatra": "friend",
+        "navatara": "enemy"
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 7,
+      "house_for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
+      "planet": "mercury",
+      "degree": "25.37°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "no",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "aquarius (kumbha)",
+      "nakshatra": "purva bhadrapada (pada 2)",
+      "navatara": "vadha",
+      "is_planet_navatara_harmful": "yes",
+      "strength": "25%",
+      "strength_percent": 25,
+      "planet_status_in_nakshatra": "enemy",
+      "planet_status_in_rashi": "neutral",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 7,
+      "house_for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
+      "planet": "rahu",
+      "degree": "29.40°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "yes",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "aquarius (kumbha)",
+      "nakshatra": "purva bhadrapada (pada 3)",
+      "navatara": "vadha",
+      "is_planet_navatara_harmful": "yes",
+      "strength": "25%",
+      "strength_percent": 25,
+      "planet_status_in_nakshatra": "neutral",
+      "planet_status_in_rashi": "friend",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "",
+        "navatara": "enemy"
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 8,
+      "house_for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments",
+      "planet": "sun",
+      "degree": "15.28°",
+      "is_planet_in_6_8_12_house": "yes",
+      "malefic_6_8_12": "yes",
+      "malefic_6_8_12_display": "Yes",
+      "is_planet_lagna_lord_enemy": "no",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "pisces (meena)",
+      "nakshatra": "uttara bhadrapada (pada 4)",
+      "navatara": "maitri",
+      "is_planet_navatara_harmful": "no",
+      "strength": "100%",
+      "strength_percent": 100,
+      "planet_status_in_nakshatra": "enemy",
+      "planet_status_in_rashi": "friend",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "enemy",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": ""
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 9,
+      "house_for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation",
+      "planet": "jupiter",
+      "degree": "10.86°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "no",
+      "is_planet_lagna_lord_enemy_display": "No",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "aries (mesha)",
+      "nakshatra": "ashwini (pada 4)",
+      "navatara": "janma",
+      "is_planet_navatara_harmful": "no",
+      "strength": "50%",
+      "strength_percent": 50,
+      "planet_status_in_nakshatra": "neutral",
+      "planet_status_in_rashi": "friend",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "",
+        "planet_status_in_rashi": "friend",
+        "planet_status_in_nakshatra": "",
+        "navatara": ""
+      },
+      "retrograde": "No"
+    },
+    {
+      "house": 10,
+      "house_for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga",
+      "planet": "venus",
+      "degree": "1.07°",
+      "is_planet_in_6_8_12_house": "no",
+      "malefic_6_8_12": "no",
+      "malefic_6_8_12_display": "No",
+      "is_planet_lagna_lord_enemy": "yes",
+      "is_planet_lagna_lord_enemy_display": "Yes",
+      "is_planet_at_death_degree": "no",
+      "is_planet_at_death_degree_display": "No",
+      "rashi": "taurus (vrishabha)",
+      "nakshatra": "krittika (pada 2)",
+      "navatara": "vipat",
+      "is_planet_navatara_harmful": "yes",
+      "strength": "25%",
+      "strength_percent": 25,
+      "planet_status_in_nakshatra": "enemy",
+      "planet_status_in_rashi": "own",
+      "cell_styles": {
+        "strength": "",
+        "is_planet_at_death_degree": "",
+        "is_planet_in_6_8_12_house": "",
+        "is_planet_lagna_lord_enemy": "enemy",
+        "planet_status_in_rashi": "own",
+        "planet_status_in_nakshatra": "enemy",
+        "navatara": "enemy"
+      },
+      "retrograde": "No"
+    }
+  ],
+  "summary_table": [
+    {
+      "label": "Time",
+      "value": "1988-03-29 16:33:00"
+    },
+    {
+      "label": "Janma Nakshatra",
+      "value": "Magha · Pada 1 · Ketu"
+    },
+    {
+      "label": "Name Rashi",
+      "value": "Leo (Simha)"
+    },
+    {
+      "label": "Lagna Rashi",
+      "value": "Leo (Simha)"
+    },
+    {
+      "label": "Weekday",
+      "value": "Tuesday"
+    },
+    {
+      "label": "Moon Type",
+      "value": "Shukla paksha (white moon)"
+    },
+    {
+      "label": "Moon Tithi",
+      "value": "Dwadashi (12th)"
+    },
+    {
+      "label": "Retrograde",
+      "value": "None"
+    }
+  ],
+  "ui_status_message": "Loaded chart for Moon janma: magha."
+}

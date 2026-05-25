@@ -122,8 +122,21 @@ PLANET_RELATION_FRIEND = "friend"
 PLANET_RELATION_ENEMY = "enemy"
 PLANET_RELATION_NEUTRAL = "neutral"
 
+# Exaltation / debilitation (defaults; overridden by database/planet.json planet_strength_rules).
+EXALTED_STRENGTH_BONUS = 100
+DEBILITATED_STRENGTH_PENALTY = 100
+PLANET_STRENGTH_MIN_PERCENT = 0
+PLANET_STRENGTH_MAX_PERCENT = 200
+STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT = 100
+PLANET_STRENGTH_DEATH_DEGREE_PERCENT = 0
+PLANET_DIGNITY_EXALTED = "exalted"
+PLANET_DIGNITY_DEBILITATED = "debilitated"
+PLANET_STATUS_HIGH = "high"
+PLANET_STATUS_LOW = "low"
+
 # --- navatara auspicious markers ---
 AUSPICIOUS_NAVATARA_VALUES = frozenset({HOUSE_6_8_12_YES, "true", "1"})
+HARMFUL_NAVATARA_NAMES = frozenset({"vadha", "vipat", "pratyari"})
 
 # --- Flask API ---
 SERVICE_NAME = "saptarishi"
