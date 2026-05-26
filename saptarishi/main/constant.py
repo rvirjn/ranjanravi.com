@@ -101,6 +101,9 @@ PAKSHA_KRISHNA = "Krishna"
 TITHI_PURNIMA = "Purnima"
 TITHI_AMAVASYA = "Amavasya"
 UNKNOWN_LABEL = "—"
+KUNDALI_READY_STATUS_MESSAGE = (
+    "Kundali Chart prepared and planet/nakshtra table is also ready"
+)
 
 # --- Vimshottari mahadasha (120-year cycle from Moon janma nakshatra) ---
 VIMSHOTTARI_MAHADASHA_SEQUENCE = (
@@ -127,9 +130,9 @@ DEFAULT_MAHADASHA_YEARS_BY_PLANET = {
     "mercury": 17,
 }
 
-# --- sign degree strength bands (low°, high°, phase name, strength %) ---
+# --- sign degree strength bands (fallback if data.json omits degree_in_sign_bands) ---
 _SIGN_PHASE_STEP = ONE_HOUSE_DEGREES / 5
-SIGN_DEGREE_PHASE_BANDS = tuple(
+DEFAULT_SIGN_DEGREE_PHASE_BANDS = tuple(
     (
         i * _SIGN_PHASE_STEP,
         (i + 1) * _SIGN_PHASE_STEP,
@@ -140,6 +143,8 @@ SIGN_DEGREE_PHASE_BANDS = tuple(
         (("born", 25), ("child", 50), ("youth", 100), ("old", 50), ("dead", 25))
     )
 )
+# Backward-compatible alias
+SIGN_DEGREE_PHASE_BANDS = DEFAULT_SIGN_DEGREE_PHASE_BANDS
 
 # --- planet friendship labels ---
 PLANET_RELATION_OWN = "own"

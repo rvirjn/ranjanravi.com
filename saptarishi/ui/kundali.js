@@ -155,6 +155,20 @@ function karakwaqtTextIsHarmful(text) {
     .some((p) => karakwaqtLabelIsHarmful(p));
 }
 
+function karakwaqtTextHasYogKarak(text) {
+  return String(text ?? "")
+    .split(" | ")
+    .map((p) => normalizeText(p))
+    .some((p) => p === "yog karak");
+}
+
+/** Karakwaqt column tint: green yog karak, red harmful labels. */
+function karakwaqtCellColorKind(karakwaqtText) {
+  if (karakwaqtTextIsHarmful(karakwaqtText)) return "enemy";
+  if (karakwaqtTextHasYogKarak(karakwaqtText)) return "friend";
+  return "";
+}
+
 /** Planets table cell text from structured ``planets_table`` rows. */
 function planetsTableCellText(key, rowData) {
   const flags = rowData.flags || {};
@@ -231,10 +245,23 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
-/** Strength cap from ``database/data.json`` via ``/api/planet-database``. */
-function strengthMaxPercent() {
-  const max = planetDatabase?.planet_strength_rules?.max_percent;
-  if (typeof max === "number" && max > 0) return max;
+/** Strength cap from ``planet_strength_rules`` (resolved API or ``strength_factors[id=strength_limits]``). */
+function strengthMaxPercent(kundaliPayload) {
+  const rules =
+    kundaliPayload?.planet_strength_rules || planetDatabase?.planet_strength_rules;
+  if (typeof rules?.max_percent === "number" && rules.max_percent > 0) {
+    return rules.max_percent;
+  }
+  const factors = rules?.strength_factors;
+  if (Array.isArray(factors)) {
+    const limits = factors.find((f) => {
+      const id = normalizeText(f?.id);
+      return id === "strength_limits" || id === "clamp";
+    });
+    if (typeof limits?.max_percent === "number" && limits.max_percent > 0) {
+      return limits.max_percent;
+    }
+  }
   return C.PLANET_STRENGTH_MAX_PERCENT || 200;
 }
 
@@ -510,13 +537,27 @@ function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
       };
     }
     const styles = { ...(row.cell_styles || {}) };
-    const kwHarmful =
-      karakwaqtTextIsHarmful(kw || src.planet_karakwaqt) ? "yes" : "no";
     if (!styles.karakwaqt && kw) {
-      styles.karakwaqt = String(kwHarmful).toLowerCase() === "yes" ? "enemy" : "";
+      styles.karakwaqt = karakwaqtCellColorKind(kw || src.planet_karakwaqt);
     }
     if (Object.keys(styles).length) next.cell_styles = styles;
     return next;
+  });
+}
+
+/** Start year from ``dasha_age`` (e.g. ``48-54`` → 48) for Vimshottari table order. */
+function dashaAgeStartYears(rowData) {
+  const text = String(planetsTableCellText("dasha_age", rowData) ?? "").trim();
+  const match = /^(\d+)/.exec(text);
+  if (match) return Number(match[1]);
+  return 999;
+}
+
+function sortPlanetsTableRowsByAge(rows) {
+  return [...(rows || [])].sort((a, b) => {
+    const diff = dashaAgeStartYears(a) - dashaAgeStartYears(b);
+    if (diff !== 0) return diff;
+    return String(a.planet || "").localeCompare(String(b.planet || ""));
   });
 }
 
@@ -524,6 +565,7 @@ function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
+  const sortedRows = sortPlanetsTableRowsByAge(rows);
   const columnKeys = [
     "planet",
     "strength",
@@ -533,15 +575,21 @@ function renderPlanetsTableWithColors(tbody, rows) {
     "planet_status_in_rashi",
     "rashi",
     "nakshatra",
+    "karakwaqt",
     "planet_status_in_nakshatra",
     "navatara",
-    "karakwaqt",
-    "degree",
-    "dasha_age"
+    "degree"
   ];
-  for (const rowData of rows || []) {
+  for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
     const cellStyles = rowData.cell_styles || {};
+    for (const key of ["dasha_age"]) {
+      const td = document.createElement("td");
+      const displayValue = planetsTableCellText(key, rowData);
+      td.textContent = formatTableCellForDisplay(key, displayValue);
+      applyPlanetTableCellStyle(td, cellStyles[key] || "", key);
+      tr.appendChild(td);
+    }
     appendPlanetsHouseCell(tr, rowData);
     for (const key of columnKeys) {
       const td = document.createElement("td");
@@ -741,7 +789,7 @@ function buildNorthIndianChartFromPayload(payload) {
     layout: "north_indian",
     lagna_label: lagnaLabel,
     lagna_rashi_number: lagnaRashiNumber,
-    strength_max: strengthMaxPercent(),
+    strength_max: strengthMaxPercent(payload),
     cells
   };
 }
@@ -978,8 +1026,6 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   const planetsBody = document.querySelector("#planets-table tbody");
   const nakshatraBody = document.querySelector("#nakshatra-table tbody");
 
-  const strengthMax = strengthMaxPercent();
-
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
@@ -991,7 +1037,7 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderNakshatraTableWithColors(nakshatraBody, nakshatrasFromPayload(kundaliPayload));
 
   if (resultsEl) resultsEl.hidden = false;
-  showStatusMessage(kundaliPayload.ui_status_message || "");
+  showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
 }
 
 /** Build query string for GET /api/kundali from form fields. */

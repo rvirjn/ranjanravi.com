@@ -1,9 +1,84 @@
 {
   "planet_strength_rules": {
-    "exalted_bonus": 100,
-    "debilitated_penalty": 100,
-    "min_percent": 0,
-    "max_percent": 200
+    "degree_in_sign_bands": [
+      { "low_deg": 0, "high_deg": 6, "phase": "born", "strength_percent": 25 },
+      { "low_deg": 6, "high_deg": 12, "phase": "child", "strength_percent": 50 },
+      { "low_deg": 12, "high_deg": 18, "phase": "youth", "strength_percent": 100 },
+      { "low_deg": 18, "high_deg": 24, "phase": "old", "strength_percent": 50 },
+      { "low_deg": 24, "high_deg": 30, "phase": "dead", "strength_percent": 25 }
+    ],
+    "strength_factors": [
+      {
+        "id": "degree_in_sign",
+        "factor": "Degree within sign (base from degree_in_sign_bands: 25 / 50 / 100 / 50 / 25 by 6° steps)",
+        "increase_strength_percent": 100,
+        "decrease_strength_percent": 25
+      },
+      {
+        "id": "exalted",
+        "factor": "Exalted sign (planets[].exalted matches rashi)",
+        "increase_strength_percent": 100,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "debilitated",
+        "factor": "Debilitated sign (planets[].debilitated matches rashi)",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 100
+      },
+      {
+        "id": "death_degree",
+        "factor": "Mrityu Bhaga death degree (sets strength to increase_strength_percent when matched)",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 100
+      },
+      {
+        "id": "strength_limits",
+        "factor": "Minimum and maximum strength % after all adjustments",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 0,
+        "min_percent": 0,
+        "max_percent": 500
+      }
+    ],
+    "status_column_color": [
+      {
+        "column": "Rashi Status",
+        "factor": "Natural friendship vs sign lord of planet's rashi (own if planet rules that sign; else planets[].friends/enemies/neutral)",
+        "affects_strength_percent": false,
+        "cell_color": { "own": "green", "friend": "green", "enemy": "red", "high": "green", "low": "red" }
+      },
+      {
+        "column": "Nakshatra Status",
+        "factor": "Natural friendship vs vimshottari lord of planet's nakshatra (not comma-listed ruling_planet text)",
+        "affects_strength_percent": false,
+        "cell_color": { "own": "green", "friend": "green", "enemy": "red", "high": "green", "low": "red" }
+      },
+      {
+        "column": "Nakshatra navatara",
+        "factor": "Harmful nava-tara (vipat, pratyak, vadha, etc.) from Moon janma wheel",
+        "affects_strength_percent": false,
+        "cell_color": { "harmful": "red" }
+      },
+      {
+        "column": "Malefic 6/8/12, Lagna Lord Enemy, Death Degree",
+        "factor": "Yes if planet in dusthana house, enemy of lagna lord, or Mrityu Bhaga",
+        "affects_strength_percent": false,
+        "cell_color": { "yes": "red" }
+      },
+      {
+        "column": "Karakwaqt",
+        "factor": "Lagna roles from data.json houses[1].lagna for this ascendant rashi",
+        "affects_strength_percent": false,
+        "cell_color": { "yog_karak": "green", "marak": "red", "badhak": "red", "prabal_marak": "red" }
+      }
+    ],
+    "color_intensity": {
+      "factor": "Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
+      "high_green_above_percent": 100,
+      "red_at_or_below_percent": 0,
+      "red_if_death_degree": true
+    }
   },
   "planets": [
     {

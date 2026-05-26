@@ -68,6 +68,7 @@ from constant import (
     GEOCODE_RESULT_COUNT,
     GEOCODE_TIMEOUT_SECONDS,
     GEOCODE_USER_AGENT,
+    KUNDALI_READY_STATUS_MESSAGE,
     NAKSHATRA_COUNT,
     OUTPUT_DIR_REL_PATH,
     PADAS_PER_NAKSHATRA,
@@ -79,7 +80,7 @@ from constant import (
     RASHI_IN_SANSKRIT,
     RASHI_SIGN_LORD_IN_ENG,
     SHUKLA_PAKSHA_MAX_TITHI,
-    SIGN_DEGREE_PHASE_BANDS,
+    DEFAULT_SIGN_DEGREE_PHASE_BANDS,
     TITHI_AMAVASYA,
     TITHI_COUNT,
     TITHI_DEGREES_PER_TITHI,
@@ -488,18 +489,100 @@ class EnrichKundali:
         self.root = project_root
         self.planet_db_path = resolve_data_json_path(project_root)
 
-    def load_planet_strength_rules(self) -> dict[str, int]:
+    @staticmethod
+    def _strength_factor_by_id(
+        factors: list[Any], factor_id: str
+    ) -> dict[str, Any]:
+        key = remove_white_space(factor_id)
+        for item in factors:
+            if not isinstance(item, dict):
+                continue
+            if remove_white_space(item.get("id")) == key:
+                return item
+        return {}
+
+    @staticmethod
+    def resolve_strength_numeric_rules(raw: dict[str, Any]) -> dict[str, int]:
+        """Numeric strength knobs from ``strength_factors`` only (single source of truth)."""
+        factors = raw.get("strength_factors") or raw.get("ui_strength_factors") or []
+        if not isinstance(factors, list):
+            factors = []
+
+        exalted = EnrichKundali._strength_factor_by_id(factors, "exalted")
+        debilitated = EnrichKundali._strength_factor_by_id(factors, "debilitated")
+        limits = EnrichKundali._strength_factor_by_id(factors, "strength_limits") or EnrichKundali._strength_factor_by_id(
+            factors, "clamp"
+        )
+        death = EnrichKundali._strength_factor_by_id(factors, "death_degree")
+
+        return {
+            "exalted_bonus": int(exalted.get("increase_strength_percent", EXALTED_STRENGTH_BONUS)),
+            "debilitated_penalty": int(
+                debilitated.get("decrease_strength_percent", DEBILITATED_STRENGTH_PENALTY)
+            ),
+            "min_percent": int(limits.get("min_percent", PLANET_STRENGTH_MIN_PERCENT)),
+            "max_percent": int(limits.get("max_percent", PLANET_STRENGTH_MAX_PERCENT)),
+            "death_degree_override_percent": int(
+                death.get("increase_strength_percent", PLANET_STRENGTH_DEATH_DEGREE_PERCENT)
+            ),
+        }
+
+    def load_planet_strength_rules(self) -> dict[str, Any]:
+        """Resolved rules from ``data.json`` ``planet_strength_rules`` (degree bands + strength factors)."""
         try:
             data = self.load_planet_database()
         except OSError:
             data = {}
         raw = data.get("planet_strength_rules") or {}
+        if not isinstance(raw, dict):
+            raw = {}
+        ui_color = (
+            raw.get("color_intensity")
+            or raw.get("color")
+            or raw.get("strength_column_color")
+            or raw.get("strength_column_ui_color")
+            or {}
+        )
+        if not isinstance(ui_color, dict):
+            ui_color = {}
+        numeric = EnrichKundali.resolve_strength_numeric_rules(raw)
         return {
-            "exalted_bonus": int(raw.get("exalted_bonus", EXALTED_STRENGTH_BONUS)),
-            "debilitated_penalty": int(raw.get("debilitated_penalty", DEBILITATED_STRENGTH_PENALTY)),
-            "min_percent": int(raw.get("min_percent", PLANET_STRENGTH_MIN_PERCENT)),
-            "max_percent": int(raw.get("max_percent", PLANET_STRENGTH_MAX_PERCENT)),
+            "strength_factors": raw.get("strength_factors"),
+            "status_column_color": raw.get("status_column_color"),
+            "degree_in_sign_bands": raw.get("degree_in_sign_bands"),
+            **numeric,
+            "color_intensity": {
+                "factor": ui_color.get("factor"),
+                "high_green_above_percent": int(
+                    ui_color.get("high_green_above_percent", STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT)
+                ),
+                "red_at_or_below_percent": int(
+                    ui_color.get("red_at_or_below_percent", PLANET_STRENGTH_DEATH_DEGREE_PERCENT)
+                ),
+                "red_if_death_degree": bool(ui_color.get("red_if_death_degree", True)),
+            },
         }
+
+    @staticmethod
+    def parse_degree_in_sign_bands(strength_rules: dict[str, Any]) -> tuple[tuple[float, float, str, int], ...]:
+        """(low°, high°, phase name, strength %) tuples from ``planet_strength_rules``."""
+        raw = strength_rules.get("degree_in_sign_bands")
+        if isinstance(raw, list) and raw:
+            bands: list[tuple[float, float, str, int]] = []
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    lo = float(item.get("low_deg"))
+                    hi = float(item.get("high_deg"))
+                    phase = str(item.get("phase") or "")
+                    pct = int(item.get("strength_percent"))
+                except (TypeError, ValueError):
+                    continue
+                bands.append((lo, hi, phase, pct))
+            if bands:
+                return tuple(bands)
+        return DEFAULT_SIGN_DEGREE_PHASE_BANDS
 
     def enrich_chart_for_api_and_ui(self, chart: dict[str, Any]) -> None:
         """Enrich chart in Python; UI reads ``planets_table`` / ``cell_styles`` as-is."""
@@ -508,14 +591,18 @@ class EnrichKundali:
             strength_rules = self.load_planet_strength_rules()
         except OSError:
             friendship = {}
-            strength_rules = {
-                "exalted_bonus": EXALTED_STRENGTH_BONUS,
-                "debilitated_penalty": DEBILITATED_STRENGTH_PENALTY,
-                "min_percent": PLANET_STRENGTH_MIN_PERCENT,
-                "max_percent": PLANET_STRENGTH_MAX_PERCENT,
+            strength_rules = EnrichKundali.resolve_strength_numeric_rules({})
+            strength_rules["color_intensity"] = {
+                "high_green_above_percent": STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT,
+                "red_at_or_below_percent": PLANET_STRENGTH_DEATH_DEGREE_PERCENT,
+                "red_if_death_degree": True,
             }
 
-        self.enrich_birth_planets_with_database_metadata(chart, friendship, strength_rules)
+        chart["planet_strength_rules"] = strength_rules
+        degree_bands = EnrichKundali.parse_degree_in_sign_bands(strength_rules)
+        self.enrich_birth_planets_with_database_metadata(
+            chart, friendship, strength_rules, degree_bands
+        )
         self.normalize_moon_nakshatra(chart)
         self.attach_planet_navatara_from_janma(chart)
         self.attach_death_degree_flags(chart)
@@ -913,7 +1000,8 @@ class EnrichKundali:
         self,
         chart: dict[str, Any],
         friendship: dict[str, Any],
-        strength_rules: dict[str, int],
+        strength_rules: dict[str, Any],
+        degree_bands: tuple[tuple[float, float, str, int], ...] | None = None,
     ) -> None:
         nakshatra_list = self.load_nakshatra_list_from_database()
         asc = EnrichKundali.find_ascendant_planet(chart) or {}
@@ -942,7 +1030,10 @@ class EnrichKundali:
             )
             din = p.get("degree_in_rashi")
             if isinstance(din, (int, float)):
-                phase = self.degree_phase_within_sign(float(din))
+                phase = self.degree_phase_within_sign(
+                    float(din),
+                    degree_bands or EnrichKundali.parse_degree_in_sign_bands(strength_rules),
+                )
                 p["sign_degree_phase"] = phase
                 p.pop("degree_in_rashi", None)
                 base_strength = phase.get("strength_percent")
@@ -1024,7 +1115,7 @@ class EnrichKundali:
         rashi_english: str,
         base_strength: Any,
         rules: dict[str, Any],
-        strength_rules: dict[str, int],
+        strength_rules: dict[str, Any],
     ) -> tuple[int | None, str | None]:
         if not isinstance(base_strength, (int, float)):
             return None, None
@@ -1111,6 +1202,21 @@ class EnrichKundali:
         return "enemy" if str(flag or "").strip().lower() == HOUSE_6_8_12_YES else ""
 
     @staticmethod
+    def karakwaqt_cell_color_kind(planet: dict[str, Any]) -> str:
+        """Green for yog karak; red for marak / badhak / prabal marak."""
+        if (
+            str(planet.get("is_planet_karakwaqt_harmful", HOUSE_6_8_12_NO) or "")
+            .strip()
+            .lower()
+            == HOUSE_6_8_12_YES
+        ):
+            return PLANET_RELATION_ENEMY
+        kw = str(planet.get("planet_karakwaqt") or "").lower()
+        if "yog karak" in kw:
+            return PLANET_RELATION_FRIEND
+        return ""
+
+    @staticmethod
     def degree_in_sign_for_death_match(planet: dict[str, Any]) -> float | None:
         phase = planet.get("sign_degree_phase")
         if isinstance(phase, dict):
@@ -1158,12 +1264,16 @@ class EnrichKundali:
             )
             p.pop("is_lagna_at_death_degree", None)
             if p["is_planet_at_death_degree"] == HOUSE_6_8_12_YES:
-                EnrichKundali.apply_death_degree_strength_override(p)
+                EnrichKundali.apply_death_degree_strength_override(p, chart.get("planet_strength_rules"))
 
     @staticmethod
-    def apply_death_degree_strength_override(planet: dict[str, Any]) -> None:
-        """Mrityu Bhaga hit: force 0% strength in JSON (phase label + planet_strength)."""
-        zero = int(PLANET_STRENGTH_DEATH_DEGREE_PERCENT)
+    def apply_death_degree_strength_override(
+        planet: dict[str, Any],
+        strength_rules: dict[str, Any] | None = None,
+    ) -> None:
+        """Mrityu Bhaga hit: force strength to ``death_degree_override_percent``."""
+        rules = strength_rules or {}
+        zero = int(rules.get("death_degree_override_percent", PLANET_STRENGTH_DEATH_DEGREE_PERCENT))
         planet["planet_strength"] = zero
         if planet.get("planet_strength_base") is not None:
             planet["planet_strength_base"] = zero
@@ -1173,15 +1283,30 @@ class EnrichKundali:
             phase["label"] = f"{zero}%"
 
     @staticmethod
-    def strength_cell_color_kind(strength: Any, at_death_degree: Any = HOUSE_6_8_12_NO) -> str:
-        """Green above 100%; red at death degree or 0%; no tint otherwise."""
-        if str(at_death_degree or "").strip().lower() == HOUSE_6_8_12_YES:
+    def strength_cell_color_kind(
+        strength: Any,
+        at_death_degree: Any = HOUSE_6_8_12_NO,
+        strength_rules: dict[str, Any] | None = None,
+    ) -> str:
+        """Green above threshold; red at death degree or at/below floor; no tint otherwise."""
+        rules = strength_rules or {}
+        ui = (
+            rules.get("color_intensity")
+            or rules.get("color")
+            or rules.get("strength_column_color")
+            or rules.get("strength_column_ui_color")
+            or {}
+        )
+        high_above = int(ui.get("high_green_above_percent", STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT))
+        red_floor = int(ui.get("red_at_or_below_percent", PLANET_STRENGTH_DEATH_DEGREE_PERCENT))
+        red_on_death = bool(ui.get("red_if_death_degree", True))
+        if red_on_death and str(at_death_degree or "").strip().lower() == HOUSE_6_8_12_YES:
             return PLANET_RELATION_ENEMY
         if not isinstance(strength, (int, float)):
             return ""
-        if strength > STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT:
+        if strength > high_above:
             return PLANET_STATUS_HIGH
-        if strength <= 0:
+        if strength <= red_floor:
             return PLANET_RELATION_ENEMY
         return ""
 
@@ -1202,7 +1327,10 @@ class EnrichKundali:
         return ""
 
     @staticmethod
-    def build_planet_cell_styles(planet: dict[str, Any]) -> dict[str, str]:
+    def build_planet_cell_styles(
+        planet: dict[str, Any],
+        strength_rules: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
         """Per-column cell color hints for planets table (computed in Python, used by UI)."""
         malefic = planet.get("is_planet_in_6_8_12_house", HOUSE_6_8_12_NO)
         lagna_enemy = planet.get("is_planet_lagna_lord_enemy", HOUSE_6_8_12_NO)
@@ -1217,7 +1345,6 @@ class EnrichKundali:
             or ""
         )
         nav_harmful = planet.get("is_planet_navatara_harmful", HOUSE_6_8_12_NO)
-        kw_harmful = planet.get("is_planet_karakwaqt_harmful", HOUSE_6_8_12_NO)
         death_deg = planet.get("is_planet_at_death_degree", HOUSE_6_8_12_NO)
         at_death = str(death_deg or "").strip().lower() == HOUSE_6_8_12_YES
         status_rashi_color = (
@@ -1232,7 +1359,7 @@ class EnrichKundali:
         )
         return {
             "strength": EnrichKundali.strength_cell_color_kind(
-                planet.get("planet_strength"), death_deg
+                planet.get("planet_strength"), death_deg, strength_rules
             ),
             "is_planet_at_death_degree": EnrichKundali.enemy_cell_color_if_yes(death_deg),
             "is_planet_in_6_8_12_house": EnrichKundali.enemy_cell_color_if_yes(malefic),
@@ -1240,7 +1367,7 @@ class EnrichKundali:
             "planet_status_in_rashi": status_rashi_color,
             "planet_status_in_nakshatra": status_nak_color,
             "navatara": EnrichKundali.enemy_cell_color_if_yes(nav_harmful),
-            "karakwaqt": EnrichKundali.enemy_cell_color_if_yes(kw_harmful),
+            "karakwaqt": EnrichKundali.karakwaqt_cell_color_kind(planet),
         }
 
     @staticmethod
@@ -1337,10 +1464,14 @@ class EnrichKundali:
                 )
 
     @staticmethod
-    def degree_phase_within_sign(deg_in_rashi: float) -> dict[str, Any]:
+    def degree_phase_within_sign(
+        deg_in_rashi: float,
+        bands: tuple[tuple[float, float, str, int], ...] | None = None,
+    ) -> dict[str, Any]:
         d = float(deg_in_rashi) % ONE_HOUSE_DEGREES
-        lo, hi, phase, pct = SIGN_DEGREE_PHASE_BANDS[-1]
-        for band_lo, band_hi, band_phase, band_pct in SIGN_DEGREE_PHASE_BANDS:
+        phase_bands = bands or DEFAULT_SIGN_DEGREE_PHASE_BANDS
+        lo, hi, phase, pct = phase_bands[-1]
+        for band_lo, band_hi, band_phase, band_pct in phase_bands:
             if d < band_hi:
                 lo, hi, phase, pct = band_lo, band_hi, band_phase, band_pct
                 break
@@ -1784,7 +1915,27 @@ class EnrichKundali:
         return f"{start}-{end}"
 
     @staticmethod
+    def dasha_age_start_years(row: dict[str, Any]) -> float:
+        """Sort key: start of ``dasha_age`` range (e.g. ``48-54`` → 48)."""
+        text = str(row.get("dasha_age") or "").strip()
+        if text and "-" in text:
+            try:
+                return float(text.split("-", 1)[0])
+            except ValueError:
+                pass
+        age = row.get("age")
+        if isinstance(age, dict):
+            try:
+                return float(age.get("from_years"))
+            except (TypeError, ValueError):
+                pass
+        return 999.0
+
+    @staticmethod
     def build_planets_table_rows(chart: dict[str, Any]) -> list[dict[str, Any]]:
+        strength_rules = chart.get("planet_strength_rules")
+        if not isinstance(strength_rules, dict):
+            strength_rules = {}
         rows: list[dict[str, Any]] = []
         for p in sorted(
             chart.get("planets") or [],
@@ -1835,9 +1986,15 @@ class EnrichKundali:
                 "navatara": p.get("planet_navatara") or "",
                 "karakwaqt": p.get("planet_karakwaqt") or "",
                 "dasha_age": EnrichKundali.format_dasha_age_display(p.get("age")),
-                "cell_styles": EnrichKundali.build_planet_cell_styles(p),
+                "cell_styles": EnrichKundali.build_planet_cell_styles(p, strength_rules),
             })
-        return rows
+        return sorted(
+            rows,
+            key=lambda r: (
+                EnrichKundali.dasha_age_start_years(r),
+                remove_white_space(str(r.get("planet") or "")),
+            ),
+        )
 
     @staticmethod
     def _title_rashi_name(rashi_english: str) -> str:
@@ -2013,15 +2170,7 @@ class EnrichKundali:
 
     @staticmethod
     def build_ui_status_message(chart: dict[str, Any]) -> str:
-        moon = str(EnrichKundali.moon_janma_nakshatra(chart).get("nakshatra") or "").strip()
-        if not moon:
-            return "Loaded."
-        msg = f"Loaded chart for Moon janma: {moon}."
-        df = chart.get("dusthana_filter") or {}
-        removed = int(df.get("removed_count") or 0) if isinstance(df, dict) else 0
-        if removed:
-            msg += f" ({removed} helpful row(s) omitted — dusthana houses 6/8/12.)"
-        return msg
+        return KUNDALI_READY_STATUS_MESSAGE
 
 
 # --- module API (Flask, scripts) ---

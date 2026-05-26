@@ -778,20 +778,20 @@ tbody tr:last-child td {
   line-height: 1.25;
 }
 
-#planets-table.kundali-table thead th:nth-child(1) { width: 8%; }
-#planets-table.kundali-table thead th:nth-child(2) { width: 5%; }
+#planets-table.kundali-table thead th:nth-child(1) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(2) { width: 8%; }
 #planets-table.kundali-table thead th:nth-child(3) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(4) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(5) { width: 6%; }
-#planets-table.kundali-table thead th:nth-child(6) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(7) { width: 7%; }
-#planets-table.kundali-table thead th:nth-child(8) { width: 8%; }
-#planets-table.kundali-table thead th:nth-child(9) { width: 11%; }
-#planets-table.kundali-table thead th:nth-child(10) { width: 7%; }
-#planets-table.kundali-table thead th:nth-child(11) { width: 6%; }
-#planets-table.kundali-table thead th:nth-child(12) { width: 9%; }
-#planets-table.kundali-table thead th:nth-child(13) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(14) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(5) { width: 5%; }
+#planets-table.kundali-table thead th:nth-child(6) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(7) { width: 5%; }
+#planets-table.kundali-table thead th:nth-child(8) { width: 7%; }
+#planets-table.kundali-table thead th:nth-child(9) { width: 8%; }
+#planets-table.kundali-table thead th:nth-child(10) { width: 11%; }
+#planets-table.kundali-table thead th:nth-child(11) { width: 9%; }
+#planets-table.kundali-table thead th:nth-child(12) { width: 7%; }
+#planets-table.kundali-table thead th:nth-child(13) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(14) { width: 5%; }
 
 #planets-table .planets-td-karakwaqt {
   min-width: 0;

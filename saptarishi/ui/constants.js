@@ -3,6 +3,8 @@ const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  KUNDALI_READY_STATUS_MESSAGE:
+    "Kundali Chart prepared and planet/nakshtra table is also ready",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
