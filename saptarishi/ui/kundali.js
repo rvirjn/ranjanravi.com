@@ -214,8 +214,12 @@ function formatTableCellForDisplay(key, cell) {
   }
   if (key === "ruling_planet") return toTitleCaseWords(dedupeCommaList(text));
   if (key === "lucky_day") return toTitleCaseWords(text);
-  if (key === "divine_god") return toTitleCaseWords(text);
+  if (key === "divine_god" || key === "deity") return toTitleCaseWords(dedupeCommaList(text));
   if (key === "lucky_time") return formatLuckyTime(text);
+  if (key === "mantra" || key === "remedy" || key === "directions" || key === "lunar_month" || key === "tithi") {
+    return text;
+  }
+  if (key === "symbol" || key === "animal") return toTitleCaseWords(text);
   return text;
 }
 
@@ -527,11 +531,11 @@ function renderPlanetsTableWithColors(tbody, rows) {
     "is_planet_lagna_lord_enemy",
     "is_planet_at_death_degree",
     "planet_status_in_rashi",
+    "rashi",
+    "nakshatra",
     "planet_status_in_nakshatra",
     "navatara",
     "karakwaqt",
-    "rashi",
-    "nakshatra",
     "degree",
     "dasha_age"
   ];
@@ -548,24 +552,6 @@ function renderPlanetsTableWithColors(tbody, rows) {
     }
     tbody.appendChild(tr);
   }
-}
-
-/** Navatara table: helpful yes first; within each group, strongest tara shading first. */
-function sortNavataraRowsForDisplay(rows) {
-  const helpful = [];
-  const notHelpful = [];
-  for (const row of rows || []) {
-    if (normalizeText(row.auspicious) === "yes") helpful.push(row);
-    else notHelpful.push(row);
-  }
-  const byIntensity = (a, b) =>
-    navataraIntensity(b.navatara, true) - navataraIntensity(a.navatara, true) ||
-    normalizeText(a.navatara).localeCompare(normalizeText(b.navatara));
-  const byHarm = (a, b) =>
-    navataraIntensity(b.navatara, false) - navataraIntensity(a.navatara, false);
-  helpful.sort(byIntensity);
-  notHelpful.sort(byHarm);
-  return [...helpful, ...notHelpful];
 }
 
 /** Normalize lucky time for display: AM/PM and hyphen ranges only. */
@@ -591,30 +577,31 @@ function formatNavataraAbout(cell) {
   return /^for\s/i.test(text) ? text : `For ${text}`;
 }
 
-/** Navatara summary + detail columns (thead order: navatara, toggle, title, details…). */
-const NAVATARA_SUMMARY_COLUMNS = [
-  { key: "navatara", className: "navatara-td-navatara" },
-  { key: "about", className: "navatara-td-about", format: formatNavataraAbout }
+/** Nakshatra table columns (after Nakshatra name and Navatara title cells). */
+const NAKSHATRA_TABLE_COLUMNS = [
+  { key: "symbol", className: "nakshatra-td-symbol" },
+  { key: "ruling_planet", className: "nakshatra-td-ruling_planet" },
+  { key: "deity", className: "nakshatra-td-deity" },
+  { key: "tree", className: "nakshatra-td-tree" },
+  { key: "directions", className: "nakshatra-td-directions" },
+  { key: "lunar_month", className: "nakshatra-td-lunar_month" },
+  { key: "tithi", className: "nakshatra-td-tithi" },
+  { key: "remedy", className: "nakshatra-td-remedy" },
+  { key: "mantra", className: "nakshatra-td-mantra" },
+  { key: "animal", className: "nakshatra-td-animal" },
+  { key: "lucky_colors", className: "nakshatra-td-colors" },
+  { key: "lucky_number", className: "nakshatra-td-lucky-number" },
+  { key: "lucky_day", className: "nakshatra-td-lucky-day" },
+  { key: "lucky_time", className: "nakshatra-td-lucky-time" }
 ];
 
-const NAVATARA_DETAIL_COLUMNS = [
-  { key: "nakshatra", className: "navatara-td-nakshatra" },
-  { key: "ruling_planet", className: "navatara-td-ruling_planet" },
-  { key: "divine_god", className: "navatara-td-divine_god", fallbackKey: "deity" },
-  { key: "tree", className: "navatara-td-tree" },
-  { key: "lucky_colors", className: "navatara-td-colors" },
-  { key: "lucky_number", className: "navatara-td-lucky-number" },
-  { key: "lucky_day", className: "navatara-td-lucky-day" },
-  { key: "lucky_time", className: "navatara-td-lucky-time" }
-];
-
-function navataraCellValue(rowData, col) {
+function nakshatraCellValue(rowData, col) {
   const raw = rowData[col.key] ?? (col.fallbackKey ? rowData[col.fallbackKey] : "");
   if (col.format) return col.format(raw);
   return formatTableCellForDisplay(col.key, raw);
 }
 
-function applyNavataraRowColors(tr, rowData) {
+function applyNakshatraRowColors(tr, rowData) {
   const helpful = normalizeText(rowData.auspicious) === "yes";
   tr.classList.add(helpful ? "navatara-row--helpful" : "navatara-row--harmful");
   const navataraKey = normalizeText(rowData.navatara);
@@ -624,82 +611,59 @@ function applyNavataraRowColors(tr, rowData) {
   }
 }
 
-function createNavataraToggleCell() {
+function appendNakshatraNameCell(tr, rowData) {
   const td = document.createElement("td");
-  td.className = "navatara-col-toggle";
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "navatara-group-toggle";
-  btn.setAttribute("aria-expanded", "false");
-  btn.setAttribute("aria-label", "Show details");
-  btn.textContent = "▶";
-  td.appendChild(btn);
-  return td;
-}
-
-function appendNavataraColumnCell(tr, rowData, col, extraClass) {
-  const td = document.createElement("td");
-  td.className = [col.className, extraClass].filter(Boolean).join(" ");
-  td.textContent = navataraCellValue(rowData, col);
+  td.className = "nakshatra-td-nakshatra";
+  td.textContent = formatTableCellForDisplay("nakshatra", rowData.nakshatra);
   tr.appendChild(td);
 }
 
-function setNavataraRowOpen(row, open) {
-  if (!row) return;
-  row.classList.toggle("navatara-group-row--open", open);
-  const btn = row.querySelector(".navatara-group-toggle");
-  if (btn) {
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-    btn.setAttribute("aria-label", open ? "Hide details" : "Show details");
-    btn.textContent = open ? "▼" : "▶";
+/** Navatara column: tara name + result line (like planets House number + for). */
+function appendNakshatraNavataraCell(tr, rowData) {
+  const td = document.createElement("td");
+  td.className = "nakshatra-td-navatara";
+  const name = formatNavataraName(rowData.navatara);
+  if (name) {
+    const nameEl = document.createElement("div");
+    nameEl.className = "nakshatra-navatara-name";
+    nameEl.textContent = name;
+    td.appendChild(nameEl);
   }
-  const table = row.closest("#navatara-table");
-  if (table) {
-    table.classList.toggle("navatara-table--has-open-row", !!table.querySelector(".navatara-group-row--open"));
+  const about = formatNavataraAbout(rowData.about);
+  if (about) {
+    const aboutEl = document.createElement("div");
+    aboutEl.className = "nakshatra-navatara-about";
+    aboutEl.textContent = about;
+    td.appendChild(aboutEl);
   }
+  tr.appendChild(td);
 }
 
-function closeAllNavataraGroups(tbody) {
-  tbody.querySelectorAll(".navatara-group-row").forEach((row) => setNavataraRowOpen(row, false));
+function appendNakshatraColumnCell(tr, rowData, col) {
+  const td = document.createElement("td");
+  td.className = col.className;
+  td.textContent = nakshatraCellValue(rowData, col);
+  tr.appendChild(td);
 }
 
-function bindNavataraAccordion(tbody) {
-  if (!tbody || tbody.dataset.accordionBound === "1") return;
-  tbody.dataset.accordionBound = "1";
-  tbody.addEventListener("click", (e) => {
-    const row = e.target.closest("tr.navatara-group-row");
-    if (!row || !tbody.contains(row)) return;
-    const willOpen = !row.classList.contains("navatara-group-row--open");
-    closeAllNavataraGroups(tbody);
-    if (willOpen) setNavataraRowOpen(row, true);
-  });
-}
-
-function renderNavataraTableWithColors(tbody, rows) {
+/** Nakshatra table: 27 rows in janma-wheel order; nava-tara row tint by auspicious. */
+function renderNakshatraTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
-  delete tbody.dataset.accordionBound;
-  const table = tbody.closest("#navatara-table");
-  if (table) table.classList.remove("navatara-table--has-open-row");
-  const sorted = sortNavataraRowsForDisplay(rows);
-
-  for (const rowData of sorted) {
+  const ordered = [...(rows || [])].sort(
+    (a, b) => (Number(a.position) || 0) - (Number(b.position) || 0)
+  );
+  for (const rowData of ordered) {
     const tr = document.createElement("tr");
-    tr.className = "navatara-group-row";
-    applyNavataraRowColors(tr, rowData);
-
-    appendNavataraColumnCell(tr, rowData, NAVATARA_SUMMARY_COLUMNS[0], "");
-    tr.appendChild(createNavataraToggleCell());
-    appendNavataraColumnCell(tr, rowData, NAVATARA_SUMMARY_COLUMNS[1], "");
-
-    for (const col of NAVATARA_DETAIL_COLUMNS) {
-      appendNavataraColumnCell(tr, rowData, col, "navatara-detail-cell");
+    tr.className = "nakshatra-data-row";
+    applyNakshatraRowColors(tr, rowData);
+    appendNakshatraNameCell(tr, rowData);
+    appendNakshatraNavataraCell(tr, rowData);
+    for (const col of NAKSHATRA_TABLE_COLUMNS) {
+      appendNakshatraColumnCell(tr, rowData, col);
     }
-
     tbody.appendChild(tr);
   }
-
-  bindNavataraAccordion(tbody);
 }
 
 /** Planet short label from output JSON ``planets[].name`` (no retrograde brackets). */
@@ -1003,11 +967,16 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   }
 }
 
-/** Fill summary, planets, and navatara tables from /api/kundali JSON. */
+/** Nakshatra table rows from API (``nakshatras``; legacy ``navatara_rows``). */
+function nakshatrasFromPayload(payload) {
+  return payload?.nakshatras || payload?.navatara_rows || [];
+}
+
+/** Fill summary, planets, and nakshatra tables from /api/kundali JSON. */
 function renderKundaliResponseIntoPage(kundaliPayload) {
   const summaryBody = document.querySelector("#summary-table tbody");
   const planetsBody = document.querySelector("#planets-table tbody");
-  const navataraBody = document.querySelector("#navatara-table tbody");
+  const nakshatraBody = document.querySelector("#nakshatra-table tbody");
 
   const strengthMax = strengthMaxPercent();
 
@@ -1019,7 +988,7 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
     kundaliPayload.planets || []
   );
   renderPlanetsTableWithColors(planetsBody, planetsTableRows);
-  renderNavataraTableWithColors(navataraBody, kundaliPayload.navatara_rows || []);
+  renderNakshatraTableWithColors(nakshatraBody, nakshatrasFromPayload(kundaliPayload));
 
   if (resultsEl) resultsEl.hidden = false;
   showStatusMessage(kundaliPayload.ui_status_message || "");

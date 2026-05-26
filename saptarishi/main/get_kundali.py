@@ -3,7 +3,7 @@ Sidereal birth chart (kundali) from civil date, time, and place name.
 
 CLI: ``python main/get_kundali.py --date YYYY-MM-DD --time HH:MM --place "City, Country"``
 
-Flask/UI: ``build_full_kundali(root, date, time, place)`` → one JSON with chart, navatara, UI tables.
+Flask/UI: ``build_full_kundali(root, date, time, place)`` → chart + ``nakshatras`` + UI tables.
 """
 
 from __future__ import annotations
@@ -129,17 +129,7 @@ class NavataraFinder:
                 if 1 <= position <= len(ordered_nakshatras):
                     source = ordered_nakshatras[position - 1]
                     navatara_copy["nakshatras"].append(
-                        {
-                            "position_from_input": position,
-                            "nakshatra": source["nakshatra"],
-                            "ruling_planet": source["ruling_planet"],
-                            "deity": source["deity"],
-                            "tree": source["tree"],
-                            "lucky_colors": source["lucky_colors"],
-                            "lucky_number": source.get("lucky_number"),
-                            "lucky_day": source.get("lucky_day"),
-                            "lucky_time": source.get("lucky_time"),
-                        }
+                        EnrichKundali._nakshatra_item_from_source(source, position)
                     )
             navatara_with_nakshatras.append(navatara_copy)
         return navatara_with_nakshatras
@@ -150,6 +140,8 @@ class NavataraFinder:
             return None
         return {
             "input_nakshatra": remove_white_space(nakshatra_name),
+            "ordered_nakshatras": ordered,
+            "navatara_definitions": list(self.navatara_dict),
             "navatara_with_nakshatras": self.build_navatara_with_nakshatra_rows(ordered),
         }
 
@@ -182,7 +174,7 @@ class KundaliBuilder:
         place_query: str,
         house_system: str = DEFAULT_HOUSE_SYSTEM,
     ) -> dict[str, Any]:
-        """Birth chart + navatara + ``summary_table`` / ``planets_table`` / ``navatara_rows`` / ``ui_status_message``."""
+        """Birth chart + ``nakshatras`` / ``planets_table`` / ``summary_table`` / ``ui_status_message``."""
         geo = self.geocode_place_name(place_query)
         dt_local = self.parse_birth_datetime_local(date_str, time_str, geo["timezone"])
         chart = self.compute_sidereal_birth_chart(
@@ -534,7 +526,7 @@ class EnrichKundali:
         self.compact_planets_for_api(chart)
         self.add_kundali_summary_block(chart)
         self.add_lunar_calendar_to_summary(chart)
-        self.attach_filtered_navatara_tables_for_moon_janma(chart)
+        self.attach_nakshatras_for_moon_janma(chart)
         chart["planets_table"] = self.build_planets_table_rows(chart)
         chart["summary_table"] = self.build_summary_table_rows(chart)
         chart["ui_status_message"] = self.build_ui_status_message(chart)
@@ -584,6 +576,28 @@ class EnrichKundali:
                 return jn
         legacy = chart.get("moon_nakshatra")
         return legacy if isinstance(legacy, dict) else {}
+
+    @staticmethod
+    def vimshottari_lord_for_nakshatra_index(nakshatra_index: Any) -> str:
+        """Vimshottari dasha lord from 1-based nakshatra index (1–27)."""
+        if not isinstance(nakshatra_index, int) or nakshatra_index < 1:
+            return ""
+        seq = VIMSHOTTARI_MAHADASHA_SEQUENCE
+        return seq[(nakshatra_index - 1) % len(seq)]
+
+    @staticmethod
+    def vimshottari_lord_from_janma(mn: dict[str, Any]) -> str:
+        """Single Vimshottari lord for Moon janma (not comma-merged display text)."""
+        lord = EnrichKundali.vimshottari_lord_for_nakshatra_index(mn.get("nakshatra_index"))
+        if lord:
+            return lord
+        raw = str(mn.get("ruling_planet") or "")
+        for part in raw.replace("/", ",").split(","):
+            key = remove_white_space(part)
+            if key in VIMSHOTTARI_MAHADASHA_SEQUENCE:
+                return key
+        key = remove_white_space(raw)
+        return key if key in VIMSHOTTARI_MAHADASHA_SEQUENCE else ""
 
     def load_planet_database(self) -> dict[str, Any]:
         with self.planet_db_path.open(encoding="utf-8") as f:
@@ -696,7 +710,7 @@ class EnrichKundali:
                     moon_lon = float(lon)
                 break
         mn = EnrichKundali.moon_janma_nakshatra(chart)
-        birth_lord = remove_white_space(str(mn.get("ruling_planet") or ""))
+        birth_lord = EnrichKundali.vimshottari_lord_from_janma(mn)
         if moon_lon is None or not birth_lord:
             return
 
@@ -967,7 +981,7 @@ class EnrichKundali:
                 p["nakshatra"] = nak.get("nakshatra") or ""
                 p["nakshatra_pada"] = pada
                 p["nakshatra_ruling_planet"] = nak.get("ruling_planet") or ""
-                nlord = remove_white_space(str(p.get("nakshatra_ruling_planet") or ""))
+                nlord = VIMSHOTTARI_MAHADASHA_SEQUENCE[nk_i % len(VIMSHOTTARI_MAHADASHA_SEQUENCE)]
                 nstatus = EnrichKundali.natural_friendship_with_lord_planet(
                     friendship, pkey, nlord
                 )
@@ -1535,22 +1549,23 @@ class EnrichKundali:
                 else HOUSE_6_8_12_NO
             )
 
-    def attach_filtered_navatara_tables_for_moon_janma(self, chart: dict[str, Any]) -> None:
+    def attach_nakshatras_for_moon_janma(self, chart: dict[str, Any]) -> None:
+        """Attach flat ``nakshatras`` (27 rows) and optional ``dusthana_filter`` metadata."""
         janma = str(EnrichKundali.moon_janma_nakshatra(chart).get("nakshatra") or "").strip()
         if not janma:
-            chart["navatara"] = None
-            chart["navatara_rows"] = []
+            chart["nakshatras"] = []
+            chart["dusthana_filter"] = None
             return
-        ch = self.build_filtered_navatara_payload_for_janma(janma, chart.get("planets"))
-        chart["navatara_rows"] = ch.pop("navatara_rows", []) or []
-        chart["navatara"] = ch
+        built = self.build_nakshatras_for_janma(janma, chart.get("planets"))
+        chart["nakshatras"] = built.get("nakshatras") or []
+        chart["dusthana_filter"] = built.get("dusthana_filter")
 
-    def build_filtered_navatara_payload_for_janma(
+    def build_nakshatras_for_janma(
         self,
         janma_nakshatra: str,
         planets: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        """Nava-tara navatara + flat ``navatara_rows``; omit helpful rows for dusthana planets."""
+        """Moon janma wheel: ``nakshatras`` table rows + dusthana filter metadata (no nested navatara blob)."""
         data = self.load_planet_database()
         finder = NavataraFinder(data)
         raw = finder.build_navatara_payload_for_janma_nakshatra(janma_nakshatra)
@@ -1563,15 +1578,27 @@ class EnrichKundali:
             dusthana_keys = self.collect_dusthana_planet_keys_from_birth_chart(planets)
             raw, removed = self.filter_helpful_navatara_rows_by_dusthana_planets(raw, dusthana_keys)
 
-        return {
-            **raw,
-            "navatara_rows": self.build_navatara_table_rows(raw),
-            "dusthana_filter": {
+        dusthana_filter: dict[str, Any] | None = None
+        if planets is not None:
+            dusthana_filter = {
                 "planets_in_dusthana_by_name": sorted(dusthana_keys),
                 "removed_count": len(removed),
                 "removed": removed,
-            },
+            }
+
+        return {
+            "input_nakshatra": raw.get("input_nakshatra"),
+            "nakshatras": self.build_nakshatra_table_rows(raw),
+            "dusthana_filter": dusthana_filter,
         }
+
+    def build_filtered_navatara_payload_for_janma(
+        self,
+        janma_nakshatra: str,
+        planets: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Legacy alias for ``build_nakshatras_for_janma`` (CLI / older imports)."""
+        return self.build_nakshatras_for_janma(janma_nakshatra, planets)
 
     @staticmethod
     def collect_dusthana_planet_keys_from_birth_chart(
@@ -1627,60 +1654,96 @@ class EnrichKundali:
         return out, removed
 
     @staticmethod
-    def build_navatara_table_rows(
+    def _nakshatra_item_from_source(source: dict[str, Any], position: int) -> dict[str, Any]:
+        item: dict[str, Any] = {"position_from_input": position}
+        for key in (
+            "nakshatra",
+            "ruling_planet",
+            "deity",
+            "symbol",
+            "tree",
+            "directions",
+            "lunar_month",
+            "tithi",
+            "remedy",
+            "mantra",
+            "animal",
+            "lucky_colors",
+            "lucky_number",
+            "lucky_day",
+            "lucky_time",
+        ):
+            if key in source:
+                item[key] = source[key]
+        return item
+
+    @staticmethod
+    def navatara_meta_for_position(
+        navatara_definitions: list[dict[str, Any]], position: int
+    ) -> dict[str, Any]:
+        for nav in navatara_definitions:
+            if not isinstance(nav, dict):
+                continue
+            if position in (nav.get("sequences") or []):
+                return nav
+        return {}
+
+    @staticmethod
+    def _format_lucky_colors_field(colors: Any) -> str:
+        if isinstance(colors, list):
+            return ", ".join(str(c).strip() for c in colors if str(c).strip())
+        return str(colors or "").strip()
+
+    @staticmethod
+    def build_nakshatra_table_rows(
         navatara_payload: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """One UI row per nava-tara (9 rows): helpful first, then navatara order."""
+        """One row per nakshatra (27): wheel order from Moon janma, with nava-tara metadata."""
+        ordered = navatara_payload.get("ordered_nakshatras") or []
+        definitions = navatara_payload.get("navatara_definitions") or []
+        if not definitions:
+            definitions = [
+                {k: v for k, v in nav.items() if k != "nakshatras"}
+                for nav in (navatara_payload.get("navatara_with_nakshatras") or [])
+                if isinstance(nav, dict)
+            ]
         rows: list[dict[str, Any]] = []
-        for order, navatara in enumerate(navatara_payload.get("navatara_with_nakshatras") or []):
-            if not isinstance(navatara, dict):
+        for position, source in enumerate(ordered, start=1):
+            if not isinstance(source, dict):
                 continue
-            nakshatra_names: list[str] = []
-            ruling_planets: list[str] = []
-            deities: list[str] = []
-            trees: list[str] = []
-            color_parts: list[str] = []
-            nakshatra_items: list[dict[str, Any]] = []
-            for item in navatara.get("nakshatras") or []:
-                if not isinstance(item, dict):
-                    continue
-                nakshatra_items.append(item)
-                if item.get("nakshatra"):
-                    nakshatra_names.append(str(item["nakshatra"]))
-                if item.get("ruling_planet"):
-                    ruling_planets.append(str(item["ruling_planet"]))
-                if item.get("deity"):
-                    deities.append(str(item["deity"]))
-                colors = item.get("lucky_colors") or []
-                if item.get("tree"):
-                    trees.append(str(item["tree"]))
-                if isinstance(colors, list):
-                    color_parts.extend(str(c) for c in colors)
-                elif colors:
-                    color_parts.append(str(colors))
-            auspicious = str(navatara.get("auspicious") or "").strip().lower()
+            nav = EnrichKundali.navatara_meta_for_position(definitions, position)
+            src_list = [source]
             rows.append(
                 {
-                    "navatara_order": order,
-                    "helpful_sort": 0 if auspicious in AUSPICIOUS_NAVATARA_VALUES else 1,
-                    "auspicious": navatara.get("auspicious") or "",
-                    "navatara": navatara.get("name") or "",
-                    "about": navatara.get("result") or "",
-                    "nakshatra": ", ".join(nakshatra_names),
-                    "ruling_planet": EnrichKundali._dedupe_comma_list(ruling_planets),
-                    "divine_god": ", ".join(deities),
-                    "tree": ", ".join(trees),
-                    "lucky_colors": ", ".join(color_parts),
-                    "lucky_number": EnrichKundali._join_lucky_numbers(nakshatra_items),
-                    "lucky_day": EnrichKundali._join_lucky_days(nakshatra_items),
-                    "lucky_time": EnrichKundali._join_lucky_times(nakshatra_items),
+                    "position": position,
+                    "auspicious": nav.get("auspicious") or "",
+                    "nakshatra": source.get("nakshatra") or "",
+                    "navatara": nav.get("name") or "",
+                    "about": nav.get("result") or "",
+                    "symbol": source.get("symbol") or "",
+                    "ruling_planet": source.get("ruling_planet") or "",
+                    "deity": source.get("deity") or "",
+                    "tree": source.get("tree") or "",
+                    "directions": source.get("directions") or "",
+                    "lunar_month": source.get("lunar_month") or "",
+                    "tithi": source.get("tithi") or "",
+                    "remedy": source.get("remedy") or "",
+                    "mantra": source.get("mantra") or "",
+                    "animal": source.get("animal") or "",
+                    "lucky_colors": EnrichKundali._format_lucky_colors_field(
+                        source.get("lucky_colors")
+                    ),
+                    "lucky_number": EnrichKundali._join_lucky_numbers(src_list),
+                    "lucky_day": EnrichKundali._join_lucky_days(src_list),
+                    "lucky_time": EnrichKundali._join_lucky_times(src_list),
                 }
             )
-        rows.sort(key=lambda r: (r["helpful_sort"], r["navatara_order"]))
-        for row in rows:
-            row.pop("helpful_sort", None)
-            row.pop("navatara_order", None)
         return rows
+
+    @staticmethod
+    def build_navatara_table_rows(navatara_payload: dict[str, Any]) -> list[dict[str, Any]]:
+        """Legacy alias for ``build_nakshatra_table_rows``."""
+        return EnrichKundali.build_nakshatra_table_rows(navatara_payload)
 
     @staticmethod
     def format_house_for_display(for_items: list[str]) -> str:
@@ -1954,7 +2017,8 @@ class EnrichKundali:
         if not moon:
             return "Loaded."
         msg = f"Loaded chart for Moon janma: {moon}."
-        removed = int((chart.get("navatara") or {}).get("dusthana_filter", {}).get("removed_count") or 0)
+        df = chart.get("dusthana_filter") or {}
+        removed = int(df.get("removed_count") or 0) if isinstance(df, dict) else 0
         if removed:
             msg += f" ({removed} helpful row(s) omitted — dusthana houses 6/8/12.)"
         return msg
@@ -1980,8 +2044,17 @@ def build_navatara(
     janma_nakshatra: str,
     planets: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Standalone navatara build (CLI / legacy imports)."""
-    return EnrichKundali(root).build_filtered_navatara_payload_for_janma(janma_nakshatra, planets)
+    """Standalone nakshatra wheel build (CLI / legacy imports)."""
+    return EnrichKundali(root).build_nakshatras_for_janma(janma_nakshatra, planets)
+
+
+def build_nakshatras(
+    root: Path,
+    janma_nakshatra: str,
+    planets: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Standalone nakshatra wheel build."""
+    return EnrichKundali(root).build_nakshatras_for_janma(janma_nakshatra, planets)
 
 def create_dumps_kundali_chart(
     root: Path,

@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="./styles.css?v=49">
+  <link rel="stylesheet" href="./styles.css?v=51">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
     <h1>Kundali by Saptarishi</h1>
-    <p class="lead">Birth Chart and Moon Janma Navatara Tables</p>
+    <p class="lead">Birth Chart and Moon Janma Nakshatra Tables</p>
 
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
       <div class="form-field">
@@ -67,11 +67,11 @@
               <th>Lagna Lord Enemy</th>
               <th>Death Degree</th>
               <th>Status In Rashi</th>
-              <th>Status In Nakshatra</th>
-              <th>Navatara</th>
-              <th>Karakwaqt</th>
               <th>Rashi</th>
               <th>Nakshatra</th>
+              <th>Status In Nakshatra</th>
+              <th>Nakshatra status</th>
+              <th>Karakwaqt</th>
               <th>Degree</th>
               <th>Dasha on Age</th>
             </tr>
@@ -80,28 +80,27 @@
         </table>
       </div>
 
-      <div class="navatara-section-header">
-        <h2 class="result-heading">Navatara</h2>
-        <p class="navatara-section-desc">
-          Nine taras from your Moon birth star. Expand a row for what to do, which god to honor,
-          tree to grow, colors to use, and the number, day, and time that suit that tara/you.
-        </p>
-      </div>
-      <div class="table-wrap navatara-table-wrap">
-        <table id="navatara-table" class="navatara-data-table kundali-table">
+      <h2 class="result-heading">Nakshatra</h2>
+      <div class="table-wrap nakshatra-table-wrap">
+        <table id="nakshatra-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
+              <th>Nakshatra</th>
               <th>Navatara</th>
-              <th class="navatara-col-toggle" aria-label="Expand"></th>
-              <th>Title</th>
-              <th class="navatara-detail-col">Nakshatra</th>
-              <th class="navatara-detail-col">Ruling Planet</th>
-              <th class="navatara-detail-col">Divine God</th>
-              <th class="navatara-detail-col">Tree</th>
-              <th class="navatara-detail-col">Colors</th>
-              <th class="navatara-detail-col">Number</th>
-              <th class="navatara-detail-col">Day</th>
-              <th class="navatara-detail-col">Time</th>
+              <th>Symbol</th>
+              <th>Ruling Planet</th>
+              <th>Deity</th>
+              <th>Tree</th>
+              <th>Directions</th>
+              <th>Lunar Month</th>
+              <th>Tithi</th>
+              <th>Remedy</th>
+              <th>Mantra</th>
+              <th>Animal</th>
+              <th>Colors</th>
+              <th>Number</th>
+              <th>Day</th>
+              <th>Time</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -111,6 +110,6 @@
   </div>
 
   <script src="./constants.js?v=23"></script>
-  <script src="./kundali.js?v=84"></script>
+  <script src="./kundali.js?v=88"></script>
 </body>
 </html>

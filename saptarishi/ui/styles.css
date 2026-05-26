@@ -731,9 +731,14 @@ tbody tr:last-child td {
 /* ---------- Kundali page: compact tables (no horizontal scroll) ---------- */
 
 #results .table-wrap,
-#results .navatara-table-wrap {
+#results .navatara-table-wrap,
+#results .nakshatra-table-wrap {
   overflow: visible;
   max-width: 100%;
+}
+
+#results .nakshatra-table-wrap {
+  overflow-x: auto;
 }
 
 #results table.kundali-table {
@@ -780,11 +785,11 @@ tbody tr:last-child td {
 #planets-table.kundali-table thead th:nth-child(5) { width: 6%; }
 #planets-table.kundali-table thead th:nth-child(6) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(7) { width: 7%; }
-#planets-table.kundali-table thead th:nth-child(8) { width: 7%; }
-#planets-table.kundali-table thead th:nth-child(9) { width: 6%; }
-#planets-table.kundali-table thead th:nth-child(10) { width: 9%; }
-#planets-table.kundali-table thead th:nth-child(11) { width: 8%; }
-#planets-table.kundali-table thead th:nth-child(12) { width: 11%; }
+#planets-table.kundali-table thead th:nth-child(8) { width: 8%; }
+#planets-table.kundali-table thead th:nth-child(9) { width: 11%; }
+#planets-table.kundali-table thead th:nth-child(10) { width: 7%; }
+#planets-table.kundali-table thead th:nth-child(11) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(12) { width: 9%; }
 #planets-table.kundali-table thead th:nth-child(13) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(14) { width: 6%; }
 
@@ -1035,4 +1040,80 @@ tbody tr:last-child td {
 #navatara-table tbody tr + tr.navatara-row--helpful,
 #navatara-table tbody tr + tr.navatara-row--harmful {
   border-top: 1px solid rgba(30, 58, 95, 0.08);
+}
+
+/* ---------- Nakshatra table (27 rows, full data) ---------- */
+
+#nakshatra-table {
+  width: 100%;
+  min-width: 68rem;
+  max-width: none;
+  table-layout: auto;
+}
+
+#nakshatra-table.kundali-table thead th {
+  font-size: 0.58rem;
+  line-height: 1.15;
+  padding: 0.2rem 0.2rem;
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+#nakshatra-table.kundali-table tbody td {
+  font-size: 0.62rem;
+  line-height: 1.2;
+  padding: 0.22rem 0.2rem;
+  vertical-align: top;
+}
+
+#nakshatra-table .nakshatra-td-nakshatra {
+  font-weight: 700;
+  min-width: 4.5rem;
+}
+
+#nakshatra-table .nakshatra-td-navatara {
+  min-width: 6rem;
+}
+
+#nakshatra-table .nakshatra-navatara-name {
+  font-weight: 700;
+  font-size: 0.66rem;
+  line-height: 1.15;
+  margin-bottom: 0.08rem;
+}
+
+#nakshatra-table .nakshatra-navatara-about {
+  font-size: 0.54rem;
+  line-height: 1.2;
+  color: var(--color-text-muted);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#nakshatra-table .nakshatra-td-remedy,
+#nakshatra-table .nakshatra-td-mantra {
+  min-width: 5.5rem;
+}
+
+#nakshatra-table tbody tr.navatara-row--helpful td {
+  background-color: rgba(46, 125, 50, calc(0.06 + var(--navatara-intensity, 0.5) * 0.44));
+}
+
+#nakshatra-table tbody tr.navatara-row--harmful td {
+  background-color: rgba(183, 28, 28, calc(0.06 + var(--navatara-intensity, 0.5) * 0.4));
+}
+
+#nakshatra-table tbody tr.navatara-row--helpful .nakshatra-navatara-about {
+  font-weight: 600;
+  color: #1b5e20;
+}
+
+#nakshatra-table tbody tr.navatara-row--harmful .nakshatra-navatara-about {
+  font-weight: 600;
+  color: #6d1b1b;
+}
+
+#nakshatra-table tbody tr + tr.navatara-row--helpful,
+#nakshatra-table tbody tr + tr.navatara-row--harmful {
+  border-top: 1px solid rgba(30, 58, 95, 0.06);
 }
