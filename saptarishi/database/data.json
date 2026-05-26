@@ -8,9 +8,6 @@
   "planets": [
     {
       "name": "sun",
-      "rashi": [
-        "leo"
-      ],
       "exalted": "aries",
       "debilitated": "libra",
       "friends": [
@@ -25,124 +22,6 @@
       ],
       "neutral": [
         "mercury"
-      ],
-      "karak_house": [
-        1,
-        9,
-        10
-      ],
-      "nakshatras": [
-        {
-          "sequence": 3,
-          "nakshatra": "krittika",
-          "deity": "agni dev",
-          "tree": "gular",
-          "lucky_colors": [
-            "white",
-            "golden"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            7
-          ],
-          "lucky_day": [
-            "sunday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "A"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "I"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "U"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "E"
-            }
-          ]
-        },
-        {
-          "sequence": 12,
-          "nakshatra": "uttara phalguni",
-          "deity": "bhaga (sun)",
-          "tree": "pakar",
-          "lucky_colors": [
-            "golden",
-            "red"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            7
-          ],
-          "lucky_day": [
-            "sunday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Te"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "To"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Pa"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Pi"
-            }
-          ]
-        },
-        {
-          "sequence": 21,
-          "nakshatra": "uttara ashadha",
-          "deity": "vishwadeva",
-          "tree": "jackfruit/panas",
-          "lucky_colors": [
-            "copper",
-            "golden"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            7
-          ],
-          "lucky_day": [
-            "sunday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Bhe"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Bho"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ja"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ji"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -198,9 +77,6 @@
     },
     {
       "name": "moon",
-      "rashi": [
-        "cancer"
-      ],
       "exalted": "taurus",
       "debilitated": "scorpio",
       "friends": [
@@ -216,121 +92,6 @@
         "venus",
         "jupiter",
         "mars"
-      ],
-      "karak_house": [
-        4
-      ],
-      "nakshatras": [
-        {
-          "sequence": 4,
-          "nakshatra": "rohini",
-          "deity": "brahma",
-          "tree": "jamun",
-          "lucky_colors": [
-            "white",
-            "cream"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "monday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "O"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Va"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Vi"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Vu"
-            }
-          ]
-        },
-        {
-          "sequence": 13,
-          "nakshatra": "hasta",
-          "deity": "savitar (sun)",
-          "tree": "jai/guava",
-          "lucky_colors": [
-            "dark green"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "monday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Pu"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Sha"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Na"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Tha"
-            }
-          ]
-        },
-        {
-          "sequence": 22,
-          "nakshatra": "shravana",
-          "deity": "vishnu",
-          "tree": "madar/aak",
-          "lucky_colors": [
-            "light blue",
-            "green"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "monday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Khi"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Khu"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Khe"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Kho"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -386,10 +147,6 @@
     },
     {
       "name": "mars",
-      "rashi": [
-        "aries",
-        "scorpio"
-      ],
       "exalted": "capricorn",
       "debilitated": "cancer",
       "friends": [
@@ -405,123 +162,6 @@
         "mercury",
         "rahu",
         "ketu"
-      ],
-      "karak_house": [
-        3,
-        6
-      ],
-      "nakshatras": [
-        {
-          "sequence": 5,
-          "nakshatra": "mrigashira",
-          "deity": "moon",
-          "tree": "khair",
-          "lucky_colors": [
-            "silver",
-            "red"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            9
-          ],
-          "lucky_day": [
-            "tuesday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ve"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Vo"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ka"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ki"
-            }
-          ]
-        },
-        {
-          "sequence": 14,
-          "nakshatra": "chitra",
-          "deity": "tvashta (vishwakarma)",
-          "tree": "bel",
-          "lucky_colors": [
-            "red",
-            "silver"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            9
-          ],
-          "lucky_day": [
-            "tuesday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Pe"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Po"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ra"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ri"
-            }
-          ]
-        },
-        {
-          "sequence": 23,
-          "nakshatra": "dhanishta",
-          "deity": "eight vasus",
-          "tree": "shami",
-          "lucky_colors": [
-            "red",
-            "silver"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            9
-          ],
-          "lucky_day": [
-            "tuesday"
-          ],
-          "lucky_time": "6:00 AM - 10:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ga"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Gi"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Gu"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ge"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -577,10 +217,6 @@
     },
     {
       "name": "mercury",
-      "rashi": [
-        "gemini",
-        "virgo"
-      ],
       "exalted": "virgo",
       "debilitated": "pisces",
       "friends": [
@@ -596,122 +232,6 @@
         "mars",
         "saturn",
         "ketu"
-      ],
-      "karak_house": [
-        4,
-        10
-      ],
-      "nakshatras": [
-        {
-          "sequence": 9,
-          "nakshatra": "ashlesha",
-          "deity": "serpent",
-          "tree": "nagkesar",
-          "lucky_colors": [
-            "light blue"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            8
-          ],
-          "lucky_day": [
-            "wednesday"
-          ],
-          "lucky_time": "10:00 AM - 1:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Di"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Du"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "De"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Do"
-            }
-          ]
-        },
-        {
-          "sequence": 18,
-          "nakshatra": "jyeshtha",
-          "deity": "indra",
-          "tree": "red cotton",
-          "lucky_colors": [
-            "red",
-            "blue"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            8
-          ],
-          "lucky_day": [
-            "wednesday"
-          ],
-          "lucky_time": "10:00 AM - 1:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "No"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Ya"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Yi"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Yu"
-            }
-          ]
-        },
-        {
-          "sequence": 27,
-          "nakshatra": "revati",
-          "deity": "pushan",
-          "tree": "mahua",
-          "lucky_colors": [
-            "light blue",
-            "green"
-          ],
-          "lucky_number": [
-            1,
-            5,
-            8
-          ],
-          "lucky_day": [
-            "wednesday"
-          ],
-          "lucky_time": "10:00 AM - 1:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "De"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Do"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Cha"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Chi"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -767,10 +287,6 @@
     },
     {
       "name": "jupiter",
-      "rashi": [
-        "sagittarius",
-        "pisces"
-      ],
       "exalted": "cancer",
       "debilitated": "capricorn",
       "friends": [
@@ -786,126 +302,6 @@
         "rahu",
         "saturn",
         "ketu"
-      ],
-      "karak_house": [
-        2,
-        5,
-        9,
-        10,
-        11
-      ],
-      "nakshatras": [
-        {
-          "sequence": 7,
-          "nakshatra": "punarvasu",
-          "deity": "aditi",
-          "tree": "bamboo",
-          "lucky_colors": [
-            "yellow",
-            "cream"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "thursday"
-          ],
-          "lucky_time": "6:00 AM - 12:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ke"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Ko"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ha"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Hi"
-            }
-          ]
-        },
-        {
-          "sequence": 16,
-          "nakshatra": "vishakha",
-          "deity": "indra-agni",
-          "tree": "nagkesar",
-          "lucky_colors": [
-            "yellow",
-            "golden"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "tuesday"
-          ],
-          "lucky_time": "6:00 AM - 12:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ti"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Tu"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Te"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "To"
-            }
-          ]
-        },
-        {
-          "sequence": 25,
-          "nakshatra": "purva bhadrapada",
-          "deity": "ajaikapada",
-          "tree": "mango",
-          "lucky_colors": [
-            "yellow",
-            "golden"
-          ],
-          "lucky_number": [
-            2,
-            3,
-            9
-          ],
-          "lucky_day": [
-            "thursday"
-          ],
-          "lucky_time": "6:00 AM - 12:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Se"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "So"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Da"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Di"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -961,10 +357,6 @@
     },
     {
       "name": "venus",
-      "rashi": [
-        "taurus",
-        "libra"
-      ],
       "exalted": "pisces",
       "debilitated": "virgo",
       "friends": [
@@ -980,124 +372,6 @@
         "jupiter",
         "mars",
         "ketu"
-      ],
-      "karak_house": [
-        7
-      ],
-      "nakshatras": [
-        {
-          "sequence": 2,
-          "nakshatra": "bharani",
-          "deity": "yamraj",
-          "tree": "amla",
-          "lucky_colors": [
-            "red",
-            "white"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "tuesday",
-            "friday"
-          ],
-          "lucky_time": "4:00 PM - 7:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Li"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Lu"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Le"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Lo"
-            }
-          ]
-        },
-        {
-          "sequence": 11,
-          "nakshatra": "purva phalguni",
-          "deity": "bhaga (aryaman)",
-          "tree": "palash/dhak",
-          "lucky_colors": [
-            "brown",
-            "light red"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "friday",
-            "sunday"
-          ],
-          "lucky_time": "4:00 PM - 7:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Mo"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Ta"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ti"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Tu"
-            }
-          ]
-        },
-        {
-          "sequence": 20,
-          "nakshatra": "purva ashadha",
-          "deity": "apah (water)",
-          "tree": "water cane",
-          "lucky_colors": [
-            "white",
-            "cream"
-          ],
-          "lucky_number": [
-            3,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "friday"
-          ],
-          "lucky_time": "4:00 PM - 7:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Bhu"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Dha"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Pha"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Dha"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -1153,10 +427,6 @@
     },
     {
       "name": "saturn",
-      "rashi": [
-        "capricorn",
-        "aquarius"
-      ],
       "exalted": "libra",
       "debilitated": "aries",
       "friends": [
@@ -1172,125 +442,6 @@
       "neutral": [
         "jupiter",
         "ketu"
-      ],
-      "karak_house": [
-        6,
-        8,
-        10,
-        12
-      ],
-      "nakshatras": [
-        {
-          "sequence": 8,
-          "nakshatra": "pushya",
-          "deity": "brihaspati",
-          "tree": "peepal",
-          "lucky_colors": [
-            "golden",
-            "yellow"
-          ],
-          "lucky_number": [
-            5,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "saturday"
-          ],
-          "lucky_time": "6:00 PM - 8:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Hu"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "He"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ho"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Da"
-            }
-          ]
-        },
-        {
-          "sequence": 17,
-          "nakshatra": "anuradha",
-          "deity": "mitra (aditya)",
-          "tree": "moulshree/bakul",
-          "lucky_colors": [
-            "red",
-            "blue"
-          ],
-          "lucky_number": [
-            5,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "saturday"
-          ],
-          "lucky_time": "6:00 PM - 8:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Na"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Ni"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Nu"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ne"
-            }
-          ]
-        },
-        {
-          "sequence": 26,
-          "nakshatra": "uttara bhadrapada",
-          "deity": "ahirbudhnya",
-          "tree": "neem",
-          "lucky_colors": [
-            "blue",
-            "black"
-          ],
-          "lucky_number": [
-            5,
-            6,
-            8
-          ],
-          "lucky_day": [
-            "saturday"
-          ],
-          "lucky_time": "6:00 PM - 8:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Du"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Tha"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Jha"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Da"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -1346,7 +497,6 @@
     },
     {
       "name": "rahu",
-      "rashi": [],
       "exalted": "gemini",
       "debilitated": "sagittarius",
       "friends": [
@@ -1362,121 +512,6 @@
       "neutral": [
         "jupiter",
         "ketu"
-      ],
-      "karak_house": [],
-      "nakshatras": [
-        {
-          "sequence": 6,
-          "nakshatra": "ardra",
-          "deity": "rudra (shiva)",
-          "tree": "krishnaguru/agaru",
-          "lucky_colors": [
-            "blue",
-            "black"
-          ],
-          "lucky_number": [
-            1,
-            4,
-            7
-          ],
-          "lucky_day": [
-            "friday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ku"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Gha"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ng"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Na"
-            }
-          ]
-        },
-        {
-          "sequence": 15,
-          "nakshatra": "swati",
-          "deity": "vayu",
-          "tree": "arjuna",
-          "lucky_colors": [
-            "black",
-            "dark color"
-          ],
-          "lucky_number": [
-            1,
-            4,
-            7
-          ],
-          "lucky_day": [
-            "friday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ru"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Re"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Ro"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Ta"
-            }
-          ]
-        },
-        {
-          "sequence": 24,
-          "nakshatra": "shatabhisha",
-          "deity": "varuna",
-          "tree": "kadamba",
-          "lucky_colors": [
-            "dark blue",
-            "black"
-          ],
-          "lucky_number": [
-            1,
-            4,
-            7
-          ],
-          "lucky_day": [
-            "friday",
-            "saturday"
-          ],
-          "lucky_time": "6:00 PM - 9:00 PM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Go"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Sa"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Si"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Su"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -1532,7 +567,6 @@
     },
     {
       "name": "ketu",
-      "rashi": [],
       "exalted": "sagittarius",
       "debilitated": "gemini",
       "friends": [
@@ -1548,120 +582,6 @@
       "neutral": [
         "jupiter",
         "rahu"
-      ],
-      "karak_house": [],
-      "nakshatras": [
-        {
-          "sequence": 1,
-          "nakshatra": "ashwini",
-          "deity": "ashwini kumar",
-          "tree": "kuchla/peepal",
-          "lucky_colors": [
-            "red",
-            "white"
-          ],
-          "lucky_number": [
-            5,
-            7,
-            9
-          ],
-          "lucky_day": [
-            "tuesday"
-          ],
-          "lucky_time": "6:00 AM - 7:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Chu"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Che"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Cho"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "La"
-            }
-          ]
-        },
-        {
-          "sequence": 10,
-          "nakshatra": "magha",
-          "deity": "pitru gan",
-          "tree": "banyan",
-          "lucky_colors": [
-            "black",
-            "red"
-          ],
-          "lucky_number": [
-            5,
-            7,
-            9
-          ],
-          "lucky_day": [
-            "friday"
-          ],
-          "lucky_time": "6:00 AM - 7:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ma"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Mi"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Mu"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Me"
-            }
-          ]
-        },
-        {
-          "sequence": 19,
-          "nakshatra": "mula",
-          "deity": "nirriti (kaal)",
-          "tree": "sal/saraj",
-          "lucky_colors": [
-            "black",
-            "red"
-          ],
-          "lucky_number": [
-            5,
-            7,
-            9
-          ],
-          "lucky_day": [
-            "friday"
-          ],
-          "lucky_time": "6:00 AM - 7:00 AM",
-          "pada": [
-            {
-              "pada": 1,
-              "starting_name_letter": "Ye"
-            },
-            {
-              "pada": 2,
-              "starting_name_letter": "Yo"
-            },
-            {
-              "pada": 3,
-              "starting_name_letter": "Bha"
-            },
-            {
-              "pada": 4,
-              "starting_name_letter": "Bhi"
-            }
-          ]
-        }
       ],
       "death_degree": [
         {
@@ -1714,11 +634,63 @@
         }
       ],
       "mahadasha_years": 7
+    },
+    {
+      "name": "ascendant",
+      "death_degree": [
+        {
+          "sign": "aries",
+          "degree": 1
+        },
+        {
+          "sign": "taurus",
+          "degree": 9
+        },
+        {
+          "sign": "gemini",
+          "degree": 22
+        },
+        {
+          "sign": "cancer",
+          "degree": 22
+        },
+        {
+          "sign": "leo",
+          "degree": 25
+        },
+        {
+          "sign": "virgo",
+          "degree": 2
+        },
+        {
+          "sign": "libra",
+          "degree": 4
+        },
+        {
+          "sign": "scorpio",
+          "degree": 23
+        },
+        {
+          "sign": "sagittarius",
+          "degree": 18
+        },
+        {
+          "sign": "capricorn",
+          "degree": 20
+        },
+        {
+          "sign": "aquarius",
+          "degree": 10
+        },
+        {
+          "sign": "pisces",
+          "degree": 10
+        }
+      ]
     }
   ],
   "nakshatras": [
     {
-      "sequence": 1,
       "nakshatra": "ashwini",
       "ruling_planet": "ketu",
       "deity": "ashwini kumar",
@@ -1756,7 +728,6 @@
       ]
     },
     {
-      "sequence": 2,
       "nakshatra": "bharani",
       "ruling_planet": "venus",
       "deity": "yamraj",
@@ -1795,7 +766,6 @@
       ]
     },
     {
-      "sequence": 3,
       "nakshatra": "krittika",
       "ruling_planet": "sun",
       "deity": "agni dev",
@@ -1833,7 +803,6 @@
       ]
     },
     {
-      "sequence": 4,
       "nakshatra": "rohini",
       "ruling_planet": "moon",
       "deity": "brahma",
@@ -1871,7 +840,6 @@
       ]
     },
     {
-      "sequence": 5,
       "nakshatra": "mrigashira",
       "ruling_planet": "mars",
       "deity": "moon",
@@ -1909,7 +877,6 @@
       ]
     },
     {
-      "sequence": 6,
       "nakshatra": "ardra",
       "ruling_planet": "rahu",
       "deity": "rudra (shiva)",
@@ -1947,7 +914,6 @@
       ]
     },
     {
-      "sequence": 7,
       "nakshatra": "punarvasu",
       "ruling_planet": "jupiter",
       "deity": "aditi",
@@ -1985,7 +951,6 @@
       ]
     },
     {
-      "sequence": 8,
       "nakshatra": "pushya",
       "ruling_planet": "saturn",
       "deity": "brihaspati",
@@ -2023,7 +988,6 @@
       ]
     },
     {
-      "sequence": 9,
       "nakshatra": "ashlesha",
       "ruling_planet": "mercury",
       "deity": "serpent",
@@ -2060,7 +1024,6 @@
       ]
     },
     {
-      "sequence": 10,
       "nakshatra": "magha",
       "ruling_planet": "ketu",
       "deity": "pitru gan",
@@ -2098,7 +1061,6 @@
       ]
     },
     {
-      "sequence": 11,
       "nakshatra": "purva phalguni",
       "ruling_planet": "venus",
       "deity": "bhaga (aryaman)",
@@ -2137,7 +1099,6 @@
       ]
     },
     {
-      "sequence": 12,
       "nakshatra": "uttara phalguni",
       "ruling_planet": "sun",
       "deity": "bhaga (sun)",
@@ -2175,7 +1136,6 @@
       ]
     },
     {
-      "sequence": 13,
       "nakshatra": "hasta",
       "ruling_planet": "moon",
       "deity": "savitar (sun)",
@@ -2212,7 +1172,6 @@
       ]
     },
     {
-      "sequence": 14,
       "nakshatra": "chitra",
       "ruling_planet": "mars",
       "deity": "tvashta (vishwakarma)",
@@ -2250,7 +1209,6 @@
       ]
     },
     {
-      "sequence": 15,
       "nakshatra": "swati",
       "ruling_planet": "rahu",
       "deity": "vayu",
@@ -2288,7 +1246,6 @@
       ]
     },
     {
-      "sequence": 16,
       "nakshatra": "vishakha",
       "ruling_planet": "jupiter",
       "deity": "indra-agni",
@@ -2326,7 +1283,6 @@
       ]
     },
     {
-      "sequence": 17,
       "nakshatra": "anuradha",
       "ruling_planet": "saturn",
       "deity": "mitra (aditya)",
@@ -2364,7 +1320,6 @@
       ]
     },
     {
-      "sequence": 18,
       "nakshatra": "jyeshtha",
       "ruling_planet": "mercury",
       "deity": "indra",
@@ -2402,7 +1357,6 @@
       ]
     },
     {
-      "sequence": 19,
       "nakshatra": "mula",
       "ruling_planet": "ketu",
       "deity": "nirriti (kaal)",
@@ -2440,7 +1394,6 @@
       ]
     },
     {
-      "sequence": 20,
       "nakshatra": "purva ashadha",
       "ruling_planet": "venus",
       "deity": "apah (water)",
@@ -2478,7 +1431,6 @@
       ]
     },
     {
-      "sequence": 21,
       "nakshatra": "uttara ashadha",
       "ruling_planet": "sun",
       "deity": "vishwadeva",
@@ -2516,7 +1468,6 @@
       ]
     },
     {
-      "sequence": 22,
       "nakshatra": "shravana",
       "ruling_planet": "moon",
       "deity": "vishnu",
@@ -2554,7 +1505,6 @@
       ]
     },
     {
-      "sequence": 23,
       "nakshatra": "dhanishta",
       "ruling_planet": "mars",
       "deity": "eight vasus",
@@ -2592,7 +1542,6 @@
       ]
     },
     {
-      "sequence": 24,
       "nakshatra": "shatabhisha",
       "ruling_planet": "rahu",
       "deity": "varuna",
@@ -2631,7 +1580,6 @@
       ]
     },
     {
-      "sequence": 25,
       "nakshatra": "purva bhadrapada",
       "ruling_planet": "jupiter",
       "deity": "ajaikapada",
@@ -2669,7 +1617,6 @@
       ]
     },
     {
-      "sequence": 26,
       "nakshatra": "uttara bhadrapada",
       "ruling_planet": "saturn",
       "deity": "ahirbudhnya",
@@ -2707,7 +1654,6 @@
       ]
     },
     {
-      "sequence": 27,
       "nakshatra": "revati",
       "ruling_planet": "mercury",
       "deity": "pushan",
@@ -2746,7 +1692,6 @@
     }
   ],
   "nava_tara": {
-    "description": "in vedic astrology, a sequence of 9 stars used to analyze planetary transits and dashas based on the 27 nakshatras.",
     "navatara": [
       {
         "name": "janma",
@@ -2760,13 +1705,13 @@
       },
       {
         "name": "sampat",
-        "sequence": [
+        "result": "wealth, prosperity, and happiness",
+        "auspicious": "yes",
+        "sequences": [
           2,
           11,
           20
-        ],
-        "result": "wealth, prosperity, and happiness",
-        "auspicious": "yes"
+        ]
       },
       {
         "name": "vipat",
@@ -2863,8 +1808,6 @@
       ],
       "lagna": {
         "aries": {
-          "rashi_number": "1",
-          "type": "chara",
           "karak": [
             "sun",
             "mars",
@@ -2882,8 +1825,6 @@
           "prabal_marak": ""
         },
         "taurus": {
-          "rashi_number": "2",
-          "type": "sthira",
           "karak": [
             "mercury",
             "venus",
@@ -2903,8 +1844,6 @@
           "prabal_marak": ""
         },
         "gemini": {
-          "rashi_number": "3",
-          "type": "dwiswabhava",
           "karak": [
             "mercury",
             "venus",
@@ -2923,8 +1862,6 @@
           "prabal_marak": "jupiter"
         },
         "cancer": {
-          "rashi_number": "4",
-          "type": "chara",
           "karak": [
             "moon",
             "mars",
@@ -2944,8 +1881,6 @@
           "prabal_marak": ""
         },
         "leo": {
-          "rashi_number": "5",
-          "type": "sthira",
           "karak": [
             "sun",
             "mars",
@@ -2965,8 +1900,6 @@
           "prabal_marak": ""
         },
         "virgo": {
-          "rashi_number": "6",
-          "type": "dwiswabhava",
           "karak": [
             "mercury",
             "venus",
@@ -2985,8 +1918,6 @@
           "prabal_marak": "jupiter"
         },
         "libra": {
-          "rashi_number": "7",
-          "type": "chara",
           "karak": [
             "mercury",
             "venus",
@@ -3005,8 +1936,6 @@
           "prabal_marak": ""
         },
         "scorpio": {
-          "rashi_number": "8",
-          "type": "sthira",
           "karak": [
             "moon",
             "mars",
@@ -3025,8 +1954,6 @@
           "prabal_marak": ""
         },
         "sagittarius": {
-          "rashi_number": "9",
-          "type": "dwiswabhava",
           "karak": [
             "sun",
             "mars",
@@ -3045,8 +1972,6 @@
           "prabal_marak": "mercury"
         },
         "capricorn": {
-          "rashi_number": "10",
-          "type": "chara",
           "karak": [
             "mercury",
             "venus",
@@ -3066,8 +1991,6 @@
           "prabal_marak": ""
         },
         "aquarius": {
-          "rashi_number": "11",
-          "type": "sthira",
           "karak": [
             "mercury",
             "venus",
@@ -3087,8 +2010,6 @@
           "prabal_marak": ""
         },
         "pisces": {
-          "rashi_number": "12",
-          "type": "dwiswabhava",
           "karak": [
             "moon",
             "mars",
@@ -3290,56 +2211,6 @@
         "death",
         "left eye"
       ]
-    }
-  ],
-  "death_degree_lagna": [
-    {
-      "sign": "aries",
-      "degree": 1
-    },
-    {
-      "sign": "taurus",
-      "degree": 9
-    },
-    {
-      "sign": "gemini",
-      "degree": 22
-    },
-    {
-      "sign": "cancer",
-      "degree": 22
-    },
-    {
-      "sign": "leo",
-      "degree": 25
-    },
-    {
-      "sign": "virgo",
-      "degree": 2
-    },
-    {
-      "sign": "libra",
-      "degree": 4
-    },
-    {
-      "sign": "scorpio",
-      "degree": 23
-    },
-    {
-      "sign": "sagittarius",
-      "degree": 18
-    },
-    {
-      "sign": "capricorn",
-      "degree": 20
-    },
-    {
-      "sign": "aquarius",
-      "degree": 10
-    },
-    {
-      "sign": "pisces",
-      "degree": 10
     }
   ]
 }

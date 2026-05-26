@@ -2,6 +2,7 @@ const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
   FLASK_PORT: 8081,
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  API_PLANET_DATABASE_PATH: "/api/planet-database",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
   NAVATARA_INTENSITY: {
@@ -16,6 +17,9 @@ const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
     vadha: 1
   }
 };
+
+/** Cached ``database/data.json`` from ``/api/planet-database``. */
+let planetDatabase = null;
 
 const form = document.getElementById("birth-form");
 const statusEl = document.getElementById("status");
@@ -151,16 +155,24 @@ function karakwaqtTextIsHarmful(text) {
     .some((p) => karakwaqtLabelIsHarmful(p));
 }
 
-/** Planets table cell text: prefer API ``*_display`` fields from get_kundali.py. */
+/** Planets table cell text from structured ``planets_table`` rows. */
 function planetsTableCellText(key, rowData) {
+  const flags = rowData.flags || {};
+  const status = rowData.status || {};
   if (key === "is_planet_in_6_8_12_house") {
-    return rowData.malefic_6_8_12_display ?? rowData.malefic_6_8_12 ?? rowData[key];
+    return flags.malefic_6_8_12 ?? rowData.malefic_6_8_12_display ?? rowData[key];
   }
   if (key === "is_planet_lagna_lord_enemy") {
-    return rowData.is_planet_lagna_lord_enemy_display ?? rowData[key];
+    return flags.lagna_lord_enemy ?? rowData.is_planet_lagna_lord_enemy_display ?? rowData[key];
   }
   if (key === "is_planet_at_death_degree") {
-    return rowData.is_planet_at_death_degree_display ?? rowData[key];
+    return flags.death_degree ?? rowData.is_planet_at_death_degree_display ?? rowData[key];
+  }
+  if (key === "planet_status_in_rashi") {
+    return status.rashi ?? rowData.planet_status_in_rashi ?? rowData[key];
+  }
+  if (key === "planet_status_in_nakshatra") {
+    return status.nakshatra ?? rowData.planet_status_in_nakshatra ?? rowData[key];
   }
   if (key === "karakwaqt") {
     return rowData.karakwaqt ?? rowData.planet_karakwaqt ?? "";
@@ -215,16 +227,84 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
-function strengthMaxFromPayload(payload) {
-  const max = payload?.planet_strength_rules?.max_percent;
+/** Strength cap from ``database/data.json`` via ``/api/planet-database``. */
+function strengthMaxPercent() {
+  const max = planetDatabase?.planet_strength_rules?.max_percent;
   if (typeof max === "number" && max > 0) return max;
   return C.PLANET_STRENGTH_MAX_PERCENT || 200;
+}
+
+/** Parse API JSON; surface HTML error pages as a clear message. */
+async function parseApiJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const hint =
+      `API returned HTML (HTTP ${response.status}). ` +
+      `Restart the Flask container on port ${C.FLASK_PORT} after code updates.`;
+    throw new Error(hint);
+  }
+}
+
+/** Fetch and cache full planet database JSON (optional; uses strength fallback if missing). */
+async function ensurePlanetDatabase() {
+  if (planetDatabase) return planetDatabase;
+  const path = C.API_PLANET_DATABASE_PATH || "/api/planet-database";
+  try {
+    const response = await fetch(`${getFlaskApiOrigin()}${path}`);
+    const payload = await parseApiJsonResponse(response);
+    if (!response.ok) {
+      console.warn("planet-database:", payload.error || response.status);
+      return null;
+    }
+    planetDatabase = payload;
+    return planetDatabase;
+  } catch (err) {
+    console.warn("planet-database unavailable:", err.message);
+    return null;
+  }
 }
 
 function strengthPercentFromRow(row) {
   if (typeof row?.strength_percent === "number") return row.strength_percent;
   const match = String(row?.strength || "").match(/(\d+)/);
   return match ? Number(match[1]) : 25;
+}
+
+/** Lagna / ascendant row from ``planets[]`` (legacy top-level ``ascendant`` supported). */
+function findAscendantPlanet(payload) {
+  const planets = payload?.planets || [];
+  const row = planets.find((p) => normalizeText(p?.name) === "ascendant");
+  if (row) return row;
+  return payload?.ascendant || null;
+}
+
+/** Whole-sign houses 1–12 from lagna (replaces ``houses_whole_sign`` in API). */
+function wholeSignHousesFromPayload(payload) {
+  const lagnaRi = findAscendantPlanet(payload)?.rashi_index;
+  if (typeof lagnaRi !== "number" || lagnaRi < 0 || lagnaRi >= 12) {
+    return {};
+  }
+  const eng = C.RASHI_IN_ENG || [];
+  const out = {};
+  for (let house = 1; house <= 12; house += 1) {
+    const ri = (lagnaRi + house - 1) % 12;
+    out[house] = {
+      house,
+      rashi_index: ri,
+      rashi_english: eng[ri] || ""
+    };
+  }
+  return out;
+}
+
+function planetHouseNumber(planet) {
+  const h = planet?.house;
+  if (h && typeof h === "object" && typeof h.number === "number") {
+    return h.number;
+  }
+  return planet?.whole_sign_house;
 }
 
 /** Map 0–max% strength to 0–1 intensity (100% ≠ 125% when max is 200). */
@@ -377,11 +457,19 @@ function formatHouseForList(text) {
     .join(", ");
 }
 
+function houseFromTableRow(rowData) {
+  const h = rowData?.house;
+  if (h && typeof h === "object") {
+    return { number: h.number, for: h.for };
+  }
+  return { number: rowData?.house, for: rowData?.house_for };
+}
+
 function appendPlanetsHouseCell(tr, rowData) {
   const td = document.createElement("td");
   td.className = "planets-td-house";
-  const num = rowData.house;
-  const forText = formatHouseForList(rowData.house_for);
+  const { number: num, for: forRaw } = houseFromTableRow(rowData);
+  const forText = formatHouseForList(forRaw);
   if (num != null && num !== "") {
     const numEl = document.createElement("div");
     numEl.className = "planets-house-num";
@@ -397,8 +485,8 @@ function appendPlanetsHouseCell(tr, rowData) {
   tr.appendChild(td);
 }
 
-/** Copy dasha age onto table rows from ``planets[].age`` when needed. */
-function mergeDashaAgeIntoPlanetsTableRows(planetsTable, planets) {
+/** Merge ``planets[]`` into ``planets_table`` when API rows omit newer fields. */
+function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
   if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
   const byPlanet = new Map(
     planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
@@ -406,39 +494,25 @@ function mergeDashaAgeIntoPlanetsTableRows(planetsTable, planets) {
   return planetsTable.map((row) => {
     const src = byPlanet.get(normalizeText(row?.planet));
     if (!src) return row;
+    const next = { ...row };
     const dashaAge = (row.dasha_age || "").trim() || formatDashaAgeDisplay(src.age);
-    if (!dashaAge) return row;
-    return { ...row, dasha_age: dashaAge };
-  });
-}
-
-/** Copy ``planet_karakwaqt`` onto table rows when API table predates that field. */
-function mergeKarakwaqtIntoPlanetsTableRows(planetsTable, planets) {
-  if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
-  const byPlanet = new Map(
-    planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
-  );
-  return planetsTable.map((row) => {
-    const src = byPlanet.get(normalizeText(row?.planet));
-    if (!src) return row;
+    if (dashaAge) next.dasha_age = dashaAge;
     const kw = (row.karakwaqt || src.planet_karakwaqt || "").trim();
-    if (!kw && !src.planet_karakwaqt) return row;
-    const kwHarmful =
-      row.is_planet_karakwaqt_harmful ||
-      src.is_planet_karakwaqt_harmful ||
-      (karakwaqtTextIsHarmful(kw || src.planet_karakwaqt) ? "yes" : "no");
-    const styles = { ...(row.cell_styles || {}) };
-    if (!styles.karakwaqt) {
-      styles.karakwaqt =
-        src.cell_styles?.karakwaqt ||
-        (String(kwHarmful || "").toLowerCase() === "yes" ? "enemy" : "");
+    if (kw) next.karakwaqt = kw;
+    if (!next.house?.number && src.house) {
+      next.house = {
+        number: src.house.number,
+        for: formatHouseForList(src.house.for || [])
+      };
     }
-    return {
-      ...row,
-      karakwaqt: kw || src.planet_karakwaqt || "",
-      is_planet_karakwaqt_harmful: kwHarmful,
-      cell_styles: styles
-    };
+    const styles = { ...(row.cell_styles || {}) };
+    const kwHarmful =
+      karakwaqtTextIsHarmful(kw || src.planet_karakwaqt) ? "yes" : "no";
+    if (!styles.karakwaqt && kw) {
+      styles.karakwaqt = String(kwHarmful).toLowerCase() === "yes" ? "enemy" : "";
+    }
+    if (Object.keys(styles).length) next.cell_styles = styles;
+    return next;
   });
 }
 
@@ -644,23 +718,21 @@ function rashiNumberFromCell(cell) {
   return idx >= 0 ? idx + 1 : null;
 }
 
-/** Build North Indian chart from ``planets`` + ``houses_whole_sign`` (same fields as output/*.json). */
+/** Build North Indian chart from ``planets`` + lagna (whole-sign houses derived in UI). */
 function buildNorthIndianChartFromPayload(payload) {
-  const asc = payload?.ascendant || {};
+  const asc = findAscendantPlanet(payload) || {};
   const lagnaRi = asc.rashi_index;
   const lagnaRashiNumber =
     typeof lagnaRi === "number" && lagnaRi >= 0 && lagnaRi < 12 ? lagnaRi + 1 : null;
   const lagnaLabel = lagnaRashiNumber != null ? String(lagnaRashiNumber) : "";
 
-  const housesByNo = {};
-  for (const h of payload?.houses_whole_sign || []) {
-    if (h && typeof h.house === "number") housesByNo[h.house] = h;
-  }
+  const housesByNo = wholeSignHousesFromPayload(payload);
 
   const planetOrder = C.PLANET_DISPLAY_ORDER || [];
   const planetsByHouse = {};
   for (const p of payload?.planets || []) {
-    const house = p.whole_sign_house;
+    if (normalizeText(p?.name) === "ascendant") continue;
+    const house = planetHouseNumber(p);
     if (typeof house !== "number") continue;
     const label = planetShortLabelFromJson(p.name);
     if (!label) continue;
@@ -705,7 +777,7 @@ function buildNorthIndianChartFromPayload(payload) {
     layout: "north_indian",
     lagna_label: lagnaLabel,
     lagna_rashi_number: lagnaRashiNumber,
-    strength_max: strengthMaxFromPayload(payload),
+    strength_max: strengthMaxPercent(),
     cells
   };
 }
@@ -937,16 +1009,13 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   const planetsBody = document.querySelector("#planets-table tbody");
   const navataraBody = document.querySelector("#navatara-table tbody");
 
-  const strengthMax = strengthMaxFromPayload(kundaliPayload);
+  const strengthMax = strengthMaxPercent();
 
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
-  const planetsTableRows = mergeDashaAgeIntoPlanetsTableRows(
-    mergeKarakwaqtIntoPlanetsTableRows(
-      kundaliPayload.planets_table || [],
-      kundaliPayload.planets || []
-    ),
+  const planetsTableRows = mergePlanetsIntoPlanetsTableRows(
+    kundaliPayload.planets_table || [],
     kundaliPayload.planets || []
   );
   renderPlanetsTableWithColors(planetsBody, planetsTableRows);
@@ -970,7 +1039,7 @@ function buildKundaliApiQueryParams(date, time, place) {
 async function fetchKundaliJsonFromApi(date, time, place) {
   const params = buildKundaliApiQueryParams(date, time, place);
   const response = await fetch(`${getFlaskApiOrigin()}${C.API_KUNDALI_PATH}?${params}`);
-  const payload = await response.json();
+  const payload = await parseApiJsonResponse(response);
   if (!response.ok) {
     throw new Error(payload.error || `HTTP ${response.status}`);
   }
@@ -1006,6 +1075,7 @@ async function handleBirthFormSubmit(event) {
   if (resultsEl) resultsEl.hidden = true;
 
   try {
+    await ensurePlanetDatabase();
     const kundaliPayload = await fetchKundaliJsonFromApi(
       birthDate.value,
       birthTime.value,
@@ -1024,3 +1094,5 @@ if (placePreset) {
 if (form) {
   form.addEventListener("submit", handleBirthFormSubmit);
 }
+
+ensurePlanetDatabase().catch(() => {});

@@ -21,7 +21,7 @@ from constant import (  # noqa: E402
     SERVICE_NAME,
     VALID_HOUSE_SYSTEMS,
 )
-from get_kundali import build_full_kundali  # noqa: E402
+from get_kundali import EnrichKundali, build_full_kundali  # noqa: E402
 
 app = Flask(__name__)
 
@@ -41,8 +41,20 @@ def home():
             "service": SERVICE_NAME,
             "ui": "/ui/kundali.html",
             "api": "/api/kundali?date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India",
+            "planet_database": "/api/planet-database",
         }
     )
+
+
+@app.route("/api/planet-database", methods=["GET"], strict_slashes=False)
+def api_planet_database():
+    """Return ``database/data.json`` (strength rules, planets, nakshatras, houses, …)."""
+    try:
+        return jsonify(EnrichKundali(ROOT).load_planet_database())
+    except OSError as e:
+        return jsonify({"error": str(e)}), 500
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"invalid JSON: {e}"}), 500
 
 
 @app.route("/api/kundali", methods=["GET"], strict_slashes=False)
@@ -64,6 +76,8 @@ def api_kundali():
         return jsonify({"error": str(e)}), 400
     except json.JSONDecodeError as e:
         return jsonify({"error": f"invalid JSON: {e}"}), 500
+    except OSError as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

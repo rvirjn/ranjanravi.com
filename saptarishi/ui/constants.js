@@ -3,6 +3,7 @@ const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  API_PLANET_DATABASE_PATH: "/api/planet-database",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
   /**
@@ -66,6 +67,6 @@ const SAPTARISHI_CONSTANTS = {
   ],
   /** Display order for planet abbreviations in each house cell */
   PLANET_DISPLAY_ORDER: ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"],
-  /** Fallback if API omits planet_strength_rules (sync with planet.json / constant.py). */
+  /** Fallback if ``/api/planet-database`` is unavailable (sync with database/data.json). */
   PLANET_STRENGTH_MAX_PERCENT: 200
 };

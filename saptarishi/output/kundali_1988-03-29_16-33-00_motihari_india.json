@@ -6,7 +6,24 @@
     "country": "India",
     "latitude": 27.09833,
     "longitude": 84.54916,
-    "timezone": "Asia/Kolkata"
+    "timezone": "Asia/Kolkata",
+    "alternatives": [
+      {
+        "name": "Motīhāri",
+        "country": "India",
+        "timezone": "Asia/Kolkata"
+      },
+      {
+        "name": "Motihāri",
+        "country": "India",
+        "timezone": "Asia/Kolkata"
+      },
+      {
+        "name": "Motihāri",
+        "country": "India",
+        "timezone": "Asia/Kolkata"
+      }
+    ]
   },
   "datetime_local_iso": "1988-03-29T16:33:00+05:30",
   "datetime_utc_iso": "1988-03-29T11:03:00+00:00",
@@ -14,100 +31,6 @@
   "ayanamsa": "lahiri",
   "ayanamsa_degrees": 23.692834,
   "house_system": "W",
-  "ascendant": {
-    "sidereal_longitude": 145.048687,
-    "rashi_index": 4,
-    "rashi_english": "leo",
-    "rashi_sanskrit": "simha",
-    "degree_in_rashi": 25.0487,
-    "is_lagna_at_death_degree": "no"
-  },
-  "houses_whole_sign": [
-    {
-      "house": 1,
-      "rashi_index": 4,
-      "rashi_english": "leo",
-      "rashi_sanskrit": "simha",
-      "cusps_longitude": 120.0
-    },
-    {
-      "house": 2,
-      "rashi_index": 5,
-      "rashi_english": "virgo",
-      "rashi_sanskrit": "kanya",
-      "cusps_longitude": 150.0
-    },
-    {
-      "house": 3,
-      "rashi_index": 6,
-      "rashi_english": "libra",
-      "rashi_sanskrit": "tula",
-      "cusps_longitude": 180.0
-    },
-    {
-      "house": 4,
-      "rashi_index": 7,
-      "rashi_english": "scorpio",
-      "rashi_sanskrit": "vrishchika",
-      "cusps_longitude": 210.0
-    },
-    {
-      "house": 5,
-      "rashi_index": 8,
-      "rashi_english": "sagittarius",
-      "rashi_sanskrit": "dhanu",
-      "cusps_longitude": 240.0
-    },
-    {
-      "house": 6,
-      "rashi_index": 9,
-      "rashi_english": "capricorn",
-      "rashi_sanskrit": "makara",
-      "cusps_longitude": 270.0
-    },
-    {
-      "house": 7,
-      "rashi_index": 10,
-      "rashi_english": "aquarius",
-      "rashi_sanskrit": "kumbha",
-      "cusps_longitude": 300.0
-    },
-    {
-      "house": 8,
-      "rashi_index": 11,
-      "rashi_english": "pisces",
-      "rashi_sanskrit": "meena",
-      "cusps_longitude": 330.0
-    },
-    {
-      "house": 9,
-      "rashi_index": 0,
-      "rashi_english": "aries",
-      "rashi_sanskrit": "mesha",
-      "cusps_longitude": 0.0
-    },
-    {
-      "house": 10,
-      "rashi_index": 1,
-      "rashi_english": "taurus",
-      "rashi_sanskrit": "vrishabha",
-      "cusps_longitude": 30.0
-    },
-    {
-      "house": 11,
-      "rashi_index": 2,
-      "rashi_english": "gemini",
-      "rashi_sanskrit": "mithuna",
-      "cusps_longitude": 60.0
-    },
-    {
-      "house": 12,
-      "rashi_index": 3,
-      "rashi_english": "cancer",
-      "rashi_sanskrit": "karka",
-      "cusps_longitude": 90.0
-    }
-  ],
   "planets": [
     {
       "name": "sun",
@@ -115,9 +38,7 @@
       "rashi_index": 11,
       "rashi_english": "pisces",
       "rashi_sanskrit": "meena",
-      "whole_sign_house": 8,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "friend",
       "sign_lord": "jupiter",
       "is_planet_in_6_8_12_house": "yes",
       "is_planet_lagna_lord_enemy": "no",
@@ -129,34 +50,47 @@
         "at_birth_degrees_in_sign": 15.2826,
         "label": "100%"
       },
-      "planet_strength_base": 100,
       "planet_strength": 100,
       "planet_status_in_rashi": "friend",
       "nakshatra": "uttara bhadrapada",
       "nakshatra_pada": 4,
-      "nakshatra_ruling_planet": "saturn",
-      "planet_relation_with_nakshatra_lord": "enemy",
       "planet_status_in_nakshatra": "enemy",
       "planet_navatara": "maitri",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "karak | yog karak",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "enemy",
-        "is_planet_lagna_lord_enemy": "",
-        "planet_status_in_rashi": "friend",
-        "planet_status_in_nakshatra": "enemy",
-        "navatara": "",
-        "karakwaqt": ""
+      "mahadasha_years": 6.0,
+      "age": {
+        "dasha_order": 3,
+        "from_years": 25.953,
+        "to_years": 31.953,
+        "from": "25 years 11 months",
+        "to": "31 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "friend",
-      "malefic_6_8_12_display": "Yes",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 8,
+        "for": [
+          "age",
+          "longevity",
+          "research",
+          "bad luck",
+          "death",
+          "sudden financial gain",
+          "foreign travel",
+          "sudden change",
+          "accident",
+          "incurable disease",
+          "lower-abdomen ailments"
+        ],
+        "rashi": {
+          "index": 11,
+          "english": "pisces",
+          "sanskrit": "meena"
+        }
+      },
+      "planet_status_color": "friend"
     },
     {
       "name": "moon",
@@ -164,9 +98,29 @@
       "rashi_index": 4,
       "rashi_english": "leo",
       "rashi_sanskrit": "simha",
-      "whole_sign_house": 1,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "friend",
+      "janma_nakshatra": {
+        "nakshatra": "magha",
+        "ruling_planet": "ketu",
+        "deity": "pitru gan",
+        "tree": "banyan",
+        "lucky_colors": [
+          "black",
+          "red"
+        ],
+        "lucky_number": [
+          5,
+          7,
+          9
+        ],
+        "lucky_day": [
+          "friday"
+        ],
+        "lucky_time": "6:00 AM - 7:00 AM",
+        "nakshatra_index": 10,
+        "pada": 1,
+        "starting_name_letter": "Ma"
+      },
       "sign_lord": "sun",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "no",
@@ -178,34 +132,52 @@
         "at_birth_degrees_in_sign": 1.9944,
         "label": "25%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 25,
       "planet_status_in_rashi": "friend",
       "nakshatra": "magha",
       "nakshatra_pada": 1,
-      "nakshatra_ruling_planet": "ketu",
-      "planet_relation_with_nakshatra_lord": "enemy",
       "planet_status_in_nakshatra": "enemy",
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "",
-        "planet_status_in_rashi": "friend",
-        "planet_status_in_nakshatra": "enemy",
-        "navatara": "",
-        "karakwaqt": ""
+      "mahadasha_years": 10.0,
+      "age": {
+        "dasha_order": 4,
+        "from_years": 31.953,
+        "to_years": 41.953,
+        "from": "31 years 11 months",
+        "to": "41 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "friend",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 1,
+        "for": [
+          "body",
+          "physique",
+          "health",
+          "efforts",
+          "discipline",
+          "complexion",
+          "appearance",
+          "knowledge",
+          "strength",
+          "brain",
+          "wisdom",
+          "character",
+          "pride",
+          "humility",
+          "nature",
+          "lagna"
+        ],
+        "rashi": {
+          "index": 4,
+          "english": "leo",
+          "sanskrit": "simha"
+        }
+      },
+      "planet_status_color": "friend"
     },
     {
       "name": "mercury",
@@ -213,9 +185,7 @@
       "rashi_index": 10,
       "rashi_english": "aquarius",
       "rashi_sanskrit": "kumbha",
-      "whole_sign_house": 7,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "neutral",
       "sign_lord": "saturn",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "no",
@@ -227,34 +197,49 @@
         "at_birth_degrees_in_sign": 25.3676,
         "label": "25%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 25,
       "planet_status_in_rashi": "neutral",
       "nakshatra": "purva bhadrapada",
       "nakshatra_pada": 2,
-      "nakshatra_ruling_planet": "jupiter",
-      "planet_relation_with_nakshatra_lord": "enemy",
       "planet_status_in_nakshatra": "enemy",
       "planet_navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "marak",
       "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "",
-        "planet_status_in_rashi": "",
-        "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy",
-        "karakwaqt": "enemy"
+      "mahadasha_years": 17.0,
+      "age": {
+        "dasha_order": 9,
+        "from_years": 101.953,
+        "to_years": 118.953,
+        "from": "101 years 11 months",
+        "to": "118 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 7,
+        "for": [
+          "spouse",
+          "husband",
+          "wife",
+          "friends",
+          "partnership",
+          "business partners",
+          "desire",
+          "lust",
+          "marriage",
+          "daily occupation",
+          "death",
+          "reproductive organs",
+          "open enemies"
+        ],
+        "rashi": {
+          "index": 10,
+          "english": "aquarius",
+          "sanskrit": "kumbha"
+        }
+      },
+      "planet_status_color": ""
     },
     {
       "name": "venus",
@@ -262,9 +247,7 @@
       "rashi_index": 1,
       "rashi_english": "taurus",
       "rashi_sanskrit": "vrishabha",
-      "whole_sign_house": 10,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "own",
       "sign_lord": "venus",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "yes",
@@ -276,34 +259,49 @@
         "at_birth_degrees_in_sign": 1.0661,
         "label": "25%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 25,
       "planet_status_in_rashi": "own",
       "nakshatra": "krittika",
       "nakshatra_pada": 2,
-      "nakshatra_ruling_planet": "sun",
-      "planet_relation_with_nakshatra_lord": "enemy",
       "planet_status_in_nakshatra": "enemy",
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "enemy",
-        "planet_status_in_rashi": "own",
-        "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy",
-        "karakwaqt": ""
+      "mahadasha_years": 20.0,
+      "age": {
+        "dasha_order": 2,
+        "from_years": 5.953,
+        "to_years": 25.953,
+        "from": "5 years 11 months",
+        "to": "25 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "own",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 10,
+        "for": [
+          "work",
+          "career",
+          "profession",
+          "father",
+          "reputation",
+          "kingdom",
+          "state",
+          "karma",
+          "business",
+          "rank",
+          "authority",
+          "power",
+          "raja yoga"
+        ],
+        "rashi": {
+          "index": 1,
+          "english": "taurus",
+          "sanskrit": "vrishabha"
+        }
+      },
+      "planet_status_color": "own"
     },
     {
       "name": "mars",
@@ -311,9 +309,7 @@
       "rashi_index": 9,
       "rashi_english": "capricorn",
       "rashi_sanskrit": "makara",
-      "whole_sign_house": 6,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "enemy",
       "sign_lord": "saturn",
       "is_planet_in_6_8_12_house": "yes",
       "is_planet_lagna_lord_enemy": "no",
@@ -325,35 +321,48 @@
         "at_birth_degrees_in_sign": 0.6186,
         "label": "125%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 125,
       "planet_dignity": "exalted",
       "planet_status_in_rashi": "high",
       "nakshatra": "uttara ashadha",
       "nakshatra_pada": 2,
-      "nakshatra_ruling_planet": "sun",
-      "planet_relation_with_nakshatra_lord": "friend",
       "planet_status_in_nakshatra": "friend",
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "karak | yog karak | badhak",
       "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "high",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "enemy",
-        "is_planet_lagna_lord_enemy": "",
-        "planet_status_in_rashi": "high",
-        "planet_status_in_nakshatra": "friend",
-        "navatara": "enemy",
-        "karakwaqt": "enemy"
+      "mahadasha_years": 7.0,
+      "age": {
+        "dasha_order": 5,
+        "from_years": 41.953,
+        "to_years": 48.953,
+        "from": "41 years 11 months",
+        "to": "48 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "high",
-      "malefic_6_8_12_display": "Yes",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 6,
+        "for": [
+          "enemies",
+          "diseases",
+          "slaves",
+          "separation",
+          "worry",
+          "debt",
+          "litigation",
+          "upper-abdomen ailments",
+          "disgrace",
+          "grief",
+          "sorrow"
+        ],
+        "rashi": {
+          "index": 9,
+          "english": "capricorn",
+          "sanskrit": "makara"
+        }
+      },
+      "planet_status_color": "high"
     },
     {
       "name": "jupiter",
@@ -361,9 +370,7 @@
       "rashi_index": 0,
       "rashi_english": "aries",
       "rashi_sanskrit": "mesha",
-      "whole_sign_house": 9,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "friend",
       "sign_lord": "mars",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "no",
@@ -375,34 +382,47 @@
         "at_birth_degrees_in_sign": 10.8632,
         "label": "50%"
       },
-      "planet_strength_base": 50,
       "planet_strength": 50,
       "planet_status_in_rashi": "friend",
       "nakshatra": "ashwini",
       "nakshatra_pada": 4,
-      "nakshatra_ruling_planet": "ketu",
-      "planet_relation_with_nakshatra_lord": "neutral",
       "planet_status_in_nakshatra": "neutral",
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "karak",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "",
-        "planet_status_in_rashi": "friend",
-        "planet_status_in_nakshatra": "",
-        "navatara": "",
-        "karakwaqt": ""
+      "mahadasha_years": 16.0,
+      "age": {
+        "dasha_order": 7,
+        "from_years": 66.953,
+        "to_years": 82.953,
+        "from": "66 years 11 months",
+        "to": "82 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "friend",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 9,
+        "for": [
+          "luck",
+          "religion",
+          "foreign travel",
+          "pilgrimage",
+          "dreams",
+          "education",
+          "guru",
+          "fame",
+          "wife's brother",
+          "wife's sister",
+          "renunciation"
+        ],
+        "rashi": {
+          "index": 0,
+          "english": "aries",
+          "sanskrit": "mesha"
+        }
+      },
+      "planet_status_color": "friend"
     },
     {
       "name": "saturn",
@@ -410,9 +430,7 @@
       "rashi_index": 8,
       "rashi_english": "sagittarius",
       "rashi_sanskrit": "dhanu",
-      "whole_sign_house": 5,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "neutral",
       "sign_lord": "jupiter",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "yes",
@@ -424,34 +442,48 @@
         "at_birth_degrees_in_sign": 8.7288,
         "label": "50%"
       },
-      "planet_strength_base": 50,
       "planet_strength": 50,
       "planet_status_in_rashi": "neutral",
       "nakshatra": "mula",
       "nakshatra_pada": 3,
-      "nakshatra_ruling_planet": "ketu",
-      "planet_relation_with_nakshatra_lord": "neutral",
       "planet_status_in_nakshatra": "neutral",
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "marak",
       "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "enemy",
-        "planet_status_in_rashi": "",
-        "planet_status_in_nakshatra": "",
-        "navatara": "",
-        "karakwaqt": "enemy"
+      "mahadasha_years": 19.0,
+      "age": {
+        "dasha_order": 8,
+        "from_years": 82.953,
+        "to_years": 101.953,
+        "from": "82 years 11 months",
+        "to": "101 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 5,
+        "for": [
+          "children",
+          "study",
+          "emotions",
+          "intellect",
+          "education",
+          "fame",
+          "followers",
+          "religion",
+          "auspicious deeds",
+          "maternal home",
+          "heart ailments",
+          "lower-chest ailments"
+        ],
+        "rashi": {
+          "index": 8,
+          "english": "sagittarius",
+          "sanskrit": "dhanu"
+        }
+      },
+      "planet_status_color": ""
     },
     {
       "name": "rahu",
@@ -459,9 +491,7 @@
       "rashi_index": 10,
       "rashi_english": "aquarius",
       "rashi_sanskrit": "kumbha",
-      "whole_sign_house": 7,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "friend",
       "sign_lord": "saturn",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "yes",
@@ -473,34 +503,49 @@
         "at_birth_degrees_in_sign": 29.3961,
         "label": "25%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 25,
       "planet_status_in_rashi": "friend",
       "nakshatra": "purva bhadrapada",
       "nakshatra_pada": 3,
-      "nakshatra_ruling_planet": "jupiter",
-      "planet_relation_with_nakshatra_lord": "neutral",
       "planet_status_in_nakshatra": "neutral",
       "planet_navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "enemy",
-        "planet_status_in_rashi": "friend",
-        "planet_status_in_nakshatra": "",
-        "navatara": "enemy",
-        "karakwaqt": ""
+      "mahadasha_years": 18.0,
+      "age": {
+        "dasha_order": 6,
+        "from_years": 48.953,
+        "to_years": 66.953,
+        "from": "48 years 11 months",
+        "to": "66 years 11 months",
+        "is_birth_balance": false
       },
-      "planet_status_color": "friend",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 7,
+        "for": [
+          "spouse",
+          "husband",
+          "wife",
+          "friends",
+          "partnership",
+          "business partners",
+          "desire",
+          "lust",
+          "marriage",
+          "daily occupation",
+          "death",
+          "reproductive organs",
+          "open enemies"
+        ],
+        "rashi": {
+          "index": 10,
+          "english": "aquarius",
+          "sanskrit": "kumbha"
+        }
+      },
+      "planet_status_color": "friend"
     },
     {
       "name": "ketu",
@@ -508,9 +553,7 @@
       "rashi_index": 4,
       "rashi_english": "leo",
       "rashi_sanskrit": "simha",
-      "whole_sign_house": 1,
       "retrograde": false,
-      "planet_relation_with_rashi_lord": "enemy",
       "sign_lord": "sun",
       "is_planet_in_6_8_12_house": "no",
       "is_planet_lagna_lord_enemy": "yes",
@@ -522,103 +565,109 @@
         "at_birth_degrees_in_sign": 29.3961,
         "label": "25%"
       },
-      "planet_strength_base": 25,
       "planet_strength": 25,
       "planet_status_in_rashi": "enemy",
       "nakshatra": "uttara phalguni",
       "nakshatra_pada": 1,
-      "nakshatra_ruling_planet": "sun",
-      "planet_relation_with_nakshatra_lord": "enemy",
       "planet_status_in_nakshatra": "enemy",
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
       "planet_karakwaqt": "",
       "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
-      "cell_styles": {
-        "strength": "",
-        "is_planet_at_death_degree": "",
-        "is_planet_in_6_8_12_house": "",
-        "is_planet_lagna_lord_enemy": "enemy",
-        "planet_status_in_rashi": "enemy",
-        "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy",
-        "karakwaqt": ""
+      "mahadasha_years": 7.0,
+      "age": {
+        "dasha_order": 1,
+        "from_years": 0.0,
+        "to_years": 5.953,
+        "from": "0 years",
+        "to": "5 years 11 months",
+        "is_birth_balance": true
       },
-      "planet_status_color": "enemy",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree_display": "No"
+      "house": {
+        "number": 1,
+        "for": [
+          "body",
+          "physique",
+          "health",
+          "efforts",
+          "discipline",
+          "complexion",
+          "appearance",
+          "knowledge",
+          "strength",
+          "brain",
+          "wisdom",
+          "character",
+          "pride",
+          "humility",
+          "nature",
+          "lagna"
+        ],
+        "rashi": {
+          "index": 4,
+          "english": "leo",
+          "sanskrit": "simha"
+        }
+      },
+      "planet_status_color": "enemy"
+    },
+    {
+      "name": "ascendant",
+      "sidereal_longitude": 145.048687,
+      "rashi_index": 4,
+      "rashi_english": "leo",
+      "rashi_sanskrit": "simha",
+      "degree_in_rashi": 25.0487,
+      "is_planet_at_death_degree": "no",
+      "lagna_karak_roles": {
+        "karak": [
+          "sun",
+          "mars",
+          "jupiter"
+        ],
+        "yog_karak": [
+          "mars",
+          "sun"
+        ],
+        "badhak": [
+          "mars"
+        ],
+        "marak": [
+          "mercury",
+          "saturn"
+        ],
+        "prabal_marak": ""
+      },
+      "house": {
+        "number": 1,
+        "for": [
+          "body",
+          "physique",
+          "health",
+          "efforts",
+          "discipline",
+          "complexion",
+          "appearance",
+          "knowledge",
+          "strength",
+          "brain",
+          "wisdom",
+          "character",
+          "pride",
+          "humility",
+          "nature",
+          "lagna"
+        ],
+        "rashi": {
+          "index": 4,
+          "english": "leo",
+          "sanskrit": "simha"
+        }
+      }
     }
   ],
-  "moon_nakshatra": {
-    "nakshatra": "magha",
-    "ruling_planet": "ketu",
-    "deity": "pitru gan",
-    "tree": "banyan",
-    "lucky_colors": [
-      "black",
-      "red"
-    ],
-    "lucky_number": [
-      5,
-      7,
-      9
-    ],
-    "lucky_day": [
-      "friday"
-    ],
-    "lucky_time": "6:00 AM - 7:00 AM",
-    "nakshatra_index": 10,
-    "pada": 1,
-    "starting_name_letter": "Ma"
-  },
   "ephemeris": "moshier",
-  "geocode_alternatives": [
-    {
-      "name": "Motīhāri",
-      "country": "India",
-      "timezone": "Asia/Kolkata"
-    },
-    {
-      "name": "Motihāri",
-      "country": "India",
-      "timezone": "Asia/Kolkata"
-    },
-    {
-      "name": "Motihāri",
-      "country": "India",
-      "timezone": "Asia/Kolkata"
-    }
-  ],
-  "planet_strength_rules": {
-    "exalted_bonus": 100,
-    "debilitated_penalty": 100,
-    "min_percent": 0,
-    "max_percent": 200
-  },
-  "lagna_karak_roles": {
-    "rashi_number": "5",
-    "type": "sthira",
-    "karak": [
-      "sun",
-      "mars",
-      "jupiter"
-    ],
-    "yog_karak": [
-      "mars",
-      "sun"
-    ],
-    "badhak": [
-      "mars"
-    ],
-    "marak": [
-      "mercury",
-      "saturn"
-    ],
-    "prabal_marak": ""
-  },
   "kundali_summary": {
     "place_query": "Motihari, India",
     "resolved_place": "Motīhāri, Bihar, India",
@@ -849,13 +898,13 @@
       },
       {
         "name": "sampat",
-        "sequence": [
+        "result": "wealth, prosperity, and happiness",
+        "auspicious": "yes",
+        "sequences": [
           2,
           11,
           20
         ],
-        "result": "wealth, prosperity, and happiness",
-        "auspicious": "yes",
         "nakshatras": [
           {
             "position_from_input": 2,
@@ -1436,28 +1485,28 @@
   },
   "planets_table": [
     {
-      "house": 1,
-      "house_for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
+      "house": {
+        "number": 1,
+        "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna"
+      },
       "planet": "ketu",
       "degree": "29.40°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "yes",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "leo (simha)",
-      "nakshatra": "uttara phalguni (pada 1)",
-      "navatara": "vipat",
-      "is_planet_navatara_harmful": "yes",
-      "karakwaqt": "",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
-      "planet_status_in_nakshatra": "enemy",
-      "planet_status_in_rashi": "enemy",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "Yes",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "enemy",
+        "nakshatra": "enemy"
+      },
+      "rashi": "Leo (Simha)",
+      "nakshatra": "uttara phalguni (pada 1)",
+      "navatara": "vipat",
+      "karakwaqt": "",
+      "dasha_age": "0-6",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1467,32 +1516,31 @@
         "planet_status_in_nakshatra": "enemy",
         "navatara": "enemy",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 1,
-      "house_for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
+      "house": {
+        "number": 1,
+        "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna"
+      },
       "planet": "moon",
       "degree": "1.99°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "no",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "leo (simha)",
-      "nakshatra": "magha (pada 1)",
-      "navatara": "janma",
-      "is_planet_navatara_harmful": "no",
-      "karakwaqt": "",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
-      "planet_status_in_nakshatra": "enemy",
-      "planet_status_in_rashi": "friend",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "No",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "friend",
+        "nakshatra": "enemy"
+      },
+      "rashi": "Leo (Simha)",
+      "nakshatra": "magha (pada 1)",
+      "navatara": "janma",
+      "karakwaqt": "",
+      "dasha_age": "32-42",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1502,32 +1550,31 @@
         "planet_status_in_nakshatra": "enemy",
         "navatara": "",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 5,
-      "house_for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments",
+      "house": {
+        "number": 5,
+        "for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments"
+      },
       "planet": "saturn",
       "degree": "8.73°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "yes",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "sagittarius (dhanu)",
-      "nakshatra": "mula (pada 3)",
-      "navatara": "janma",
-      "is_planet_navatara_harmful": "no",
-      "karakwaqt": "marak",
-      "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
       "strength": "50%",
       "strength_percent": 50,
-      "planet_status_in_nakshatra": "neutral",
-      "planet_status_in_rashi": "neutral",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "Yes",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "neutral",
+        "nakshatra": "neutral"
+      },
+      "rashi": "Sagittarius (Dhanu)",
+      "nakshatra": "mula (pada 3)",
+      "navatara": "janma",
+      "karakwaqt": "marak",
+      "dasha_age": "83-102",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1537,32 +1584,31 @@
         "planet_status_in_nakshatra": "",
         "navatara": "",
         "karakwaqt": "enemy"
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 6,
-      "house_for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow",
+      "house": {
+        "number": 6,
+        "for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow"
+      },
       "planet": "mars",
       "degree": "0.62°",
-      "is_planet_in_6_8_12_house": "yes",
-      "malefic_6_8_12": "yes",
-      "malefic_6_8_12_display": "Yes",
-      "is_planet_lagna_lord_enemy": "no",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "capricorn (makara)",
-      "nakshatra": "uttara ashadha (pada 2)",
-      "navatara": "vipat",
-      "is_planet_navatara_harmful": "yes",
-      "karakwaqt": "karak | yog karak | badhak",
-      "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
       "strength": "125%",
       "strength_percent": 125,
-      "planet_status_in_nakshatra": "friend",
-      "planet_status_in_rashi": "high",
+      "flags": {
+        "malefic_6_8_12": "Yes",
+        "lagna_lord_enemy": "No",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "high",
+        "nakshatra": "friend"
+      },
+      "rashi": "Capricorn (Makara)",
+      "nakshatra": "uttara ashadha (pada 2)",
+      "navatara": "vipat",
+      "karakwaqt": "karak | yog karak | badhak",
+      "dasha_age": "42-49",
       "cell_styles": {
         "strength": "high",
         "is_planet_at_death_degree": "",
@@ -1572,32 +1618,31 @@
         "planet_status_in_nakshatra": "friend",
         "navatara": "enemy",
         "karakwaqt": "enemy"
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 7,
-      "house_for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
+      "house": {
+        "number": 7,
+        "for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies"
+      },
       "planet": "mercury",
       "degree": "25.37°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "no",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "aquarius (kumbha)",
-      "nakshatra": "purva bhadrapada (pada 2)",
-      "navatara": "vadha",
-      "is_planet_navatara_harmful": "yes",
-      "karakwaqt": "marak",
-      "is_planet_karakwaqt_harmful": "yes",
-      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
-      "planet_status_in_nakshatra": "enemy",
-      "planet_status_in_rashi": "neutral",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "No",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "neutral",
+        "nakshatra": "enemy"
+      },
+      "rashi": "Aquarius (Kumbha)",
+      "nakshatra": "purva bhadrapada (pada 2)",
+      "navatara": "vadha",
+      "karakwaqt": "marak",
+      "dasha_age": "102-119",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1607,32 +1652,31 @@
         "planet_status_in_nakshatra": "enemy",
         "navatara": "enemy",
         "karakwaqt": "enemy"
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 7,
-      "house_for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
+      "house": {
+        "number": 7,
+        "for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies"
+      },
       "planet": "rahu",
       "degree": "29.40°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "yes",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "aquarius (kumbha)",
-      "nakshatra": "purva bhadrapada (pada 3)",
-      "navatara": "vadha",
-      "is_planet_navatara_harmful": "yes",
-      "karakwaqt": "",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
-      "planet_status_in_nakshatra": "neutral",
-      "planet_status_in_rashi": "friend",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "Yes",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "friend",
+        "nakshatra": "neutral"
+      },
+      "rashi": "Aquarius (Kumbha)",
+      "nakshatra": "purva bhadrapada (pada 3)",
+      "navatara": "vadha",
+      "karakwaqt": "",
+      "dasha_age": "49-67",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1642,32 +1686,31 @@
         "planet_status_in_nakshatra": "",
         "navatara": "enemy",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 8,
-      "house_for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments",
+      "house": {
+        "number": 8,
+        "for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments"
+      },
       "planet": "sun",
       "degree": "15.28°",
-      "is_planet_in_6_8_12_house": "yes",
-      "malefic_6_8_12": "yes",
-      "malefic_6_8_12_display": "Yes",
-      "is_planet_lagna_lord_enemy": "no",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "pisces (meena)",
-      "nakshatra": "uttara bhadrapada (pada 4)",
-      "navatara": "maitri",
-      "is_planet_navatara_harmful": "no",
-      "karakwaqt": "karak | yog karak",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "100%",
       "strength_percent": 100,
-      "planet_status_in_nakshatra": "enemy",
-      "planet_status_in_rashi": "friend",
+      "flags": {
+        "malefic_6_8_12": "Yes",
+        "lagna_lord_enemy": "No",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "friend",
+        "nakshatra": "enemy"
+      },
+      "rashi": "Pisces (Meena)",
+      "nakshatra": "uttara bhadrapada (pada 4)",
+      "navatara": "maitri",
+      "karakwaqt": "karak | yog karak",
+      "dasha_age": "26-32",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1677,32 +1720,31 @@
         "planet_status_in_nakshatra": "enemy",
         "navatara": "",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 9,
-      "house_for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation",
+      "house": {
+        "number": 9,
+        "for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation"
+      },
       "planet": "jupiter",
       "degree": "10.86°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "no",
-      "is_planet_lagna_lord_enemy_display": "No",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "aries (mesha)",
-      "nakshatra": "ashwini (pada 4)",
-      "navatara": "janma",
-      "is_planet_navatara_harmful": "no",
-      "karakwaqt": "karak",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "50%",
       "strength_percent": 50,
-      "planet_status_in_nakshatra": "neutral",
-      "planet_status_in_rashi": "friend",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "No",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "friend",
+        "nakshatra": "neutral"
+      },
+      "rashi": "Aries (Mesha)",
+      "nakshatra": "ashwini (pada 4)",
+      "navatara": "janma",
+      "karakwaqt": "karak",
+      "dasha_age": "67-83",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1712,32 +1754,31 @@
         "planet_status_in_nakshatra": "",
         "navatara": "",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     },
     {
-      "house": 10,
-      "house_for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga",
+      "house": {
+        "number": 10,
+        "for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga"
+      },
       "planet": "venus",
       "degree": "1.07°",
-      "is_planet_in_6_8_12_house": "no",
-      "malefic_6_8_12": "no",
-      "malefic_6_8_12_display": "No",
-      "is_planet_lagna_lord_enemy": "yes",
-      "is_planet_lagna_lord_enemy_display": "Yes",
-      "is_planet_at_death_degree": "no",
-      "is_planet_at_death_degree_display": "No",
-      "rashi": "taurus (vrishabha)",
-      "nakshatra": "krittika (pada 2)",
-      "navatara": "vipat",
-      "is_planet_navatara_harmful": "yes",
-      "karakwaqt": "",
-      "is_planet_karakwaqt_harmful": "no",
-      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
-      "planet_status_in_nakshatra": "enemy",
-      "planet_status_in_rashi": "own",
+      "flags": {
+        "malefic_6_8_12": "No",
+        "lagna_lord_enemy": "Yes",
+        "death_degree": "No"
+      },
+      "status": {
+        "rashi": "own",
+        "nakshatra": "enemy"
+      },
+      "rashi": "Taurus (Vrishabha)",
+      "nakshatra": "krittika (pada 2)",
+      "navatara": "vipat",
+      "karakwaqt": "",
+      "dasha_age": "6-26",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -1747,8 +1788,7 @@
         "planet_status_in_nakshatra": "enemy",
         "navatara": "enemy",
         "karakwaqt": ""
-      },
-      "retrograde": "No"
+      }
     }
   ],
   "summary_table": [

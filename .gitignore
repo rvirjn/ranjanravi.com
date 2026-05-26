@@ -40,6 +40,11 @@ yarn-error.log
 testem.log
 /typings
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # System Files
 .DS_Store
 Thumbs.db

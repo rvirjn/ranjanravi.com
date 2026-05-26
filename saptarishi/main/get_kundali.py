@@ -73,7 +73,7 @@ from constant import (
     PADAS_PER_NAKSHATRA,
     PAKSHA_KRISHNA,
     PAKSHA_SHUKLA,
-    PLANET_DATABASE_REL_PATH,
+    DATA_JSON_REL_PATH,
     RASHI_COUNT,
     RASHI_IN_ENG,
     RASHI_IN_SANSKRIT,
@@ -103,7 +103,7 @@ class NavataraFinder:
 
     def __init__(self, planet_database: dict[str, Any]) -> None:
         self.nakshatras_dict = planet_database["nakshatras"]
-        ntc = planet_database.get("nava_tara") or planet_database.get("nava_tara_chakra") or {}
+        ntc = planet_database.get("nava_tara") or {}
         self.navatara_dict = ntc.get("navatara") or []
         self.nakshatra_name_with_index = {
             remove_white_space(item["nakshatra"]): idx
@@ -122,7 +122,7 @@ class NavataraFinder:
     ) -> list[dict[str, Any]]:
         navatara_with_nakshatras: list[dict[str, Any]] = []
         for navatara in self.navatara_dict:
-            sequence_list = navatara.get("sequences") or navatara.get("sequence") or []
+            sequence_list = navatara.get("sequences") or []
             navatara_copy = dict(navatara)
             navatara_copy["nakshatras"] = []
             for position in sequence_list:
@@ -154,12 +154,23 @@ class NavataraFinder:
         }
 
 
+def resolve_data_json_path(project_root: Path) -> Path:
+    """``database/data.json``, with fallback to legacy ``planet.json``."""
+    preferred = project_root / DATA_JSON_REL_PATH
+    if preferred.is_file():
+        return preferred
+    legacy = project_root / "database" / "planet.json"
+    if legacy.is_file():
+        return legacy
+    return preferred
+
+
 class KundaliBuilder:
     """Build full kundali JSON: chart, enrichment, navatara, UI-ready tables."""
 
     def __init__(self, project_root: Path) -> None:
         self.root = project_root
-        self.planet_db_path = project_root / PLANET_DATABASE_REL_PATH
+        self.planet_db_path = resolve_data_json_path(project_root)
         self.output_dir = project_root / OUTPUT_DIR_REL_PATH
 
     # --- public API ---
@@ -187,10 +198,11 @@ class KundaliBuilder:
             house_system=house_system,
         )
         if geo.get("alternatives"):
-            chart["geocode_alternatives"] = [
-                {"name": x.get("name"), "country": x.get("country"), "timezone": x.get("timezone")}
-                for x in geo["alternatives"]
-            ]
+            place = chart.setdefault("place_resolved", {})
+            if isinstance(place, dict):
+                place["alternatives"] = KundaliBuilder.format_geocode_alternatives(
+                    geo["alternatives"]
+                )
         EnrichKundali(self.root).enrich_chart_for_api_and_ui(chart)
         return chart
 
@@ -227,7 +239,7 @@ class KundaliBuilder:
         slug = re.sub(r"_+", "_", slug).strip("_") or "place"
         if len(slug) > 96:
             slug = slug[:96].rstrip("_")
-        return f"{date_str.strip()}_{hh}-{mm}-{ss}_{slug}.json"
+        return f"kundali_{date_str.strip()}_{hh}-{mm}-{ss}_{slug}.json"
 
     def print_debug_tables(self, report: dict[str, Any], stream: Any = sys.stderr) -> None:
         place = report.get("place_resolved") or {}
@@ -237,8 +249,8 @@ class KundaliBuilder:
             f"UTC={report.get('datetime_utc_iso', '')}",
             file=stream,
         )
-        asc = report.get("ascendant") or {}
-        moon_n = report.get("moon_nakshatra") or {}
+        asc = EnrichKundali.find_ascendant_planet(report) or {}
+        moon_n = EnrichKundali.moon_janma_nakshatra(report)
         if moon_n.get("nakshatra"):
             print(
                 f"[kundali] Moon janma: {moon_n.get('nakshatra')} (pada {moon_n.get('pada', '')})",
@@ -246,13 +258,26 @@ class KundaliBuilder:
             )
         for p in report.get("planets") or []:
             print(
-                f"  {p.get('name', ''):<8} h={p.get('whole_sign_house')} "
+                f"  {p.get('name', ''):<8} h={EnrichKundali.planet_house_number(p)} "
                 f"{p.get('rashi_english', '')} vs_lord={p.get('planet_relation_with_rashi_lord', UNKNOWN_LABEL)}",
                 file=stream,
             )
         print(file=stream)
 
     # --- geocoding & time ---
+
+    @staticmethod
+    def format_geocode_alternatives(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for row in results or []:
+            if not isinstance(row, dict):
+                continue
+            out.append({
+                "name": row.get("name"),
+                "country": row.get("country"),
+                "timezone": row.get("timezone"),
+            })
+        return out
 
     @staticmethod
     def geocode_place_name(place: str) -> dict[str, Any]:
@@ -364,26 +389,20 @@ class KundaliBuilder:
             "retrograde": rahu_rx,
         })
 
-        moon = next(p for p in planets_out if p["name"] == "moon")
-        nk_i, pada = self.longitude_to_nakshatra_pada(moon["sidereal_longitude"])
+        moon_planet = next(p for p in planets_out if p["name"] == "moon")
+        nk_i, pada = self.longitude_to_nakshatra_pada(moon_planet["sidereal_longitude"])
         nakshatras = self.load_nakshatra_list_from_database()
         moon_nak = dict(nakshatras[nk_i])
-        moon_nak.pop("sequence", None)
         nakshatra_pada_syllables = moon_nak.pop("pada", None)
         moon_starting_letter = self.starting_name_letter_for_pada(
             {"pada": nakshatra_pada_syllables}, pada
         )
-
-        houses_ws = [
-            {
-                "house": bh + 1,
-                "rashi_index": (lagna_idx + bh) % RASHI_COUNT,
-                "rashi_english": RASHI_IN_ENG[(lagna_idx + bh) % RASHI_COUNT],
-                "rashi_sanskrit": RASHI_IN_SANSKRIT[(lagna_idx + bh) % RASHI_COUNT],
-                "cusps_longitude": round(float(cusps[bh]), 6) if bh < len(cusps) else None,
-            }
-            for bh in range(RASHI_COUNT)
-        ]
+        moon_planet["janma_nakshatra"] = {
+            **moon_nak,
+            "nakshatra_index": nk_i + 1,
+            "pada": pada,
+            "starting_name_letter": moon_starting_letter,
+        }
 
         return {
             "place_query": place_meta.get("query"),
@@ -401,21 +420,18 @@ class KundaliBuilder:
             "ayanamsa": AYANAMSA_NAME,
             "ayanamsa_degrees": round(ayanamsa, 6),
             "house_system": house_system,
-            "ascendant": {
-                "sidereal_longitude": round(asc_lon, 6),
-                "rashi_index": lagna_idx,
-                "rashi_english": lagna_en,
-                "rashi_sanskrit": lagna_sa,
-                "degree_in_rashi": round(lagna_deg, 4),
-            },
-            "houses_whole_sign": houses_ws,
-            "planets": planets_out,
-            "moon_nakshatra": {
-                **moon_nak,
-                "nakshatra_index": nk_i + 1,
-                "pada": pada,
-                "starting_name_letter": moon_starting_letter,
-            },
+            "planets": planets_out
+            + [
+                {
+                    "name": "ascendant",
+                    "sidereal_longitude": round(asc_lon, 6),
+                    "rashi_index": lagna_idx,
+                    "rashi_english": lagna_en,
+                    "rashi_sanskrit": lagna_sa,
+                    "degree_in_rashi": round(lagna_deg, 4),
+                    "whole_sign_house": 1,
+                }
+            ],
             "ephemeris": "swiss" if ephe_flags & swe.FLG_SWIEPH else "moshier",
         }
 
@@ -454,7 +470,7 @@ class KundaliBuilder:
     def starting_name_letter_for_pada(
         nakshatra_entry: dict[str, Any], pada: int
     ) -> str:
-        """Namakarana syllable from ``planet.json`` nakshatra ``pada`` list."""
+        """Namakarana syllable from ``data.json`` nakshatra ``pada`` list."""
         try:
             pada_n = int(pada)
         except (TypeError, ValueError):
@@ -478,7 +494,7 @@ class EnrichKundali:
 
     def __init__(self, project_root: Path) -> None:
         self.root = project_root
-        self.planet_db_path = project_root / PLANET_DATABASE_REL_PATH
+        self.planet_db_path = resolve_data_json_path(project_root)
 
     def load_planet_strength_rules(self) -> dict[str, int]:
         try:
@@ -507,29 +523,74 @@ class EnrichKundali:
                 "max_percent": PLANET_STRENGTH_MAX_PERCENT,
             }
 
-        chart["planet_strength_rules"] = strength_rules
         self.enrich_birth_planets_with_database_metadata(chart, friendship, strength_rules)
         self.normalize_moon_nakshatra(chart)
         self.attach_planet_navatara_from_janma(chart)
         self.attach_death_degree_flags(chart)
         self.attach_planet_karakwaqt(chart)
         self.attach_planet_mahadasha_ages(chart)
+        self.attach_house_context_to_planets(chart)
         self.attach_planet_table_ui_metadata(chart)
+        self.compact_planets_for_api(chart)
         self.add_kundali_summary_block(chart)
         self.add_lunar_calendar_to_summary(chart)
         self.attach_filtered_navatara_tables_for_moon_janma(chart)
-        chart["planets_table"] = self.build_planets_table_rows(
-            chart, self.load_houses_for_lookup()
-        )
+        chart["planets_table"] = self.build_planets_table_rows(chart)
         chart["summary_table"] = self.build_summary_table_rows(chart)
         chart["ui_status_message"] = self.build_ui_status_message(chart)
+        chart.pop("moon_nakshatra", None)
+        chart.pop("ascendant", None)
+        chart.pop("mahadasha_from_birth", None)
+        chart.pop("lagna_karak_roles", None)
+        alts = chart.pop("geocode_alternatives", None)
+        if alts and isinstance(chart.get("place_resolved"), dict):
+            pr = chart["place_resolved"]
+            if not pr.get("alternatives"):
+                pr["alternatives"] = alts if isinstance(alts, list) else []
+
+    @staticmethod
+    def find_ascendant_planet(chart: dict[str, Any]) -> dict[str, Any] | None:
+        for p in chart.get("planets") or []:
+            if isinstance(p, dict) and p.get("name") == "ascendant":
+                return p
+        legacy = chart.get("ascendant")
+        return legacy if isinstance(legacy, dict) else None
+
+    @staticmethod
+    def lagna_karak_roles(chart: dict[str, Any]) -> dict[str, Any]:
+        """Lagna karakwaqt role map (on ascendant planet, or legacy top-level key)."""
+        asc = EnrichKundali.find_ascendant_planet(chart)
+        if asc:
+            roles = asc.get("lagna_karak_roles")
+            if isinstance(roles, dict):
+                return roles
+        legacy = chart.get("lagna_karak_roles")
+        return legacy if isinstance(legacy, dict) else {}
+
+    @staticmethod
+    def find_moon_planet(chart: dict[str, Any]) -> dict[str, Any] | None:
+        for p in chart.get("planets") or []:
+            if isinstance(p, dict) and p.get("name") == "moon":
+                return p
+        return None
+
+    @staticmethod
+    def moon_janma_nakshatra(chart: dict[str, Any]) -> dict[str, Any]:
+        """Janma nakshatra metadata (on Moon planet, or legacy top-level key)."""
+        moon = EnrichKundali.find_moon_planet(chart)
+        if moon:
+            jn = moon.get("janma_nakshatra")
+            if isinstance(jn, dict):
+                return jn
+        legacy = chart.get("moon_nakshatra")
+        return legacy if isinstance(legacy, dict) else {}
 
     def load_planet_database(self) -> dict[str, Any]:
         with self.planet_db_path.open(encoding="utf-8") as f:
             return json.load(f)
 
     def load_mahadasha_years_by_planet(self) -> dict[str, float]:
-        """Mahadasha length per planet from ``planet.json`` ``planets[].mahadasha_years``."""
+        """Mahadasha length per planet from ``data.json`` ``planets[].mahadasha_years``."""
         try:
             data = self.load_planet_database()
         except OSError:
@@ -539,6 +600,8 @@ class EnrichKundali:
             if not isinstance(row, dict):
                 continue
             pk = remove_white_space(row.get("name"))
+            if pk == "ascendant":
+                continue
             yrs = row.get("mahadasha_years")
             if pk and yrs is not None:
                 try:
@@ -611,13 +674,11 @@ class EnrichKundali:
         age = balance
         seq_no = 2
         idx = (start_idx + 1) % len(sequence)
-        while age < VIMSHOTTARI_CYCLE_YEARS - 1e-6:
+        # One pass through all nine lords from birth (do not wrap to a 10th partial period).
+        while len(periods) < len(sequence):
             planet = sequence[idx]
             mahadasha_years = float(durations.get(planet, 0))
             duration = mahadasha_years
-            remaining = VIMSHOTTARI_CYCLE_YEARS - age
-            if duration > remaining:
-                duration = remaining
             append_period(seq_no, planet, mahadasha_years, duration, age, False)
             age += duration
             seq_no += 1
@@ -634,7 +695,7 @@ class EnrichKundali:
                 if isinstance(lon, (int, float)):
                     moon_lon = float(lon)
                 break
-        mn = chart.get("moon_nakshatra") or {}
+        mn = EnrichKundali.moon_janma_nakshatra(chart)
         birth_lord = remove_white_space(str(mn.get("ruling_planet") or ""))
         if moon_lon is None or not birth_lord:
             return
@@ -646,27 +707,31 @@ class EnrichKundali:
             durations,
             VIMSHOTTARI_MAHADASHA_SEQUENCE,
         )
-        period_by_planet = {
-            remove_white_space(str(period.get("planet") or "")): period
-            for period in periods
-            if isinstance(period, dict)
-        }
+        period_by_planet: dict[str, dict[str, Any]] = {}
+        for period in periods:
+            if not isinstance(period, dict):
+                continue
+            pk = remove_white_space(str(period.get("planet") or ""))
+            if pk and pk not in period_by_planet:
+                period_by_planet[pk] = period
 
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
             pk = remove_white_space(str(p.get("name") or ""))
-            if not pk:
+            if not pk or pk == "ascendant":
                 continue
             if pk in durations:
                 p["mahadasha_years"] = durations[pk]
             period = period_by_planet.get(pk)
             if period:
                 p["age"] = {
+                    "dasha_order": period.get("sequence"),
                     "from_years": period.get("age_from_years"),
                     "to_years": period.get("age_to_years"),
                     "from": period.get("age_from"),
                     "to": period.get("age_to"),
+                    "is_birth_balance": period.get("is_birth_balance"),
                 }
 
     def load_houses_for_lookup(self) -> dict[int, list[str]]:
@@ -685,7 +750,7 @@ class EnrichKundali:
         return lookup
 
     def load_house_one_lagna_roles_by_rashi(self) -> dict[str, dict[str, Any]]:
-        """Lagna-specific karak / yog karak / marak / badhak from ``planet.json`` house 1."""
+        """Lagna-specific karak / yog karak / marak / badhak from ``data.json`` house 1."""
         try:
             data = self.load_planet_database()
         except OSError:
@@ -748,14 +813,17 @@ class EnrichKundali:
         return " | ".join(labels), harmful, prabal_flag
 
     def attach_planet_karakwaqt(self, chart: dict[str, Any]) -> None:
-        """Per-planet lagna roles from ``planet.json`` (house 1 ``lagna`` block)."""
-        asc = chart.get("ascendant") or {}
+        """Per-planet lagna roles from ``data.json`` (house 1 ``lagna`` block)."""
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
         lagna_name = remove_white_space(asc.get("rashi_english", "")).lower()
         roles_by_rashi = self.load_house_one_lagna_roles_by_rashi()
         lagna_roles = roles_by_rashi.get(lagna_name) or {}
-        chart["lagna_karak_roles"] = lagna_roles
+        if isinstance(asc, dict):
+            asc["lagna_karak_roles"] = lagna_roles
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
+                continue
+            if remove_white_space(p.get("name", "")) == "ascendant":
                 continue
             display, harmful, prabal_flag = self.build_planet_karakwaqt(
                 str(p.get("name") or ""), lagna_roles
@@ -766,15 +834,12 @@ class EnrichKundali:
 
     def load_planet_friendship_lookup_table(self) -> dict[str, Any]:
         data = self.load_planet_database()
-        raw = data.get("PlanetFriendship")
-        if isinstance(raw, dict):
-            return dict(raw)
         table: dict[str, Any] = {}
         for p in data.get("planets") or []:
             if not isinstance(p, dict):
                 continue
             key = remove_white_space(p.get("name", ""))
-            if not key:
+            if not key or key == "ascendant":
                 continue
             table[key] = {
                 "Friends": self.read_planet_display_names_from_first_matching_field(
@@ -810,12 +875,12 @@ class EnrichKundali:
         except OSError:
             return []
 
-    def load_death_degree_rules(self) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
-        """Per-planet Mrityu Bhaga rules and lagna (ascendant) rules from planet.json."""
+    def load_death_degree_rules(self) -> dict[str, list[dict[str, Any]]]:
+        """Mrityu Bhaga rules per ``planets[]`` name (lagna uses ``ascendant``)."""
         try:
             data = self.load_planet_database()
         except OSError:
-            return {}, []
+            return {}
         by_planet: dict[str, list[dict[str, Any]]] = {}
         for row in data.get("planets") or []:
             if not isinstance(row, dict):
@@ -824,11 +889,11 @@ class EnrichKundali:
             rules = row.get("death_degree")
             if key and isinstance(rules, list):
                 by_planet[key] = [r for r in rules if isinstance(r, dict)]
-        lagna_rules = data.get("death_degree_lagna")
-        lagna_list = [r for r in lagna_rules if isinstance(r, dict)] if isinstance(
-            lagna_rules, list
-        ) else []
-        return by_planet, lagna_list
+        if "ascendant" not in by_planet:
+            lagna_rules = data.get("death_degree_lagna")
+            if isinstance(lagna_rules, list):
+                by_planet["ascendant"] = [r for r in lagna_rules if isinstance(r, dict)]
+        return by_planet
 
     def enrich_birth_planets_with_database_metadata(
         self,
@@ -837,12 +902,14 @@ class EnrichKundali:
         strength_rules: dict[str, int],
     ) -> None:
         nakshatra_list = self.load_nakshatra_list_from_database()
-        asc = chart.get("ascendant") or {}
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
         lagna_rashi_index = asc.get("rashi_index")
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
             pkey = remove_white_space(p.get("name", ""))
+            if pkey == "ascendant":
+                continue
             ri = p.get("rashi_index")
             if isinstance(ri, int):
                 status, sign_lord = self.natural_friendship_with_sign_lord(
@@ -853,7 +920,9 @@ class EnrichKundali:
             p["planet_relation_with_rashi_lord"] = status
             p["sign_lord"] = sign_lord
             dignity: str | None = None
-            p["is_planet_in_6_8_12_house"] = self.dusthana_house_flag(p.get("whole_sign_house"))
+            p["is_planet_in_6_8_12_house"] = self.dusthana_house_flag(
+                EnrichKundali.planet_house_number(p)
+            )
             p["is_planet_lagna_lord_enemy"] = self.lagna_lord_enemy_flag(
                 friendship, pkey, lagna_rashi_index
             )
@@ -895,7 +964,6 @@ class EnrichKundali:
             if isinstance(lon, (int, float)) and nakshatra_list:
                 nk_i, pada = KundaliBuilder.longitude_to_nakshatra_pada(float(lon))
                 nak = dict(nakshatra_list[nk_i])
-                nak.pop("sequence", None)
                 p["nakshatra"] = nak.get("nakshatra") or ""
                 p["nakshatra_pada"] = pada
                 p["nakshatra_ruling_planet"] = nak.get("ruling_planet") or ""
@@ -1060,23 +1128,21 @@ class EnrichKundali:
         return HOUSE_6_8_12_NO
 
     def attach_death_degree_flags(self, chart: dict[str, Any]) -> None:
-        by_planet, lagna_rules = self.load_death_degree_rules()
-        asc = chart.get("ascendant")
-        if isinstance(asc, dict):
-            asc["is_lagna_at_death_degree"] = EnrichKundali.death_degree_flag(
-                str(asc.get("rashi_english") or ""),
-                asc.get("degree_in_rashi"),
-                lagna_rules,
-            )
+        by_planet = self.load_death_degree_rules()
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
             pkey = remove_white_space(p.get("name", ""))
+            if pkey == "ascendant":
+                deg = p.get("degree_in_rashi")
+            else:
+                deg = EnrichKundali.degree_in_sign_for_death_match(p)
             p["is_planet_at_death_degree"] = EnrichKundali.death_degree_flag(
                 str(p.get("rashi_english") or ""),
-                EnrichKundali.degree_in_sign_for_death_match(p),
+                deg,
                 by_planet.get(pkey),
             )
+            p.pop("is_lagna_at_death_degree", None)
             if p["is_planet_at_death_degree"] == HOUSE_6_8_12_YES:
                 EnrichKundali.apply_death_degree_strength_override(p)
 
@@ -1163,12 +1229,91 @@ class EnrichKundali:
             "karakwaqt": EnrichKundali.enemy_cell_color_if_yes(kw_harmful),
         }
 
-    def attach_planet_table_ui_metadata(self, chart: dict[str, Any]) -> None:
-        """Attach ``cell_styles``, display labels, and chart color on each planet."""
+    @staticmethod
+    def planet_house_number(planet: dict[str, Any]) -> int | None:
+        house = planet.get("house")
+        if isinstance(house, dict):
+            num = house.get("number")
+            if isinstance(num, int):
+                return num
+        num = planet.get("whole_sign_house")
+        return num if isinstance(num, int) else None
+
+    @staticmethod
+    def whole_sign_houses_by_number(lagna_idx: int) -> dict[int, dict[str, Any]]:
+        """Whole-sign house 1–12 → rashi per house (lagna = house 1)."""
+        if not isinstance(lagna_idx, int):
+            return {}
+        out: dict[int, dict[str, Any]] = {}
+        for bh in range(RASHI_COUNT):
+            ri = (lagna_idx + bh) % RASHI_COUNT
+            out[bh + 1] = {
+                "house": bh + 1,
+                "rashi_index": ri,
+                "rashi_english": RASHI_IN_ENG[ri],
+                "rashi_sanskrit": RASHI_IN_SANSKRIT[ri],
+            }
+        return out
+
+    def attach_house_context_to_planets(self, chart: dict[str, Any]) -> None:
+        """Attach ``house`` (number, for, rashi) on each planet (including ascendant)."""
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
+        lagna_idx = asc.get("rashi_index") if isinstance(asc, dict) else None
+        houses_by_num = EnrichKundali.whole_sign_houses_by_number(lagna_idx)
+        if not houses_by_num:
+            for row in chart.pop("houses_whole_sign", None) or []:
+                if isinstance(row, dict) and isinstance(row.get("house"), int):
+                    houses_by_num[row["house"]] = row
+        else:
+            chart.pop("houses_whole_sign", None)
+        house_for = self.load_houses_for_lookup()
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
-            p["cell_styles"] = EnrichKundali.build_planet_cell_styles(p)
+            hn = EnrichKundali.planet_house_number(p)
+            if hn is None:
+                continue
+            ws = houses_by_num.get(hn) or {}
+            p["house"] = {
+                "number": hn,
+                "for": house_for.get(hn) or [],
+                "rashi": {
+                    "index": ws.get("rashi_index", p.get("rashi_index")),
+                    "english": ws.get("rashi_english", p.get("rashi_english")),
+                    "sanskrit": ws.get("rashi_sanskrit", p.get("rashi_sanskrit")),
+                },
+            }
+            p.pop("whole_sign_house", None)
+        chart.pop("houses_whole_sign", None)
+
+    @staticmethod
+    def compact_planets_for_api(chart: dict[str, Any]) -> None:
+        """Remove table-only / duplicate fields from ``planets[]`` API payload."""
+        drop_keys = (
+            "cell_styles",
+            "malefic_6_8_12_display",
+            "is_planet_lagna_lord_enemy_display",
+            "is_planet_at_death_degree_display",
+            "planet_relation_with_rashi_lord",
+            "planet_relation_with_nakshatra_lord",
+            "planet_strength_base",
+            "is_planet_marak_and_badhak",
+            "nakshatra_ruling_planet",
+            "whole_sign_house",
+        )
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            for key in drop_keys:
+                p.pop(key, None)
+
+    def attach_planet_table_ui_metadata(self, chart: dict[str, Any]) -> None:
+        """Chart color hint on each planet (table styling lives in ``planets_table``)."""
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            if remove_white_space(p.get("name", "")) == "ascendant":
+                continue
             if p.get("is_planet_at_death_degree") == HOUSE_6_8_12_YES:
                 p["planet_status_color"] = PLANET_RELATION_ENEMY
             else:
@@ -1176,15 +1321,6 @@ class EnrichKundali:
                     p.get("planet_status_in_rashi")
                     or p.get("planet_relation_with_rashi_lord")
                 )
-            p["malefic_6_8_12_display"] = EnrichKundali.yes_no_display(
-                p.get("is_planet_in_6_8_12_house")
-            )
-            p["is_planet_lagna_lord_enemy_display"] = EnrichKundali.yes_no_display(
-                p.get("is_planet_lagna_lord_enemy")
-            )
-            p["is_planet_at_death_degree_display"] = EnrichKundali.yes_no_display(
-                p.get("is_planet_at_death_degree")
-            )
 
     @staticmethod
     def degree_phase_within_sign(deg_in_rashi: float) -> dict[str, Any]:
@@ -1204,8 +1340,8 @@ class EnrichKundali:
         }
 
     def add_kundali_summary_block(self, chart: dict[str, Any]) -> None:
-        asc = chart.get("ascendant") or {}
-        mn = chart.get("moon_nakshatra") or {}
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
+        mn = EnrichKundali.moon_janma_nakshatra(chart)
         pr = chart.get("place_resolved") or {}
         chart["kundali_summary"] = {
             "place_query": chart.get("place_query"),
@@ -1312,8 +1448,8 @@ class EnrichKundali:
     def moon_birth_pada_number(
         chart: dict[str, Any], mn: dict[str, Any] | None = None
     ) -> int | None:
-        """Moon janma pada (1–4) at birth; never the ``planet.json`` syllable list."""
-        mn = mn if isinstance(mn, dict) else (chart.get("moon_nakshatra") or {})
+        """Moon janma pada (1–4) at birth; never the ``data.json`` syllable list."""
+        mn = mn if isinstance(mn, dict) else EnrichKundali.moon_janma_nakshatra(chart)
         pada = mn.get("pada")
         if isinstance(pada, int) and 1 <= pada <= PADAS_PER_NAKSHATRA:
             return pada
@@ -1336,10 +1472,19 @@ class EnrichKundali:
         return None
 
     def normalize_moon_nakshatra(self, chart: dict[str, Any]) -> None:
-        """Birth pada as integer + ``starting_name_letter``; drop syllable list from API."""
-        mn = chart.get("moon_nakshatra")
-        if not isinstance(mn, dict):
+        """Birth pada as integer + ``starting_name_letter`` on Moon ``janma_nakshatra``."""
+        moon = EnrichKundali.find_moon_planet(chart)
+        if not moon:
             return
+        mn = moon.get("janma_nakshatra")
+        if not isinstance(mn, dict):
+            legacy = chart.get("moon_nakshatra")
+            if isinstance(legacy, dict):
+                mn = legacy
+                moon["janma_nakshatra"] = mn
+            else:
+                return
+        chart.pop("moon_nakshatra", None)
         syllables = mn.get("pada") if isinstance(mn.get("pada"), list) else None
         mn.pop("nakshatra_pada_syllables", None)
         birth_pada = self.moon_birth_pada_number(chart, mn)
@@ -1361,7 +1506,7 @@ class EnrichKundali:
 
     def attach_planet_navatara_from_janma(self, chart: dict[str, Any]) -> None:
         """Set ``planet_navatara`` on each planet from Moon janma nava-tara wheel."""
-        mn = chart.get("moon_nakshatra") or {}
+        mn = EnrichKundali.moon_janma_nakshatra(chart)
         janma = str(mn.get("nakshatra") or "").strip()
         lookup: dict[str, str] = {}
         if janma:
@@ -1379,6 +1524,8 @@ class EnrichKundali:
         for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
+            if remove_white_space(p.get("name", "")) == "ascendant":
+                continue
             nk = remove_white_space(str(p.get("nakshatra") or ""))
             nav = lookup.get(nk, "")
             p["planet_navatara"] = nav
@@ -1389,7 +1536,7 @@ class EnrichKundali:
             )
 
     def attach_filtered_navatara_tables_for_moon_janma(self, chart: dict[str, Any]) -> None:
-        janma = str((chart.get("moon_nakshatra") or {}).get("nakshatra") or "").strip()
+        janma = str(EnrichKundali.moon_janma_nakshatra(chart).get("nakshatra") or "").strip()
         if not janma:
             chart["navatara"] = None
             chart["navatara_rows"] = []
@@ -1440,7 +1587,7 @@ class EnrichKundali:
                 continue
             if flag == HOUSE_6_8_12_NO:
                 continue
-            h = p.get("whole_sign_house")
+            h = EnrichKundali.planet_house_number(p)
             if isinstance(h, int) and h in HOUSE_6_8_12:
                 keys.add(remove_white_space(p.get("name")))
         return keys
@@ -1574,74 +1721,58 @@ class EnrichKundali:
         return f"{start}-{end}"
 
     @staticmethod
-    def build_planets_table_rows(
-        chart: dict[str, Any],
-        houses_by_number: dict[int, list[str]] | None = None,
-    ) -> list[dict[str, Any]]:
-        houses = houses_by_number or {}
+    def build_planets_table_rows(chart: dict[str, Any]) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
         for p in sorted(
             chart.get("planets") or [],
-            key=lambda x: (x.get("whole_sign_house") or 99, x.get("name") or ""),
+            key=lambda x: (EnrichKundali.planet_house_number(x) or 99, x.get("name") or ""),
         ):
             if not isinstance(p, dict):
                 continue
+            if remove_white_space(p.get("name", "")) == "ascendant":
+                continue
             strength = p.get("planet_strength")
-            house_num = p.get("whole_sign_house")
-            for_list: list[str] = []
-            if isinstance(house_num, int):
-                for_list = houses.get(house_num) or []
+            house = p.get("house") if isinstance(p.get("house"), dict) else {}
+            house_num = house.get("number")
+            for_list = house.get("for") or []
             malefic = p.get("is_planet_in_6_8_12_house", HOUSE_6_8_12_NO)
             lagna_enemy = p.get("is_planet_lagna_lord_enemy", HOUSE_6_8_12_NO)
-            nav_harmful = p.get("is_planet_navatara_harmful", HOUSE_6_8_12_NO)
             death_deg = p.get("is_planet_at_death_degree", HOUSE_6_8_12_NO)
-            rashi_status = (
-                p.get("planet_status_in_rashi")
-                or p.get("planet_relation_with_rashi_lord")
-                or UNKNOWN_LABEL
-            )
-            nak_status = (
-                p.get("planet_status_in_nakshatra")
-                or p.get("planet_relation_with_nakshatra_lord")
-                or UNKNOWN_LABEL
-            )
+            rashi_status = p.get("planet_status_in_rashi") or UNKNOWN_LABEL
+            nak_status = p.get("planet_status_in_nakshatra") or UNKNOWN_LABEL
+            hr = house.get("rashi") if isinstance(house.get("rashi"), dict) else {}
             rows.append({
-                "house": house_num,
-                "house_for": EnrichKundali.format_house_for_display(for_list),
+                "house": {
+                    "number": house_num,
+                    "for": EnrichKundali.format_house_for_display(
+                        for_list if isinstance(for_list, list) else []
+                    ),
+                },
                 "planet": p.get("name"),
                 "degree": EnrichKundali.planet_degree_in_sign_display(p),
-                "is_planet_in_6_8_12_house": malefic,
-                "malefic_6_8_12": malefic,
-                "malefic_6_8_12_display": EnrichKundali.yes_no_display(malefic),
-                "is_planet_lagna_lord_enemy": lagna_enemy,
-                "is_planet_lagna_lord_enemy_display": EnrichKundali.yes_no_display(
-                    lagna_enemy
+                "strength": f"{strength}%" if strength is not None else UNKNOWN_LABEL,
+                "strength_percent": strength if isinstance(strength, (int, float)) else None,
+                "flags": {
+                    "malefic_6_8_12": EnrichKundali.yes_no_display(malefic),
+                    "lagna_lord_enemy": EnrichKundali.yes_no_display(lagna_enemy),
+                    "death_degree": EnrichKundali.yes_no_display(death_deg),
+                },
+                "status": {
+                    "rashi": rashi_status,
+                    "nakshatra": nak_status,
+                },
+                "rashi": EnrichKundali._rashi_display(
+                    str(hr.get("english") or p.get("rashi_english") or ""),
+                    str(hr.get("sanskrit") or p.get("rashi_sanskrit") or ""),
                 ),
-                "is_planet_at_death_degree": death_deg,
-                "is_planet_at_death_degree_display": EnrichKundali.yes_no_display(
-                    death_deg
-                ),
-                "rashi": f"{p.get('rashi_english', '')} ({p.get('rashi_sanskrit', '')})",
                 "nakshatra": EnrichKundali.format_planet_nakshatra_display(
                     str(p.get("nakshatra") or ""),
                     p.get("nakshatra_pada"),
                 ),
                 "navatara": p.get("planet_navatara") or "",
-                "is_planet_navatara_harmful": nav_harmful,
                 "karakwaqt": p.get("planet_karakwaqt") or "",
-                "is_planet_karakwaqt_harmful": p.get(
-                    "is_planet_karakwaqt_harmful", HOUSE_6_8_12_NO
-                ),
-                "is_planet_marak_and_badhak": p.get(
-                    "is_planet_marak_and_badhak", HOUSE_6_8_12_NO
-                ),
-                "strength": f"{strength}%" if strength is not None else UNKNOWN_LABEL,
-                "strength_percent": strength if isinstance(strength, (int, float)) else None,
-                "planet_status_in_nakshatra": nak_status,
-                "planet_status_in_rashi": rashi_status,
-                "cell_styles": EnrichKundali.build_planet_cell_styles(p),
-                "retrograde": "Yes" if p.get("retrograde") else "No",
                 "dasha_age": EnrichKundali.format_dasha_age_display(p.get("age")),
+                "cell_styles": EnrichKundali.build_planet_cell_styles(p),
             })
         return rows
 
@@ -1765,7 +1896,7 @@ class EnrichKundali:
         local = str(chart.get("datetime_local_iso") or "").strip()
         if local:
             rows.append({"label": "Time", "value": EnrichKundali._format_user_local_time(local)})
-        mn = chart.get("moon_nakshatra") or {}
+        mn = EnrichKundali.moon_janma_nakshatra(chart)
         nak = str(mn.get("nakshatra") or "").strip()
         birth_pada = EnrichKundali.moon_birth_pada_number(chart, mn)
         if nak:
@@ -1792,7 +1923,7 @@ class EnrichKundali:
                 if moon_rashi != UNKNOWN_LABEL:
                     rows.append({"label": "Name Rashi", "value": moon_rashi})
                 break
-        asc = chart.get("ascendant") or {}
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
         lagna_rashi = EnrichKundali._rashi_display(
             str(asc.get("rashi_english") or ""),
             str(asc.get("rashi_sanskrit") or ""),
@@ -1819,7 +1950,7 @@ class EnrichKundali:
 
     @staticmethod
     def build_ui_status_message(chart: dict[str, Any]) -> str:
-        moon = str((chart.get("moon_nakshatra") or {}).get("nakshatra") or "").strip()
+        moon = str(EnrichKundali.moon_janma_nakshatra(chart).get("nakshatra") or "").strip()
         if not moon:
             return "Loaded."
         msg = f"Loaded chart for Moon janma: {moon}."
@@ -1838,7 +1969,7 @@ def build_full_kundali(
     place_query: str,
     house_system: str = DEFAULT_HOUSE_SYSTEM,
 ) -> dict[str, Any]:
-    """Build chart + UI tables, write ``output/<birth>.json`` via ``create_dumps_kundali_chart``."""
+    """Build chart + UI tables, write ``output/kundali_<birth>.json`` via ``create_dumps_kundali_chart``."""
     return KundaliBuilder(root).create_dumps_kundali_chart(
         date_str, time_str, place_query, house_system
     )

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import swisseph as swe
 
 # --- paths (relative to project root) ---
-PLANET_DATABASE_REL_PATH = "database/planet.json"
+DATA_JSON_REL_PATH = "database/data.json"
 OUTPUT_DIR_REL_PATH = "output"
 EPHEMERIS_DIR_REL_PATH = "ephe"
 
@@ -147,7 +147,7 @@ PLANET_RELATION_FRIEND = "friend"
 PLANET_RELATION_ENEMY = "enemy"
 PLANET_RELATION_NEUTRAL = "neutral"
 
-# Exaltation / debilitation (defaults; overridden by database/planet.json planet_strength_rules).
+# Exaltation / debilitation (defaults; overridden by database/data.json planet_strength_rules).
 EXALTED_STRENGTH_BONUS = 100
 DEBILITATED_STRENGTH_PENALTY = 100
 PLANET_STRENGTH_MIN_PERCENT = 0
