@@ -140,6 +140,9 @@
       "planet_navatara": "maitri",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "karak | yog karak",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -147,7 +150,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "planet_status_color": "friend",
       "malefic_6_8_12_display": "Yes",
@@ -185,6 +189,9 @@
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -192,7 +199,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "planet_status_color": "friend",
       "malefic_6_8_12_display": "No",
@@ -230,6 +238,9 @@
       "planet_navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "marak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -237,7 +248,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": "enemy"
       },
       "planet_status_color": "",
       "malefic_6_8_12_display": "No",
@@ -275,6 +287,9 @@
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -282,7 +297,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "own",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "planet_status_color": "own",
       "malefic_6_8_12_display": "No",
@@ -321,6 +337,9 @@
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "karak | yog karak | badhak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "high",
         "is_planet_at_death_degree": "",
@@ -328,7 +347,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "high",
         "planet_status_in_nakshatra": "friend",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": "enemy"
       },
       "planet_status_color": "high",
       "malefic_6_8_12_display": "Yes",
@@ -366,6 +386,9 @@
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "karak",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -373,7 +396,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "planet_status_color": "friend",
       "malefic_6_8_12_display": "No",
@@ -411,6 +435,9 @@
       "planet_navatara": "janma",
       "is_planet_navatara_harmful": "no",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "marak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -418,7 +445,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "",
         "planet_status_in_nakshatra": "",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": "enemy"
       },
       "planet_status_color": "",
       "malefic_6_8_12_display": "No",
@@ -456,6 +484,9 @@
       "planet_navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -463,7 +494,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "planet_status_color": "friend",
       "malefic_6_8_12_display": "No",
@@ -501,6 +533,9 @@
       "planet_navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
       "is_planet_at_death_degree": "no",
+      "planet_karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "cell_styles": {
         "strength": "",
         "is_planet_at_death_degree": "",
@@ -508,7 +543,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "enemy",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "planet_status_color": "enemy",
       "malefic_6_8_12_display": "No",
@@ -517,8 +553,6 @@
     }
   ],
   "moon_nakshatra": {
-    "nakshatra_index": 10,
-    "pada": 1,
     "nakshatra": "magha",
     "ruling_planet": "ketu",
     "deity": "pitru gan",
@@ -535,7 +569,10 @@
     "lucky_day": [
       "friday"
     ],
-    "lucky_time": "6:00 AM - 7:00 AM"
+    "lucky_time": "6:00 AM - 7:00 AM",
+    "nakshatra_index": 10,
+    "pada": 1,
+    "starting_name_letter": "Ma"
   },
   "ephemeris": "moshier",
   "geocode_alternatives": [
@@ -561,6 +598,27 @@
     "min_percent": 0,
     "max_percent": 200
   },
+  "lagna_karak_roles": {
+    "rashi_number": "5",
+    "type": "sthira",
+    "karak": [
+      "sun",
+      "mars",
+      "jupiter"
+    ],
+    "yog_karak": [
+      "mars",
+      "sun"
+    ],
+    "badhak": [
+      "mars"
+    ],
+    "marak": [
+      "mercury",
+      "saturn"
+    ],
+    "prabal_marak": ""
+  },
   "kundali_summary": {
     "place_query": "Motihari, India",
     "resolved_place": "Motīhāri, Bihar, India",
@@ -584,7 +642,8 @@
     "moon_janma": {
       "nakshatra": "magha",
       "pada": 1,
-      "ruling_planet": "ketu"
+      "ruling_planet": "ketu",
+      "starting_name_letter": "Ma"
     },
     "lunar_calendar": {
       "weekday_english": "Tuesday",
@@ -1392,6 +1451,9 @@
       "nakshatra": "uttara phalguni (pada 1)",
       "navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
+      "karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
       "planet_status_in_nakshatra": "enemy",
@@ -1403,7 +1465,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "enemy",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     },
@@ -1423,6 +1486,9 @@
       "nakshatra": "magha (pada 1)",
       "navatara": "janma",
       "is_planet_navatara_harmful": "no",
+      "karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
       "planet_status_in_nakshatra": "enemy",
@@ -1434,7 +1500,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     },
@@ -1454,6 +1521,9 @@
       "nakshatra": "mula (pada 3)",
       "navatara": "janma",
       "is_planet_navatara_harmful": "no",
+      "karakwaqt": "marak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "strength": "50%",
       "strength_percent": 50,
       "planet_status_in_nakshatra": "neutral",
@@ -1465,7 +1535,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "",
         "planet_status_in_nakshatra": "",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": "enemy"
       },
       "retrograde": "No"
     },
@@ -1485,6 +1556,9 @@
       "nakshatra": "uttara ashadha (pada 2)",
       "navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
+      "karakwaqt": "karak | yog karak | badhak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "strength": "125%",
       "strength_percent": 125,
       "planet_status_in_nakshatra": "friend",
@@ -1496,7 +1570,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "high",
         "planet_status_in_nakshatra": "friend",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": "enemy"
       },
       "retrograde": "No"
     },
@@ -1516,6 +1591,9 @@
       "nakshatra": "purva bhadrapada (pada 2)",
       "navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
+      "karakwaqt": "marak",
+      "is_planet_karakwaqt_harmful": "yes",
+      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
       "planet_status_in_nakshatra": "enemy",
@@ -1527,7 +1605,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": "enemy"
       },
       "retrograde": "No"
     },
@@ -1547,6 +1626,9 @@
       "nakshatra": "purva bhadrapada (pada 3)",
       "navatara": "vadha",
       "is_planet_navatara_harmful": "yes",
+      "karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
       "planet_status_in_nakshatra": "neutral",
@@ -1558,7 +1640,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     },
@@ -1578,6 +1661,9 @@
       "nakshatra": "uttara bhadrapada (pada 4)",
       "navatara": "maitri",
       "is_planet_navatara_harmful": "no",
+      "karakwaqt": "karak | yog karak",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "100%",
       "strength_percent": 100,
       "planet_status_in_nakshatra": "enemy",
@@ -1589,7 +1675,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     },
@@ -1609,6 +1696,9 @@
       "nakshatra": "ashwini (pada 4)",
       "navatara": "janma",
       "is_planet_navatara_harmful": "no",
+      "karakwaqt": "karak",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "50%",
       "strength_percent": 50,
       "planet_status_in_nakshatra": "neutral",
@@ -1620,7 +1710,8 @@
         "is_planet_lagna_lord_enemy": "",
         "planet_status_in_rashi": "friend",
         "planet_status_in_nakshatra": "",
-        "navatara": ""
+        "navatara": "",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     },
@@ -1640,6 +1731,9 @@
       "nakshatra": "krittika (pada 2)",
       "navatara": "vipat",
       "is_planet_navatara_harmful": "yes",
+      "karakwaqt": "",
+      "is_planet_karakwaqt_harmful": "no",
+      "is_planet_marak_and_badhak": "no",
       "strength": "25%",
       "strength_percent": 25,
       "planet_status_in_nakshatra": "enemy",
@@ -1651,7 +1745,8 @@
         "is_planet_lagna_lord_enemy": "enemy",
         "planet_status_in_rashi": "own",
         "planet_status_in_nakshatra": "enemy",
-        "navatara": "enemy"
+        "navatara": "enemy",
+        "karakwaqt": ""
       },
       "retrograde": "No"
     }
@@ -1664,6 +1759,10 @@
     {
       "label": "Janma Nakshatra",
       "value": "Magha · Pada 1 · Ketu"
+    },
+    {
+      "label": "Starting name letter",
+      "value": "Ma"
     },
     {
       "label": "Name Rashi",

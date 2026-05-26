@@ -102,6 +102,31 @@ TITHI_PURNIMA = "Purnima"
 TITHI_AMAVASYA = "Amavasya"
 UNKNOWN_LABEL = "—"
 
+# --- Vimshottari mahadasha (120-year cycle from Moon janma nakshatra) ---
+VIMSHOTTARI_MAHADASHA_SEQUENCE = (
+    "ketu",
+    "venus",
+    "sun",
+    "moon",
+    "mars",
+    "rahu",
+    "jupiter",
+    "saturn",
+    "mercury",
+)
+VIMSHOTTARI_CYCLE_YEARS = 120
+DEFAULT_MAHADASHA_YEARS_BY_PLANET = {
+    "ketu": 7,
+    "venus": 20,
+    "sun": 6,
+    "moon": 10,
+    "mars": 7,
+    "rahu": 18,
+    "jupiter": 16,
+    "saturn": 19,
+    "mercury": 17,
+}
+
 # --- sign degree strength bands (low°, high°, phase name, strength %) ---
 _SIGN_PHASE_STEP = ONE_HOUSE_DEGREES / 5
 SIGN_DEGREE_PHASE_BANDS = tuple(

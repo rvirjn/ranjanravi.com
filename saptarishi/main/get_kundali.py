@@ -87,6 +87,9 @@ from constant import (
     TITHI_PURNIMA,
     UNKNOWN_LABEL,
     VALID_HOUSE_SYSTEMS,
+    DEFAULT_MAHADASHA_YEARS_BY_PLANET,
+    VIMSHOTTARI_CYCLE_YEARS,
+    VIMSHOTTARI_MAHADASHA_SEQUENCE,
 )
 
 
@@ -212,9 +215,6 @@ class KundaliBuilder:
             rel = dump_path
         rel_str = str(rel).replace("\\", "/")
         report["output_json_file"] = rel_str
-        ui_msg = report.get("ui_status_message")
-        if isinstance(ui_msg, str) and ui_msg:
-            report["ui_status_message"] = f"{ui_msg} Saved to {rel_str}."
         return report
 
     @staticmethod
@@ -369,6 +369,10 @@ class KundaliBuilder:
         nakshatras = self.load_nakshatra_list_from_database()
         moon_nak = dict(nakshatras[nk_i])
         moon_nak.pop("sequence", None)
+        nakshatra_pada_syllables = moon_nak.pop("pada", None)
+        moon_starting_letter = self.starting_name_letter_for_pada(
+            {"pada": nakshatra_pada_syllables}, pada
+        )
 
         houses_ws = [
             {
@@ -406,7 +410,12 @@ class KundaliBuilder:
             },
             "houses_whole_sign": houses_ws,
             "planets": planets_out,
-            "moon_nakshatra": {"nakshatra_index": nk_i + 1, "pada": pada, **moon_nak},
+            "moon_nakshatra": {
+                **moon_nak,
+                "nakshatra_index": nk_i + 1,
+                "pada": pada,
+                "starting_name_letter": moon_starting_letter,
+            },
             "ephemeris": "swiss" if ephe_flags & swe.FLG_SWIEPH else "moshier",
         }
 
@@ -440,6 +449,22 @@ class KundaliBuilder:
         idx = int(lon // ONE_NAKSHATRA_DEGREES) % NAKSHATRA_COUNT
         pada = int((lon % ONE_NAKSHATRA_DEGREES) // (ONE_NAKSHATRA_DEGREES / PADAS_PER_NAKSHATRA)) + 1
         return idx, pada
+
+    @staticmethod
+    def starting_name_letter_for_pada(
+        nakshatra_entry: dict[str, Any], pada: int
+    ) -> str:
+        """Namakarana syllable from ``planet.json`` nakshatra ``pada`` list."""
+        try:
+            pada_n = int(pada)
+        except (TypeError, ValueError):
+            return ""
+        for item in nakshatra_entry.get("pada") or []:
+            if not isinstance(item, dict):
+                continue
+            if int(item.get("pada") or 0) == pada_n:
+                return str(item.get("starting_name_letter") or "").strip()
+        return ""
 
     # --- database ---
 
@@ -484,8 +509,11 @@ class EnrichKundali:
 
         chart["planet_strength_rules"] = strength_rules
         self.enrich_birth_planets_with_database_metadata(chart, friendship, strength_rules)
+        self.normalize_moon_nakshatra(chart)
         self.attach_planet_navatara_from_janma(chart)
         self.attach_death_degree_flags(chart)
+        self.attach_planet_karakwaqt(chart)
+        self.attach_planet_mahadasha_ages(chart)
         self.attach_planet_table_ui_metadata(chart)
         self.add_kundali_summary_block(chart)
         self.add_lunar_calendar_to_summary(chart)
@@ -499,6 +527,147 @@ class EnrichKundali:
     def load_planet_database(self) -> dict[str, Any]:
         with self.planet_db_path.open(encoding="utf-8") as f:
             return json.load(f)
+
+    def load_mahadasha_years_by_planet(self) -> dict[str, float]:
+        """Mahadasha length per planet from ``planet.json`` ``planets[].mahadasha_years``."""
+        try:
+            data = self.load_planet_database()
+        except OSError:
+            data = {}
+        out: dict[str, float] = {}
+        for row in data.get("planets") or []:
+            if not isinstance(row, dict):
+                continue
+            pk = remove_white_space(row.get("name"))
+            yrs = row.get("mahadasha_years")
+            if pk and yrs is not None:
+                try:
+                    out[pk] = float(yrs)
+                except (TypeError, ValueError):
+                    continue
+        for pk, yrs in DEFAULT_MAHADASHA_YEARS_BY_PLANET.items():
+            out.setdefault(pk, float(yrs))
+        return out
+
+    @staticmethod
+    def format_age_years_display(years: float) -> str:
+        """Human-readable age from birth (years + months)."""
+        if years < 0:
+            years = 0.0
+        whole_years = int(years)
+        months = int(round((years - whole_years) * 12))
+        if months >= 12:
+            whole_years += 1
+            months = 0
+        if months:
+            return f"{whole_years} years {months} months"
+        return f"{whole_years} years"
+
+    @classmethod
+    def build_vimshottari_mahadasha_timeline(
+        cls,
+        moon_sidereal_longitude: float,
+        birth_lord: str,
+        durations: dict[str, float],
+        sequence: tuple[str, ...],
+    ) -> list[dict[str, Any]]:
+        """One 120-year Vimshottari cycle from birth (balance + full subsequent dashas)."""
+        lord = remove_white_space(birth_lord)
+        if lord not in sequence:
+            return []
+        full_years = float(durations.get(lord, 0))
+        pos_in_nak = float(moon_sidereal_longitude) % ONE_NAKSHATRA_DEGREES
+        fraction_elapsed = pos_in_nak / ONE_NAKSHATRA_DEGREES
+        balance = round((1.0 - fraction_elapsed) * full_years, 4)
+
+        periods: list[dict[str, Any]] = []
+        age = 0.0
+        start_idx = sequence.index(lord)
+
+        def append_period(
+            seq_no: int,
+            planet: str,
+            mahadasha_years: float,
+            duration_years: float,
+            age_start: float,
+            is_birth_balance: bool,
+        ) -> None:
+            age_end = round(age_start + duration_years, 4)
+            periods.append(
+                {
+                    "sequence": seq_no,
+                    "planet": planet,
+                    "mahadasha_years": mahadasha_years,
+                    "duration_years": round(duration_years, 4),
+                    "age_from_years": round(age_start, 4),
+                    "age_to_years": age_end,
+                    "age_from": cls.format_age_years_display(age_start),
+                    "age_to": cls.format_age_years_display(age_end),
+                    "is_birth_balance": is_birth_balance,
+                }
+            )
+
+        append_period(1, lord, full_years, balance, age, True)
+        age = balance
+        seq_no = 2
+        idx = (start_idx + 1) % len(sequence)
+        while age < VIMSHOTTARI_CYCLE_YEARS - 1e-6:
+            planet = sequence[idx]
+            mahadasha_years = float(durations.get(planet, 0))
+            duration = mahadasha_years
+            remaining = VIMSHOTTARI_CYCLE_YEARS - age
+            if duration > remaining:
+                duration = remaining
+            append_period(seq_no, planet, mahadasha_years, duration, age, False)
+            age += duration
+            seq_no += 1
+            idx = (idx + 1) % len(sequence)
+
+        return periods
+
+    def attach_planet_mahadasha_ages(self, chart: dict[str, Any]) -> None:
+        """Set ``mahadasha_years`` and ``age`` on each birth-chart planet (Vimshottari)."""
+        moon_lon = None
+        for p in chart.get("planets") or []:
+            if isinstance(p, dict) and p.get("name") == "moon":
+                lon = p.get("sidereal_longitude")
+                if isinstance(lon, (int, float)):
+                    moon_lon = float(lon)
+                break
+        mn = chart.get("moon_nakshatra") or {}
+        birth_lord = remove_white_space(str(mn.get("ruling_planet") or ""))
+        if moon_lon is None or not birth_lord:
+            return
+
+        durations = self.load_mahadasha_years_by_planet()
+        periods = self.build_vimshottari_mahadasha_timeline(
+            moon_lon,
+            birth_lord,
+            durations,
+            VIMSHOTTARI_MAHADASHA_SEQUENCE,
+        )
+        period_by_planet = {
+            remove_white_space(str(period.get("planet") or "")): period
+            for period in periods
+            if isinstance(period, dict)
+        }
+
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            pk = remove_white_space(str(p.get("name") or ""))
+            if not pk:
+                continue
+            if pk in durations:
+                p["mahadasha_years"] = durations[pk]
+            period = period_by_planet.get(pk)
+            if period:
+                p["age"] = {
+                    "from_years": period.get("age_from_years"),
+                    "to_years": period.get("age_to_years"),
+                    "from": period.get("age_from"),
+                    "to": period.get("age_to"),
+                }
 
     def load_houses_for_lookup(self) -> dict[int, list[str]]:
         try:
@@ -514,6 +683,86 @@ class EnrichKundali:
                 raw = item.get("for") or []
                 lookup[house] = [str(x).strip() for x in raw if str(x).strip()]
         return lookup
+
+    def load_house_one_lagna_roles_by_rashi(self) -> dict[str, dict[str, Any]]:
+        """Lagna-specific karak / yog karak / marak / badhak from ``planet.json`` house 1."""
+        try:
+            data = self.load_planet_database()
+        except OSError:
+            return {}
+        for item in data.get("houses") or []:
+            if not isinstance(item, dict) or item.get("house") != 1:
+                continue
+            raw = item.get("lagna")
+            if isinstance(raw, dict):
+                return {str(k).strip().lower(): v for k, v in raw.items() if str(k).strip()}
+        return {}
+
+    @staticmethod
+    def _lagna_role_planet_set(role_value: Any) -> set[str]:
+        if isinstance(role_value, str):
+            key = remove_white_space(role_value)
+            return {key} if key else set()
+        if isinstance(role_value, list):
+            return {
+                remove_white_space(x)
+                for x in role_value
+                if remove_white_space(x)
+            }
+        return set()
+
+    KARAKWAQT_HARMFUL_LABELS = frozenset({"marak", "badhak", "prabal marak"})
+
+    @staticmethod
+    def build_planet_karakwaqt(
+        planet_key: str, lagna_roles: dict[str, Any]
+    ) -> tuple[str, str, str]:
+        """Display labels and harmful / prabal flags for Karakwaqt column."""
+        pk = remove_white_space(planet_key)
+        if not pk or not lagna_roles:
+            return "", HOUSE_6_8_12_NO, HOUSE_6_8_12_NO
+        karak = EnrichKundali._lagna_role_planet_set(lagna_roles.get("karak"))
+        yog = EnrichKundali._lagna_role_planet_set(lagna_roles.get("yog_karak"))
+        marak = EnrichKundali._lagna_role_planet_set(lagna_roles.get("marak"))
+        badhak = EnrichKundali._lagna_role_planet_set(lagna_roles.get("badhak"))
+        prabal_pk = remove_white_space(lagna_roles.get("prabal_marak", ""))
+        is_prabal = bool(prabal_pk and pk == prabal_pk) or (pk in marak and pk in badhak)
+        labels: list[str] = []
+        if pk in karak:
+            labels.append("karak")
+        if pk in yog:
+            labels.append("yog karak")
+        if is_prabal:
+            labels.append("prabal marak")
+        else:
+            if pk in marak:
+                labels.append("marak")
+            if pk in badhak:
+                labels.append("badhak")
+        harmful = (
+            HOUSE_6_8_12_YES
+            if any(l in EnrichKundali.KARAKWAQT_HARMFUL_LABELS for l in labels)
+            else HOUSE_6_8_12_NO
+        )
+        prabal_flag = HOUSE_6_8_12_YES if is_prabal else HOUSE_6_8_12_NO
+        return " | ".join(labels), harmful, prabal_flag
+
+    def attach_planet_karakwaqt(self, chart: dict[str, Any]) -> None:
+        """Per-planet lagna roles from ``planet.json`` (house 1 ``lagna`` block)."""
+        asc = chart.get("ascendant") or {}
+        lagna_name = remove_white_space(asc.get("rashi_english", "")).lower()
+        roles_by_rashi = self.load_house_one_lagna_roles_by_rashi()
+        lagna_roles = roles_by_rashi.get(lagna_name) or {}
+        chart["lagna_karak_roles"] = lagna_roles
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            display, harmful, prabal_flag = self.build_planet_karakwaqt(
+                str(p.get("name") or ""), lagna_roles
+            )
+            p["planet_karakwaqt"] = display
+            p["is_planet_karakwaqt_harmful"] = harmful
+            p["is_planet_marak_and_badhak"] = prabal_flag
 
     def load_planet_friendship_lookup_table(self) -> dict[str, Any]:
         data = self.load_planet_database()
@@ -888,6 +1137,7 @@ class EnrichKundali:
             or ""
         )
         nav_harmful = planet.get("is_planet_navatara_harmful", HOUSE_6_8_12_NO)
+        kw_harmful = planet.get("is_planet_karakwaqt_harmful", HOUSE_6_8_12_NO)
         death_deg = planet.get("is_planet_at_death_degree", HOUSE_6_8_12_NO)
         at_death = str(death_deg or "").strip().lower() == HOUSE_6_8_12_YES
         status_rashi_color = (
@@ -910,6 +1160,7 @@ class EnrichKundali:
             "planet_status_in_rashi": status_rashi_color,
             "planet_status_in_nakshatra": status_nak_color,
             "navatara": EnrichKundali.enemy_cell_color_if_yes(nav_harmful),
+            "karakwaqt": EnrichKundali.enemy_cell_color_if_yes(kw_harmful),
         }
 
     def attach_planet_table_ui_metadata(self, chart: dict[str, Any]) -> None:
@@ -979,6 +1230,7 @@ class EnrichKundali:
                 "nakshatra": mn.get("nakshatra"),
                 "pada": mn.get("pada"),
                 "ruling_planet": mn.get("ruling_planet"),
+                "starting_name_letter": mn.get("starting_name_letter"),
             },
         }
 
@@ -1055,6 +1307,57 @@ class EnrichKundali:
                 if nk:
                     lookup[nk] = nav_name
         return lookup
+
+    @staticmethod
+    def moon_birth_pada_number(
+        chart: dict[str, Any], mn: dict[str, Any] | None = None
+    ) -> int | None:
+        """Moon janma pada (1–4) at birth; never the ``planet.json`` syllable list."""
+        mn = mn if isinstance(mn, dict) else (chart.get("moon_nakshatra") or {})
+        pada = mn.get("pada")
+        if isinstance(pada, int) and 1 <= pada <= PADAS_PER_NAKSHATRA:
+            return pada
+        try:
+            n = int(pada)
+            if 1 <= n <= PADAS_PER_NAKSHATRA:
+                return n
+        except (TypeError, ValueError):
+            pass
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict) or p.get("name") != "moon":
+                continue
+            pp = p.get("nakshatra_pada")
+            if isinstance(pp, int) and 1 <= pp <= PADAS_PER_NAKSHATRA:
+                return pp
+            lon = p.get("sidereal_longitude")
+            if isinstance(lon, (int, float)):
+                _, pp = KundaliBuilder.longitude_to_nakshatra_pada(float(lon))
+                return pp
+        return None
+
+    def normalize_moon_nakshatra(self, chart: dict[str, Any]) -> None:
+        """Birth pada as integer + ``starting_name_letter``; drop syllable list from API."""
+        mn = chart.get("moon_nakshatra")
+        if not isinstance(mn, dict):
+            return
+        syllables = mn.get("pada") if isinstance(mn.get("pada"), list) else None
+        mn.pop("nakshatra_pada_syllables", None)
+        birth_pada = self.moon_birth_pada_number(chart, mn)
+        if birth_pada is not None:
+            mn["pada"] = birth_pada
+        if not syllables:
+            nk_name = remove_white_space(str(mn.get("nakshatra") or ""))
+            if nk_name:
+                for nak in self.load_nakshatra_list_from_database():
+                    if remove_white_space(str(nak.get("nakshatra") or "")) == nk_name:
+                        syllables = nak.get("pada")
+                        break
+        if not str(mn.get("starting_name_letter") or "").strip() and birth_pada:
+            letter = KundaliBuilder.starting_name_letter_for_pada(
+                {"pada": syllables}, birth_pada
+            )
+            if letter:
+                mn["starting_name_letter"] = letter
 
     def attach_planet_navatara_from_janma(self, chart: dict[str, Any]) -> None:
         """Set ``planet_navatara`` on each planet from Moon janma nava-tara wheel."""
@@ -1255,6 +1558,22 @@ class EnrichKundali:
         return name
 
     @staticmethod
+    def format_dasha_age_display(age: Any) -> str:
+        """Compact mahadasha age range for UI, e.g. ``1-5``."""
+        if not isinstance(age, dict):
+            return ""
+        try:
+            from_y = float(age.get("from_years"))
+            to_y = float(age.get("to_years"))
+        except (TypeError, ValueError):
+            return ""
+        start = int(round(from_y))
+        end = int(round(to_y))
+        if end < start:
+            end = start
+        return f"{start}-{end}"
+
+    @staticmethod
     def build_planets_table_rows(
         chart: dict[str, Any],
         houses_by_number: dict[int, list[str]] | None = None,
@@ -1309,13 +1628,20 @@ class EnrichKundali:
                 ),
                 "navatara": p.get("planet_navatara") or "",
                 "is_planet_navatara_harmful": nav_harmful,
+                "karakwaqt": p.get("planet_karakwaqt") or "",
+                "is_planet_karakwaqt_harmful": p.get(
+                    "is_planet_karakwaqt_harmful", HOUSE_6_8_12_NO
+                ),
+                "is_planet_marak_and_badhak": p.get(
+                    "is_planet_marak_and_badhak", HOUSE_6_8_12_NO
+                ),
                 "strength": f"{strength}%" if strength is not None else UNKNOWN_LABEL,
                 "strength_percent": strength if isinstance(strength, (int, float)) else None,
                 "planet_status_in_nakshatra": nak_status,
                 "planet_status_in_rashi": rashi_status,
-                "cell_styles": p.get("cell_styles")
-                or EnrichKundali.build_planet_cell_styles(p),
+                "cell_styles": EnrichKundali.build_planet_cell_styles(p),
                 "retrograde": "Yes" if p.get("retrograde") else "No",
+                "dasha_age": EnrichKundali.format_dasha_age_display(p.get("age")),
             })
         return rows
 
@@ -1441,13 +1767,21 @@ class EnrichKundali:
             rows.append({"label": "Time", "value": EnrichKundali._format_user_local_time(local)})
         mn = chart.get("moon_nakshatra") or {}
         nak = str(mn.get("nakshatra") or "").strip()
+        birth_pada = EnrichKundali.moon_birth_pada_number(chart, mn)
         if nak:
+            pada_part = f" · Pada {birth_pada}" if birth_pada else ""
             rows.append({
                 "label": "Janma Nakshatra",
                 "value": (
-                    f"{nak.title()} · Pada {mn.get('pada', '')} · "
+                    f"{nak.title()}{pada_part} · "
                     f"{str(mn.get('ruling_planet', '')).strip().title()}"
                 ),
+            })
+        starting_letter = str(mn.get("starting_name_letter") or "").strip()
+        if starting_letter:
+            rows.append({
+                "label": "Starting name letter",
+                "value": starting_letter,
             })
         for p in chart.get("planets") or []:
             if isinstance(p, dict) and p.get("name") == "moon":

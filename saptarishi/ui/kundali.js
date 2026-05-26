@@ -117,6 +117,40 @@ function formatNavataraName(cell) {
     .join("-");
 }
 
+const KARAKWAQT_HARMFUL_LABELS = new Set(["marak", "badhak", "prabal marak"]);
+
+function formatDashaAgeDisplay(ageOrText) {
+  if (ageOrText == null || ageOrText === "") return "";
+  if (typeof ageOrText === "string") return ageOrText.trim();
+  const fromY = Number(ageOrText.from_years);
+  const toY = Number(ageOrText.to_years);
+  if (!Number.isFinite(fromY) || !Number.isFinite(toY)) return "";
+  const start = Math.round(fromY);
+  const end = Math.round(toY);
+  return `${start}-${end >= start ? end : start}`;
+}
+
+function formatKarakwaqtPlainText(cell) {
+  const parts = String(cell ?? "")
+    .split(" | ")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (!parts.length) return "";
+  return parts.map((p) => toTitleCaseWords(p)).join(" | ");
+}
+
+function karakwaqtLabelIsHarmful(label) {
+  return KARAKWAQT_HARMFUL_LABELS.has(normalizeText(label));
+}
+
+function karakwaqtTextIsHarmful(text) {
+  return String(text ?? "")
+    .split(" | ")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .some((p) => karakwaqtLabelIsHarmful(p));
+}
+
 /** Planets table cell text: prefer API ``*_display`` fields from get_kundali.py. */
 function planetsTableCellText(key, rowData) {
   if (key === "is_planet_in_6_8_12_house") {
@@ -127,6 +161,12 @@ function planetsTableCellText(key, rowData) {
   }
   if (key === "is_planet_at_death_degree") {
     return rowData.is_planet_at_death_degree_display ?? rowData[key];
+  }
+  if (key === "karakwaqt") {
+    return rowData.karakwaqt ?? rowData.planet_karakwaqt ?? "";
+  }
+  if (key === "dasha_age") {
+    return rowData.dasha_age ?? formatDashaAgeDisplay(rowData.age) ?? "";
   }
   return rowData[key];
 }
@@ -157,6 +197,9 @@ function formatTableCellForDisplay(key, cell) {
   }
   if (key === "nakshatra") return formatNavataraName(text.replace(/\s*\(pada\s+\d+\)\s*$/i, ""));
   if (key === "navatara") return formatNavataraName(text);
+  if (key === "karakwaqt") {
+    return formatKarakwaqtPlainText(text);
+  }
   if (key === "ruling_planet") return toTitleCaseWords(dedupeCommaList(text));
   if (key === "lucky_day") return toTitleCaseWords(text);
   if (key === "divine_god") return toTitleCaseWords(text);
@@ -226,7 +269,8 @@ function applyPlanetTableCellStyle(td, colorKind, columnKey) {
     columnKey === "is_planet_in_6_8_12_house" ||
     columnKey === "is_planet_lagna_lord_enemy" ||
     columnKey === "is_planet_at_death_degree" ||
-    columnKey === "navatara";
+    columnKey === "navatara" ||
+    columnKey === "karakwaqt";
   td.className = `${yesNoCol ? "planets-td-yesno" : "planets-td-status"} planet-cell planet-cell--${colorKind}`;
   applyPlanetStatusCellColorIntensity(td);
 }
@@ -353,6 +397,51 @@ function appendPlanetsHouseCell(tr, rowData) {
   tr.appendChild(td);
 }
 
+/** Copy dasha age onto table rows from ``planets[].age`` when needed. */
+function mergeDashaAgeIntoPlanetsTableRows(planetsTable, planets) {
+  if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
+  const byPlanet = new Map(
+    planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
+  );
+  return planetsTable.map((row) => {
+    const src = byPlanet.get(normalizeText(row?.planet));
+    if (!src) return row;
+    const dashaAge = (row.dasha_age || "").trim() || formatDashaAgeDisplay(src.age);
+    if (!dashaAge) return row;
+    return { ...row, dasha_age: dashaAge };
+  });
+}
+
+/** Copy ``planet_karakwaqt`` onto table rows when API table predates that field. */
+function mergeKarakwaqtIntoPlanetsTableRows(planetsTable, planets) {
+  if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
+  const byPlanet = new Map(
+    planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
+  );
+  return planetsTable.map((row) => {
+    const src = byPlanet.get(normalizeText(row?.planet));
+    if (!src) return row;
+    const kw = (row.karakwaqt || src.planet_karakwaqt || "").trim();
+    if (!kw && !src.planet_karakwaqt) return row;
+    const kwHarmful =
+      row.is_planet_karakwaqt_harmful ||
+      src.is_planet_karakwaqt_harmful ||
+      (karakwaqtTextIsHarmful(kw || src.planet_karakwaqt) ? "yes" : "no");
+    const styles = { ...(row.cell_styles || {}) };
+    if (!styles.karakwaqt) {
+      styles.karakwaqt =
+        src.cell_styles?.karakwaqt ||
+        (String(kwHarmful || "").toLowerCase() === "yes" ? "enemy" : "");
+    }
+    return {
+      ...row,
+      karakwaqt: kw || src.planet_karakwaqt || "",
+      is_planet_karakwaqt_harmful: kwHarmful,
+      cell_styles: styles
+    };
+  });
+}
+
 /** Planets table: values and ``cell_styles`` come from API (get_kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
@@ -366,9 +455,11 @@ function renderPlanetsTableWithColors(tbody, rows) {
     "planet_status_in_rashi",
     "planet_status_in_nakshatra",
     "navatara",
+    "karakwaqt",
     "rashi",
     "nakshatra",
-    "degree"
+    "degree",
+    "dasha_age"
   ];
   for (const rowData of rows || []) {
     const tr = document.createElement("tr");
@@ -851,14 +942,18 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
-  renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
+  const planetsTableRows = mergeDashaAgeIntoPlanetsTableRows(
+    mergeKarakwaqtIntoPlanetsTableRows(
+      kundaliPayload.planets_table || [],
+      kundaliPayload.planets || []
+    ),
+    kundaliPayload.planets || []
+  );
+  renderPlanetsTableWithColors(planetsBody, planetsTableRows);
   renderNavataraTableWithColors(navataraBody, kundaliPayload.navatara_rows || []);
 
   if (resultsEl) resultsEl.hidden = false;
-  const saved = kundaliPayload.output_json_file;
-  showStatusMessage(
-    saved ? `Saved to ${saved}.` : kundaliPayload.ui_status_message || ""
-  );
+  showStatusMessage(kundaliPayload.ui_status_message || "");
 }
 
 /** Build query string for GET /api/kundali from form fields. */

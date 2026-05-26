@@ -49,7 +49,25 @@
           "lucky_day": [
             "sunday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "A"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "I"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "U"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "E"
+            }
+          ]
         },
         {
           "sequence": 12,
@@ -68,7 +86,25 @@
           "lucky_day": [
             "sunday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Te"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "To"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Pa"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Pi"
+            }
+          ]
         },
         {
           "sequence": 21,
@@ -87,7 +123,25 @@
           "lucky_day": [
             "sunday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Bhe"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Bho"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ja"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ji"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -139,7 +193,8 @@
           "sign": "pisces",
           "degree": 23
         }
-      ]
+      ],
+      "mahadasha_years": 6
     },
     {
       "name": "moon",
@@ -183,7 +238,25 @@
           "lucky_day": [
             "monday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "O"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Va"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Vi"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Vu"
+            }
+          ]
         },
         {
           "sequence": 13,
@@ -201,7 +274,25 @@
           "lucky_day": [
             "monday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Pu"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Sha"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Na"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Tha"
+            }
+          ]
         },
         {
           "sequence": 22,
@@ -220,7 +311,25 @@
           "lucky_day": [
             "monday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Khi"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Khu"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Khe"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Kho"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -272,7 +381,8 @@
           "sign": "pisces",
           "degree": 12
         }
-      ]
+      ],
+      "mahadasha_years": 10
     },
     {
       "name": "mars",
@@ -318,7 +428,25 @@
           "lucky_day": [
             "tuesday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ve"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Vo"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ka"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ki"
+            }
+          ]
         },
         {
           "sequence": 14,
@@ -337,7 +465,25 @@
           "lucky_day": [
             "tuesday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Pe"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Po"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ra"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ri"
+            }
+          ]
         },
         {
           "sequence": 23,
@@ -356,7 +502,25 @@
           "lucky_day": [
             "tuesday"
           ],
-          "lucky_time": "6:00 AM - 10:00 AM"
+          "lucky_time": "6:00 AM - 10:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ga"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Gi"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Gu"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ge"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -408,7 +572,8 @@
           "sign": "pisces",
           "degree": 6
         }
-      ]
+      ],
+      "mahadasha_years": 7
     },
     {
       "name": "mercury",
@@ -453,7 +618,25 @@
           "lucky_day": [
             "wednesday"
           ],
-          "lucky_time": "10:00 AM - 1:00 PM"
+          "lucky_time": "10:00 AM - 1:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Di"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Du"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "De"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Do"
+            }
+          ]
         },
         {
           "sequence": 18,
@@ -472,7 +655,25 @@
           "lucky_day": [
             "wednesday"
           ],
-          "lucky_time": "10:00 AM - 1:00 PM"
+          "lucky_time": "10:00 AM - 1:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "No"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Ya"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Yi"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Yu"
+            }
+          ]
         },
         {
           "sequence": 27,
@@ -491,7 +692,25 @@
           "lucky_day": [
             "wednesday"
           ],
-          "lucky_time": "10:00 AM - 1:00 PM"
+          "lucky_time": "10:00 AM - 1:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "De"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Do"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Cha"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Chi"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -543,7 +762,8 @@
           "sign": "pisces",
           "degree": 5
         }
-      ]
+      ],
+      "mahadasha_years": 17
     },
     {
       "name": "jupiter",
@@ -592,7 +812,25 @@
           "lucky_day": [
             "thursday"
           ],
-          "lucky_time": "6:00 AM - 12:00 PM"
+          "lucky_time": "6:00 AM - 12:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ke"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Ko"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ha"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Hi"
+            }
+          ]
         },
         {
           "sequence": 16,
@@ -611,7 +849,25 @@
           "lucky_day": [
             "tuesday"
           ],
-          "lucky_time": "6:00 AM - 12:00 PM"
+          "lucky_time": "6:00 AM - 12:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ti"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Tu"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Te"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "To"
+            }
+          ]
         },
         {
           "sequence": 25,
@@ -630,7 +886,25 @@
           "lucky_day": [
             "thursday"
           ],
-          "lucky_time": "6:00 AM - 12:00 PM"
+          "lucky_time": "6:00 AM - 12:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Se"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "So"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Da"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Di"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -682,7 +956,8 @@
           "sign": "pisces",
           "degree": 18
         }
-      ]
+      ],
+      "mahadasha_years": 16
     },
     {
       "name": "venus",
@@ -728,7 +1003,25 @@
             "tuesday",
             "friday"
           ],
-          "lucky_time": "4:00 PM - 7:00 PM"
+          "lucky_time": "4:00 PM - 7:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Li"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Lu"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Le"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Lo"
+            }
+          ]
         },
         {
           "sequence": 11,
@@ -748,7 +1041,25 @@
             "friday",
             "sunday"
           ],
-          "lucky_time": "4:00 PM - 7:00 PM"
+          "lucky_time": "4:00 PM - 7:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Mo"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Ta"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ti"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Tu"
+            }
+          ]
         },
         {
           "sequence": 20,
@@ -767,7 +1078,25 @@
           "lucky_day": [
             "friday"
           ],
-          "lucky_time": "4:00 PM - 7:00 PM"
+          "lucky_time": "4:00 PM - 7:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Bhu"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Dha"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Pha"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Dha"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -819,7 +1148,8 @@
           "sign": "pisces",
           "degree": 19
         }
-      ]
+      ],
+      "mahadasha_years": 20
     },
     {
       "name": "saturn",
@@ -867,7 +1197,25 @@
           "lucky_day": [
             "saturday"
           ],
-          "lucky_time": "6:00 PM - 8:00 PM"
+          "lucky_time": "6:00 PM - 8:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Hu"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "He"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ho"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Da"
+            }
+          ]
         },
         {
           "sequence": 17,
@@ -886,7 +1234,25 @@
           "lucky_day": [
             "saturday"
           ],
-          "lucky_time": "6:00 PM - 8:00 PM"
+          "lucky_time": "6:00 PM - 8:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Na"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Ni"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Nu"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ne"
+            }
+          ]
         },
         {
           "sequence": 26,
@@ -905,7 +1271,25 @@
           "lucky_day": [
             "saturday"
           ],
-          "lucky_time": "6:00 PM - 8:00 PM"
+          "lucky_time": "6:00 PM - 8:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Du"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Tha"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Jha"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Da"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -957,7 +1341,8 @@
           "sign": "pisces",
           "degree": 15
         }
-      ]
+      ],
+      "mahadasha_years": 19
     },
     {
       "name": "rahu",
@@ -997,7 +1382,25 @@
           "lucky_day": [
             "friday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ku"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Gha"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ng"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Na"
+            }
+          ]
         },
         {
           "sequence": 15,
@@ -1016,7 +1419,25 @@
           "lucky_day": [
             "friday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ru"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Re"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Ro"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Ta"
+            }
+          ]
         },
         {
           "sequence": 24,
@@ -1036,7 +1457,25 @@
             "friday",
             "saturday"
           ],
-          "lucky_time": "6:00 PM - 9:00 PM"
+          "lucky_time": "6:00 PM - 9:00 PM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Go"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Sa"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Si"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Su"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -1088,7 +1527,8 @@
           "sign": "pisces",
           "degree": 8
         }
-      ]
+      ],
+      "mahadasha_years": 18
     },
     {
       "name": "ketu",
@@ -1128,7 +1568,25 @@
           "lucky_day": [
             "tuesday"
           ],
-          "lucky_time": "6:00 AM - 7:00 AM"
+          "lucky_time": "6:00 AM - 7:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Chu"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Che"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Cho"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "La"
+            }
+          ]
         },
         {
           "sequence": 10,
@@ -1147,7 +1605,25 @@
           "lucky_day": [
             "friday"
           ],
-          "lucky_time": "6:00 AM - 7:00 AM"
+          "lucky_time": "6:00 AM - 7:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ma"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Mi"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Mu"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Me"
+            }
+          ]
         },
         {
           "sequence": 19,
@@ -1166,7 +1642,25 @@
           "lucky_day": [
             "friday"
           ],
-          "lucky_time": "6:00 AM - 7:00 AM"
+          "lucky_time": "6:00 AM - 7:00 AM",
+          "pada": [
+            {
+              "pada": 1,
+              "starting_name_letter": "Ye"
+            },
+            {
+              "pada": 2,
+              "starting_name_letter": "Yo"
+            },
+            {
+              "pada": 3,
+              "starting_name_letter": "Bha"
+            },
+            {
+              "pada": 4,
+              "starting_name_letter": "Bhi"
+            }
+          ]
         }
       ],
       "death_degree": [
@@ -1218,7 +1712,8 @@
           "sign": "pisces",
           "degree": 14
         }
-      ]
+      ],
+      "mahadasha_years": 7
     }
   ],
   "nakshatras": [
@@ -1240,7 +1735,25 @@
       "lucky_day": [
         "tuesday"
       ],
-      "lucky_time": "6:00 AM - 7:00 AM"
+      "lucky_time": "6:00 AM - 7:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Chu"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Che"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Cho"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "La"
+        }
+      ]
     },
     {
       "sequence": 2,
@@ -1261,7 +1774,25 @@
         "tuesday",
         "friday"
       ],
-      "lucky_time": "4:00 PM - 7:00 PM"
+      "lucky_time": "4:00 PM - 7:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Li"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Lu"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Le"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Lo"
+        }
+      ]
     },
     {
       "sequence": 3,
@@ -1281,7 +1812,25 @@
       "lucky_day": [
         "sunday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "A"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "I"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "U"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "E"
+        }
+      ]
     },
     {
       "sequence": 4,
@@ -1301,7 +1850,25 @@
       "lucky_day": [
         "monday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "O"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Va"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Vi"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Vu"
+        }
+      ]
     },
     {
       "sequence": 5,
@@ -1321,7 +1888,25 @@
       "lucky_day": [
         "tuesday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ve"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Vo"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ka"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ki"
+        }
+      ]
     },
     {
       "sequence": 6,
@@ -1341,7 +1926,25 @@
       "lucky_day": [
         "friday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ku"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Gha"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ng"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Na"
+        }
+      ]
     },
     {
       "sequence": 7,
@@ -1361,7 +1964,25 @@
       "lucky_day": [
         "thursday"
       ],
-      "lucky_time": "6:00 AM - 12:00 PM"
+      "lucky_time": "6:00 AM - 12:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ke"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Ko"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ha"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Hi"
+        }
+      ]
     },
     {
       "sequence": 8,
@@ -1381,7 +2002,25 @@
       "lucky_day": [
         "saturday"
       ],
-      "lucky_time": "6:00 PM - 8:00 PM"
+      "lucky_time": "6:00 PM - 8:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Hu"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "He"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ho"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Da"
+        }
+      ]
     },
     {
       "sequence": 9,
@@ -1400,7 +2039,25 @@
       "lucky_day": [
         "wednesday"
       ],
-      "lucky_time": "10:00 AM - 1:00 PM"
+      "lucky_time": "10:00 AM - 1:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Di"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Du"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "De"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Do"
+        }
+      ]
     },
     {
       "sequence": 10,
@@ -1420,7 +2077,25 @@
       "lucky_day": [
         "friday"
       ],
-      "lucky_time": "6:00 AM - 7:00 AM"
+      "lucky_time": "6:00 AM - 7:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ma"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Mi"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Mu"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Me"
+        }
+      ]
     },
     {
       "sequence": 11,
@@ -1441,7 +2116,25 @@
         "friday",
         "sunday"
       ],
-      "lucky_time": "4:00 PM - 7:00 PM"
+      "lucky_time": "4:00 PM - 7:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Mo"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Ta"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ti"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Tu"
+        }
+      ]
     },
     {
       "sequence": 12,
@@ -1461,7 +2154,25 @@
       "lucky_day": [
         "sunday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Te"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "To"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Pa"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Pi"
+        }
+      ]
     },
     {
       "sequence": 13,
@@ -1480,7 +2191,25 @@
       "lucky_day": [
         "monday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Pu"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Sha"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Na"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Tha"
+        }
+      ]
     },
     {
       "sequence": 14,
@@ -1500,7 +2229,25 @@
       "lucky_day": [
         "tuesday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Pe"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Po"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ra"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ri"
+        }
+      ]
     },
     {
       "sequence": 15,
@@ -1520,7 +2267,25 @@
       "lucky_day": [
         "friday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ru"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Re"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ro"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ta"
+        }
+      ]
     },
     {
       "sequence": 16,
@@ -1540,7 +2305,25 @@
       "lucky_day": [
         "tuesday"
       ],
-      "lucky_time": "6:00 AM - 12:00 PM"
+      "lucky_time": "6:00 AM - 12:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ti"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Tu"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Te"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "To"
+        }
+      ]
     },
     {
       "sequence": 17,
@@ -1560,7 +2343,25 @@
       "lucky_day": [
         "saturday"
       ],
-      "lucky_time": "6:00 PM - 8:00 PM"
+      "lucky_time": "6:00 PM - 8:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Na"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Ni"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Nu"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ne"
+        }
+      ]
     },
     {
       "sequence": 18,
@@ -1580,7 +2381,25 @@
       "lucky_day": [
         "wednesday"
       ],
-      "lucky_time": "10:00 AM - 1:00 PM"
+      "lucky_time": "10:00 AM - 1:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "No"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Ya"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Yi"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Yu"
+        }
+      ]
     },
     {
       "sequence": 19,
@@ -1600,7 +2419,25 @@
       "lucky_day": [
         "friday"
       ],
-      "lucky_time": "6:00 AM - 7:00 AM"
+      "lucky_time": "6:00 AM - 7:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ye"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Yo"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Bha"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Bhi"
+        }
+      ]
     },
     {
       "sequence": 20,
@@ -1620,7 +2457,25 @@
       "lucky_day": [
         "friday"
       ],
-      "lucky_time": "4:00 PM - 7:00 PM"
+      "lucky_time": "4:00 PM - 7:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Bhu"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Dha"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Pha"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Dha"
+        }
+      ]
     },
     {
       "sequence": 21,
@@ -1640,7 +2495,25 @@
       "lucky_day": [
         "sunday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Bhe"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Bho"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Ja"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ji"
+        }
+      ]
     },
     {
       "sequence": 22,
@@ -1660,7 +2533,25 @@
       "lucky_day": [
         "monday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Khi"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Khu"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Khe"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Kho"
+        }
+      ]
     },
     {
       "sequence": 23,
@@ -1680,7 +2571,25 @@
       "lucky_day": [
         "tuesday"
       ],
-      "lucky_time": "6:00 AM - 10:00 AM"
+      "lucky_time": "6:00 AM - 10:00 AM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Ga"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Gi"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Gu"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Ge"
+        }
+      ]
     },
     {
       "sequence": 24,
@@ -1701,7 +2610,25 @@
         "friday",
         "saturday"
       ],
-      "lucky_time": "6:00 PM - 9:00 PM"
+      "lucky_time": "6:00 PM - 9:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Go"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Sa"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Si"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Su"
+        }
+      ]
     },
     {
       "sequence": 25,
@@ -1721,7 +2648,25 @@
       "lucky_day": [
         "thursday"
       ],
-      "lucky_time": "6:00 AM - 12:00 PM"
+      "lucky_time": "6:00 AM - 12:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Se"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "So"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Da"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Di"
+        }
+      ]
     },
     {
       "sequence": 26,
@@ -1741,7 +2686,25 @@
       "lucky_day": [
         "saturday"
       ],
-      "lucky_time": "6:00 PM - 8:00 PM"
+      "lucky_time": "6:00 PM - 8:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "Du"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Tha"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Jha"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Da"
+        }
+      ]
     },
     {
       "sequence": 27,
@@ -1761,7 +2724,25 @@
       "lucky_day": [
         "wednesday"
       ],
-      "lucky_time": "10:00 AM - 1:00 PM"
+      "lucky_time": "10:00 AM - 1:00 PM",
+      "pada": [
+        {
+          "pada": 1,
+          "starting_name_letter": "De"
+        },
+        {
+          "pada": 2,
+          "starting_name_letter": "Do"
+        },
+        {
+          "pada": 3,
+          "starting_name_letter": "Cha"
+        },
+        {
+          "pada": 4,
+          "starting_name_letter": "Chi"
+        }
+      ]
     }
   ],
   "nava_tara": {
@@ -1879,7 +2860,253 @@
         "humility",
         "nature",
         "lagna"
-      ]
+      ],
+      "lagna": {
+        "aries": {
+          "rashi_number": "1",
+          "type": "chara",
+          "karak": [
+            "sun",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "mars"
+          ],
+          "badhak": [
+            "saturn"
+          ],
+          "marak": [
+            "venus"
+          ],
+          "prabal_marak": ""
+        },
+        "taurus": {
+          "rashi_number": "2",
+          "type": "sthira",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "venus",
+            "saturn"
+          ],
+          "badhak": [
+            "saturn"
+          ],
+          "marak": [
+            "mars",
+            "mercury"
+          ],
+          "prabal_marak": ""
+        },
+        "gemini": {
+          "rashi_number": "3",
+          "type": "dwiswabhava",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "mercury"
+          ],
+          "badhak": [
+            "jupiter"
+          ],
+          "marak": [
+            "moon",
+            "jupiter"
+          ],
+          "prabal_marak": "jupiter"
+        },
+        "cancer": {
+          "rashi_number": "4",
+          "type": "chara",
+          "karak": [
+            "moon",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "mars",
+            "moon"
+          ],
+          "badhak": [
+            "venus"
+          ],
+          "marak": [
+            "sun",
+            "saturn"
+          ],
+          "prabal_marak": ""
+        },
+        "leo": {
+          "rashi_number": "5",
+          "type": "sthira",
+          "karak": [
+            "sun",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "mars",
+            "sun"
+          ],
+          "badhak": [
+            "mars"
+          ],
+          "marak": [
+            "mercury",
+            "saturn"
+          ],
+          "prabal_marak": ""
+        },
+        "virgo": {
+          "rashi_number": "6",
+          "type": "dwiswabhava",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "mercury"
+          ],
+          "badhak": [
+            "jupiter"
+          ],
+          "marak": [
+            "venus",
+            "jupiter"
+          ],
+          "prabal_marak": "jupiter"
+        },
+        "libra": {
+          "rashi_number": "7",
+          "type": "chara",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "venus",
+            "saturn"
+          ],
+          "badhak": [
+            "sun"
+          ],
+          "marak": [
+            "mars"
+          ],
+          "prabal_marak": ""
+        },
+        "scorpio": {
+          "rashi_number": "8",
+          "type": "sthira",
+          "karak": [
+            "moon",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "mars"
+          ],
+          "badhak": [
+            "moon"
+          ],
+          "marak": [
+            "venus",
+            "jupiter"
+          ],
+          "prabal_marak": ""
+        },
+        "sagittarius": {
+          "rashi_number": "9",
+          "type": "dwiswabhava",
+          "karak": [
+            "sun",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "jupiter"
+          ],
+          "badhak": [
+            "mercury"
+          ],
+          "marak": [
+            "mercury",
+            "saturn"
+          ],
+          "prabal_marak": "mercury"
+        },
+        "capricorn": {
+          "rashi_number": "10",
+          "type": "chara",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "venus",
+            "saturn"
+          ],
+          "badhak": [
+            "mars"
+          ],
+          "marak": [
+            "moon",
+            "saturn"
+          ],
+          "prabal_marak": ""
+        },
+        "aquarius": {
+          "rashi_number": "11",
+          "type": "sthira",
+          "karak": [
+            "mercury",
+            "venus",
+            "saturn"
+          ],
+          "yog_karak": [
+            "venus",
+            "saturn"
+          ],
+          "badhak": [
+            "venus"
+          ],
+          "marak": [
+            "sun",
+            "jupiter"
+          ],
+          "prabal_marak": ""
+        },
+        "pisces": {
+          "rashi_number": "12",
+          "type": "dwiswabhava",
+          "karak": [
+            "moon",
+            "mars",
+            "jupiter"
+          ],
+          "yog_karak": [
+            "jupiter"
+          ],
+          "badhak": [
+            "mercury"
+          ],
+          "marak": [
+            "mars",
+            "mercury"
+          ],
+          "prabal_marak": "mercury"
+        }
+      }
     },
     {
       "house": 2,
