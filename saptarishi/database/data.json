@@ -27,6 +27,33 @@
         "decrease_strength_percent": 100
       },
       {
+        "id": "own_rashi",
+        "factor": "Own sign (planet rules the rashi it occupies)",
+        "increase_strength_percent": 75,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "retrograde",
+        "factor": "Retrograde motion (sidereal speed negative; Rahu/Ketu when marked retrograde)",
+        "increase_strength_percent": 40,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "combustion",
+        "factor": "Too close to Sun (within threshold degrees) reduces strength",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 60,
+        "default_max_angular_distance_deg": 14,
+        "max_angular_distance_deg_by_planet": {
+          "mercury": 14,
+          "moon": 12,
+          "mars": 17,
+          "jupiter": 11,
+          "venus": 10,
+          "saturn": 15
+        }
+      },
+      {
         "id": "death_degree",
         "factor": "Mrityu Bhaga death degree (sets strength to increase_strength_percent when matched)",
         "increase_strength_percent": 0,

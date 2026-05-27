@@ -90,6 +90,17 @@ function formatSummaryCellValue(label, value) {
   return raw;
 }
 
+function summaryValueClassForLabel(label) {
+  const key = normalizeText(label);
+  if (key === "exalted planet" || key === "retrograde planet") {
+    return "summary-value--green";
+  }
+  if (key === "debilitated planet") {
+    return "summary-value--red";
+  }
+  return "";
+}
+
 /** One label + value row for the summary facts table. */
 function createSummaryLabelValueRow(label, value) {
   const tr = document.createElement("tr");
@@ -97,6 +108,8 @@ function createSummaryLabelValueRow(label, value) {
   th.scope = "row";
   th.textContent = toTitleCaseWords(label);
   const td = document.createElement("td");
+  const valueClass = summaryValueClassForLabel(label);
+  if (valueClass) td.classList.add(valueClass);
   td.textContent = formatSummaryCellValue(label, value);
   tr.appendChild(th);
   tr.appendChild(td);

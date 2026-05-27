@@ -57,6 +57,10 @@ from constant import (
     PLANET_STATUS_LOW,
     DEBILITATED_STRENGTH_PENALTY,
     EXALTED_STRENGTH_BONUS,
+    OWN_RASHI_STRENGTH_BONUS,
+    RETROGRADE_STRENGTH_BONUS,
+    COMBUSTION_STRENGTH_PENALTY,
+    COMBUSTION_DEFAULT_MAX_ANGULAR_DISTANCE_DEG,
     PLANET_DIGNITY_DEBILITATED,
     PLANET_DIGNITY_EXALTED,
     PLANET_STRENGTH_MAX_PERCENT,
@@ -304,7 +308,8 @@ class KundaliBuilder:
     @staticmethod
     def parse_birth_datetime_local(date_str: str, time_str: str, tz_name: str) -> datetime:
         parts = time_str.strip().split(":")
-        h, m = int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
+        h = int(parts[0])
+        m = int(parts[1]) if len(parts) > 1 else 0
         s = int(parts[2]) if len(parts) > 2 else 0
         y, mo, d = (int(x) for x in date_str.strip().split("-"))
         return datetime(y, mo, d, h, m, s, tzinfo=ZoneInfo(tz_name))
@@ -320,7 +325,7 @@ class KundaliBuilder:
                 try:
                     if any(ephe.iterdir()):
                         swe.set_ephe_path(str(ephe))
-                        return swe.FLG_SWIEPH
+                    return swe.FLG_SWIEPH
                 except OSError:
                     continue
         swe.set_ephe_path("")
@@ -510,6 +515,9 @@ class EnrichKundali:
 
         exalted = EnrichKundali._strength_factor_by_id(factors, "exalted")
         debilitated = EnrichKundali._strength_factor_by_id(factors, "debilitated")
+        own_rashi = EnrichKundali._strength_factor_by_id(factors, "own_rashi")
+        retrograde = EnrichKundali._strength_factor_by_id(factors, "retrograde")
+        combustion = EnrichKundali._strength_factor_by_id(factors, "combustion")
         limits = EnrichKundali._strength_factor_by_id(factors, "strength_limits") or EnrichKundali._strength_factor_by_id(
             factors, "clamp"
         )
@@ -519,6 +527,15 @@ class EnrichKundali:
             "exalted_bonus": int(exalted.get("increase_strength_percent", EXALTED_STRENGTH_BONUS)),
             "debilitated_penalty": int(
                 debilitated.get("decrease_strength_percent", DEBILITATED_STRENGTH_PENALTY)
+            ),
+            "own_rashi_bonus": int(
+                own_rashi.get("increase_strength_percent", OWN_RASHI_STRENGTH_BONUS)
+            ),
+            "retrograde_bonus": int(
+                retrograde.get("increase_strength_percent", RETROGRADE_STRENGTH_BONUS)
+            ),
+            "combustion_penalty": int(
+                combustion.get("decrease_strength_percent", COMBUSTION_STRENGTH_PENALTY)
             ),
             "min_percent": int(limits.get("min_percent", PLANET_STRENGTH_MIN_PERCENT)),
             "max_percent": int(limits.get("max_percent", PLANET_STRENGTH_MAX_PERCENT)),
@@ -545,11 +562,25 @@ class EnrichKundali:
         )
         if not isinstance(ui_color, dict):
             ui_color = {}
+        combustion = EnrichKundali._strength_factor_by_id(
+            raw.get("strength_factors") or raw.get("ui_strength_factors") or [],
+            "combustion",
+        )
+        combustion_by_planet = combustion.get("max_angular_distance_deg_by_planet")
+        if not isinstance(combustion_by_planet, dict):
+            combustion_by_planet = {}
         numeric = EnrichKundali.resolve_strength_numeric_rules(raw)
         return {
             "strength_factors": raw.get("strength_factors"),
             "status_column_color": raw.get("status_column_color"),
             "degree_in_sign_bands": raw.get("degree_in_sign_bands"),
+            "combustion_default_max_angular_distance_deg": float(
+                combustion.get(
+                    "default_max_angular_distance_deg",
+                    COMBUSTION_DEFAULT_MAX_ANGULAR_DISTANCE_DEG,
+                )
+            ),
+            "combustion_max_angular_distance_deg_by_planet": combustion_by_planet,
             **numeric,
             "color_intensity": {
                 "factor": ui_color.get("factor"),
@@ -1004,6 +1035,16 @@ class EnrichKundali:
         degree_bands: tuple[tuple[float, float, str, int], ...] | None = None,
     ) -> None:
         nakshatra_list = self.load_nakshatra_list_from_database()
+        sun_longitude = None
+        for row in chart.get("planets") or []:
+            if not isinstance(row, dict):
+                continue
+            if remove_white_space(row.get("name", "")) != "sun":
+                continue
+            lon = row.get("sidereal_longitude")
+            if isinstance(lon, (int, float)):
+                sun_longitude = float(lon)
+            break
         asc = EnrichKundali.find_ascendant_planet(chart) or {}
         lagna_rashi_index = asc.get("rashi_index")
         for p in chart.get("planets") or []:
@@ -1044,6 +1085,9 @@ class EnrichKundali:
                     base_strength,
                     friendship.get(pkey) or {},
                     strength_rules,
+                    retrograde=bool(p.get("retrograde")),
+                    planet_longitude=p.get("sidereal_longitude"),
+                    sun_longitude=sun_longitude,
                 )
                 p["planet_strength"] = strength
                 if dignity:
@@ -1088,6 +1132,19 @@ class EnrichKundali:
                 p["planet_status_in_nakshatra"] = UNKNOWN_LABEL
 
     @staticmethod
+    def planet_in_own_rashi(planet_key: str, rashi_english: str) -> bool:
+        """True when ``planet_key`` rules the sign given by ``rashi_english``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi = remove_white_space(rashi_english).lower()
+        if not pkey or not rashi:
+            return False
+        try:
+            ri = RASHI_IN_ENG.index(rashi)
+        except ValueError:
+            return False
+        return pkey == RASHI_SIGN_LORD_IN_ENG[ri]
+
+    @staticmethod
     def planet_dignity_from_sign(
         planet_key: str, rashi_english: str, friendship: dict[str, Any]
     ) -> str | None:
@@ -1116,6 +1173,10 @@ class EnrichKundali:
         base_strength: Any,
         rules: dict[str, Any],
         strength_rules: dict[str, Any],
+        *,
+        retrograde: bool = False,
+        planet_longitude: Any = None,
+        sun_longitude: Any = None,
     ) -> tuple[int | None, str | None]:
         if not isinstance(base_strength, (int, float)):
             return None, None
@@ -1126,6 +1187,11 @@ class EnrichKundali:
         adjusted = int(base_strength)
         bonus = int(strength_rules.get("exalted_bonus", EXALTED_STRENGTH_BONUS))
         penalty = int(strength_rules.get("debilitated_penalty", DEBILITATED_STRENGTH_PENALTY))
+        own_bonus = int(strength_rules.get("own_rashi_bonus", OWN_RASHI_STRENGTH_BONUS))
+        retro_bonus = int(strength_rules.get("retrograde_bonus", RETROGRADE_STRENGTH_BONUS))
+        combustion_penalty = int(
+            strength_rules.get("combustion_penalty", COMBUSTION_STRENGTH_PENALTY)
+        )
         min_pct = int(strength_rules.get("min_percent", PLANET_STRENGTH_MIN_PERCENT))
         max_pct = int(strength_rules.get("max_percent", PLANET_STRENGTH_MAX_PERCENT))
         if exalted and rashi == exalted:
@@ -1134,8 +1200,52 @@ class EnrichKundali:
         elif debilitated and rashi == debilitated:
             dignity = PLANET_DIGNITY_DEBILITATED
             adjusted -= penalty
+        if EnrichKundali.planet_in_own_rashi(planet_key, rashi_english):
+            adjusted += own_bonus
+        if retrograde:
+            adjusted += retro_bonus
+        if EnrichKundali.is_planet_combust(
+            planet_key,
+            planet_longitude,
+            sun_longitude,
+            strength_rules,
+        ):
+            adjusted -= combustion_penalty
         adjusted = max(min_pct, min(max_pct, adjusted))
         return adjusted, dignity
+
+    @staticmethod
+    def shortest_angular_distance_degrees(a: float, b: float) -> float:
+        """Absolute shortest angular distance in degrees on a 360° circle."""
+        delta = abs((float(a) - float(b)) % 360.0)
+        return min(delta, 360.0 - delta)
+
+    @staticmethod
+    def is_planet_combust(
+        planet_key: str,
+        planet_longitude: Any,
+        sun_longitude: Any,
+        strength_rules: dict[str, Any],
+    ) -> bool:
+        """True when planet is within configured combustion distance from Sun."""
+        pkey = remove_white_space(planet_key).lower()
+        if pkey in {"", "sun", "ascendant", "rahu", "ketu"}:
+            return False
+        if not isinstance(planet_longitude, (int, float)) or not isinstance(sun_longitude, (int, float)):
+            return False
+        thresholds = strength_rules.get("combustion_max_angular_distance_deg_by_planet")
+        if not isinstance(thresholds, dict):
+            thresholds = {}
+        threshold = thresholds.get(pkey, strength_rules.get("combustion_default_max_angular_distance_deg"))
+        try:
+            max_deg = float(threshold)
+        except (TypeError, ValueError):
+            max_deg = COMBUSTION_DEFAULT_MAX_ANGULAR_DISTANCE_DEG
+        if max_deg <= 0:
+            return False
+        return EnrichKundali.shortest_angular_distance_degrees(
+            float(planet_longitude), float(sun_longitude)
+        ) < max_deg
 
     @staticmethod
     def natural_friendship_with_lord_planet(
@@ -2160,12 +2270,46 @@ class EnrichKundali:
             })
         if lunar.get("tithi_name_english"):
             rows.append({"label": "Moon Tithi", "value": EnrichKundali._moon_tithi_display(lunar)})
+        strength_rules = chart.get("planet_strength_rules")
+        if not isinstance(strength_rules, dict):
+            strength_rules = {}
+        sun_longitude = None
+        for p in chart.get("planets") or []:
+            if isinstance(p, dict) and remove_white_space(p.get("name", "")) == "sun":
+                lon = p.get("sidereal_longitude")
+                if isinstance(lon, (int, float)):
+                    sun_longitude = float(lon)
+                break
+        combust = [
+            str(p.get("name") or "").strip().title()
+            for p in chart.get("planets") or []
+            if isinstance(p, dict)
+            and EnrichKundali.is_planet_combust(
+                str(p.get("name") or ""),
+                p.get("sidereal_longitude"),
+                sun_longitude,
+                strength_rules,
+            )
+        ]
+        rows.append({"label": "Combust Planet", "value": ", ".join(combust) if combust else "None"})
+        exalted = [
+            str(p.get("name") or "").strip().title()
+            for p in chart.get("planets") or []
+            if isinstance(p, dict) and str(p.get("planet_dignity") or "").strip().lower() == PLANET_DIGNITY_EXALTED
+        ]
+        rows.append({"label": "Exalted Planet", "value": ", ".join(exalted) if exalted else "None"})
+        debilitated = [
+            str(p.get("name") or "").strip().title()
+            for p in chart.get("planets") or []
+            if isinstance(p, dict) and str(p.get("planet_dignity") or "").strip().lower() == PLANET_DIGNITY_DEBILITATED
+        ]
+        rows.append({"label": "Debilitated Planet", "value": ", ".join(debilitated) if debilitated else "None"})
         retrograde = [
             str(p.get("name") or "").strip().title()
             for p in chart.get("planets") or []
             if isinstance(p, dict) and p.get("retrograde")
         ]
-        rows.append({"label": "Retrograde", "value": ", ".join(retrograde) if retrograde else "None"})
+        rows.append({"label": "Retrograde Planet", "value": ", ".join(retrograde) if retrograde else "None"})
         return rows
 
     @staticmethod

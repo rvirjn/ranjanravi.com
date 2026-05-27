@@ -615,6 +615,16 @@ tbody tr:last-child td {
   overflow-wrap: anywhere;
 }
 
+#summary-table td.summary-value--green {
+  color: rgb(46, 125, 50);
+  font-weight: 600;
+}
+
+#summary-table td.summary-value--red {
+  color: rgb(183, 28, 28);
+  font-weight: 600;
+}
+
 #summary-table tr:last-child th,
 #summary-table tr:last-child td {
   border-bottom: none;
