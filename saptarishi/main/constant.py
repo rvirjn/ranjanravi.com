@@ -177,6 +177,7 @@ HARMFUL_NAVATARA_NAMES = frozenset({"vadha", "vipat", "pratyari"})
 SERVICE_NAME = "saptarishi"
 FLASK_HOST = "0.0.0.0"
 FLASK_PORT = 8081
+FLASK_PUBLIC_API_ORIGIN = "https://saptarishi.ranjanravi.com"
 MAX_PLACE_QUERY_LENGTH = 240
 
 # --- Mongo defaults (read_collection CLI) ---

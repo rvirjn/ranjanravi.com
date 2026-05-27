@@ -2,31 +2,75 @@
 
 # Saptarishi
 
-Vedic birth chart (kundali) calculator: sidereal chart, planet strength table, and Moon janma nakshatra wheel.  
+Vedic birth chart (kundali): sidereal chart, planet strength table, and Moon janma nakshatra wheel.  
 Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights reserved.
 
-## Layout
+## Deployments
+
+| Environment | Flask API | UI |
+|-------------|-----------|-----|
+| **Production** | [https://saptarishi.ranjanravi.com](https://saptarishi.ranjanravi.com) (Render) | Static `ui/kundali.html` on your web host (e.g. nginx under `ranjanravi.com`) |
+| **Local dev** | `http://localhost:8081` (Docker `saptarishi_flask`) | `http://localhost:9999/ui/kundali.html` (Docker `saptarishi_ui`) |
+
+The UI calls the production API when opened from a non-localhost host (`ui/constants.js` → `PRODUCTION_API_ORIGIN`).  
+On **localhost**, it calls port **8081** automatically.
+
+There is **no** `index.html` — open **`kundali.html`** only.
+
+## Project layout
 
 | Path | Role |
 |------|------|
-| `main/get_kundali.py` | Chart calculation, enrichment, API payload (`planets_table`, `summary_table`, `nakshatras`) |
-| `main/constant.py` | Shared constants |
-| `database/data.json` | Planets, nakshatras, houses, `planet_strength_rules` |
-| `ui/kundali.html` | **Only UI page** — birth form, summary, chart, planets & nakshatra tables |
-| `ui/kundali.js`, `ui/styles.css`, `ui/constants.js` | UI logic and styles |
-| `ui/app.py` | Flask API on port **8081** |
-| `output/` | Saved kundali JSON (when written by CLI) |
+| `main/get_kundali.py` | Chart calculation and API payload |
+| `main/constant.py` | Shared constants (`FLASK_PUBLIC_API_ORIGIN`, etc.) |
+| `database/data.json` | Planets, nakshatras, `planet_strength_rules` |
+| `ui/kundali.html` | Single UI page |
+| `ui/kundali.js`, `ui/styles.css`, `ui/constants.js` | UI logic |
+| `ui/app.py` | Flask app (Render + local container) |
+| `Dockerfile.flask` | Local API image only |
+| `output/` | CLI-written kundali JSON |
 
-There is **no** `index.html`, `hompage.html`, or separate nakshatra page — open **`kundali.html`** directly.
+## Production (Render)
 
-## Run with Docker (recommended)
+**URL:** `https://saptarishi.ranjanravi.com`
 
-Two containers:
+Flask runs on Render and listens on Render’s `PORT` (see `ui/app.py`).  
+CORS is enabled so the static UI on another host can call the API.
 
-- **`saptarishi_ui`** — static UI (nginx) on port **9999**
-- **`saptarishi_flask`** — API on port **8081**
+### Render settings (typical)
 
-Prerequisites: Docker, shell in the **saptarishi** directory (contains `ui/`, `main/`, `database/`).
+- **Root directory:** `saptarishi` (repo subfolder if the repo root is the site monorepo)
+- **Build command:** `pip install -r requirements-flask.txt`
+- **Start command:** `python ui/app.py`
+- **Environment (optional):** `SAPTARISHI_PUBLIC_ORIGIN=https://saptarishi.ranjanravi.com` (default in code)
+
+Ensure `database/data.json`, `main/`, and `ephe/` (if used) are deployed with the service.
+
+### API (production)
+
+```text
+GET https://saptarishi.ranjanravi.com/
+GET https://saptarishi.ranjanravi.com/api/planet-database
+GET https://saptarishi.ranjanravi.com/api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W
+```
+
+After deploy, verify:
+
+```powershell
+curl.exe -s "https://saptarishi.ranjanravi.com/"
+
+curl.exe -s "https://saptarishi.ranjanravi.com/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W"
+```
+
+Redeploy on Render after changing Python or `data.json`.
+
+---
+
+## Local development (Docker)
+
+Use two containers on **localhost** — same code as production, different hosts/ports.
+
+Prerequisites: Docker; shell in the **saptarishi** directory.
 
 ### 1) Network (once)
 
@@ -34,7 +78,7 @@ Prerequisites: Docker, shell in the **saptarishi** directory (contains `ui/`, `m
 docker network create my-net
 ```
 
-### 2) UI container
+### 2) UI container (`saptarishi_ui`, port 9999)
 
 ```powershell
 docker rm -f saptarishi_ui
@@ -46,23 +90,14 @@ docker run -d `
   raviranjanamu/nginx
 ```
 
-Open:
+Open: **http://localhost:9999/ui/kundali.html**  
+The page calls **http://localhost:8081** for API requests.
 
-- **http://localhost:9999/ui/kundali.html**
-
-Do not rely on a site root `index.html`; the app entry point is `kundali.html` only.
-
-### 3) Flask API container
-
-Build once (needs a C compiler in the image for `pyswisseph`):
+### 3) Flask API container (`saptarishi_flask`, port 8081)
 
 ```powershell
 docker build -f Dockerfile.flask -t saptarishi-flask:latest .
-```
 
-Run (live code mounted at `/app`):
-
-```powershell
 docker rm -f saptarishi_flask
 docker run -d `
   --name saptarishi_flask `
@@ -73,26 +108,10 @@ docker run -d `
   saptarishi-flask:latest
 ```
 
-After changing Python or `requirements-flask.txt`, rebuild the image and recreate the container.  
-After changing only `get_kundali.py` or `data.json`, restart: `docker restart saptarishi_flask`.
+- Rebuild image after `requirements-flask.txt` changes.
+- `docker restart saptarishi_flask` after `get_kundali.py` or `data.json` changes.
 
-### API endpoints
-
-| URL | Purpose |
-|-----|---------|
-| `GET /` | Service info JSON |
-| `GET /api/planet-database` | Full `database/data.json` |
-| `GET /api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W` | Full chart + UI tables |
-
-Example:
-
-```text
-http://localhost:8081/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W
-```
-
-`house_system`: `W` (whole sign, default), `P`, or `A`.
-
-### 4) Verify
+### Local verify
 
 ```powershell
 docker ps --filter "name=saptarishi"
@@ -104,7 +123,7 @@ curl.exe -s "http://localhost:8081/"
 curl.exe -s "http://localhost:8081/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W"
 ```
 
-### 5) Logs and lifecycle
+### Local logs
 
 ```powershell
 docker logs -f saptarishi_ui
@@ -115,20 +134,19 @@ docker start saptarishi_ui saptarishi_flask
 docker rm -f saptarishi_ui saptarishi_flask
 ```
 
+---
+
 ## CLI (optional)
 
-From `saptarishi/main`:
-
 ```powershell
+cd main
 python get_kundali.py --date 1988-03-29 --time 16:33 --place "Motihari, India"
 ```
 
-Writes JSON under `output/` and prints debug tables.
-
 ## Planet strength rules
 
-Configured in `database/data.json` → `planet_strength_rules.strength_factors` (degree bands, exalted, debilitated, own sign, retrograde, combustion, death degree, limits).  
-Restart Flask after editing `data.json`, then recalculate in the UI (hard refresh: Ctrl+Shift+R).
+Edit `database/data.json` → `planet_strength_rules`.  
+Restart local Flask or redeploy Render, then hard-refresh the UI (Ctrl+Shift+R).
 
 ## Legal
 

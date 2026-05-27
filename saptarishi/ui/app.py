@@ -1,9 +1,10 @@
 # Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-"""Minimal Flask API: one endpoint runs ``get_kundali.build_full_kundali`` and returns JSON."""
+"""Flask API for Saptarishi kundali (Render production + local Docker)."""
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from constant import (  # noqa: E402
     DEFAULT_HOUSE_SYSTEM,
     FLASK_HOST,
     FLASK_PORT,
+    FLASK_PUBLIC_API_ORIGIN,
     MAX_PLACE_QUERY_LENGTH,
     SERVICE_NAME,
     VALID_HOUSE_SYSTEMS,
@@ -25,6 +27,18 @@ from constant import (  # noqa: E402
 from get_kundali import EnrichKundali, build_full_kundali  # noqa: E402
 
 app = Flask(__name__)
+
+# Render sets PORT; local Docker uses 8081 (see Dockerfile.flask).
+LISTEN_PORT = int(os.environ.get("PORT", FLASK_PORT))
+PUBLIC_API_ORIGIN = os.environ.get(
+    "SAPTARISHI_PUBLIC_ORIGIN", FLASK_PUBLIC_API_ORIGIN
+).rstrip("/")
+IS_RENDER = os.environ.get("RENDER", "").lower() in {"true", "1", "yes"}
+
+
+def _api_url(path: str, query: str = "") -> str:
+    base = PUBLIC_API_ORIGIN + path
+    return f"{base}?{query}" if query else base
 
 
 @app.after_request
@@ -37,12 +51,21 @@ def add_cors_headers(response):
 
 @app.route("/", methods=["GET"])
 def home():
+    sample = "date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India&house_system=W"
     return jsonify(
         {
             "service": SERVICE_NAME,
-            "ui": "/ui/kundali.html",
-            "api": "/api/kundali?date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India",
-            "planet_database": "/api/planet-database",
+            "deployment": "render" if IS_RENDER else "local",
+            "public_api_origin": PUBLIC_API_ORIGIN,
+            "listen_port": LISTEN_PORT,
+            "ui": {
+                "entry": "/ui/kundali.html",
+                "note": "UI is static (nginx locally); Flask serves JSON API only on Render.",
+            },
+            "endpoints": {
+                "kundali": _api_url("/api/kundali", sample),
+                "planet_database": _api_url("/api/planet-database"),
+            },
         }
     )
 
@@ -82,4 +105,4 @@ def api_kundali():
 
 
 if __name__ == "__main__":
-    app.run(host=FLASK_HOST, port=FLASK_PORT, debug=False)
+    app.run(host=FLASK_HOST, port=LISTEN_PORT, debug=False)

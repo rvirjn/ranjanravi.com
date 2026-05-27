@@ -2,6 +2,7 @@
 
 const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
   FLASK_PORT: 8081,
+  PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
@@ -32,15 +33,25 @@ const placeCustom = document.getElementById("place-custom");
 const birthDate = document.getElementById("birth-date");
 const birthTime = document.getElementById("birth-time");
 
-/** Flask API origin (port 8081); file:// pages default to localhost. */
+/** True when UI is opened from localhost (Docker nginx on :9999 or file://). */
+function isLocalDevUi() {
+  const host = window.location.hostname;
+  return (
+    window.location.protocol === "file:" ||
+    host === "localhost" ||
+    host === "127.0.0.1"
+  );
+}
+
+/** Flask API: localhost:8081 in dev; Render URL in production. */
 function getFlaskApiOrigin() {
-  const u = new URL(window.location.href);
-  if (window.location.protocol === "file:") return `http://localhost:${C.FLASK_PORT}`;
-  u.port = String(C.FLASK_PORT);
-  u.pathname = "";
-  u.search = "";
-  u.hash = "";
-  return u.origin;
+  if (isLocalDevUi()) {
+    return `http://localhost:${C.FLASK_PORT}`;
+  }
+  return String(C.PRODUCTION_API_ORIGIN || "https://saptarishi.ranjanravi.com").replace(
+    /\/$/,
+    ""
+  );
 }
 
 /** Show loading or error text under the birth form; hide when empty. */
@@ -1113,7 +1124,10 @@ async function handleBirthFormSubmit(event) {
     );
     renderKundaliResponseIntoPage(kundaliPayload);
   } catch (err) {
-    showStatusMessage(`Failed: ${err.message}. Is Flask running on port ${C.FLASK_PORT}?`, true);
+    const apiHint = isLocalDevUi()
+      ? `Is Flask running on http://localhost:${C.FLASK_PORT}?`
+      : `Is the API reachable at ${getFlaskApiOrigin()}?`;
+    showStatusMessage(`Failed: ${err.message}. ${apiHint}`, true);
   }
 }
 
