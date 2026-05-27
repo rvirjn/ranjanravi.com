@@ -1,11 +1,36 @@
 {
   "planet_strength_rules": {
     "degree_in_sign_bands": [
-      { "low_deg": 0, "high_deg": 6, "phase": "born", "strength_percent": 25 },
-      { "low_deg": 6, "high_deg": 12, "phase": "child", "strength_percent": 50 },
-      { "low_deg": 12, "high_deg": 18, "phase": "youth", "strength_percent": 100 },
-      { "low_deg": 18, "high_deg": 24, "phase": "old", "strength_percent": 50 },
-      { "low_deg": 24, "high_deg": 30, "phase": "dead", "strength_percent": 25 }
+      {
+        "low_deg": 0,
+        "high_deg": 6,
+        "phase": "born",
+        "strength_percent": 25
+      },
+      {
+        "low_deg": 6,
+        "high_deg": 12,
+        "phase": "child",
+        "strength_percent": 50
+      },
+      {
+        "low_deg": 12,
+        "high_deg": 18,
+        "phase": "youth",
+        "strength_percent": 100
+      },
+      {
+        "low_deg": 18,
+        "high_deg": 24,
+        "phase": "old",
+        "strength_percent": 50
+      },
+      {
+        "low_deg": 24,
+        "high_deg": 30,
+        "phase": "dead",
+        "strength_percent": 25
+      }
     ],
     "strength_factors": [
       {
@@ -73,31 +98,52 @@
         "column": "Rashi Status",
         "factor": "Natural friendship vs sign lord of planet's rashi (own if planet rules that sign; else planets[].friends/enemies/neutral)",
         "affects_strength_percent": false,
-        "cell_color": { "own": "green", "friend": "green", "enemy": "red", "high": "green", "low": "red" }
+        "cell_color": {
+          "own": "green",
+          "friend": "green",
+          "enemy": "red",
+          "high": "green",
+          "low": "red"
+        }
       },
       {
         "column": "Nakshatra Status",
         "factor": "Natural friendship vs vimshottari lord of planet's nakshatra (not comma-listed ruling_planet text)",
         "affects_strength_percent": false,
-        "cell_color": { "own": "green", "friend": "green", "enemy": "red", "high": "green", "low": "red" }
+        "cell_color": {
+          "own": "green",
+          "friend": "green",
+          "enemy": "red",
+          "high": "green",
+          "low": "red"
+        }
       },
       {
         "column": "Nakshatra navatara",
         "factor": "Harmful nava-tara (vipat, pratyak, vadha, etc.) from Moon janma wheel",
         "affects_strength_percent": false,
-        "cell_color": { "harmful": "red" }
+        "cell_color": {
+          "harmful": "red"
+        }
       },
       {
         "column": "Malefic 6/8/12, Lagna Lord Enemy, Death Degree",
         "factor": "Yes if planet in dusthana house, enemy of lagna lord, or Mrityu Bhaga",
         "affects_strength_percent": false,
-        "cell_color": { "yes": "red" }
+        "cell_color": {
+          "yes": "red"
+        }
       },
       {
         "column": "Karakwaqt",
         "factor": "Lagna roles from data.json houses[1].lagna for this ascendant rashi",
         "affects_strength_percent": false,
-        "cell_color": { "yog_karak": "green", "marak": "red", "badhak": "red", "prabal_marak": "red" }
+        "cell_color": {
+          "yog_karak": "green",
+          "marak": "red",
+          "badhak": "red",
+          "prabal_marak": "red"
+        }
       }
     ],
     "color_intensity": {
@@ -175,7 +221,12 @@
           "degree": 23
         }
       ],
-      "mahadasha_years": 6
+      "mahadasha_years": 6,
+      "aspect": {
+        "offsets": [
+          7
+        ]
+      }
     },
     {
       "name": "moon",
@@ -245,7 +296,12 @@
           "degree": 12
         }
       ],
-      "mahadasha_years": 10
+      "mahadasha_years": 10,
+      "aspect": {
+        "offsets": [
+          7
+        ]
+      }
     },
     {
       "name": "mars",
@@ -315,7 +371,14 @@
           "degree": 6
         }
       ],
-      "mahadasha_years": 7
+      "mahadasha_years": 7,
+      "aspect": {
+        "offsets": [
+          4,
+          7,
+          8
+        ]
+      }
     },
     {
       "name": "mercury",
@@ -385,7 +448,12 @@
           "degree": 5
         }
       ],
-      "mahadasha_years": 17
+      "mahadasha_years": 17,
+      "aspect": {
+        "offsets": [
+          7
+        ]
+      }
     },
     {
       "name": "jupiter",
@@ -455,7 +523,14 @@
           "degree": 18
         }
       ],
-      "mahadasha_years": 16
+      "mahadasha_years": 16,
+      "aspect": {
+        "offsets": [
+          5,
+          7,
+          9
+        ]
+      }
     },
     {
       "name": "venus",
@@ -525,7 +600,12 @@
           "degree": 19
         }
       ],
-      "mahadasha_years": 20
+      "mahadasha_years": 20,
+      "aspect": {
+        "offsets": [
+          7
+        ]
+      }
     },
     {
       "name": "saturn",
@@ -595,7 +675,14 @@
           "degree": 15
         }
       ],
-      "mahadasha_years": 19
+      "mahadasha_years": 19,
+      "aspect": {
+        "offsets": [
+          3,
+          7,
+          10
+        ]
+      }
     },
     {
       "name": "rahu",
@@ -665,7 +752,14 @@
           "degree": 8
         }
       ],
-      "mahadasha_years": 18
+      "mahadasha_years": 18,
+      "aspect": {
+        "offsets": [
+          5,
+          7,
+          9
+        ]
+      }
     },
     {
       "name": "ketu",
@@ -735,7 +829,10 @@
           "degree": 14
         }
       ],
-      "mahadasha_years": 7
+      "mahadasha_years": 7,
+      "aspect": {
+        "offsets": []
+      }
     },
     {
       "name": "ascendant",

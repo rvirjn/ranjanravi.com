@@ -5,6 +5,8 @@
 Vedic birth chart (kundali): sidereal chart, planet strength table, and Moon janma nakshatra wheel.  
 Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights reserved.
 
+## URL : [https://ranjanravi.com/saptarishi/ui/kundali.html](https://ranjanravi.com/saptarishi/ui/kundali.html)
+
 ## Deployments
 
 | Environment | Flask API | UI |
@@ -39,10 +41,15 @@ CORS is enabled so the static UI on another host can call the API.
 
 ### Render settings (typical)
 
+- **Runtime:** Python (not Node — there is no `package.json` in this folder)
 - **Root directory:** `saptarishi` (repo subfolder if the repo root is the site monorepo)
 - **Build command:** `pip install -r requirements-flask.txt`
 - **Start command:** `python ui/app.py`
 - **Environment (optional):** `SAPTARISHI_PUBLIC_ORIGIN=https://saptarishi.ranjanravi.com` (default in code)
+
+Repo root [`render.yaml`](../render.yaml) documents the same settings for a Blueprint deploy.
+
+**Deploy error `Couldn't find a package.json`:** the service is configured as Node with `yarn` / `yarn start`. In Render → your service → **Settings**, set **Runtime** to **Python 3**, then use the build/start commands above (or sync from `render.yaml`).
 
 Ensure `database/data.json`, `main/`, and `ephe/` (if used) are deployed with the service.
 

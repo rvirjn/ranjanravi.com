@@ -94,6 +94,7 @@ from constant import (
     UNKNOWN_LABEL,
     VALID_HOUSE_SYSTEMS,
     DEFAULT_MAHADASHA_YEARS_BY_PLANET,
+    DEFAULT_PLANET_ASPECT_OFFSETS,
     VIMSHOTTARI_CYCLE_YEARS,
     VIMSHOTTARI_MAHADASHA_SEQUENCE,
 )
@@ -641,6 +642,8 @@ class EnrichKundali:
         self.attach_planet_karakwaqt(chart)
         self.attach_planet_mahadasha_ages(chart)
         self.attach_house_context_to_planets(chart)
+        self.attach_planet_aspects(chart, self.load_planet_aspect_offsets_by_planet())
+        self.attach_planet_aspected_by(chart)
         self.attach_planet_table_ui_metadata(chart)
         self.compact_planets_for_api(chart)
         self.add_kundali_summary_block(chart)
@@ -1007,6 +1010,124 @@ class EnrichKundali:
             return list(self.load_planet_database().get("nakshatras") or [])
         except OSError:
             return []
+
+    def load_planet_aspect_offsets_by_planet(self) -> dict[str, tuple[int, ...]]:
+        """Parashari drishti offsets per planet from ``planets[].aspect.offsets``."""
+        out: dict[str, tuple[int, ...]] = dict(DEFAULT_PLANET_ASPECT_OFFSETS)
+        try:
+            data = self.load_planet_database()
+        except OSError:
+            return out
+        for row in data.get("planets") or []:
+            if not isinstance(row, dict):
+                continue
+            key = remove_white_space(row.get("name", ""))
+            if not key or key == "ascendant":
+                continue
+            raw = row.get("aspect")
+            offsets: list[int] | None = None
+            if isinstance(raw, dict):
+                offsets = raw.get("offsets")
+            elif isinstance(raw, list):
+                offsets = raw
+            if not isinstance(offsets, list):
+                continue
+            if not offsets:
+                out[key] = ()
+                continue
+            parsed: list[int] = []
+            for item in offsets:
+                try:
+                    n = int(item)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= n <= RASHI_COUNT:
+                    parsed.append(n)
+            out[key] = tuple(parsed)
+        return out
+
+    @staticmethod
+    def house_reached_by_aspect_offset(planet_house: int, offset: int) -> int:
+        """Whole-sign house aspected (e.g. Mars in 2nd with offset 4 → 5th house)."""
+        return ((int(planet_house) + int(offset) - 2) % RASHI_COUNT) + 1
+
+    @staticmethod
+    def aspect_houses_from_offsets(planet_house: int | None, offsets: tuple[int, ...]) -> list[int]:
+        if not isinstance(planet_house, int) or not offsets:
+            return []
+        return [
+            EnrichKundali.house_reached_by_aspect_offset(planet_house, off)
+            for off in offsets
+        ]
+
+    @staticmethod
+    def normalize_house_numbers(houses: Any) -> list[int]:
+        """Coerce aspect house list entries to ints 1–12 (JSON may use strings)."""
+        if not isinstance(houses, list):
+            return []
+        out: list[int] = []
+        for item in houses:
+            try:
+                n = int(item)
+            except (TypeError, ValueError):
+                continue
+            if 1 <= n <= RASHI_COUNT:
+                out.append(n)
+        return out
+
+    def attach_planet_aspects(
+        self, chart: dict[str, Any], offsets_by_planet: dict[str, tuple[int, ...]]
+    ) -> None:
+        """Set ``aspect`` on each graha: offsets from DB + houses for this chart."""
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            pkey = remove_white_space(p.get("name", ""))
+            if not pkey or pkey == "ascendant":
+                continue
+            offsets = offsets_by_planet.get(pkey, DEFAULT_PLANET_ASPECT_OFFSETS.get(pkey, ()))
+            hn = EnrichKundali.planet_house_number(p)
+            p["aspect"] = {
+                "offsets": list(offsets),
+                "houses": EnrichKundali.aspect_houses_from_offsets(hn, offsets),
+            }
+
+    @staticmethod
+    def format_planet_names_csv(planet_keys: list[str]) -> str:
+        order = {name: idx for idx, name in enumerate(VIMSHOTTARI_MAHADASHA_SEQUENCE)}
+        keys = [remove_white_space(k) for k in planet_keys if remove_white_space(k)]
+        keys = sorted(set(keys), key=lambda k: order.get(k, 99))
+        return ", ".join(k.title() for k in keys)
+
+    @staticmethod
+    def aspectors_by_house_from_chart(chart: dict[str, Any]) -> dict[int, list[str]]:
+        """Graha names whose drishti hits each whole-sign house (1–12)."""
+        aspectors_by_house: dict[int, list[str]] = {hn: [] for hn in range(1, RASHI_COUNT + 1)}
+        for other in chart.get("planets") or []:
+            if not isinstance(other, dict):
+                continue
+            other_key = remove_white_space(other.get("name", ""))
+            if not other_key or other_key == "ascendant":
+                continue
+            aspect = other.get("aspect")
+            raw_houses = aspect.get("houses") if isinstance(aspect, dict) else None
+            for hn in EnrichKundali.normalize_house_numbers(raw_houses):
+                aspectors_by_house[hn].append(other_key)
+        return aspectors_by_house
+
+    def attach_planet_aspected_by(self, chart: dict[str, Any]) -> None:
+        """Set ``aspected_by`` on each graha: other planets whose drishti hits its house."""
+        aspectors_by_house = EnrichKundali.aspectors_by_house_from_chart(chart)
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            if remove_white_space(p.get("name", "")) in ("", "ascendant"):
+                continue
+            target_house = EnrichKundali.planet_house_number(p)
+            if not isinstance(target_house, int):
+                p["aspected_by"] = []
+                continue
+            p["aspected_by"] = list(aspectors_by_house.get(target_house, []))
 
     def load_death_degree_rules(self) -> dict[str, list[dict[str, Any]]]:
         """Mrityu Bhaga rules per ``planets[]`` name (lagna uses ``ascendant``)."""
@@ -2042,23 +2163,29 @@ class EnrichKundali:
                 pass
         return 999.0
 
-    @staticmethod
-    def build_planets_table_rows(chart: dict[str, Any]) -> list[dict[str, Any]]:
+    def build_planets_table_rows(self, chart: dict[str, Any]) -> list[dict[str, Any]]:
+        """One or more rows per house 1–12; empty houses get a house-only row."""
         strength_rules = chart.get("planet_strength_rules")
         if not isinstance(strength_rules, dict):
             strength_rules = {}
-        rows: list[dict[str, Any]] = []
-        for p in sorted(
-            chart.get("planets") or [],
-            key=lambda x: (EnrichKundali.planet_house_number(x) or 99, x.get("name") or ""),
-        ):
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
+        lagna_idx = asc.get("rashi_index") if isinstance(asc, dict) else None
+        houses_by_num = EnrichKundali.whole_sign_houses_by_number(lagna_idx)
+        house_for = self.load_houses_for_lookup()
+        aspectors_by_house = EnrichKundali.aspectors_by_house_from_chart(chart)
+
+        rows_by_house: dict[int, list[dict[str, Any]]] = {hn: [] for hn in range(1, RASHI_COUNT + 1)}
+
+        for p in chart.get("planets") or []:
             if not isinstance(p, dict):
                 continue
             if remove_white_space(p.get("name", "")) == "ascendant":
                 continue
+            house_num = EnrichKundali.planet_house_number(p)
+            if not isinstance(house_num, int) or not (1 <= house_num <= RASHI_COUNT):
+                continue
             strength = p.get("planet_strength")
             house = p.get("house") if isinstance(p.get("house"), dict) else {}
-            house_num = house.get("number")
             for_list = house.get("for") or []
             malefic = p.get("is_planet_in_6_8_12_house", HOUSE_6_8_12_NO)
             lagna_enemy = p.get("is_planet_lagna_lord_enemy", HOUSE_6_8_12_NO)
@@ -2066,14 +2193,17 @@ class EnrichKundali:
             rashi_status = p.get("planet_status_in_rashi") or UNKNOWN_LABEL
             nak_status = p.get("planet_status_in_nakshatra") or UNKNOWN_LABEL
             hr = house.get("rashi") if isinstance(house.get("rashi"), dict) else {}
-            rows.append({
+            aspectors = p.get("aspected_by") if isinstance(p.get("aspected_by"), list) else []
+            rows_by_house[house_num].append({
                 "house": {
                     "number": house_num,
                     "for": EnrichKundali.format_house_for_display(
-                        for_list if isinstance(for_list, list) else []
+                        for_list if isinstance(for_list, list) else house_for.get(house_num, [])
                     ),
                 },
                 "planet": p.get("name"),
+                "aspected_by_planets": list(aspectors),
+                "aspected_by": EnrichKundali.format_planet_names_csv(aspectors),
                 "degree": EnrichKundali.planet_degree_in_sign_display(p),
                 "strength": f"{strength}%" if strength is not None else UNKNOWN_LABEL,
                 "strength_percent": strength if isinstance(strength, (int, float)) else None,
@@ -2099,10 +2229,48 @@ class EnrichKundali:
                 "dasha_age": EnrichKundali.format_dasha_age_display(p.get("age")),
                 "cell_styles": EnrichKundali.build_planet_cell_styles(p, strength_rules),
             })
+
+        rows: list[dict[str, Any]] = []
+        for house_num in range(1, RASHI_COUNT + 1):
+            if rows_by_house[house_num]:
+                rows.extend(rows_by_house[house_num])
+                continue
+            ws = houses_by_num.get(house_num) or {}
+            aspectors = aspectors_by_house.get(house_num, [])
+            rows.append({
+                "house": {
+                    "number": house_num,
+                    "for": EnrichKundali.format_house_for_display(house_for.get(house_num, [])),
+                },
+                "planet": "",
+                "aspected_by_planets": list(aspectors),
+                "aspected_by": EnrichKundali.format_planet_names_csv(aspectors),
+                "degree": "",
+                "strength": "",
+                "strength_percent": None,
+                "flags": {
+                    "malefic_6_8_12": "",
+                    "lagna_lord_enemy": "",
+                    "death_degree": "",
+                },
+                "status": {"rashi": "", "nakshatra": ""},
+                "rashi": EnrichKundali._rashi_display(
+                    str(ws.get("rashi_english") or ""),
+                    str(ws.get("rashi_sanskrit") or ""),
+                ),
+                "nakshatra": "",
+                "navatara": "",
+                "karakwaqt": "",
+                "dasha_age": "",
+                "cell_styles": {},
+                "empty_house": True,
+            })
+
         return sorted(
             rows,
             key=lambda r: (
                 EnrichKundali.dasha_age_start_years(r),
+                int((r.get("house") or {}).get("number") or 99),
                 remove_white_space(str(r.get("planet") or "")),
             ),
         )

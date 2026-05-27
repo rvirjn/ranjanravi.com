@@ -790,19 +790,46 @@ tbody tr:last-child td {
 }
 
 #planets-table.kundali-table thead th:nth-child(1) { width: 6%; }
-#planets-table.kundali-table thead th:nth-child(2) { width: 8%; }
+#planets-table.kundali-table thead th:nth-child(2) { width: 7%; }
 #planets-table.kundali-table thead th:nth-child(3) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(4) { width: 5%; }
+#planets-table.kundali-table thead th:nth-child(4) { width: 9%; }
 #planets-table.kundali-table thead th:nth-child(5) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(6) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(6) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(7) { width: 5%; }
-#planets-table.kundali-table thead th:nth-child(8) { width: 7%; }
-#planets-table.kundali-table thead th:nth-child(9) { width: 8%; }
-#planets-table.kundali-table thead th:nth-child(10) { width: 11%; }
+#planets-table.kundali-table thead th:nth-child(8) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(9) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(10) { width: 7%; }
 #planets-table.kundali-table thead th:nth-child(11) { width: 9%; }
-#planets-table.kundali-table thead th:nth-child(12) { width: 7%; }
+#planets-table.kundali-table thead th:nth-child(12) { width: 8%; }
 #planets-table.kundali-table thead th:nth-child(13) { width: 6%; }
-#planets-table.kundali-table thead th:nth-child(14) { width: 5%; }
+#planets-table.kundali-table thead th:nth-child(14) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(15) { width: 5%; }
+
+#planets-table .planets-td-aspected-by {
+  min-width: 3.25rem;
+  max-width: none;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+  white-space: normal;
+  vertical-align: top;
+  overflow: visible;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+#planets-table tbody tr.planets-row--empty-house {
+  background: rgba(30, 58, 95, 0.04);
+}
+
+#planets-table tbody tr.planets-row--empty-house td {
+  color: var(--color-text-muted);
+}
+
+#planets-table tbody tr.planets-row--empty-house .planets-house-num {
+  color: var(--color-heading);
+  font-style: normal;
+}
 
 #planets-table .planets-td-karakwaqt {
   min-width: 0;

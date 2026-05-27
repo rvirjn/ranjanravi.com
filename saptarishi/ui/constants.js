@@ -44,6 +44,32 @@ const SAPTARISHI_CONSTANTS = {
     "aquarius",
     "pisces"
   ],
+  RASHI_IN_SANSKRIT: [
+    "mesha",
+    "vrishabha",
+    "mithuna",
+    "karka",
+    "simha",
+    "kanya",
+    "tula",
+    "vrishchika",
+    "dhanu",
+    "makara",
+    "kumbha",
+    "meena"
+  ],
+  /** Parashari drishti offsets (sync with main/constant.py / data.json). */
+  DEFAULT_PLANET_ASPECT_OFFSETS: {
+    sun: [7],
+    moon: [7],
+    mercury: [7],
+    venus: [7],
+    mars: [4, 7, 8],
+    jupiter: [5, 7, 9],
+    saturn: [3, 7, 10],
+    rahu: [5, 7, 9],
+    ketu: []
+  },
   /** Chart labels from output JSON ``planets[].name`` (keep in sync with main/constant.py). */
   PLANET_SHORT: {
     sun: "Su",
@@ -73,6 +99,18 @@ const SAPTARISHI_CONSTANTS = {
   ],
   /** Display order for planet abbreviations in each house cell */
   PLANET_DISPLAY_ORDER: ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"],
+  /** Vimshottari order for ``aspected_by`` column (sync with main/constant.py). */
+  VIMSHOTTARI_PLANET_ORDER: [
+    "ketu",
+    "venus",
+    "sun",
+    "moon",
+    "mars",
+    "rahu",
+    "jupiter",
+    "saturn",
+    "mercury"
+  ],
   /** Fallback if ``/api/planet-database`` is unavailable (sync with database/data.json). */
   PLANET_STRENGTH_MAX_PERCENT: 200
 };

@@ -103,7 +103,13 @@ function formatSummaryCellValue(label, value) {
   return raw;
 }
 
-function summaryValueClassForLabel(label) {
+function summaryValueHasPlanetList(value) {
+  const text = normalizeText(value);
+  return text && text !== "none" && text !== "n/a" && text !== "-" && text !== "—";
+}
+
+function summaryValueClassForLabel(label, value) {
+  if (!summaryValueHasPlanetList(value)) return "";
   const key = normalizeText(label);
   if (key === "exalted planet" || key === "retrograde planet") {
     return "summary-value--green";
@@ -121,12 +127,41 @@ function createSummaryLabelValueRow(label, value) {
   th.scope = "row";
   th.textContent = toTitleCaseWords(label);
   const td = document.createElement("td");
-  const valueClass = summaryValueClassForLabel(label);
+  const valueClass = summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
   td.textContent = formatSummaryCellValue(label, value);
   tr.appendChild(th);
   tr.appendChild(td);
   return tr;
+}
+
+/** Unique aspecting graha keys from ``planets_table`` row / ``planets[]`` (sorted). */
+function collectAspectedByPlanetKeys(rowData) {
+  const names = [];
+  const add = (raw) => {
+    const key = normalizeText(raw);
+    if (key && !names.includes(key)) names.push(key);
+  };
+  if (Array.isArray(rowData?.aspected_by_planets)) {
+    rowData.aspected_by_planets.forEach(add);
+  }
+  if (Array.isArray(rowData?.aspected_by)) {
+    rowData.aspected_by.forEach(add);
+  } else {
+    const text = String(rowData?.aspected_by ?? "").trim();
+    if (text) text.split(",").forEach((part) => add(part));
+  }
+  const order = C.VIMSHOTTARI_PLANET_ORDER || [];
+  const rank = new Map(order.map((p, i) => [p, i]));
+  names.sort((a, b) => (rank.get(a) ?? 99) - (rank.get(b) ?? 99));
+  return names;
+}
+
+/** Comma-separated aspecting graha names (from API string or ``aspected_by_planets`` array). */
+function formatAspectedByPlanets(rowData) {
+  const names = collectAspectedByPlanetKeys(rowData);
+  if (!names.length) return "";
+  return names.map((n) => toTitleCaseWords(n)).join(", ");
 }
 
 function dedupeCommaList(cell) {
@@ -220,6 +255,9 @@ function planetsTableCellText(key, rowData) {
   if (key === "dasha_age") {
     return rowData.dasha_age ?? formatDashaAgeDisplay(rowData.age) ?? "";
   }
+  if (key === "aspected_by") {
+    return formatAspectedByPlanets(rowData);
+  }
   return rowData[key];
 }
 
@@ -240,18 +278,34 @@ function formatTableCellForDisplay(key, cell) {
     }
     return text;
   }
-  if (key === "planet" || key === "planet_status_in_rashi" || key === "planet_status_in_nakshatra") {
+  if (key === "planet") {
+    if (!String(text).trim()) return "No planet";
+    return toTitleCaseWords(text);
+  }
+  if (key === "planet_status_in_rashi" || key === "planet_status_in_nakshatra") {
     const s = normalizeText(text);
+    if (!s) return "—";
     if (s === "high") return "High";
     if (s === "low") return "Low";
     if (s === "own") return "Own";
     return toTitleCaseWords(text);
+  }
+  if (
+    key === "strength" ||
+    key === "degree" ||
+    key === "nakshatra" ||
+    key === "navatara" ||
+    key === "karakwaqt" ||
+    key === "dasha_age"
+  ) {
+    if (!String(text).trim()) return "—";
   }
   if (key === "nakshatra") return formatNavataraName(text.replace(/\s*\(pada\s+\d+\)\s*$/i, ""));
   if (key === "navatara") return formatNavataraName(text);
   if (key === "karakwaqt") {
     return formatKarakwaqtPlainText(text);
   }
+  if (key === "aspected_by") return formatAspectedByPlanets({ aspected_by: text });
   if (key === "ruling_planet") return toTitleCaseWords(dedupeCommaList(text));
   if (key === "lucky_day") return toTitleCaseWords(text);
   if (key === "divine_god" || key === "deity") return toTitleCaseWords(dedupeCommaList(text));
@@ -408,8 +462,19 @@ function applyPlanetTableCellStyle(td, colorKind, columnKey) {
     columnKey === "is_planet_at_death_degree" ||
     columnKey === "navatara" ||
     columnKey === "karakwaqt";
-  td.className = `${yesNoCol ? "planets-td-yesno" : "planets-td-status"} planet-cell planet-cell--${colorKind}`;
+  const extra = td.className ? `${td.className} ` : "";
+  td.className =
+    `${extra}${yesNoCol ? "planets-td-yesno" : "planets-td-status"} planet-cell planet-cell--${colorKind}`.trim();
   applyPlanetStatusCellColorIntensity(td);
+}
+
+/** Aspected By cell: comma-separated planet names with chart abbreviations. */
+function appendPlanetsAspectedByCell(tr, rowData) {
+  const td = document.createElement("td");
+  td.className = "planets-td-aspected-by";
+  const text = formatAspectedByPlanets(rowData);
+  td.textContent = text || "—";
+  tr.appendChild(td);
 }
 
 /** Chart planet color class from API ``planet_status_color`` or status text. */
@@ -542,6 +607,137 @@ function appendPlanetsHouseCell(tr, rowData) {
   tr.appendChild(td);
 }
 
+function formatRashiDisplayFromHouseMeta(houseMeta) {
+  const ri = houseMeta?.rashi_index;
+  const eng = C.RASHI_IN_EN?.[ri] || houseMeta?.rashi_english || "";
+  const sa = C.RASHI_IN_SANSKRIT?.[ri] || "";
+  const enTitle = toTitleCaseWords(eng);
+  if (!enTitle) return "—";
+  return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
+}
+
+function housesForLookupFromDatabase() {
+  const lookup = {};
+  for (const item of planetDatabase?.houses || []) {
+    if (!item || typeof item.house !== "number") continue;
+    const parts = (item.for || []).map((x) => String(x).trim()).filter(Boolean);
+    lookup[item.house] = parts.join(", ");
+  }
+  return lookup;
+}
+
+function aspectOffsetsByPlanetFromDatabase() {
+  const out = {};
+  const defaults = C.DEFAULT_PLANET_ASPECT_OFFSETS || {};
+  for (const [key, offsets] of Object.entries(defaults)) {
+    out[normalizeText(key)] = (offsets || []).map(Number).filter((n) => n >= 1 && n <= 12);
+  }
+  for (const row of planetDatabase?.planets || []) {
+    const key = normalizeText(row?.name);
+    if (!key || key === "ascendant") continue;
+    const raw = row?.aspect?.offsets;
+    if (!Array.isArray(raw)) continue;
+    if (!raw.length) {
+      out[key] = [];
+      continue;
+    }
+    out[key] = raw.map(Number).filter((n) => n >= 1 && n <= 12);
+  }
+  return out;
+}
+
+function houseReachedByAspectOffset(planetHouse, offset) {
+  return ((Number(planetHouse) + Number(offset) - 2) % 12) + 1;
+}
+
+function aspectHousesForPlanet(planet, offsetsByPlanet) {
+  const hn = planetHouseNumber(planet);
+  if (!hn) return [];
+  const key = normalizeText(planet?.name);
+  const offsets = offsetsByPlanet[key] || [];
+  return offsets.map((off) => houseReachedByAspectOffset(hn, off));
+}
+
+/** Graha names whose drishti hits each house 1–12 (computed in UI if API omits it). */
+function aspectorsByHouseFromPlanets(planets, offsetsByPlanet) {
+  const byHouse = {};
+  for (let h = 1; h <= 12; h += 1) byHouse[h] = [];
+  for (const p of planets || []) {
+    const key = normalizeText(p?.name);
+    if (!key || key === "ascendant") continue;
+    let houses = p?.aspect?.houses;
+    if (!Array.isArray(houses) || !houses.length) {
+      houses = aspectHousesForPlanet(p, offsetsByPlanet);
+    }
+    for (const hn of houses) {
+      const n = Number(hn);
+      if (n >= 1 && n <= 12 && !byHouse[n].includes(key)) byHouse[n].push(key);
+    }
+  }
+  return byHouse;
+}
+
+function createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForLookup) {
+  const housesMeta = wholeSignHousesFromPayload(payload);
+  const ws = housesMeta[houseNum] || {};
+  const aspectors = aspectorsByHouse[houseNum] || [];
+  const row = {
+    house: {
+      number: houseNum,
+      for: formatHouseForList(houseForLookup[houseNum] || "")
+    },
+    planet: "",
+    aspected_by_planets: [...aspectors],
+    aspected_by: formatAspectedByPlanets({ aspected_by_planets: aspectors }),
+    degree: "",
+    strength: "",
+    strength_percent: null,
+    flags: { malefic_6_8_12: "", lagna_lord_enemy: "", death_degree: "" },
+    status: { rashi: "", nakshatra: "" },
+    rashi: formatRashiDisplayFromHouseMeta(ws),
+    nakshatra: "",
+    navatara: "",
+    karakwaqt: "",
+    dasha_age: "",
+    cell_styles: {},
+    empty_house: true
+  };
+  return row;
+}
+
+function housesPresentInPlanetsTable(rows) {
+  const present = new Set();
+  for (const row of rows || []) {
+    const hn = Number(houseFromTableRow(row).number);
+    if (hn >= 1 && hn <= 12) present.add(hn);
+  }
+  return present;
+}
+
+/** Ensure ``planets_table`` has at least one row for every house 1–12. */
+function expandPlanetsTableToAllHouses(rows, payload) {
+  const list = Array.isArray(rows) ? [...rows] : [];
+  const present = housesPresentInPlanetsTable(list);
+  let allPresent = true;
+  for (let h = 1; h <= 12; h += 1) {
+    if (!present.has(h)) {
+      allPresent = false;
+      break;
+    }
+  }
+  if (allPresent) return sortPlanetsTableRowsByAge(list);
+
+  const offsetsByPlanet = aspectOffsetsByPlanetFromDatabase();
+  const aspectorsByHouse = aspectorsByHouseFromPlanets(payload?.planets || [], offsetsByPlanet);
+  const houseForLookup = housesForLookupFromDatabase();
+
+  for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
+    if (present.has(houseNum)) continue;
+    list.push(createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForLookup));
+  }
+  return sortPlanetsTableRowsByAge(list);
+}
+
 /** Merge ``planets[]`` into ``planets_table`` when API rows omit newer fields. */
 function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
   if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
@@ -549,6 +745,7 @@ function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
     planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
   );
   return planetsTable.map((row) => {
+    if (!normalizeText(row?.planet)) return row;
     const src = byPlanet.get(normalizeText(row?.planet));
     if (!src) return row;
     const next = { ...row };
@@ -556,6 +753,16 @@ function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
     if (dashaAge) next.dasha_age = dashaAge;
     const kw = (row.karakwaqt || src.planet_karakwaqt || "").trim();
     if (kw) next.karakwaqt = kw;
+    const mergedAspectors = collectAspectedByPlanetKeys({
+      aspected_by_planets: row.aspected_by_planets,
+      aspected_by: Array.isArray(src.aspected_by)
+        ? src.aspected_by
+        : row.aspected_by || src.aspected_by
+    });
+    if (mergedAspectors.length) {
+      next.aspected_by_planets = mergedAspectors;
+      next.aspected_by = formatAspectedByPlanets(next);
+    }
     if (!next.house?.number && src.house) {
       next.house = {
         number: src.house.number,
@@ -581,9 +788,12 @@ function dashaAgeStartYears(rowData) {
 
 function sortPlanetsTableRowsByAge(rows) {
   return [...(rows || [])].sort((a, b) => {
-    const diff = dashaAgeStartYears(a) - dashaAgeStartYears(b);
-    if (diff !== 0) return diff;
-    return String(a.planet || "").localeCompare(String(b.planet || ""));
+    const ageDiff = dashaAgeStartYears(a) - dashaAgeStartYears(b);
+    if (ageDiff !== 0) return ageDiff;
+    const ha = Number(a.house?.number ?? a.house) || 99;
+    const hb = Number(b.house?.number ?? b.house) || 99;
+    if (ha !== hb) return ha - hb;
+    return normalizeText(a.planet).localeCompare(normalizeText(b.planet));
   });
 }
 
@@ -594,6 +804,7 @@ function renderPlanetsTableWithColors(tbody, rows) {
   const sortedRows = sortPlanetsTableRowsByAge(rows);
   const columnKeys = [
     "planet",
+    "aspected_by",
     "strength",
     "is_planet_in_6_8_12_house",
     "is_planet_lagna_lord_enemy",
@@ -608,6 +819,7 @@ function renderPlanetsTableWithColors(tbody, rows) {
   ];
   for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
+    if (rowData.empty_house) tr.classList.add("planets-row--empty-house");
     const cellStyles = rowData.cell_styles || {};
     for (const key of ["dasha_age"]) {
       const td = document.createElement("td");
@@ -618,6 +830,10 @@ function renderPlanetsTableWithColors(tbody, rows) {
     }
     appendPlanetsHouseCell(tr, rowData);
     for (const key of columnKeys) {
+      if (key === "aspected_by") {
+        appendPlanetsAspectedByCell(tr, rowData);
+        continue;
+      }
       const td = document.createElement("td");
       const displayValue = planetsTableCellText(key, rowData);
       td.textContent = formatTableCellForDisplay(key, displayValue);
@@ -1055,9 +1271,12 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
-  const planetsTableRows = mergePlanetsIntoPlanetsTableRows(
-    kundaliPayload.planets_table || [],
-    kundaliPayload.planets || []
+  const planetsTableRows = expandPlanetsTableToAllHouses(
+    mergePlanetsIntoPlanetsTableRows(
+      kundaliPayload.planets_table || [],
+      kundaliPayload.planets || []
+    ),
+    kundaliPayload
   );
   renderPlanetsTableWithColors(planetsBody, planetsTableRows);
   renderNakshatraTableWithColors(nakshatraBody, nakshatrasFromPayload(kundaliPayload));

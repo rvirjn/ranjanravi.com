@@ -206,3 +206,16 @@ DEFAULT_GRAHA_BODIES = (
 
 # Ketu is derived in chart (not a separate Swiss body); all graha names for lookups
 PLANET_NAMES = frozenset(g.key for g in DEFAULT_GRAHA_BODIES) | {"ketu"}
+
+# Parashari drishti: house numbers counted from the planet's whole-sign house (1–12).
+DEFAULT_PLANET_ASPECT_OFFSETS: dict[str, tuple[int, ...]] = {
+    "sun": (7,),
+    "moon": (7,),
+    "mercury": (7,),
+    "venus": (7,),
+    "mars": (4, 7, 8),
+    "jupiter": (5, 7, 9),
+    "saturn": (3, 7, 10),
+    "rahu": (5, 7, 9),
+    "ketu": (),
+}
