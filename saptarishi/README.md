@@ -1,28 +1,40 @@
 <!-- Copyright © 2018-2026 ranjanravi.com. All rights reserved. -->
 
-# Saptarishi Docker Run Guide
+# Saptarishi
 
-This project uses two containers:
+Vedic birth chart (kundali) calculator: sidereal chart, planet strength table, and Moon janma nakshatra wheel.  
+Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights reserved.
 
-- `saptarishi_ui` -> serves only UI HTML/JS on port `9999`
-- `saptarishi_flask` -> serves only REST APIs on port `8081`
+## Layout
 
-## Prerequisites
+| Path | Role |
+|------|------|
+| `main/get_kundali.py` | Chart calculation, enrichment, API payload (`planets_table`, `summary_table`, `nakshatras`) |
+| `main/constant.py` | Shared constants |
+| `database/data.json` | Planets, nakshatras, houses, `planet_strength_rules` |
+| `ui/kundali.html` | **Only UI page** — birth form, summary, chart, planets & nakshatra tables |
+| `ui/kundali.js`, `ui/styles.css`, `ui/constants.js` | UI logic and styles |
+| `ui/app.py` | Flask API on port **8081** |
+| `output/` | Saved kundali JSON (when written by CLI) |
 
-- Docker installed and running
-- Open terminal in this repo’s **saptarishi** root (the folder that contains `ui/`, `main/`, and `database/`). For example:
-  - `C:\Users\drkum\Documents\workspace\ranjanravi.com\saptarishi`
-- Run `cd` there before the `docker run` commands so `${PWD}` mounts the correct tree for **both** UI and Flask.
+There is **no** `index.html`, `hompage.html`, or separate nakshatra page — open **`kundali.html`** directly.
 
-## 1) Create network (once)
+## Run with Docker (recommended)
+
+Two containers:
+
+- **`saptarishi_ui`** — static UI (nginx) on port **9999**
+- **`saptarishi_flask`** — API on port **8081**
+
+Prerequisites: Docker, shell in the **saptarishi** directory (contains `ui/`, `main/`, `database/`).
+
+### 1) Network (once)
 
 ```powershell
 docker network create my-net
 ```
 
-If it already exists, Docker will show an error; that is fine.
-
-## 2) Run UI container (`saptarishi_ui`)
+### 2) UI container
 
 ```powershell
 docker rm -f saptarishi_ui
@@ -34,25 +46,21 @@ docker run -d `
   raviranjanamu/nginx
 ```
 
-UI URL:
+Open:
 
-- `http://localhost:9999/ui/hompage.html`
-- `http://localhost:9999/ui/nakshatra.html`
-- `http://localhost:9999/ui/kundali-summary.html` (after “Calculate kundali” on the Nakshatra page)
+- **http://localhost:9999/ui/kundali.html**
 
-Important:
+Do not rely on a site root `index.html`; the app entry point is `kundali.html` only.
 
-- UI must be opened from port `9999` only.
+### 3) Flask API container
 
-## 3) Flask image and container (`saptarishi_flask`)
-
-The API needs **Flask**, **pyswisseph** (Swiss Ephemeris; compiles briefly, needs a C compiler during the image build only), and **tzdata**. Build once from the `saptarishi` directory:
+Build once (needs a C compiler in the image for `pyswisseph`):
 
 ```powershell
 docker build -f Dockerfile.flask -t saptarishi-flask:latest .
 ```
 
-Run the container (mounts your live code under `/app`):
+Run (live code mounted at `/app`):
 
 ```powershell
 docker rm -f saptarishi_flask
@@ -65,55 +73,63 @@ docker run -d `
   saptarishi-flask:latest
 ```
 
-After you change `requirements-flask.txt`, rebuild the image and recreate the container.
+After changing Python or `requirements-flask.txt`, rebuild the image and recreate the container.  
+After changing only `get_kundali.py` or `data.json`, restart: `docker restart saptarishi_flask`.
 
-**Reload Python after editing `ui/app.py`:** Flask only loads routes at process start. If you see **404** on `/api/kundali` while the file on disk has that route, run `docker restart saptarishi_flask`. If you still use the old one-liner image that only runs `pip install flask`, switch to the `Dockerfile.flask` flow here so **pyswisseph** is available (otherwise kundali returns a `ModuleNotFoundError` after the route exists).
+### API endpoints
 
-Flask API URL:
+| URL | Purpose |
+|-----|---------|
+| `GET /` | Service info JSON |
+| `GET /api/planet-database` | Full `database/data.json` |
+| `GET /api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W` | Full chart + UI tables |
 
-- `http://localhost:8081/api/nakshatras`
-- `http://localhost:8081/api/navatara?nakshatra=rohini`
+Example:
 
-Important:
-
-- API should be called on port `8081` only.
-- `http://localhost:8081/` returns API info JSON, not UI pages.
-
-## 4) Verify both containers
-
-```powershell
-docker ps --filter "name=saptarishi_ui" --filter "name=saptarishi_flask"
+```text
+http://localhost:8081/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W
 ```
 
-Quick checks:
+`house_system`: `W` (whole sign, default), `P`, or `A`.
+
+### 4) Verify
 
 ```powershell
-# UI page (must return HTML)
-curl.exe -s "http://localhost:9999/ui/hompage.html"
+docker ps --filter "name=saptarishi"
 
-# API root info (must return JSON)
+curl.exe -s "http://localhost:9999/ui/kundali.html" | Select-String -Pattern "Kundali"
+
 curl.exe -s "http://localhost:8081/"
 
-# API endpoint
-curl.exe -s "http://localhost:8081/api/navatara?nakshatra=rohini"
-
-# Kundali (expects 200 JSON after Dockerfile.flask build; 404 means Flask needs restart)
-curl.exe -s "http://localhost:8081/api/kundali?date=1988-03-29&time=16:29&place=Bengaluru%2C%20India&house_system=W"
+curl.exe -s "http://localhost:8081/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W"
 ```
 
-## 5) Useful commands
+### 5) Logs and lifecycle
 
 ```powershell
-# logs
 docker logs -f saptarishi_ui
 docker logs -f saptarishi_flask
 
-# stop
 docker stop saptarishi_ui saptarishi_flask
-
-# start again
 docker start saptarishi_ui saptarishi_flask
-
-# remove
 docker rm -f saptarishi_ui saptarishi_flask
 ```
+
+## CLI (optional)
+
+From `saptarishi/main`:
+
+```powershell
+python get_kundali.py --date 1988-03-29 --time 16:33 --place "Motihari, India"
+```
+
+Writes JSON under `output/` and prints debug tables.
+
+## Planet strength rules
+
+Configured in `database/data.json` → `planet_strength_rules.strength_factors` (degree bands, exalted, debilitated, own sign, retrograde, combustion, death degree, limits).  
+Restart Flask after editing `data.json`, then recalculate in the UI (hard refresh: Ctrl+Shift+R).
+
+## Legal
+
+See [COPYRIGHT](COPYRIGHT).
