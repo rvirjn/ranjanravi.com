@@ -1,3 +1,4 @@
+# Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 """Minimal Flask API: one endpoint runs ``get_kundali.build_full_kundali`` and returns JSON."""
 
 from __future__ import annotations

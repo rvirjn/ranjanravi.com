@@ -1,3 +1,4 @@
+# Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 """Backward-compatible shim — navatara logic lives in ``get_kundali.py``."""
 
 from __future__ import annotations

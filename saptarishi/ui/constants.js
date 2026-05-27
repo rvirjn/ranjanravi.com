@@ -1,3 +1,5 @@
+// Copyright © 2018-2026 ranjanravi.com. All rights reserved.
+
 /** Shared UI constants (keep in sync with main/constant.py where applicable). */
 const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,

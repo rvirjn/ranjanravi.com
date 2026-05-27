@@ -1,3 +1,4 @@
+# Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 """Shared constants for saptarishi kundali, navatara, and Flask API."""
 
 from __future__ import annotations

@@ -1,3 +1,5 @@
+<!-- Copyright © 2018-2026 ranjanravi.com. All rights reserved. -->
+
 # Saptarishi Docker Run Guide
 
 This project uses two containers:

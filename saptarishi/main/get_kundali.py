@@ -1,3 +1,4 @@
+# Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 """
 Sidereal birth chart (kundali) from civil date, time, and place name.
 

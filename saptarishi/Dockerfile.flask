@@ -1,3 +1,4 @@
+# Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 FROM python:3.12-slim
 
 COPY requirements-flask.txt /tmp/requirements-flask.txt

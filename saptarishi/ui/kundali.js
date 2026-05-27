@@ -1,3 +1,5 @@
+// Copyright © 2018-2026 ranjanravi.com. All rights reserved.
+
 const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
   FLASK_PORT: 8081,
   DEFAULT_HOUSE_SYSTEM: "W",
