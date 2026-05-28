@@ -1939,75 +1939,124 @@
       "number": 1,
       "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
       "strength_percent": 125,
-      "strength": "125%"
+      "strength": "125%",
+      "lord": {
+        "name": "mercury",
+        "strength_percent": 100
+      }
     },
     {
       "number": 2,
       "for": "wealth, job, family, education, grain, property, death, speech, truth, untruth, charity, tongue, right eye, neighbors",
       "strength_percent": 100,
-      "strength": "100%"
+      "strength": "100%",
+      "lord": {
+        "name": "moon",
+        "strength_percent": 175
+      }
     },
     {
       "number": 3,
       "for": "younger siblings, adventures, travel, intelligence, courage, patience, longevity, mother's death, hidden enemies, throat, neck, ear and breathing-related ailments",
       "strength_percent": 50,
-      "strength": "50%"
+      "strength": "50%",
+      "lord": {
+        "name": "sun",
+        "strength_percent": 25
+      }
     },
     {
       "number": 4,
       "for": "mother, home, personal life, vehicles, land, immovable property, buried treasure, happiness, lungs, upper chest, upper heart",
       "strength_percent": 150,
-      "strength": "150%"
+      "strength": "150%",
+      "lord": {
+        "name": "mercury",
+        "strength_percent": 100
+      }
     },
     {
       "number": 5,
       "for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments",
       "strength_percent": 75,
-      "strength": "75%"
+      "strength": "75%",
+      "lord": {
+        "name": "venus",
+        "strength_percent": 50
+      }
     },
     {
       "number": 6,
       "for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow",
       "strength_percent": 142,
-      "strength": "142%"
+      "strength": "142%",
+      "lord": {
+        "name": "mars",
+        "strength_percent": 100
+      }
     },
     {
       "number": 7,
       "for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
       "strength_percent": 100,
-      "strength": "100%"
+      "strength": "100%",
+      "lord": {
+        "name": "jupiter",
+        "strength_percent": 125
+      }
     },
     {
       "number": 8,
       "for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments",
       "strength_percent": 100,
-      "strength": "100%"
+      "strength": "100%",
+      "lord": {
+        "name": "saturn",
+        "strength_percent": 50
+      }
     },
     {
       "number": 9,
       "for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation",
       "strength_percent": 100,
-      "strength": "100%"
+      "strength": "100%",
+      "lord": {
+        "name": "saturn",
+        "strength_percent": 50
+      }
     },
     {
       "number": 10,
       "for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga",
       "strength_percent": 125,
-      "strength": "125%"
+      "strength": "125%",
+      "lord": {
+        "name": "jupiter",
+        "strength_percent": 125
+      }
     },
     {
       "number": 11,
       "for": "gains, benefits, income, profit, achievement, fulfillment of wishes, elder brother, sister, daughter-in-law, victory, ears",
       "strength_percent": 100,
-      "strength": "100%"
+      "strength": "100%",
+      "lord": {
+        "name": "mars",
+        "strength_percent": 100
+      }
     },
     {
       "number": 12,
       "for": "expenses, losses, debts, foreign lands, moksha, bed comfort, hospitalization, death, left eye",
       "strength_percent": 112,
-      "strength": "112%"
+      "strength": "112%",
+      "lord": {
+        "name": "venus",
+        "strength_percent": 50
+      }
     }
   ],
+  "houses_strength_total": 2329,
   "summary_table": [
     {
       "label": "Time",

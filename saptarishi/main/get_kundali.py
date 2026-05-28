@@ -773,7 +773,8 @@ class EnrichKundali:
         self.add_lunar_calendar_to_summary(chart)
         self.attach_nakshatras_for_moon_janma(chart)
         chart["planets_table"] = self.build_planets_table_rows(chart)
-        chart["houses"] = self.build_houses_table_rows(chart["planets_table"])
+        chart["houses"] = self.build_houses_table_rows(chart)
+        chart["houses_strength_total"] = EnrichKundali.houses_strength_total(chart["houses"])
         chart["summary_table"] = self.build_summary_table_rows(chart)
         chart["ui_status_message"] = self.build_ui_status_message(chart)
         chart.pop("moon_nakshatra", None)
@@ -2637,10 +2638,47 @@ class EnrichKundali:
         )
 
     @staticmethod
-    def build_houses_table_rows(planets_table_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """House-wise values for UI: one row per house (1–12) with precomputed strength."""
+    def planet_strength_by_name_from_chart(chart: dict[str, Any]) -> dict[str, int | None]:
+        """Graha name (lower) → ``planet_strength`` for sign-lord lookup."""
+        out: dict[str, int | None] = {}
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            key = remove_white_space(p.get("name", "")).lower()
+            if not key or key == "ascendant":
+                continue
+            strength = p.get("planet_strength")
+            if isinstance(strength, (int, float)):
+                out[key] = int(round(strength))
+            else:
+                out[key] = None
+        return out
+
+    @staticmethod
+    def house_lord_payload(
+        house_num: int,
+        houses_by_num: dict[int, dict[str, Any]],
+        strength_by_planet: dict[str, int | None],
+    ) -> dict[str, Any]:
+        """Sign lord of the house rashi and that graha's planet strength in this chart."""
+        ws = houses_by_num.get(house_num) or {}
+        ri = ws.get("rashi_index")
+        lord_name = ""
+        if isinstance(ri, int) and 0 <= ri < RASHI_COUNT:
+            lord_name = RASHI_SIGN_LORD_IN_ENG[ri]
+        strength = strength_by_planet.get(lord_name) if lord_name else None
+        return {"name": lord_name, "strength_percent": strength}
+
+    def build_houses_table_rows(self, chart: dict[str, Any]) -> list[dict[str, Any]]:
+        """House-wise values for UI: one row per house (1–12) with precomputed strength + lord."""
+        planets_table_rows = chart.get("planets_table") or []
+        asc = EnrichKundali.find_ascendant_planet(chart) or {}
+        lagna_idx = asc.get("rashi_index") if isinstance(asc, dict) else None
+        houses_by_num = EnrichKundali.whole_sign_houses_by_number(lagna_idx)
+        strength_by_planet = EnrichKundali.planet_strength_by_name_from_chart(chart)
+
         by_house: dict[int, dict[str, Any]] = {}
-        for row in planets_table_rows or []:
+        for row in planets_table_rows:
             if not isinstance(row, dict):
                 continue
             house = row.get("house") if isinstance(row.get("house"), dict) else {}
@@ -2659,12 +2697,42 @@ class EnrichKundali:
                 "for": house.get("for") or "",
                 "strength_percent": hs_pct if isinstance(hs_pct, (int, float)) else None,
                 "strength": str(hs_txt or "").strip() if hs_txt else "",
+                "lord": EnrichKundali.house_lord_payload(
+                    house_num, houses_by_num, strength_by_planet
+                ),
             }
         out: list[dict[str, Any]] = []
         for hn in range(1, RASHI_COUNT + 1):
-            row = by_house.get(hn, {"number": hn, "for": "", "strength_percent": None, "strength": ""})
+            row = by_house.get(
+                hn,
+                {
+                    "number": hn,
+                    "for": "",
+                    "strength_percent": None,
+                    "strength": "",
+                },
+            )
+            if "lord" not in row:
+                row = {**row, "lord": EnrichKundali.house_lord_payload(hn, houses_by_num, strength_by_planet)}
             out.append(row)
         return out
+
+    @staticmethod
+    def houses_strength_total(houses_rows: list[dict[str, Any]]) -> int:
+        """Sum of house ``strength_percent`` + sign-lord ``strength_percent`` (all 12 bhavas)."""
+        total = 0
+        for row in houses_rows or []:
+            if not isinstance(row, dict):
+                continue
+            pct = row.get("strength_percent")
+            if isinstance(pct, (int, float)):
+                total += int(round(pct))
+            lord = row.get("lord")
+            if isinstance(lord, dict):
+                lp = lord.get("strength_percent")
+                if isinstance(lp, (int, float)):
+                    total += int(round(lp))
+        return total
 
     @staticmethod
     def _title_rashi_name(rashi_english: str) -> str:
