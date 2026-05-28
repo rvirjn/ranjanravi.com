@@ -597,6 +597,119 @@ class EnrichKundali:
         }
 
     @staticmethod
+    def _house_strength_aspect_offset_from_factor(factor: dict[str, Any]) -> int | None:
+        """Parse drishti house offset (1–12) from a ``house_strength_rules`` strength factor."""
+        try:
+            n = int(factor.get("offset"))
+        except (TypeError, ValueError):
+            return None
+        if 1 <= n <= RASHI_COUNT:
+            return n
+        return None
+
+    @staticmethod
+    def load_planet_aspect_area_cover_by_offset(data: dict[str, Any]) -> dict[int, float]:
+        """``planet_aspect_rules.by_offset`` → offset → area_cover_percent."""
+        raw = data.get("planet_aspect_rules") or {}
+        by_offset = raw.get("by_offset") if isinstance(raw, dict) else None
+        if not isinstance(by_offset, list):
+            return {7: 100.0}
+        out: dict[int, float] = {}
+        for row in by_offset:
+            if not isinstance(row, dict):
+                continue
+            try:
+                off = int(row.get("offset"))
+                area = float(row.get("area_cover_percent", 100))
+            except (TypeError, ValueError):
+                continue
+            if 1 <= off <= RASHI_COUNT:
+                out[off] = area
+        return out or {7: 100.0}
+
+    @staticmethod
+    def parse_house_strength_aspect_factors(
+        factors: list[Any],
+    ) -> dict[str, dict[int, dict[str, int]]]:
+        """Group ``strength_factors`` by id → offset → increase/decrease base % (before area cover)."""
+        out: dict[str, dict[int, dict[str, int]]] = {}
+        for row in factors:
+            if not isinstance(row, dict):
+                continue
+            fid = remove_white_space(row.get("id", ""))
+            if not fid or fid in ("strength_limits", "clamp"):
+                continue
+            off = EnrichKundali._house_strength_aspect_offset_from_factor(row)
+            if off is None:
+                continue
+            bucket = out.setdefault(fid, {})
+            entry: dict[str, int] = {}
+            if row.get("increase_strength_percent") is not None:
+                try:
+                    entry["increase"] = int(row.get("increase_strength_percent"))
+                except (TypeError, ValueError):
+                    pass
+            if row.get("decrease_strength_percent") is not None:
+                try:
+                    entry["decrease"] = int(row.get("decrease_strength_percent"))
+                except (TypeError, ValueError):
+                    pass
+            if entry:
+                bucket[off] = entry
+        return out
+
+    @staticmethod
+    def scaled_house_strength_adjustment(
+        base_percent: int, offset: int, area_cover_by_offset: dict[Any, float]
+    ) -> int:
+        area_raw = area_cover_by_offset.get(offset)
+        if area_raw is None:
+            area_raw = area_cover_by_offset.get(str(offset))
+        if area_raw is None:
+            area_raw = area_cover_by_offset.get(7, area_cover_by_offset.get("7", 100.0))
+        area = float(area_raw)
+        return int(round(base_percent * area / 100.0))
+
+    def load_house_strength_rules(self) -> dict[str, Any]:
+        """Resolved knobs from ``data.json`` ``house_strength_rules`` (+ strength_factors)."""
+        try:
+            data = self.load_planet_database()
+        except OSError:
+            data = {}
+        raw = data.get("house_strength_rules") or {}
+        if not isinstance(raw, dict):
+            raw = {}
+        factors = raw.get("strength_factors") or []
+        if not isinstance(factors, list):
+            factors = []
+        limits = EnrichKundali._strength_factor_by_id(
+            factors, "strength_limits"
+        ) or EnrichKundali._strength_factor_by_id(factors, "clamp")
+        base_raw = raw.get("base_percent")
+        try:
+            base_pct = int(base_raw) if base_raw is not None else 100
+        except (TypeError, ValueError):
+            base_pct = 100
+        try:
+            min_pct = int(limits.get("min_percent", 0))
+        except (TypeError, ValueError):
+            min_pct = 0
+        try:
+            max_pct = int(limits.get("max_percent", 500))
+        except (TypeError, ValueError):
+            max_pct = 500
+        area_cover = EnrichKundali.load_planet_aspect_area_cover_by_offset(data)
+        aspect_by_id_offset = EnrichKundali.parse_house_strength_aspect_factors(factors)
+        return {
+            "strength_factors": raw.get("strength_factors"),
+            "base_percent": base_pct,
+            "planet_aspect_area_cover_by_offset": area_cover,
+            "aspect_strength_by_id_offset": aspect_by_id_offset,
+            "min_percent": min_pct,
+            "max_percent": max_pct,
+        }
+
+    @staticmethod
     def parse_degree_in_sign_bands(strength_rules: dict[str, Any]) -> tuple[tuple[float, float, str, int], ...]:
         """(low°, high°, phase name, strength %) tuples from ``planet_strength_rules``."""
         raw = strength_rules.get("degree_in_sign_bands")
@@ -622,6 +735,7 @@ class EnrichKundali:
         try:
             friendship = self.load_planet_friendship_lookup_table()
             strength_rules = self.load_planet_strength_rules()
+            house_strength_rules = self.load_house_strength_rules()
         except OSError:
             friendship = {}
             strength_rules = EnrichKundali.resolve_strength_numeric_rules({})
@@ -630,8 +744,17 @@ class EnrichKundali:
                 "red_at_or_below_percent": PLANET_STRENGTH_DEATH_DEGREE_PERCENT,
                 "red_if_death_degree": True,
             }
+            house_strength_rules = {
+                "base_percent": 100,
+                "planet_aspect_area_cover_by_offset": {7: 100.0},
+                "aspect_strength_by_id_offset": {},
+                "min_percent": 0,
+                "max_percent": 500,
+                "strength_factors": None,
+            }
 
         chart["planet_strength_rules"] = strength_rules
+        chart["house_strength_rules"] = house_strength_rules
         degree_bands = EnrichKundali.parse_degree_in_sign_bands(strength_rules)
         self.enrich_birth_planets_with_database_metadata(
             chart, friendship, strength_rules, degree_bands
@@ -1050,6 +1173,207 @@ class EnrichKundali:
     def house_reached_by_aspect_offset(planet_house: int, offset: int) -> int:
         """Whole-sign house aspected (e.g. Mars in 2nd with offset 4 → 5th house)."""
         return ((int(planet_house) + int(offset) - 2) % RASHI_COUNT) + 1
+
+    @staticmethod
+    def planet_in_debilitated_rashi(
+        planet_key: str, rashi_english: str, friendship: dict[str, Any]
+    ) -> bool:
+        """True when ``rashi_english`` is the debilitated sign of ``planet_key``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi = remove_white_space(rashi_english).lower()
+        if not pkey or not rashi:
+            return False
+        rules = friendship.get(pkey) or {}
+        debilitated = remove_white_space(rules.get("Debilitated", "")).lower()
+        return bool(debilitated and rashi == debilitated)
+
+    @staticmethod
+    def planet_in_exalted_rashi(
+        planet_key: str, rashi_english: str, friendship: dict[str, Any]
+    ) -> bool:
+        """True when ``rashi_english`` is the exalted sign of ``planet_key``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi = remove_white_space(rashi_english).lower()
+        if not pkey or not rashi:
+            return False
+        rules = friendship.get(pkey) or {}
+        exalted = remove_white_space(rules.get("Exalted", "")).lower()
+        return bool(exalted and rashi == exalted)
+
+    @staticmethod
+    def planet_in_enemy_rashi(
+        planet_key: str, rashi_english: str, friendship: dict[str, Any]
+    ) -> bool:
+        """True when the sign lord of ``rashi_english`` is a natural enemy of ``planet_key``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi = remove_white_space(rashi_english).lower()
+        if not pkey or not rashi:
+            return False
+        try:
+            ri = RASHI_IN_ENG.index(rashi)
+        except ValueError:
+            return False
+        status, _ = EnrichKundali.natural_friendship_with_sign_lord(friendship, pkey, ri)
+        return status == PLANET_RELATION_ENEMY
+
+    @staticmethod
+    def planet_in_friend_rashi(
+        planet_key: str, rashi_english: str, friendship: dict[str, Any]
+    ) -> bool:
+        """True when the sign lord of ``rashi_english`` is a natural friend of ``planet_key``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi = remove_white_space(rashi_english).lower()
+        if not pkey or not rashi:
+            return False
+        try:
+            ri = RASHI_IN_ENG.index(rashi)
+        except ValueError:
+            return False
+        status, _ = EnrichKundali.natural_friendship_with_sign_lord(friendship, pkey, ri)
+        return status == PLANET_RELATION_FRIEND
+
+    @staticmethod
+    def _house_strength_factor_at_offset(
+        aspect_by_id_offset: dict[str, dict[Any, dict[str, int]]],
+        factor_id: str,
+        offset: int,
+    ) -> dict[str, int]:
+        bucket = aspect_by_id_offset.get(factor_id) or {}
+        row = bucket.get(offset) or bucket.get(str(offset))
+        return row if isinstance(row, dict) else {}
+
+    @staticmethod
+    def house_strength_delta_at_offset_for_rashi(
+        planet_key: str,
+        rashi_english: str,
+        offset: int,
+        friendship: dict[str, Any],
+        house_strength_rules: dict[str, Any],
+    ) -> int:
+        """Rashi-rule delta for one drishti offset, scaled by ``planet_aspect_area_cover_by_offset``."""
+        pkey = remove_white_space(planet_key).lower()
+        rashi_en = str(rashi_english or "").strip()
+        if not pkey or pkey == "ascendant" or not rashi_en:
+            return 0
+        aspect_map = house_strength_rules.get("aspect_strength_by_id_offset") or {}
+        if not isinstance(aspect_map, dict):
+            aspect_map = {}
+        area_by = house_strength_rules.get("planet_aspect_area_cover_by_offset") or {}
+        if not isinstance(area_by, dict):
+            area_by = {7: 100.0}
+
+        delta = 0
+        own = EnrichKundali._house_strength_factor_at_offset(
+            aspect_map, "aspect_by_own_rashi_planet", offset
+        )
+        if own.get("increase") is not None and EnrichKundali.planet_in_own_rashi(pkey, rashi_en):
+            delta += EnrichKundali.scaled_house_strength_adjustment(
+                int(own["increase"]), offset, area_by
+            )
+
+        deb = EnrichKundali._house_strength_factor_at_offset(
+            aspect_map, "aspect_by_debilitated_rashi_planet", offset
+        )
+        enemy = EnrichKundali._house_strength_factor_at_offset(
+            aspect_map, "aspect_by_enemy_rashi_planet", offset
+        )
+        if deb.get("decrease") is not None and EnrichKundali.planet_in_debilitated_rashi(
+            pkey, rashi_en, friendship
+        ):
+            delta -= EnrichKundali.scaled_house_strength_adjustment(
+                int(deb["decrease"]), offset, area_by
+            )
+        elif enemy.get("decrease") is not None and EnrichKundali.planet_in_enemy_rashi(
+            pkey, rashi_en, friendship
+        ):
+            delta -= EnrichKundali.scaled_house_strength_adjustment(
+                int(enemy["decrease"]), offset, area_by
+            )
+
+        ex = EnrichKundali._house_strength_factor_at_offset(
+            aspect_map, "aspect_by_exalted_rashi_planet", offset
+        )
+        friend = EnrichKundali._house_strength_factor_at_offset(
+            aspect_map, "aspect_by_friend_rashi_planet", offset
+        )
+        if ex.get("increase") is not None and EnrichKundali.planet_in_exalted_rashi(
+            pkey, rashi_en, friendship
+        ):
+            delta += EnrichKundali.scaled_house_strength_adjustment(
+                int(ex["increase"]), offset, area_by
+            )
+        elif friend.get("increase") is not None and EnrichKundali.planet_in_friend_rashi(
+            pkey, rashi_en, friendship
+        ):
+            delta += EnrichKundali.scaled_house_strength_adjustment(
+                int(friend["increase"]), offset, area_by
+            )
+        return delta
+
+    @staticmethod
+    def house_strength_delta_from_planet_aspects(
+        planet_key: str,
+        planet_house: int | None,
+        houses_by_num: dict[int, dict[str, Any]],
+        friendship: dict[str, Any],
+        house_strength_rules: dict[str, Any],
+        offsets_by_planet: dict[str, tuple[int, ...]],
+    ) -> int:
+        """Sum drishti deltas for all offsets the graha casts (from ``planets[].aspect.offsets``)."""
+        if not isinstance(planet_house, int) or not (1 <= planet_house <= RASHI_COUNT):
+            return 0
+        pkey = remove_white_space(planet_key).lower()
+        if not pkey or pkey == "ascendant":
+            return 0
+        offsets = offsets_by_planet.get(
+            pkey, DEFAULT_PLANET_ASPECT_OFFSETS.get(pkey, (7,))
+        )
+        total = 0
+        for offset in offsets:
+            target = EnrichKundali.house_reached_by_aspect_offset(planet_house, offset)
+            ws = houses_by_num.get(target) or {}
+            rashi_en = str(ws.get("rashi_english") or "").strip()
+            total += EnrichKundali.house_strength_delta_at_offset_for_rashi(
+                pkey, rashi_en, int(offset), friendship, house_strength_rules
+            )
+        return total
+
+    @staticmethod
+    def empty_house_strength_delta_from_aspects(
+        house_num: int,
+        chart: dict[str, Any],
+        houses_by_num: dict[int, dict[str, Any]],
+        friendship: dict[str, Any],
+        house_strength_rules: dict[str, Any],
+        offsets_by_planet: dict[str, tuple[int, ...]],
+    ) -> int:
+        """Sum per-graha drishti adjustments onto ``house_num`` (all offsets, area-scaled)."""
+        if not isinstance(house_num, int) or not (1 <= house_num <= RASHI_COUNT):
+            return 0
+        ws_h = houses_by_num.get(house_num) or {}
+        rashi_en = str(ws_h.get("rashi_english") or "").strip()
+        if not rashi_en:
+            return 0
+        total = 0
+        for op in chart.get("planets") or []:
+            if not isinstance(op, dict):
+                continue
+            ok = remove_white_space(op.get("name", "")).lower()
+            if not ok or ok == "ascendant":
+                continue
+            ph = EnrichKundali.planet_house_number(op)
+            if not isinstance(ph, int):
+                continue
+            offsets = offsets_by_planet.get(
+                ok, DEFAULT_PLANET_ASPECT_OFFSETS.get(ok, (7,))
+            )
+            for offset in offsets:
+                if EnrichKundali.house_reached_by_aspect_offset(ph, int(offset)) != house_num:
+                    continue
+                total += EnrichKundali.house_strength_delta_at_offset_for_rashi(
+                    ok, rashi_en, int(offset), friendship, house_strength_rules
+                )
+        return total
 
     @staticmethod
     def aspect_houses_from_offsets(planet_house: int | None, offsets: tuple[int, ...]) -> list[int]:
@@ -2168,6 +2492,18 @@ class EnrichKundali:
         strength_rules = chart.get("planet_strength_rules")
         if not isinstance(strength_rules, dict):
             strength_rules = {}
+        house_strength_rules = chart.get("house_strength_rules")
+        if not isinstance(house_strength_rules, dict):
+            house_strength_rules = {}
+        hs_base = int(house_strength_rules.get("base_percent", 100))
+        hs_min = int(house_strength_rules.get("min_percent", 0))
+        hs_max = int(house_strength_rules.get("max_percent", 500))
+        friendship = self.load_planet_friendship_lookup_table()
+        offsets_by_planet = self.load_planet_aspect_offsets_by_planet()
+
+        def clamp_house_strength_pct(pct: int) -> int:
+            return max(hs_min, min(hs_max, pct))
+
         asc = EnrichKundali.find_ascendant_planet(chart) or {}
         lagna_idx = asc.get("rashi_index") if isinstance(asc, dict) else None
         houses_by_num = EnrichKundali.whole_sign_houses_by_number(lagna_idx)
@@ -2194,6 +2530,15 @@ class EnrichKundali:
             nak_status = p.get("planet_status_in_nakshatra") or UNKNOWN_LABEL
             hr = house.get("rashi") if isinstance(house.get("rashi"), dict) else {}
             aspectors = p.get("aspected_by") if isinstance(p.get("aspected_by"), list) else []
+            hs_delta = EnrichKundali.empty_house_strength_delta_from_aspects(
+                house_num,
+                chart,
+                houses_by_num,
+                friendship,
+                house_strength_rules,
+                offsets_by_planet,
+            )
+            hs_pct = clamp_house_strength_pct(hs_base + hs_delta)
             rows_by_house[house_num].append({
                 "house": {
                     "number": house_num,
@@ -2207,6 +2552,8 @@ class EnrichKundali:
                 "degree": EnrichKundali.planet_degree_in_sign_display(p),
                 "strength": f"{strength}%" if strength is not None else UNKNOWN_LABEL,
                 "strength_percent": strength if isinstance(strength, (int, float)) else None,
+                "house_strength": f"{hs_pct}%",
+                "house_strength_percent": hs_pct,
                 "flags": {
                     "malefic_6_8_12": EnrichKundali.yes_no_display(malefic),
                     "lagna_lord_enemy": EnrichKundali.yes_no_display(lagna_enemy),
@@ -2237,6 +2584,15 @@ class EnrichKundali:
                 continue
             ws = houses_by_num.get(house_num) or {}
             aspectors = aspectors_by_house.get(house_num, [])
+            empty_hs_delta = EnrichKundali.empty_house_strength_delta_from_aspects(
+                house_num,
+                chart,
+                houses_by_num,
+                friendship,
+                house_strength_rules,
+                offsets_by_planet,
+            )
+            empty_hs = clamp_house_strength_pct(hs_base + empty_hs_delta)
             rows.append({
                 "house": {
                     "number": house_num,
@@ -2248,6 +2604,8 @@ class EnrichKundali:
                 "degree": "",
                 "strength": "",
                 "strength_percent": None,
+                "house_strength": f"{empty_hs}%",
+                "house_strength_percent": empty_hs,
                 "flags": {
                     "malefic_6_8_12": "",
                     "lagna_lord_enemy": "",

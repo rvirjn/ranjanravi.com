@@ -35,31 +35,26 @@
     "strength_factors": [
       {
         "id": "degree_in_sign",
-        "factor": "Degree within sign (base from degree_in_sign_bands: 25 / 50 / 100 / 50 / 25 by 6° steps)",
         "increase_strength_percent": 100,
         "decrease_strength_percent": 25
       },
       {
         "id": "exalted",
-        "factor": "Exalted sign (planets[].exalted matches rashi)",
         "increase_strength_percent": 100,
         "decrease_strength_percent": 0
       },
       {
         "id": "debilitated",
-        "factor": "Debilitated sign (planets[].debilitated matches rashi)",
         "increase_strength_percent": 0,
         "decrease_strength_percent": 100
       },
       {
         "id": "own_rashi",
-        "factor": "Own sign (planet rules the rashi it occupies)",
         "increase_strength_percent": 75,
         "decrease_strength_percent": 0
       },
       {
         "id": "retrograde",
-        "factor": "Retrograde motion (sidereal speed negative; Rahu/Ketu when marked retrograde)",
         "increase_strength_percent": 40,
         "decrease_strength_percent": 0
       },
@@ -96,7 +91,6 @@
     "status_column_color": [
       {
         "column": "Rashi Status",
-        "factor": "Natural friendship vs sign lord of planet's rashi (own if planet rules that sign; else planets[].friends/enemies/neutral)",
         "affects_strength_percent": false,
         "cell_color": {
           "own": "green",
@@ -108,7 +102,6 @@
       },
       {
         "column": "Nakshatra Status",
-        "factor": "Natural friendship vs vimshottari lord of planet's nakshatra (not comma-listed ruling_planet text)",
         "affects_strength_percent": false,
         "cell_color": {
           "own": "green",
@@ -136,7 +129,6 @@
       },
       {
         "column": "Karakwaqt",
-        "factor": "Lagna roles from data.json houses[1].lagna for this ascendant rashi",
         "affects_strength_percent": false,
         "cell_color": {
           "yog_karak": "green",
@@ -147,15 +139,234 @@
       }
     ],
     "color_intensity": {
-      "factor": "Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
+      "factor": "Planet Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
       "high_green_above_percent": 100,
       "red_at_or_below_percent": 0,
       "red_if_death_degree": true
     }
   },
+  "planet_aspect_rules": {
+    "by_offset": [
+      {
+        "offset": 3,
+        "area_cover_percent": 25
+      },
+      {
+        "offset": 4,
+        "area_cover_percent": 33.33
+      },
+      {
+        "offset": 5,
+        "area_cover_percent": 50
+      },
+      {
+        "offset": 7,
+        "area_cover_percent": 100
+      },
+      {
+        "offset": 8,
+        "area_cover_percent": 33.33
+      },
+      {
+        "offset": 9,
+        "area_cover_percent": 50
+      },
+      {
+        "offset": 10,
+        "area_cover_percent": 25
+      }
+    ]
+  },
+  "house_strength_rules": {
+    "base_percent": 100,
+    "strength_factors": [
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 3
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 4
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 5
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 7
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 8
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 9
+      },
+      {
+        "id": "aspect_by_own_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 10
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 3
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 4
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 5
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 7
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 8
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 9
+      },
+      {
+        "id": "aspect_by_debilitated_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 10
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 3
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 4
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 5
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 7
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 8
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 9
+      },
+      {
+        "id": "aspect_by_exalted_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 10
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 3
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 4
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 5
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 7
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 8
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 9
+      },
+      {
+        "id": "aspect_by_enemy_rashi_planet",
+        "decrease_strength_percent": 50,
+        "offset": 10
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 3
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 4
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 5
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 7
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 8
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 9
+      },
+      {
+        "id": "aspect_by_friend_rashi_planet",
+        "increase_strength_percent": 50,
+        "offset": 10
+      },
+      {
+        "id": "strength_limits",
+        "min_percent": 0,
+        "max_percent": 500
+      }
+    ]
+  },
   "planets": [
     {
       "name": "sun",
+      "planet_nature": "malefic",
+      "planet_for": "bad for living things",
       "exalted": "aries",
       "debilitated": "libra",
       "friends": [
@@ -230,6 +441,8 @@
     },
     {
       "name": "moon",
+      "planet_nature": "benefic",
+      "planet_for": "good for living things",
       "exalted": "taurus",
       "debilitated": "scorpio",
       "friends": [
@@ -305,6 +518,8 @@
     },
     {
       "name": "mars",
+      "planet_nature": "malefic",
+      "planet_for": "bad for living things",
       "exalted": "capricorn",
       "debilitated": "cancer",
       "friends": [
@@ -382,6 +597,8 @@
     },
     {
       "name": "mercury",
+      "planet_nature": "benefic",
+      "planet_for": "good for living things",
       "exalted": "virgo",
       "debilitated": "pisces",
       "friends": [
@@ -457,6 +674,8 @@
     },
     {
       "name": "jupiter",
+      "planet_nature": "benefic",
+      "planet_for": "good for living things",
       "exalted": "cancer",
       "debilitated": "capricorn",
       "friends": [
@@ -534,6 +753,8 @@
     },
     {
       "name": "venus",
+      "planet_nature": "benefic",
+      "planet_for": "good for living things",
       "exalted": "pisces",
       "debilitated": "virgo",
       "friends": [
@@ -609,6 +830,8 @@
     },
     {
       "name": "saturn",
+      "planet_nature": "malefic",
+      "planet_for": "bad for living things",
       "exalted": "libra",
       "debilitated": "aries",
       "friends": [
@@ -686,6 +909,8 @@
     },
     {
       "name": "rahu",
+      "planet_nature": "malefic",
+      "planet_for": "bad for living things",
       "exalted": "gemini",
       "debilitated": "sagittarius",
       "friends": [
@@ -763,6 +988,8 @@
     },
     {
       "name": "ketu",
+      "planet_nature": "malefic",
+      "planet_for": "bad for living things",
       "exalted": "sagittarius",
       "debilitated": "gemini",
       "friends": [
@@ -836,6 +1063,8 @@
     },
     {
       "name": "ascendant",
+      "planet_nature": "",
+      "planet_for": "",
       "death_degree": [
         {
           "sign": "aries",
@@ -2194,6 +2423,13 @@
         "nature",
         "lagna"
       ],
+      "body_part": [
+        "head",
+        "face",
+        "brain",
+        "hair",
+        "skin"
+      ],
       "lagna": {
         "aries": {
           "karak": [
@@ -2434,6 +2670,16 @@
         "tongue",
         "right eye",
         "neighbors"
+      ],
+      "body_part": [
+        "face",
+        "throat",
+        "neck",
+        "mouth",
+        "eyes",
+        "teeth",
+        "tongue",
+        "vocal cords"
       ]
     },
     {
@@ -2451,6 +2697,11 @@
         "throat",
         "neck",
         "ear and breathing-related ailments"
+      ],
+      "body_part": [
+        "shoulders",
+        "arms",
+        "hands"
       ]
     },
     {
@@ -2467,6 +2718,13 @@
         "lungs",
         "upper chest",
         "upper heart"
+      ],
+      "body_part": [
+        "chest",
+        "heart",
+        "lungs",
+        "breasts",
+        "ribs"
       ]
     },
     {
@@ -2484,6 +2742,11 @@
         "maternal home",
         "heart ailments",
         "lower-chest ailments"
+      ],
+      "body_part": [
+        "stomach",
+        "upper back",
+        "spine"
       ]
     },
     {
@@ -2500,6 +2763,11 @@
         "disgrace",
         "grief",
         "sorrow"
+      ],
+      "body_part": [
+        "abdomen",
+        "intestines",
+        "digestive system"
       ]
     },
     {
@@ -2518,6 +2786,12 @@
         "death",
         "reproductive organs",
         "open enemies"
+      ],
+      "body_part": [
+        "kidneys",
+        "lower back",
+        "pelvis",
+        "skin"
       ]
     },
     {
@@ -2534,6 +2808,11 @@
         "accident",
         "incurable disease",
         "lower-abdomen ailments"
+      ],
+      "body_part": [
+        "reproductive organs",
+        "bladder",
+        "excretory system"
       ]
     },
     {
@@ -2550,6 +2829,11 @@
         "wife's brother",
         "wife's sister",
         "renunciation"
+      ],
+      "body_part": [
+        "hips",
+        "thighs",
+        "liver"
       ]
     },
     {
@@ -2568,6 +2852,10 @@
         "authority",
         "power",
         "raja yoga"
+      ],
+      "body_part": [
+        "knees",
+        "joints"
       ]
     },
     {
@@ -2584,6 +2872,10 @@
         "daughter-in-law",
         "victory",
         "ears"
+      ],
+      "body_part": [
+        "calves",
+        "ankles"
       ]
     },
     {
@@ -2598,6 +2890,10 @@
         "hospitalization",
         "death",
         "left eye"
+      ],
+      "body_part": [
+        "feet",
+        "toes"
       ]
     }
   ]

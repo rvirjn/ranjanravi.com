@@ -58,6 +58,69 @@ const SAPTARISHI_CONSTANTS = {
     "kumbha",
     "meena"
   ],
+  /** Sign lord per rashi index (sync with main/constant.py RASHI_SIGN_LORD_IN_ENG). */
+  RASHI_SIGN_LORD_IN_EN: [
+    "mars",
+    "venus",
+    "mercury",
+    "moon",
+    "sun",
+    "mercury",
+    "venus",
+    "mars",
+    "jupiter",
+    "saturn",
+    "saturn",
+    "jupiter"
+  ],
+  /**
+   * Drishti area % by house offset (sync with database/data.json planet_aspect_rules).
+   * Used when API omits planet_aspect_rules (older deployments).
+   */
+  PLANET_ASPECT_AREA_COVER_BY_OFFSET: {
+    3: 25,
+    4: 33.33,
+    5: 50,
+    7: 100,
+    8: 33.33,
+    9: 50,
+    10: 25
+  },
+  /**
+   * House strength when /api/kundali and /api/planet-database lack house_strength_rules.
+   * Pre-parsed from database/data.json (offsets 3,4,5,7,8,9,10 × ±50% base).
+   */
+  HOUSE_STRENGTH_RULES_FALLBACK: (() => {
+    const offsets = [3, 4, 5, 7, 8, 9, 10];
+    const byOff = (inc) => {
+      const bucket = {};
+      for (const off of offsets) {
+        bucket[off] = inc ? { increase: 50 } : { decrease: 50 };
+      }
+      return bucket;
+    };
+    return {
+      base_percent: 100,
+      min_percent: 0,
+      max_percent: 500,
+      planet_aspect_area_cover_by_offset: {
+        3: 25,
+        4: 33.33,
+        5: 50,
+        7: 100,
+        8: 33.33,
+        9: 50,
+        10: 25
+      },
+      aspect_strength_by_id_offset: {
+        aspect_by_own_rashi_planet: byOff(true),
+        aspect_by_debilitated_rashi_planet: byOff(false),
+        aspect_by_exalted_rashi_planet: byOff(true),
+        aspect_by_enemy_rashi_planet: byOff(false),
+        aspect_by_friend_rashi_planet: byOff(true)
+      }
+    };
+  })(),
   /** Parashari drishti offsets (sync with main/constant.py / data.json). */
   DEFAULT_PLANET_ASPECT_OFFSETS: {
     sun: [7],

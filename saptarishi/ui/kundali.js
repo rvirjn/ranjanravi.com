@@ -258,6 +258,14 @@ function planetsTableCellText(key, rowData) {
   if (key === "aspected_by") {
     return formatAspectedByPlanets(rowData);
   }
+  if (key === "house_strength") {
+    const text = rowData.house_strength ?? rowData[key];
+    if (String(text ?? "").trim()) return text;
+    if (typeof rowData.house_strength_percent === "number") {
+      return `${rowData.house_strength_percent}%`;
+    }
+    return "";
+  }
   return rowData[key];
 }
 
@@ -292,6 +300,7 @@ function formatTableCellForDisplay(key, cell) {
   }
   if (
     key === "strength" ||
+    key === "house_strength" ||
     key === "degree" ||
     key === "nakshatra" ||
     key === "navatara" ||
@@ -650,6 +659,345 @@ function houseReachedByAspectOffset(planetHouse, offset) {
   return ((Number(planetHouse) + Number(offset) - 2) % 12) + 1;
 }
 
+function planetAspectAreaCoverByOffset() {
+  const fromConstants = C.PLANET_ASPECT_AREA_COVER_BY_OFFSET;
+  if (fromConstants && typeof fromConstants === "object" && Object.keys(fromConstants).length) {
+    const out = {};
+    for (const [key, value] of Object.entries(fromConstants)) {
+      const off = Number(key);
+      if (Number.isFinite(off) && off >= 1 && off <= 12) {
+        out[off] = Number(value) || 100;
+      }
+    }
+    if (Object.keys(out).length) return out;
+  }
+  const out = { 7: 100 };
+  for (const row of planetDatabase?.planet_aspect_rules?.by_offset || []) {
+    const off = Number(row?.offset);
+    if (off >= 1 && off <= 12) {
+      out[off] = Number(row.area_cover_percent) || 100;
+    }
+  }
+  return out;
+}
+
+function houseStrengthRulesSource(payload) {
+  const fromPayload = payload?.house_strength_rules;
+  if (fromPayload && typeof fromPayload === "object") {
+    const hasBase = typeof fromPayload.base_percent === "number";
+    const hasFactors =
+      Array.isArray(fromPayload.strength_factors) && fromPayload.strength_factors.length > 0;
+    const hasAspectMap = aspectMapIsNonempty(fromPayload.aspect_strength_by_id_offset);
+    if (hasBase && (hasFactors || hasAspectMap)) return fromPayload;
+  }
+  const fromDb = planetDatabase?.house_strength_rules;
+  if (fromDb && typeof fromDb === "object") {
+    const hasBase = typeof fromDb.base_percent === "number";
+    const hasFactors = Array.isArray(fromDb.strength_factors) && fromDb.strength_factors.length > 0;
+    const hasAspectMap = aspectMapIsNonempty(fromDb.aspect_strength_by_id_offset);
+    if (hasBase && (hasFactors || hasAspectMap)) return fromDb;
+  }
+  const fallback = C.HOUSE_STRENGTH_RULES_FALLBACK;
+  if (fallback && typeof fallback === "object") return fallback;
+  return null;
+}
+
+function parseAspectStrengthByIdOffset(factors) {
+  const out = {};
+  for (const row of factors || []) {
+    const id = normalizeText(row?.id);
+    if (!id || id === "strength_limits" || id === "clamp") continue;
+    const off = Number(row.offset);
+    if (!Number.isFinite(off) || off < 1 || off > 12) continue;
+    if (!out[id]) out[id] = {};
+    const entry = {};
+    if (typeof row.increase_strength_percent === "number") {
+      entry.increase = Math.trunc(row.increase_strength_percent);
+    }
+    if (typeof row.decrease_strength_percent === "number") {
+      entry.decrease = Math.trunc(row.decrease_strength_percent);
+    }
+    if (Object.keys(entry).length) out[id][off] = entry;
+  }
+  return out;
+}
+
+function aspectMapIsNonempty(map) {
+  return Boolean(map && typeof map === "object" && Object.keys(map).length > 0);
+}
+
+/** Normalize API JSON offset keys (``"7"``) to numeric buckets for lookup. */
+function normalizeAspectStrengthByIdOffset(raw) {
+  const out = {};
+  for (const [factorId, byOffset] of Object.entries(raw || {})) {
+    const id = normalizeText(factorId);
+    if (!id) continue;
+    const bucket = {};
+    for (const [key, entry] of Object.entries(byOffset || {})) {
+      const off = Number(key);
+      if (!Number.isFinite(off) || off < 1 || off > 12) continue;
+      if (entry && typeof entry === "object") bucket[off] = entry;
+    }
+    if (Object.keys(bucket).length) out[id] = bucket;
+  }
+  return out;
+}
+
+function resolveAspectByIdOffset(rulesSource) {
+  const fromApi = rulesSource?.aspect_strength_by_id_offset;
+  if (aspectMapIsNonempty(fromApi)) {
+    return normalizeAspectStrengthByIdOffset(fromApi);
+  }
+  const factors = rulesSource?.strength_factors;
+  if (Array.isArray(factors) && factors.length) {
+    const parsed = parseAspectStrengthByIdOffset(factors);
+    if (aspectMapIsNonempty(parsed)) return parsed;
+  }
+  const dbFactors = planetDatabase?.house_strength_rules?.strength_factors;
+  return parseAspectStrengthByIdOffset(dbFactors);
+}
+
+function areaCoverByOffsetFromRules(rulesSource) {
+  const raw = rulesSource?.planet_aspect_area_cover_by_offset;
+  if (raw && typeof raw === "object" && Object.keys(raw).length) {
+    const out = {};
+    for (const [key, value] of Object.entries(raw)) {
+      const off = Number(key);
+      if (Number.isFinite(off) && off >= 1 && off <= 12) {
+        out[off] = Number(value) || 100;
+      }
+    }
+    if (Object.keys(out).length) return out;
+  }
+  return planetAspectAreaCoverByOffset();
+}
+
+function scaledHouseStrengthAdjustment(basePercent, offset, areaByOffset) {
+  const off = Number(offset);
+  const area = Number(
+    areaByOffset[off] ?? areaByOffset[String(off)] ?? areaByOffset[7] ?? areaByOffset["7"] ?? 100
+  );
+  return Math.round((Number(basePercent) || 0) * area / 100);
+}
+
+function houseStrengthFactorAtOffset(aspectMap, factorId, offset) {
+  const bucket = aspectMap[factorId] || {};
+  return bucket[offset] || bucket[String(offset)] || {};
+}
+
+/** Resolved ``house_strength_rules`` from kundali API, planet database, or constants fallback. */
+function resolvedHouseStrengthRules(payload) {
+  const r = houseStrengthRulesSource(payload);
+  if (!r || typeof r !== "object") {
+    return {
+      basePercent: 100,
+      areaByOffset: planetAspectAreaCoverByOffset(),
+      aspectByIdOffset: {},
+      minPct: 0,
+      maxPct: 500
+    };
+  }
+  const factors = Array.isArray(r.strength_factors) ? r.strength_factors : [];
+  const limitsRow =
+    factors.find((f) => {
+      const id = normalizeText(f?.id);
+      return id === "strength_limits" || id === "clamp";
+    }) || {};
+  const basePercent =
+    typeof r.base_percent === "number" && Number.isFinite(r.base_percent)
+      ? Math.trunc(r.base_percent)
+      : 100;
+  const minPct =
+    typeof r.min_percent === "number"
+      ? Math.trunc(r.min_percent)
+      : typeof limitsRow.min_percent === "number"
+        ? Math.trunc(limitsRow.min_percent)
+        : 0;
+  const maxPct =
+    typeof r.max_percent === "number"
+      ? Math.trunc(r.max_percent)
+      : typeof limitsRow.max_percent === "number"
+        ? Math.trunc(limitsRow.max_percent)
+        : 500;
+  return {
+    basePercent,
+    areaByOffset: areaCoverByOffsetFromRules(r),
+    aspectByIdOffset: resolveAspectByIdOffset(r),
+    minPct,
+    maxPct
+  };
+}
+
+function houseStrengthRulesAreUsable(rules) {
+  return aspectMapIsNonempty(rules?.aspectByIdOffset);
+}
+
+function aspectOffsetsForPlanet(planet, offsetsByPlanet) {
+  const key = normalizeText(planet?.name);
+  const raw = planet?.aspect?.offsets;
+  if (Array.isArray(raw) && raw.length) {
+    return raw.map((n) => Number(n)).filter((n) => n >= 1 && n <= 12);
+  }
+  return offsetsByPlanet[key] || C.DEFAULT_PLANET_ASPECT_OFFSETS?.[key] || [7];
+}
+
+function clampHouseStrengthPct(pct, rules) {
+  const n = Math.round(Number(pct) || 0);
+  return Math.max(rules.minPct, Math.min(rules.maxPct, n));
+}
+
+function planetInOwnRashi(planetKey, rashiEnglish) {
+  const pk = normalizeText(planetKey);
+  const rashi = normalizeText(rashiEnglish);
+  if (!pk || !rashi) return false;
+  const signs = C.RASHI_IN_EN || [];
+  const lords = C.RASHI_SIGN_LORD_IN_EN || [];
+  const idx = signs.indexOf(rashi);
+  if (idx < 0 || idx >= lords.length) return false;
+  return pk === normalizeText(lords[idx]);
+}
+
+function debilitatedSignForPlanet(planetKey) {
+  const pk = normalizeText(planetKey);
+  if (!pk) return "";
+  for (const row of planetDatabase?.planets || []) {
+    if (normalizeText(row?.name) === pk) {
+      return normalizeText(row.debilitated);
+    }
+  }
+  return "";
+}
+
+function planetInDebilitatedRashi(planetKey, rashiEnglish) {
+  const deb = debilitatedSignForPlanet(planetKey);
+  const rashi = normalizeText(rashiEnglish);
+  return Boolean(deb && rashi && deb === rashi);
+}
+
+function exaltedSignForPlanet(planetKey) {
+  const pk = normalizeText(planetKey);
+  if (!pk) return "";
+  for (const row of planetDatabase?.planets || []) {
+    if (normalizeText(row?.name) === pk) {
+      return normalizeText(row.exalted);
+    }
+  }
+  return "";
+}
+
+function planetInExaltedRashi(planetKey, rashiEnglish) {
+  const ex = exaltedSignForPlanet(planetKey);
+  const rashi = normalizeText(rashiEnglish);
+  return Boolean(ex && rashi && ex === rashi);
+}
+
+function planetFriendshipRow(planetKey) {
+  const pk = normalizeText(planetKey);
+  if (!pk) return null;
+  for (const row of planetDatabase?.planets || []) {
+    if (normalizeText(row?.name) === pk) return row;
+  }
+  return null;
+}
+
+function naturalFriendshipWithSignLord(planetKey, rashiEnglish) {
+  const pk = normalizeText(planetKey);
+  const rashi = normalizeText(rashiEnglish);
+  if (!pk || !rashi) return "";
+  const signs = C.RASHI_IN_EN || [];
+  const lords = C.RASHI_SIGN_LORD_IN_EN || [];
+  const idx = signs.indexOf(rashi);
+  if (idx < 0 || idx >= lords.length) return "";
+  const lord = normalizeText(lords[idx]);
+  if (pk === lord) return "own";
+  const row = planetFriendshipRow(pk);
+  if (!row) return "";
+  const friends = (row.friends || []).map((x) => normalizeText(x));
+  const enemies = (row.enemies || []).map((x) => normalizeText(x));
+  if (friends.includes(lord)) return "friend";
+  if (enemies.includes(lord)) return "enemy";
+  return "neutral";
+}
+
+/** One graha's drishti at ``offset`` on ``targetRashiEnglish``; scaled by ``planet_aspect_rules`` area %. */
+function houseStrengthDeltaAtOffsetForRashi(planetKey, targetRashiEnglish, offset, rules) {
+  const pk = normalizeText(planetKey);
+  const rashi = normalizeText(targetRashiEnglish);
+  if (!pk || pk === "ascendant" || !rashi) return 0;
+  const aspectMap = rules.aspectByIdOffset || {};
+  const areaBy = rules.areaByOffset || { 7: 100 };
+  let delta = 0;
+
+  const own = houseStrengthFactorAtOffset(aspectMap, "aspect_by_own_rashi_planet", offset);
+  if (own.increase != null && planetInOwnRashi(pk, rashi)) {
+    delta += scaledHouseStrengthAdjustment(own.increase, offset, areaBy);
+  }
+
+  const deb = houseStrengthFactorAtOffset(aspectMap, "aspect_by_debilitated_rashi_planet", offset);
+  const enemy = houseStrengthFactorAtOffset(aspectMap, "aspect_by_enemy_rashi_planet", offset);
+  if (deb.decrease != null && planetInDebilitatedRashi(pk, rashi)) {
+    delta -= scaledHouseStrengthAdjustment(deb.decrease, offset, areaBy);
+  } else if (enemy.decrease != null && naturalFriendshipWithSignLord(pk, rashi) === "enemy") {
+    delta -= scaledHouseStrengthAdjustment(enemy.decrease, offset, areaBy);
+  }
+
+  const ex = houseStrengthFactorAtOffset(aspectMap, "aspect_by_exalted_rashi_planet", offset);
+  const friend = houseStrengthFactorAtOffset(aspectMap, "aspect_by_friend_rashi_planet", offset);
+  if (ex.increase != null && planetInExaltedRashi(pk, rashi)) {
+    delta += scaledHouseStrengthAdjustment(ex.increase, offset, areaBy);
+  } else if (friend.increase != null && naturalFriendshipWithSignLord(pk, rashi) === "friend") {
+    delta += scaledHouseStrengthAdjustment(friend.increase, offset, areaBy);
+  }
+  return delta;
+}
+
+/** House strength for the bhava (all graha drishti on that house). */
+function computeHouseStrengthPercentForBhava(houseNum, payload) {
+  const rules = resolvedHouseStrengthRules(payload);
+  if (!houseStrengthRulesAreUsable(rules)) {
+    return null;
+  }
+  const rashiEnglish = wholeSignHousesFromPayload(payload)[houseNum]?.rashi_english || "";
+  const offsetsByPlanet = aspectOffsetsByPlanetFromDatabase();
+  let delta = 0;
+  for (const p of payload?.planets || []) {
+    const pk = normalizeText(p?.name);
+    if (!pk || pk === "ascendant") continue;
+    const ph = planetHouseNumber(p);
+    if (!ph) continue;
+    const offsets = aspectOffsetsForPlanet(p, offsetsByPlanet);
+    for (const offset of offsets) {
+      if (houseReachedByAspectOffset(ph, offset) !== houseNum) continue;
+      delta += houseStrengthDeltaAtOffsetForRashi(pk, rashiEnglish, offset, rules);
+    }
+  }
+  return clampHouseStrengthPct(rules.basePercent + delta, rules);
+}
+
+function houseNumberFromTableRow(row) {
+  const hn = Number(row?.house?.number ?? row?.house);
+  return hn >= 1 && hn <= 12 ? hn : 0;
+}
+
+/** Recompute House Strength on every table row when rules are available. */
+function applyHouseStrengthToPlanetsTableRows(rows, payload) {
+  const rules = resolvedHouseStrengthRules(payload);
+  if (!houseStrengthRulesAreUsable(rules)) {
+    return rows;
+  }
+  return (rows || []).map((row) => {
+    const houseNum = houseNumberFromTableRow(row);
+    if (!houseNum) return row;
+    const hs = computeHouseStrengthPercentForBhava(houseNum, payload);
+    if (hs == null) return row;
+    return {
+      ...row,
+      house_strength_percent: hs,
+      house_strength: `${hs}%`
+    };
+  });
+}
+
 function aspectHousesForPlanet(planet, offsetsByPlanet) {
   const hn = planetHouseNumber(planet);
   if (!hn) return [];
@@ -692,6 +1040,8 @@ function createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForL
     degree: "",
     strength: "",
     strength_percent: null,
+    house_strength: "",
+    house_strength_percent: null,
     flags: { malefic_6_8_12: "", lagna_lord_enemy: "", death_degree: "" },
     status: { rashi: "", nakshatra: "" },
     rashi: formatRashiDisplayFromHouseMeta(ws),
@@ -702,6 +1052,11 @@ function createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForL
     cell_styles: {},
     empty_house: true
   };
+  const hsPct = computeHouseStrengthPercentForBhava(houseNum, payload);
+  if (typeof hsPct === "number") {
+    row.house_strength_percent = hsPct;
+    row.house_strength = `${hsPct}%`;
+  }
   return row;
 }
 
@@ -739,8 +1094,9 @@ function expandPlanetsTableToAllHouses(rows, payload) {
 }
 
 /** Merge ``planets[]`` into ``planets_table`` when API rows omit newer fields. */
-function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
+function mergePlanetsIntoPlanetsTableRows(planetsTable, planets, kundaliPayload) {
   if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
+  const payload = kundaliPayload || {};
   const byPlanet = new Map(
     planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
   );
@@ -768,6 +1124,15 @@ function mergePlanetsIntoPlanetsTableRows(planetsTable, planets) {
         number: src.house.number,
         for: formatHouseForList(src.house.for || [])
       };
+    }
+    if (typeof next.house_strength_percent !== "number") {
+      const houseNum = houseNumberFromTableRow(next);
+      const hs =
+        houseNum > 0 ? computeHouseStrengthPercentForBhava(houseNum, payload) : null;
+      if (typeof hs === "number") {
+        next.house_strength_percent = hs;
+        next.house_strength = `${hs}%`;
+      }
     }
     const styles = { ...(row.cell_styles || {}) };
     if (!styles.karakwaqt && kw) {
@@ -806,6 +1171,7 @@ function renderPlanetsTableWithColors(tbody, rows) {
     "planet",
     "aspected_by",
     "strength",
+    "house_strength",
     "is_planet_in_6_8_12_house",
     "is_planet_lagna_lord_enemy",
     "is_planet_at_death_degree",
@@ -1271,10 +1637,14 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
-  const planetsTableRows = expandPlanetsTableToAllHouses(
-    mergePlanetsIntoPlanetsTableRows(
-      kundaliPayload.planets_table || [],
-      kundaliPayload.planets || []
+  const planetsTableRows = applyHouseStrengthToPlanetsTableRows(
+    expandPlanetsTableToAllHouses(
+      mergePlanetsIntoPlanetsTableRows(
+        kundaliPayload.planets_table || [],
+        kundaliPayload.planets || [],
+        kundaliPayload
+      ),
+      kundaliPayload
     ),
     kundaliPayload
   );

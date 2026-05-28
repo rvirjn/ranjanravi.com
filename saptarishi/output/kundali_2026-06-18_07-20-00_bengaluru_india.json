@@ -786,31 +786,26 @@
     "strength_factors": [
       {
         "id": "degree_in_sign",
-        "factor": "Degree within sign (base from degree_in_sign_bands: 25 / 50 / 100 / 50 / 25 by 6° steps)",
         "increase_strength_percent": 100,
         "decrease_strength_percent": 25
       },
       {
         "id": "exalted",
-        "factor": "Exalted sign (planets[].exalted matches rashi)",
         "increase_strength_percent": 100,
         "decrease_strength_percent": 0
       },
       {
         "id": "debilitated",
-        "factor": "Debilitated sign (planets[].debilitated matches rashi)",
         "increase_strength_percent": 0,
         "decrease_strength_percent": 100
       },
       {
         "id": "own_rashi",
-        "factor": "Own sign (planet rules the rashi it occupies)",
         "increase_strength_percent": 75,
         "decrease_strength_percent": 0
       },
       {
         "id": "retrograde",
-        "factor": "Retrograde motion (sidereal speed negative; Rahu/Ketu when marked retrograde)",
         "increase_strength_percent": 40,
         "decrease_strength_percent": 0
       },
@@ -847,7 +842,6 @@
     "status_column_color": [
       {
         "column": "Rashi Status",
-        "factor": "Natural friendship vs sign lord of planet's rashi (own if planet rules that sign; else planets[].friends/enemies/neutral)",
         "affects_strength_percent": false,
         "cell_color": {
           "own": "green",
@@ -859,7 +853,6 @@
       },
       {
         "column": "Nakshatra Status",
-        "factor": "Natural friendship vs vimshottari lord of planet's nakshatra (not comma-listed ruling_planet text)",
         "affects_strength_percent": false,
         "cell_color": {
           "own": "green",
@@ -887,7 +880,6 @@
       },
       {
         "column": "Karakwaqt",
-        "factor": "Lagna roles from data.json houses[1].lagna for this ascendant rashi",
         "affects_strength_percent": false,
         "cell_color": {
           "yog_karak": "green",
@@ -947,7 +939,7 @@
     "max_percent": 500,
     "death_degree_override_percent": 0,
     "color_intensity": {
-      "factor": "Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
+      "factor": "Planet Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
       "high_green_above_percent": 100,
       "red_at_or_below_percent": 0,
       "red_if_death_degree": true
