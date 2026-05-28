@@ -336,8 +336,7 @@ function normalizeText(value) {
 
 /** Strength cap from ``planet_strength_rules`` (resolved API or ``strength_factors[id=strength_limits]``). */
 function strengthMaxPercent(kundaliPayload) {
-  const rules =
-    kundaliPayload?.planet_strength_rules || planetDatabase?.planet_strength_rules;
+  const rules = kundaliPayload?.planet_strength_rules || planetDatabase?.planet_strength_rules;
   if (typeof rules?.max_percent === "number" && rules.max_percent > 0) {
     return rules.max_percent;
   }
@@ -354,20 +353,7 @@ function strengthMaxPercent(kundaliPayload) {
   return C.PLANET_STRENGTH_MAX_PERCENT || 200;
 }
 
-/** Parse API JSON; surface HTML error pages as a clear message. */
-async function parseApiJsonResponse(response) {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    const hint =
-      `API returned HTML (HTTP ${response.status}). ` +
-      `Restart the Flask container on port ${C.FLASK_PORT} after code updates.`;
-    throw new Error(hint);
-  }
-}
-
-/** Fetch and cache full planet database JSON (optional; uses strength fallback if missing). */
+/** Fetch and cache full planet database JSON from API. */
 async function ensurePlanetDatabase() {
   if (planetDatabase) return planetDatabase;
   const path = C.API_PLANET_DATABASE_PATH || "/api/planet-database";
@@ -383,6 +369,19 @@ async function ensurePlanetDatabase() {
   } catch (err) {
     console.warn("planet-database unavailable:", err.message);
     return null;
+  }
+}
+
+/** Parse API JSON; surface HTML error pages as a clear message. */
+async function parseApiJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const hint =
+      `API returned HTML (HTTP ${response.status}). ` +
+      `Restart the Flask container on port ${C.FLASK_PORT} after code updates.`;
+    throw new Error(hint);
   }
 }
 
@@ -625,548 +624,11 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
 }
 
-function housesForLookupFromDatabase() {
-  const lookup = {};
-  for (const item of planetDatabase?.houses || []) {
-    if (!item || typeof item.house !== "number") continue;
-    const parts = (item.for || []).map((x) => String(x).trim()).filter(Boolean);
-    lookup[item.house] = parts.join(", ");
-  }
-  return lookup;
-}
-
-function aspectOffsetsByPlanetFromDatabase() {
-  const out = {};
-  const defaults = C.DEFAULT_PLANET_ASPECT_OFFSETS || {};
-  for (const [key, offsets] of Object.entries(defaults)) {
-    out[normalizeText(key)] = (offsets || []).map(Number).filter((n) => n >= 1 && n <= 12);
-  }
-  for (const row of planetDatabase?.planets || []) {
-    const key = normalizeText(row?.name);
-    if (!key || key === "ascendant") continue;
-    const raw = row?.aspect?.offsets;
-    if (!Array.isArray(raw)) continue;
-    if (!raw.length) {
-      out[key] = [];
-      continue;
-    }
-    out[key] = raw.map(Number).filter((n) => n >= 1 && n <= 12);
-  }
-  return out;
-}
-
-function houseReachedByAspectOffset(planetHouse, offset) {
-  return ((Number(planetHouse) + Number(offset) - 2) % 12) + 1;
-}
-
-function planetAspectAreaCoverByOffset() {
-  const fromConstants = C.PLANET_ASPECT_AREA_COVER_BY_OFFSET;
-  if (fromConstants && typeof fromConstants === "object" && Object.keys(fromConstants).length) {
-    const out = {};
-    for (const [key, value] of Object.entries(fromConstants)) {
-      const off = Number(key);
-      if (Number.isFinite(off) && off >= 1 && off <= 12) {
-        out[off] = Number(value) || 100;
-      }
-    }
-    if (Object.keys(out).length) return out;
-  }
-  const out = { 7: 100 };
-  for (const row of planetDatabase?.planet_aspect_rules?.by_offset || []) {
-    const off = Number(row?.offset);
-    if (off >= 1 && off <= 12) {
-      out[off] = Number(row.area_cover_percent) || 100;
-    }
-  }
-  return out;
-}
-
-function houseStrengthRulesSource(payload) {
-  const fromPayload = payload?.house_strength_rules;
-  if (fromPayload && typeof fromPayload === "object") {
-    const hasBase = typeof fromPayload.base_percent === "number";
-    const hasFactors =
-      Array.isArray(fromPayload.strength_factors) && fromPayload.strength_factors.length > 0;
-    const hasAspectMap = aspectMapIsNonempty(fromPayload.aspect_strength_by_id_offset);
-    if (hasBase && (hasFactors || hasAspectMap)) return fromPayload;
-  }
-  const fromDb = planetDatabase?.house_strength_rules;
-  if (fromDb && typeof fromDb === "object") {
-    const hasBase = typeof fromDb.base_percent === "number";
-    const hasFactors = Array.isArray(fromDb.strength_factors) && fromDb.strength_factors.length > 0;
-    const hasAspectMap = aspectMapIsNonempty(fromDb.aspect_strength_by_id_offset);
-    if (hasBase && (hasFactors || hasAspectMap)) return fromDb;
-  }
-  const fallback = C.HOUSE_STRENGTH_RULES_FALLBACK;
-  if (fallback && typeof fallback === "object") return fallback;
-  return null;
-}
-
-function parseAspectStrengthByIdOffset(factors) {
-  const out = {};
-  for (const row of factors || []) {
-    const id = normalizeText(row?.id);
-    if (!id || id === "strength_limits" || id === "clamp") continue;
-    const off = Number(row.offset);
-    if (!Number.isFinite(off) || off < 1 || off > 12) continue;
-    if (!out[id]) out[id] = {};
-    const entry = {};
-    if (typeof row.increase_strength_percent === "number") {
-      entry.increase = Math.trunc(row.increase_strength_percent);
-    }
-    if (typeof row.decrease_strength_percent === "number") {
-      entry.decrease = Math.trunc(row.decrease_strength_percent);
-    }
-    if (Object.keys(entry).length) out[id][off] = entry;
-  }
-  return out;
-}
-
-function aspectMapIsNonempty(map) {
-  return Boolean(map && typeof map === "object" && Object.keys(map).length > 0);
-}
-
-/** Normalize API JSON offset keys (``"7"``) to numeric buckets for lookup. */
-function normalizeAspectStrengthByIdOffset(raw) {
-  const out = {};
-  for (const [factorId, byOffset] of Object.entries(raw || {})) {
-    const id = normalizeText(factorId);
-    if (!id) continue;
-    const bucket = {};
-    for (const [key, entry] of Object.entries(byOffset || {})) {
-      const off = Number(key);
-      if (!Number.isFinite(off) || off < 1 || off > 12) continue;
-      if (entry && typeof entry === "object") bucket[off] = entry;
-    }
-    if (Object.keys(bucket).length) out[id] = bucket;
-  }
-  return out;
-}
-
-function resolveAspectByIdOffset(rulesSource) {
-  const fromApi = rulesSource?.aspect_strength_by_id_offset;
-  if (aspectMapIsNonempty(fromApi)) {
-    return normalizeAspectStrengthByIdOffset(fromApi);
-  }
-  const factors = rulesSource?.strength_factors;
-  if (Array.isArray(factors) && factors.length) {
-    const parsed = parseAspectStrengthByIdOffset(factors);
-    if (aspectMapIsNonempty(parsed)) return parsed;
-  }
-  const dbFactors = planetDatabase?.house_strength_rules?.strength_factors;
-  return parseAspectStrengthByIdOffset(dbFactors);
-}
-
-function areaCoverByOffsetFromRules(rulesSource) {
-  const raw = rulesSource?.planet_aspect_area_cover_by_offset;
-  if (raw && typeof raw === "object" && Object.keys(raw).length) {
-    const out = {};
-    for (const [key, value] of Object.entries(raw)) {
-      const off = Number(key);
-      if (Number.isFinite(off) && off >= 1 && off <= 12) {
-        out[off] = Number(value) || 100;
-      }
-    }
-    if (Object.keys(out).length) return out;
-  }
-  return planetAspectAreaCoverByOffset();
-}
-
-function scaledHouseStrengthAdjustment(basePercent, offset, areaByOffset) {
-  const off = Number(offset);
-  const area = Number(
-    areaByOffset[off] ?? areaByOffset[String(off)] ?? areaByOffset[7] ?? areaByOffset["7"] ?? 100
-  );
-  return Math.round((Number(basePercent) || 0) * area / 100);
-}
-
-function houseStrengthFactorAtOffset(aspectMap, factorId, offset) {
-  const bucket = aspectMap[factorId] || {};
-  return bucket[offset] || bucket[String(offset)] || {};
-}
-
-/** Resolved ``house_strength_rules`` from kundali API, planet database, or constants fallback. */
-function resolvedHouseStrengthRules(payload) {
-  const r = houseStrengthRulesSource(payload);
-  if (!r || typeof r !== "object") {
-    return {
-      basePercent: 100,
-      areaByOffset: planetAspectAreaCoverByOffset(),
-      aspectByIdOffset: {},
-      minPct: 0,
-      maxPct: 500
-    };
-  }
-  const factors = Array.isArray(r.strength_factors) ? r.strength_factors : [];
-  const limitsRow =
-    factors.find((f) => {
-      const id = normalizeText(f?.id);
-      return id === "strength_limits" || id === "clamp";
-    }) || {};
-  const basePercent =
-    typeof r.base_percent === "number" && Number.isFinite(r.base_percent)
-      ? Math.trunc(r.base_percent)
-      : 100;
-  const minPct =
-    typeof r.min_percent === "number"
-      ? Math.trunc(r.min_percent)
-      : typeof limitsRow.min_percent === "number"
-        ? Math.trunc(limitsRow.min_percent)
-        : 0;
-  const maxPct =
-    typeof r.max_percent === "number"
-      ? Math.trunc(r.max_percent)
-      : typeof limitsRow.max_percent === "number"
-        ? Math.trunc(limitsRow.max_percent)
-        : 500;
-  return {
-    basePercent,
-    areaByOffset: areaCoverByOffsetFromRules(r),
-    aspectByIdOffset: resolveAspectByIdOffset(r),
-    minPct,
-    maxPct
-  };
-}
-
-function houseStrengthRulesAreUsable(rules) {
-  return aspectMapIsNonempty(rules?.aspectByIdOffset);
-}
-
-function aspectOffsetsForPlanet(planet, offsetsByPlanet) {
-  const key = normalizeText(planet?.name);
-  const raw = planet?.aspect?.offsets;
-  if (Array.isArray(raw) && raw.length) {
-    return raw.map((n) => Number(n)).filter((n) => n >= 1 && n <= 12);
-  }
-  return offsetsByPlanet[key] || C.DEFAULT_PLANET_ASPECT_OFFSETS?.[key] || [7];
-}
-
-function clampHouseStrengthPct(pct, rules) {
-  const n = Math.round(Number(pct) || 0);
-  return Math.max(rules.minPct, Math.min(rules.maxPct, n));
-}
-
-function planetInOwnRashi(planetKey, rashiEnglish) {
-  const pk = normalizeText(planetKey);
-  const rashi = normalizeText(rashiEnglish);
-  if (!pk || !rashi) return false;
-  const signs = C.RASHI_IN_EN || [];
-  const lords = C.RASHI_SIGN_LORD_IN_EN || [];
-  const idx = signs.indexOf(rashi);
-  if (idx < 0 || idx >= lords.length) return false;
-  return pk === normalizeText(lords[idx]);
-}
-
-function debilitatedSignForPlanet(planetKey) {
-  const pk = normalizeText(planetKey);
-  if (!pk) return "";
-  for (const row of planetDatabase?.planets || []) {
-    if (normalizeText(row?.name) === pk) {
-      return normalizeText(row.debilitated);
-    }
-  }
-  return "";
-}
-
-function planetInDebilitatedRashi(planetKey, rashiEnglish) {
-  const deb = debilitatedSignForPlanet(planetKey);
-  const rashi = normalizeText(rashiEnglish);
-  return Boolean(deb && rashi && deb === rashi);
-}
-
-function exaltedSignForPlanet(planetKey) {
-  const pk = normalizeText(planetKey);
-  if (!pk) return "";
-  for (const row of planetDatabase?.planets || []) {
-    if (normalizeText(row?.name) === pk) {
-      return normalizeText(row.exalted);
-    }
-  }
-  return "";
-}
-
-function planetInExaltedRashi(planetKey, rashiEnglish) {
-  const ex = exaltedSignForPlanet(planetKey);
-  const rashi = normalizeText(rashiEnglish);
-  return Boolean(ex && rashi && ex === rashi);
-}
-
-function planetFriendshipRow(planetKey) {
-  const pk = normalizeText(planetKey);
-  if (!pk) return null;
-  for (const row of planetDatabase?.planets || []) {
-    if (normalizeText(row?.name) === pk) return row;
-  }
-  return null;
-}
-
-function naturalFriendshipWithSignLord(planetKey, rashiEnglish) {
-  const pk = normalizeText(planetKey);
-  const rashi = normalizeText(rashiEnglish);
-  if (!pk || !rashi) return "";
-  const signs = C.RASHI_IN_EN || [];
-  const lords = C.RASHI_SIGN_LORD_IN_EN || [];
-  const idx = signs.indexOf(rashi);
-  if (idx < 0 || idx >= lords.length) return "";
-  const lord = normalizeText(lords[idx]);
-  if (pk === lord) return "own";
-  const row = planetFriendshipRow(pk);
-  if (!row) return "";
-  const friends = (row.friends || []).map((x) => normalizeText(x));
-  const enemies = (row.enemies || []).map((x) => normalizeText(x));
-  if (friends.includes(lord)) return "friend";
-  if (enemies.includes(lord)) return "enemy";
-  return "neutral";
-}
-
-/** One graha's drishti at ``offset`` on ``targetRashiEnglish``; scaled by ``planet_aspect_rules`` area %. */
-function houseStrengthDeltaAtOffsetForRashi(planetKey, targetRashiEnglish, offset, rules) {
-  const pk = normalizeText(planetKey);
-  const rashi = normalizeText(targetRashiEnglish);
-  if (!pk || pk === "ascendant" || !rashi) return 0;
-  const aspectMap = rules.aspectByIdOffset || {};
-  const areaBy = rules.areaByOffset || { 7: 100 };
-  let delta = 0;
-
-  const own = houseStrengthFactorAtOffset(aspectMap, "aspect_by_own_rashi_planet", offset);
-  if (own.increase != null && planetInOwnRashi(pk, rashi)) {
-    delta += scaledHouseStrengthAdjustment(own.increase, offset, areaBy);
-  }
-
-  const deb = houseStrengthFactorAtOffset(aspectMap, "aspect_by_debilitated_rashi_planet", offset);
-  const enemy = houseStrengthFactorAtOffset(aspectMap, "aspect_by_enemy_rashi_planet", offset);
-  if (deb.decrease != null && planetInDebilitatedRashi(pk, rashi)) {
-    delta -= scaledHouseStrengthAdjustment(deb.decrease, offset, areaBy);
-  } else if (enemy.decrease != null && naturalFriendshipWithSignLord(pk, rashi) === "enemy") {
-    delta -= scaledHouseStrengthAdjustment(enemy.decrease, offset, areaBy);
-  }
-
-  const ex = houseStrengthFactorAtOffset(aspectMap, "aspect_by_exalted_rashi_planet", offset);
-  const friend = houseStrengthFactorAtOffset(aspectMap, "aspect_by_friend_rashi_planet", offset);
-  if (ex.increase != null && planetInExaltedRashi(pk, rashi)) {
-    delta += scaledHouseStrengthAdjustment(ex.increase, offset, areaBy);
-  } else if (friend.increase != null && naturalFriendshipWithSignLord(pk, rashi) === "friend") {
-    delta += scaledHouseStrengthAdjustment(friend.increase, offset, areaBy);
-  }
-  return delta;
-}
-
-/** House strength for the bhava (all graha drishti on that house). */
-function computeHouseStrengthPercentForBhava(houseNum, payload) {
-  const rules = resolvedHouseStrengthRules(payload);
-  if (!houseStrengthRulesAreUsable(rules)) {
-    return null;
-  }
-  const rashiEnglish = wholeSignHousesFromPayload(payload)[houseNum]?.rashi_english || "";
-  const offsetsByPlanet = aspectOffsetsByPlanetFromDatabase();
-  let delta = 0;
-  for (const p of payload?.planets || []) {
-    const pk = normalizeText(p?.name);
-    if (!pk || pk === "ascendant") continue;
-    const ph = planetHouseNumber(p);
-    if (!ph) continue;
-    const offsets = aspectOffsetsForPlanet(p, offsetsByPlanet);
-    for (const offset of offsets) {
-      if (houseReachedByAspectOffset(ph, offset) !== houseNum) continue;
-      delta += houseStrengthDeltaAtOffsetForRashi(pk, rashiEnglish, offset, rules);
-    }
-  }
-  return clampHouseStrengthPct(rules.basePercent + delta, rules);
-}
-
-function houseNumberFromTableRow(row) {
-  const hn = Number(row?.house?.number ?? row?.house);
-  return hn >= 1 && hn <= 12 ? hn : 0;
-}
-
-/** Recompute House Strength on every table row when rules are available. */
-function applyHouseStrengthToPlanetsTableRows(rows, payload) {
-  const rules = resolvedHouseStrengthRules(payload);
-  if (!houseStrengthRulesAreUsable(rules)) {
-    return rows;
-  }
-  return (rows || []).map((row) => {
-    const houseNum = houseNumberFromTableRow(row);
-    if (!houseNum) return row;
-    const hs = computeHouseStrengthPercentForBhava(houseNum, payload);
-    if (hs == null) return row;
-    return {
-      ...row,
-      house_strength_percent: hs,
-      house_strength: `${hs}%`
-    };
-  });
-}
-
-function aspectHousesForPlanet(planet, offsetsByPlanet) {
-  const hn = planetHouseNumber(planet);
-  if (!hn) return [];
-  const key = normalizeText(planet?.name);
-  const offsets = offsetsByPlanet[key] || [];
-  return offsets.map((off) => houseReachedByAspectOffset(hn, off));
-}
-
-/** Graha names whose drishti hits each house 1–12 (computed in UI if API omits it). */
-function aspectorsByHouseFromPlanets(planets, offsetsByPlanet) {
-  const byHouse = {};
-  for (let h = 1; h <= 12; h += 1) byHouse[h] = [];
-  for (const p of planets || []) {
-    const key = normalizeText(p?.name);
-    if (!key || key === "ascendant") continue;
-    let houses = p?.aspect?.houses;
-    if (!Array.isArray(houses) || !houses.length) {
-      houses = aspectHousesForPlanet(p, offsetsByPlanet);
-    }
-    for (const hn of houses) {
-      const n = Number(hn);
-      if (n >= 1 && n <= 12 && !byHouse[n].includes(key)) byHouse[n].push(key);
-    }
-  }
-  return byHouse;
-}
-
-function createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForLookup) {
-  const housesMeta = wholeSignHousesFromPayload(payload);
-  const ws = housesMeta[houseNum] || {};
-  const aspectors = aspectorsByHouse[houseNum] || [];
-  const row = {
-    house: {
-      number: houseNum,
-      for: formatHouseForList(houseForLookup[houseNum] || "")
-    },
-    planet: "",
-    aspected_by_planets: [...aspectors],
-    aspected_by: formatAspectedByPlanets({ aspected_by_planets: aspectors }),
-    degree: "",
-    strength: "",
-    strength_percent: null,
-    house_strength: "",
-    house_strength_percent: null,
-    flags: { malefic_6_8_12: "", lagna_lord_enemy: "", death_degree: "" },
-    status: { rashi: "", nakshatra: "" },
-    rashi: formatRashiDisplayFromHouseMeta(ws),
-    nakshatra: "",
-    navatara: "",
-    karakwaqt: "",
-    dasha_age: "",
-    cell_styles: {},
-    empty_house: true
-  };
-  const hsPct = computeHouseStrengthPercentForBhava(houseNum, payload);
-  if (typeof hsPct === "number") {
-    row.house_strength_percent = hsPct;
-    row.house_strength = `${hsPct}%`;
-  }
-  return row;
-}
-
-function housesPresentInPlanetsTable(rows) {
-  const present = new Set();
-  for (const row of rows || []) {
-    const hn = Number(houseFromTableRow(row).number);
-    if (hn >= 1 && hn <= 12) present.add(hn);
-  }
-  return present;
-}
-
-/** Ensure ``planets_table`` has at least one row for every house 1–12. */
-function expandPlanetsTableToAllHouses(rows, payload) {
-  const list = Array.isArray(rows) ? [...rows] : [];
-  const present = housesPresentInPlanetsTable(list);
-  let allPresent = true;
-  for (let h = 1; h <= 12; h += 1) {
-    if (!present.has(h)) {
-      allPresent = false;
-      break;
-    }
-  }
-  if (allPresent) return sortPlanetsTableRowsByAge(list);
-
-  const offsetsByPlanet = aspectOffsetsByPlanetFromDatabase();
-  const aspectorsByHouse = aspectorsByHouseFromPlanets(payload?.planets || [], offsetsByPlanet);
-  const houseForLookup = housesForLookupFromDatabase();
-
-  for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
-    if (present.has(houseNum)) continue;
-    list.push(createEmptyHouseTableRow(houseNum, payload, aspectorsByHouse, houseForLookup));
-  }
-  return sortPlanetsTableRowsByAge(list);
-}
-
-/** Merge ``planets[]`` into ``planets_table`` when API rows omit newer fields. */
-function mergePlanetsIntoPlanetsTableRows(planetsTable, planets, kundaliPayload) {
-  if (!Array.isArray(planetsTable) || !Array.isArray(planets)) return planetsTable || [];
-  const payload = kundaliPayload || {};
-  const byPlanet = new Map(
-    planets.map((p) => [normalizeText(p?.name), p]).filter(([k]) => k)
-  );
-  return planetsTable.map((row) => {
-    if (!normalizeText(row?.planet)) return row;
-    const src = byPlanet.get(normalizeText(row?.planet));
-    if (!src) return row;
-    const next = { ...row };
-    const dashaAge = (row.dasha_age || "").trim() || formatDashaAgeDisplay(src.age);
-    if (dashaAge) next.dasha_age = dashaAge;
-    const kw = (row.karakwaqt || src.planet_karakwaqt || "").trim();
-    if (kw) next.karakwaqt = kw;
-    const mergedAspectors = collectAspectedByPlanetKeys({
-      aspected_by_planets: row.aspected_by_planets,
-      aspected_by: Array.isArray(src.aspected_by)
-        ? src.aspected_by
-        : row.aspected_by || src.aspected_by
-    });
-    if (mergedAspectors.length) {
-      next.aspected_by_planets = mergedAspectors;
-      next.aspected_by = formatAspectedByPlanets(next);
-    }
-    if (!next.house?.number && src.house) {
-      next.house = {
-        number: src.house.number,
-        for: formatHouseForList(src.house.for || [])
-      };
-    }
-    if (typeof next.house_strength_percent !== "number") {
-      const houseNum = houseNumberFromTableRow(next);
-      const hs =
-        houseNum > 0 ? computeHouseStrengthPercentForBhava(houseNum, payload) : null;
-      if (typeof hs === "number") {
-        next.house_strength_percent = hs;
-        next.house_strength = `${hs}%`;
-      }
-    }
-    const styles = { ...(row.cell_styles || {}) };
-    if (!styles.karakwaqt && kw) {
-      styles.karakwaqt = karakwaqtCellColorKind(kw || src.planet_karakwaqt);
-    }
-    if (Object.keys(styles).length) next.cell_styles = styles;
-    return next;
-  });
-}
-
-/** Start year from ``dasha_age`` (e.g. ``48-54`` → 48) for Vimshottari table order. */
-function dashaAgeStartYears(rowData) {
-  const text = String(planetsTableCellText("dasha_age", rowData) ?? "").trim();
-  const match = /^(\d+)/.exec(text);
-  if (match) return Number(match[1]);
-  return 999;
-}
-
-function sortPlanetsTableRowsByAge(rows) {
-  return [...(rows || [])].sort((a, b) => {
-    const ageDiff = dashaAgeStartYears(a) - dashaAgeStartYears(b);
-    if (ageDiff !== 0) return ageDiff;
-    const ha = Number(a.house?.number ?? a.house) || 99;
-    const hb = Number(b.house?.number ?? b.house) || 99;
-    if (ha !== hb) return ha - hb;
-    return normalizeText(a.planet).localeCompare(normalizeText(b.planet));
-  });
-}
-
 /** Planets table: values and ``cell_styles`` come from API (get_kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
-  const sortedRows = sortPlanetsTableRowsByAge(rows);
+  const sortedRows = Array.isArray(rows) ? rows : [];
   const columnKeys = [
     "planet",
     "aspected_by",
@@ -1623,11 +1085,6 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   }
 }
 
-/** Nakshatra table rows from API (``nakshatras``; legacy ``navatara_rows``). */
-function nakshatrasFromPayload(payload) {
-  return payload?.nakshatras || payload?.navatara_rows || [];
-}
-
 /** Fill summary, planets, and nakshatra tables from /api/kundali JSON. */
 function renderKundaliResponseIntoPage(kundaliPayload) {
   const summaryBody = document.querySelector("#summary-table tbody");
@@ -1637,19 +1094,8 @@ function renderKundaliResponseIntoPage(kundaliPayload) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
 
-  const planetsTableRows = applyHouseStrengthToPlanetsTableRows(
-    expandPlanetsTableToAllHouses(
-      mergePlanetsIntoPlanetsTableRows(
-        kundaliPayload.planets_table || [],
-        kundaliPayload.planets || [],
-        kundaliPayload
-      ),
-      kundaliPayload
-    ),
-    kundaliPayload
-  );
-  renderPlanetsTableWithColors(planetsBody, planetsTableRows);
-  renderNakshatraTableWithColors(nakshatraBody, nakshatrasFromPayload(kundaliPayload));
+  renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
+  renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
 
   if (resultsEl) resultsEl.hidden = false;
   showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);

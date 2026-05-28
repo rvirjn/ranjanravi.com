@@ -773,10 +773,13 @@ class EnrichKundali:
         self.add_lunar_calendar_to_summary(chart)
         self.attach_nakshatras_for_moon_janma(chart)
         chart["planets_table"] = self.build_planets_table_rows(chart)
+        chart["houses"] = self.build_houses_table_rows(chart["planets_table"])
         chart["summary_table"] = self.build_summary_table_rows(chart)
         chart["ui_status_message"] = self.build_ui_status_message(chart)
         chart.pop("moon_nakshatra", None)
         chart.pop("ascendant", None)
+        chart.pop("planet_strength_rules", None)
+        chart.pop("house_strength_rules", None)
         chart.pop("mahadasha_from_birth", None)
         chart.pop("lagna_karak_roles", None)
         alts = chart.pop("geocode_alternatives", None)
@@ -2632,6 +2635,36 @@ class EnrichKundali:
                 remove_white_space(str(r.get("planet") or "")),
             ),
         )
+
+    @staticmethod
+    def build_houses_table_rows(planets_table_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """House-wise values for UI: one row per house (1–12) with precomputed strength."""
+        by_house: dict[int, dict[str, Any]] = {}
+        for row in planets_table_rows or []:
+            if not isinstance(row, dict):
+                continue
+            house = row.get("house") if isinstance(row.get("house"), dict) else {}
+            try:
+                house_num = int(house.get("number"))
+            except (TypeError, ValueError):
+                continue
+            if not (1 <= house_num <= RASHI_COUNT):
+                continue
+            if house_num in by_house:
+                continue
+            hs_pct = row.get("house_strength_percent")
+            hs_txt = row.get("house_strength")
+            by_house[house_num] = {
+                "number": house_num,
+                "for": house.get("for") or "",
+                "strength_percent": hs_pct if isinstance(hs_pct, (int, float)) else None,
+                "strength": str(hs_txt or "").strip() if hs_txt else "",
+            }
+        out: list[dict[str, Any]] = []
+        for hn in range(1, RASHI_COUNT + 1):
+            row = by_house.get(hn, {"number": hn, "for": "", "strength_percent": None, "strength": ""})
+            out.append(row)
+        return out
 
     @staticmethod
     def _title_rashi_name(rashi_english: str) -> str:

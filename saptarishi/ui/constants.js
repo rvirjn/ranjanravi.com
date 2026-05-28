@@ -7,9 +7,9 @@ const SAPTARISHI_CONSTANTS = {
   PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  API_PLANET_DATABASE_PATH: "/api/planet-database",
   KUNDALI_READY_STATUS_MESSAGE:
     "Kundali Chart prepared and planet/nakshtra table is also ready",
-  API_PLANET_DATABASE_PATH: "/api/planet-database",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
   /**
@@ -73,54 +73,6 @@ const SAPTARISHI_CONSTANTS = {
     "saturn",
     "jupiter"
   ],
-  /**
-   * Drishti area % by house offset (sync with database/data.json planet_aspect_rules).
-   * Used when API omits planet_aspect_rules (older deployments).
-   */
-  PLANET_ASPECT_AREA_COVER_BY_OFFSET: {
-    3: 25,
-    4: 33.33,
-    5: 50,
-    7: 100,
-    8: 33.33,
-    9: 50,
-    10: 25
-  },
-  /**
-   * House strength when /api/kundali and /api/planet-database lack house_strength_rules.
-   * Pre-parsed from database/data.json (offsets 3,4,5,7,8,9,10 × ±50% base).
-   */
-  HOUSE_STRENGTH_RULES_FALLBACK: (() => {
-    const offsets = [3, 4, 5, 7, 8, 9, 10];
-    const byOff = (inc) => {
-      const bucket = {};
-      for (const off of offsets) {
-        bucket[off] = inc ? { increase: 50 } : { decrease: 50 };
-      }
-      return bucket;
-    };
-    return {
-      base_percent: 100,
-      min_percent: 0,
-      max_percent: 500,
-      planet_aspect_area_cover_by_offset: {
-        3: 25,
-        4: 33.33,
-        5: 50,
-        7: 100,
-        8: 33.33,
-        9: 50,
-        10: 25
-      },
-      aspect_strength_by_id_offset: {
-        aspect_by_own_rashi_planet: byOff(true),
-        aspect_by_debilitated_rashi_planet: byOff(false),
-        aspect_by_exalted_rashi_planet: byOff(true),
-        aspect_by_enemy_rashi_planet: byOff(false),
-        aspect_by_friend_rashi_planet: byOff(true)
-      }
-    };
-  })(),
   /** Parashari drishti offsets (sync with main/constant.py / data.json). */
   DEFAULT_PLANET_ASPECT_OFFSETS: {
     sun: [7],
@@ -174,6 +126,6 @@ const SAPTARISHI_CONSTANTS = {
     "saturn",
     "mercury"
   ],
-  /** Fallback if ``/api/planet-database`` is unavailable (sync with database/data.json). */
+  /** Fallback max for chart color scaling if API omits strength rules. */
   PLANET_STRENGTH_MAX_PERCENT: 200
 };

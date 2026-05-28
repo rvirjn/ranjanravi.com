@@ -414,9 +414,7 @@
           6
         ]
       },
-      "aspected_by": [
-        "ketu"
-      ],
+      "aspected_by": [],
       "planet_status_color": "own"
     },
     {
@@ -645,9 +643,7 @@
           5
         ]
       },
-      "aspected_by": [
-        "ketu"
-      ],
+      "aspected_by": [],
       "planet_status_color": "friend"
     },
     {
@@ -710,16 +706,8 @@
         }
       },
       "aspect": {
-        "offsets": [
-          5,
-          7,
-          9
-        ],
-        "houses": [
-          7,
-          9,
-          11
-        ]
+        "offsets": [],
+        "houses": []
       },
       "aspected_by": [
         "rahu"
@@ -782,169 +770,6 @@
     }
   ],
   "ephemeris": "moshier",
-  "planet_strength_rules": {
-    "strength_factors": [
-      {
-        "id": "degree_in_sign",
-        "increase_strength_percent": 100,
-        "decrease_strength_percent": 25
-      },
-      {
-        "id": "exalted",
-        "increase_strength_percent": 100,
-        "decrease_strength_percent": 0
-      },
-      {
-        "id": "debilitated",
-        "increase_strength_percent": 0,
-        "decrease_strength_percent": 100
-      },
-      {
-        "id": "own_rashi",
-        "increase_strength_percent": 75,
-        "decrease_strength_percent": 0
-      },
-      {
-        "id": "retrograde",
-        "increase_strength_percent": 40,
-        "decrease_strength_percent": 0
-      },
-      {
-        "id": "combustion",
-        "factor": "Too close to Sun (within threshold degrees) reduces strength",
-        "increase_strength_percent": 0,
-        "decrease_strength_percent": 60,
-        "default_max_angular_distance_deg": 14,
-        "max_angular_distance_deg_by_planet": {
-          "mercury": 14,
-          "moon": 12,
-          "mars": 17,
-          "jupiter": 11,
-          "venus": 10,
-          "saturn": 15
-        }
-      },
-      {
-        "id": "death_degree",
-        "factor": "Mrityu Bhaga death degree (sets strength to increase_strength_percent when matched)",
-        "increase_strength_percent": 0,
-        "decrease_strength_percent": 100
-      },
-      {
-        "id": "strength_limits",
-        "factor": "Minimum and maximum strength % after all adjustments",
-        "increase_strength_percent": 0,
-        "decrease_strength_percent": 0,
-        "min_percent": 0,
-        "max_percent": 500
-      }
-    ],
-    "status_column_color": [
-      {
-        "column": "Rashi Status",
-        "affects_strength_percent": false,
-        "cell_color": {
-          "own": "green",
-          "friend": "green",
-          "enemy": "red",
-          "high": "green",
-          "low": "red"
-        }
-      },
-      {
-        "column": "Nakshatra Status",
-        "affects_strength_percent": false,
-        "cell_color": {
-          "own": "green",
-          "friend": "green",
-          "enemy": "red",
-          "high": "green",
-          "low": "red"
-        }
-      },
-      {
-        "column": "Nakshatra navatara",
-        "factor": "Harmful nava-tara (vipat, pratyak, vadha, etc.) from Moon janma wheel",
-        "affects_strength_percent": false,
-        "cell_color": {
-          "harmful": "red"
-        }
-      },
-      {
-        "column": "Malefic 6/8/12, Lagna Lord Enemy, Death Degree",
-        "factor": "Yes if planet in dusthana house, enemy of lagna lord, or Mrityu Bhaga",
-        "affects_strength_percent": false,
-        "cell_color": {
-          "yes": "red"
-        }
-      },
-      {
-        "column": "Karakwaqt",
-        "affects_strength_percent": false,
-        "cell_color": {
-          "yog_karak": "green",
-          "marak": "red",
-          "badhak": "red",
-          "prabal_marak": "red"
-        }
-      }
-    ],
-    "degree_in_sign_bands": [
-      {
-        "low_deg": 0,
-        "high_deg": 6,
-        "phase": "born",
-        "strength_percent": 25
-      },
-      {
-        "low_deg": 6,
-        "high_deg": 12,
-        "phase": "child",
-        "strength_percent": 50
-      },
-      {
-        "low_deg": 12,
-        "high_deg": 18,
-        "phase": "youth",
-        "strength_percent": 100
-      },
-      {
-        "low_deg": 18,
-        "high_deg": 24,
-        "phase": "old",
-        "strength_percent": 50
-      },
-      {
-        "low_deg": 24,
-        "high_deg": 30,
-        "phase": "dead",
-        "strength_percent": 25
-      }
-    ],
-    "combustion_default_max_angular_distance_deg": 14.0,
-    "combustion_max_angular_distance_deg_by_planet": {
-      "mercury": 14,
-      "moon": 12,
-      "mars": 17,
-      "jupiter": 11,
-      "venus": 10,
-      "saturn": 15
-    },
-    "exalted_bonus": 100,
-    "debilitated_penalty": 100,
-    "own_rashi_bonus": 75,
-    "retrograde_bonus": 40,
-    "combustion_penalty": 60,
-    "min_percent": 0,
-    "max_percent": 500,
-    "death_degree_override_percent": 0,
-    "color_intensity": {
-      "factor": "Planet Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
-      "high_green_above_percent": 100,
-      "red_at_or_below_percent": 0,
-      "red_if_death_degree": true
-    }
-  },
   "kundali_summary": {
     "place_query": "Bengaluru, India",
     "resolved_place": "Bengaluru, Karnataka, India",
@@ -1560,10 +1385,15 @@
         "for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga"
       },
       "planet": "saturn",
+      "aspected_by_planets": [
+        "jupiter"
+      ],
       "aspected_by": "Jupiter",
       "degree": "19.28°",
       "strength": "50%",
       "strength_percent": 50,
+      "house_strength": "125%",
+      "house_strength_percent": 125,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1595,10 +1425,15 @@
         "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna"
       },
       "planet": "mercury",
+      "aspected_by_planets": [
+        "rahu"
+      ],
       "aspected_by": "Rahu",
       "degree": "27.01°",
       "strength": "100%",
       "strength_percent": 100,
+      "house_strength": "125%",
+      "house_strength_percent": 125,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1630,10 +1465,15 @@
         "for": "younger siblings, adventures, travel, intelligence, courage, patience, longevity, mother's death, hidden enemies, throat, neck, ear and breathing-related ailments"
       },
       "planet": "ketu",
+      "aspected_by_planets": [
+        "rahu"
+      ],
       "aspected_by": "Rahu",
       "degree": "7.71°",
       "strength": "90%",
       "strength_percent": 90,
+      "house_strength": "50%",
+      "house_strength_percent": 50,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1665,10 +1505,15 @@
         "for": "wealth, job, family, education, grain, property, death, speech, truth, untruth, charity, tongue, right eye, neighbors"
       },
       "planet": "venus",
+      "aspected_by_planets": [
+        "mars"
+      ],
       "aspected_by": "Mars",
       "degree": "11.15°",
       "strength": "50%",
       "strength_percent": 50,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1700,10 +1545,15 @@
         "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna"
       },
       "planet": "sun",
+      "aspected_by_planets": [
+        "rahu"
+      ],
       "aspected_by": "Rahu",
       "degree": "2.65°",
       "strength": "25%",
       "strength_percent": 25,
+      "house_strength": "125%",
+      "house_strength_percent": 125,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1735,10 +1585,15 @@
         "for": "wealth, job, family, education, grain, property, death, speech, truth, untruth, charity, tongue, right eye, neighbors"
       },
       "planet": "moon",
+      "aspected_by_planets": [
+        "mars"
+      ],
       "aspected_by": "Mars",
       "degree": "14.13°",
       "strength": "175%",
       "strength_percent": 175,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1770,10 +1625,13 @@
         "for": "gains, benefits, income, profit, achievement, fulfillment of wishes, elder brother, sister, daughter-in-law, victory, ears"
       },
       "planet": "mars",
-      "aspected_by": "Ketu",
+      "aspected_by_planets": [],
+      "aspected_by": "",
       "degree": "28.05°",
       "strength": "100%",
       "strength_percent": 100,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1805,10 +1663,13 @@
         "for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation"
       },
       "planet": "rahu",
-      "aspected_by": "Ketu",
+      "aspected_by_planets": [],
+      "aspected_by": "",
       "degree": "7.71°",
       "strength": "90%",
       "strength_percent": 90,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "No",
@@ -1840,10 +1701,15 @@
         "for": "wealth, job, family, education, grain, property, death, speech, truth, untruth, charity, tongue, right eye, neighbors"
       },
       "planet": "jupiter",
+      "aspected_by_planets": [
+        "mars"
+      ],
       "aspected_by": "Mars",
       "degree": "3.22°",
       "strength": "125%",
       "strength_percent": 125,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
       "flags": {
         "malefic_6_8_12": "No",
         "lagna_lord_enemy": "Yes",
@@ -1868,6 +1734,278 @@
         "navatara": "",
         "karakwaqt": "enemy"
       }
+    },
+    {
+      "house": {
+        "number": 4,
+        "for": "mother, home, personal life, vehicles, land, immovable property, buried treasure, happiness, lungs, upper chest, upper heart"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "saturn"
+      ],
+      "aspected_by": "Saturn",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "150%",
+      "house_strength_percent": 150,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Virgo (Kanya)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    },
+    {
+      "house": {
+        "number": 5,
+        "for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "mars",
+        "rahu"
+      ],
+      "aspected_by": "Mars, Rahu",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "75%",
+      "house_strength_percent": 75,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Libra (Tula)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    },
+    {
+      "house": {
+        "number": 6,
+        "for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "mars",
+        "jupiter"
+      ],
+      "aspected_by": "Mars, Jupiter",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "142%",
+      "house_strength_percent": 142,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Scorpio (Vrishchika)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    },
+    {
+      "house": {
+        "number": 7,
+        "for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "sun",
+        "mercury",
+        "saturn"
+      ],
+      "aspected_by": "Sun, Saturn, Mercury",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Sagittarius (Dhanu)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    },
+    {
+      "house": {
+        "number": 8,
+        "for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "moon",
+        "venus",
+        "jupiter"
+      ],
+      "aspected_by": "Venus, Moon, Jupiter",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "100%",
+      "house_strength_percent": 100,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Capricorn (Makara)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    },
+    {
+      "house": {
+        "number": 12,
+        "for": "expenses, losses, debts, foreign lands, moksha, bed comfort, hospitalization, death, left eye"
+      },
+      "planet": "",
+      "aspected_by_planets": [
+        "saturn"
+      ],
+      "aspected_by": "Saturn",
+      "degree": "",
+      "strength": "",
+      "strength_percent": null,
+      "house_strength": "112%",
+      "house_strength_percent": 112,
+      "flags": {
+        "malefic_6_8_12": "",
+        "lagna_lord_enemy": "",
+        "death_degree": ""
+      },
+      "status": {
+        "rashi": "",
+        "nakshatra": ""
+      },
+      "rashi": "Taurus (Vrishabha)",
+      "nakshatra": "",
+      "navatara": "",
+      "karakwaqt": "",
+      "dasha_age": "",
+      "cell_styles": {},
+      "empty_house": true
+    }
+  ],
+  "houses": [
+    {
+      "number": 1,
+      "for": "body, physique, health, efforts, discipline, complexion, appearance, knowledge, strength, brain, wisdom, character, pride, humility, nature, lagna",
+      "strength_percent": 125,
+      "strength": "125%"
+    },
+    {
+      "number": 2,
+      "for": "wealth, job, family, education, grain, property, death, speech, truth, untruth, charity, tongue, right eye, neighbors",
+      "strength_percent": 100,
+      "strength": "100%"
+    },
+    {
+      "number": 3,
+      "for": "younger siblings, adventures, travel, intelligence, courage, patience, longevity, mother's death, hidden enemies, throat, neck, ear and breathing-related ailments",
+      "strength_percent": 50,
+      "strength": "50%"
+    },
+    {
+      "number": 4,
+      "for": "mother, home, personal life, vehicles, land, immovable property, buried treasure, happiness, lungs, upper chest, upper heart",
+      "strength_percent": 150,
+      "strength": "150%"
+    },
+    {
+      "number": 5,
+      "for": "children, study, emotions, intellect, education, fame, followers, religion, auspicious deeds, maternal home, heart ailments, lower-chest ailments",
+      "strength_percent": 75,
+      "strength": "75%"
+    },
+    {
+      "number": 6,
+      "for": "enemies, diseases, slaves, separation, worry, debt, litigation, upper-abdomen ailments, disgrace, grief, sorrow",
+      "strength_percent": 142,
+      "strength": "142%"
+    },
+    {
+      "number": 7,
+      "for": "spouse, husband, wife, friends, partnership, business partners, desire, lust, marriage, daily occupation, death, reproductive organs, open enemies",
+      "strength_percent": 100,
+      "strength": "100%"
+    },
+    {
+      "number": 8,
+      "for": "age, longevity, research, bad luck, death, sudden financial gain, foreign travel, sudden change, accident, incurable disease, lower-abdomen ailments",
+      "strength_percent": 100,
+      "strength": "100%"
+    },
+    {
+      "number": 9,
+      "for": "luck, religion, foreign travel, pilgrimage, dreams, education, guru, fame, wife's brother, wife's sister, renunciation",
+      "strength_percent": 100,
+      "strength": "100%"
+    },
+    {
+      "number": 10,
+      "for": "work, career, profession, father, reputation, kingdom, state, karma, business, rank, authority, power, raja yoga",
+      "strength_percent": 125,
+      "strength": "125%"
+    },
+    {
+      "number": 11,
+      "for": "gains, benefits, income, profit, achievement, fulfillment of wishes, elder brother, sister, daughter-in-law, victory, ears",
+      "strength_percent": 100,
+      "strength": "100%"
+    },
+    {
+      "number": 12,
+      "for": "expenses, losses, debts, foreign lands, moksha, bed comfort, hospitalization, death, left eye",
+      "strength_percent": 112,
+      "strength": "112%"
     }
   ],
   "summary_table": [
