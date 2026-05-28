@@ -647,7 +647,6 @@ function renderPlanetsTableWithColors(tbody, rows) {
   ];
   for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
-    if (rowData.empty_house) tr.classList.add("planets-row--empty-house");
     const cellStyles = rowData.cell_styles || {};
     for (const key of ["dasha_age"]) {
       const td = document.createElement("td");

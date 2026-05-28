@@ -819,19 +819,6 @@ tbody tr:last-child td {
   word-break: break-word;
 }
 
-#planets-table tbody tr.planets-row--empty-house {
-  background: rgba(30, 58, 95, 0.04);
-}
-
-#planets-table tbody tr.planets-row--empty-house td {
-  color: var(--color-text-muted);
-}
-
-#planets-table tbody tr.planets-row--empty-house .planets-house-num {
-  color: var(--color-heading);
-  font-style: normal;
-}
-
 #planets-table .planets-td-karakwaqt {
   min-width: 0;
   white-space: normal;
