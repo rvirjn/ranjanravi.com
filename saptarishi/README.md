@@ -15,13 +15,13 @@ Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights rese
 
 Legacy path on main domain: `https://ranjanravi.com/saptarishi/` (same files under `public_html/saptarishi/`).
 
-GoDaddy upload steps: [`deploy/godaddy/README.md`](deploy/godaddy/README.md).
+DNS / subdomain forwarding (GoDaddy + GitHub Pages): [`deploy/godaddy/README.md`](deploy/godaddy/README.md).
 
 ## Deployments
 
 | Environment | Flask API | UI |
 |-------------|-----------|-----|
-| **Production** | [https://api.ranjanravi.com](https://api.ranjanravi.com) (Render) | GoDaddy static: subdomain `saptarishi.ranjanravi.com` (see `index.html` + `.htaccess` at `saptarishi/` root) |
+| **Production** | [https://api.ranjanravi.com](https://api.ranjanravi.com) (Render) | GitHub Pages at `ranjanravi.com/saptarishi/`; subdomain via GoDaddy **forwarding** (see `deploy/godaddy/README.md`) |
 | **Local dev** | `http://localhost:8081` (Docker `saptarishi_flask`) | `http://localhost:9999/ui/html/kundali.html` (Docker `saptarishi_ui`) |
 
 The UI calls the production API when opened from a non-localhost host (`ui/utils/constants.js` → `PRODUCTION_API_ORIGIN`).  
