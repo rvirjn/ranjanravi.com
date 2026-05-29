@@ -55,12 +55,35 @@ function getFlaskApiOrigin() {
 }
 
 /** Show loading or error text under the birth form; hide when empty. */
-function showStatusMessage(message, isError) {
+function showStatusMessage(message, isError, isLimitError) {
   if (!statusEl) return;
+  if (globalThis.SaptarishiLoading) {
+    globalThis.SaptarishiLoading.stop(statusEl);
+  }
   const text = message || "";
   statusEl.textContent = text;
   statusEl.hidden = !text;
   statusEl.classList.toggle("error", Boolean(isError));
+  statusEl.classList.toggle("status--limit", Boolean(isLimitError));
+}
+
+function showLoadingStatus() {
+  if (!statusEl) return;
+  if (globalThis.SaptarishiLoading) {
+    globalThis.SaptarishiLoading.start(statusEl);
+    return;
+  }
+  showStatusMessage("Loading…");
+}
+
+function formatKundaliLoadError(err) {
+  const msg = err?.message || "Request failed";
+  const limitReached =
+    Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
+  return {
+    text: `Failed to load kundali: ${msg}`,
+    limitReached
+  };
 }
 
 /** Read place string from preset dropdown or custom text field. */
@@ -358,12 +381,15 @@ async function ensurePlanetDatabase() {
   if (planetDatabase) return planetDatabase;
   const path = C.API_PLANET_DATABASE_PATH || "/api/planet-database";
   try {
-    const response = await fetch(`${getFlaskApiOrigin()}${path}`);
-    const payload = await parseApiJsonResponse(response);
-    if (!response.ok) {
-      console.warn("planet-database:", payload.error || response.status);
-      return null;
-    }
+    const payload =
+      typeof SaptarishiAuth !== "undefined"
+        ? await SaptarishiAuth.apiFetch(path)
+        : await (async () => {
+            const response = await fetch(`${getFlaskApiOrigin()}${path}`);
+            const data = await parseApiJsonResponse(response);
+            if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+            return data;
+          })();
     planetDatabase = payload;
     return planetDatabase;
   } catch (err) {
@@ -1117,7 +1143,13 @@ function buildKundaliApiQueryParams(date, time, place) {
 /** Call Flask /api/kundali and return parsed JSON. */
 async function fetchKundaliJsonFromApi(date, time, place) {
   const params = buildKundaliApiQueryParams(date, time, place);
-  const response = await fetch(`${getFlaskApiOrigin()}${C.API_KUNDALI_PATH}?${params}`);
+  const path = `${C.API_KUNDALI_PATH}?${params}`;
+  if (typeof SaptarishiAuth !== "undefined") {
+    const payload = await SaptarishiAuth.apiFetch(path);
+    SaptarishiAuth.updateUserFromApiPayload(payload);
+    return payload;
+  }
+  const response = await fetch(`${getFlaskApiOrigin()}${path}`);
   const payload = await parseApiJsonResponse(response);
   if (!response.ok) {
     throw new Error(payload.error || `HTTP ${response.status}`);
@@ -1150,7 +1182,7 @@ async function handleBirthFormSubmit(event) {
     return;
   }
 
-  showStatusMessage("Loading…");
+  showLoadingStatus();
   if (resultsEl) resultsEl.hidden = true;
 
   try {
@@ -1162,10 +1194,14 @@ async function handleBirthFormSubmit(event) {
     );
     renderKundaliResponseIntoPage(kundaliPayload);
   } catch (err) {
-    const apiHint = isLocalDevUi()
-      ? `Is Flask running on http://localhost:${C.FLASK_PORT}?`
-      : `Is the API reachable at ${getFlaskApiOrigin()}?`;
-    showStatusMessage(`Failed: ${err.message}. ${apiHint}`, true);
+    const formatted = formatKundaliLoadError(err);
+    if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
+      SaptarishiAuth.clearSession();
+    }
+    showStatusMessage(formatted.text, true, formatted.limitReached);
+    if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
+      await SaptarishiAuth.handlePremiumRequired(err);
+    }
   }
 }
 

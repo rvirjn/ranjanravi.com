@@ -22,6 +22,30 @@
   const dateFrom = document.getElementById("date-from");
   const dateTo = document.getElementById("date-to");
 
+  function formatDateInputValue(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function addMonths(date, months) {
+    const result = new Date(date.getTime());
+    result.setMonth(result.getMonth() + months);
+    return result;
+  }
+
+  function setDefaultAuspiciousDateRange() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (dateFrom && !dateFrom.value) {
+      dateFrom.value = formatDateInputValue(today);
+    }
+    if (dateTo && !dateTo.value) {
+      dateTo.value = formatDateInputValue(addMonths(today, 1));
+    }
+  }
+
   const TOP_TABLE_COLUMNS = [
     { key: "rank", className: "" },
     { key: "date", className: "" },
@@ -60,12 +84,45 @@
     );
   }
 
-  function showAuspiciousStatus(message, isError) {
+  function showAuspiciousStatus(message, isError, isLimitError) {
     if (!auspiciousStatusEl) return;
+    if (globalThis.SaptarishiLoading) {
+      globalThis.SaptarishiLoading.stop(auspiciousStatusEl);
+    }
     const text = message || "";
     auspiciousStatusEl.textContent = text;
     auspiciousStatusEl.hidden = !text;
     auspiciousStatusEl.classList.toggle("error", Boolean(isError));
+    auspiciousStatusEl.classList.toggle("status--limit", Boolean(isLimitError));
+  }
+
+  function showAuspiciousLoading() {
+    if (!auspiciousStatusEl) return;
+    if (globalThis.SaptarishiLoading) {
+      globalThis.SaptarishiLoading.start(auspiciousStatusEl);
+      return;
+    }
+    showAuspiciousStatus("Loading…");
+  }
+
+  function formatAuspiciousLoadError(err) {
+    const msg = err?.message || "Request failed";
+    const limitReached =
+      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
+    return {
+      text: `Failed to load auspicious times: ${msg}`,
+      limitReached
+    };
+  }
+
+  function formatKundaliSlotLoadError(err) {
+    const msg = err?.message || "Request failed";
+    const limitReached =
+      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
+    return {
+      text: `Failed to load kundali: ${msg}`,
+      limitReached
+    };
   }
 
   function getPlaceFromForm() {
@@ -157,7 +214,7 @@
       kundaliDetailHeading.textContent = `Kundali — ${date} ${time.slice(0, 5)}`;
     }
     if (kundaliDetailEl) kundaliDetailEl.hidden = false;
-    showAuspiciousStatus(`Loading kundali for ${date} ${time.slice(0, 5)}…`);
+    showAuspiciousLoading();
 
     try {
       await view.ensurePlanetDatabase();
@@ -170,10 +227,11 @@
       showAuspiciousStatus(AC.AUSPICIOUS_READY_STATUS_MESSAGE);
     } catch (err) {
       if (loadToken !== kundaliLoadToken) return;
-      const apiHint = isLocalDevUi()
-        ? `Is Flask running on http://localhost:${AC.FLASK_PORT}?`
-        : `Is the API reachable at ${getFlaskApiOrigin()}?`;
-      showAuspiciousStatus(`Failed to load kundali: ${err.message}. ${apiHint}`, true);
+      const formatted = formatKundaliSlotLoadError(err);
+      showAuspiciousStatus(formatted.text, true, formatted.limitReached);
+      if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
+        await SaptarishiAuth.handlePremiumRequired(err);
+      }
     }
   }
 
@@ -259,7 +317,13 @@
       place,
       house_system: AC.DEFAULT_HOUSE_SYSTEM
     });
-    const response = await fetch(`${getFlaskApiOrigin()}${AC.API_AUSPICIOUS_PATH}?${params}`);
+    const path = `${AC.API_AUSPICIOUS_PATH}?${params}`;
+    if (typeof SaptarishiAuth !== "undefined") {
+      const payload = await SaptarishiAuth.apiFetch(path);
+      SaptarishiAuth.updateUserFromApiPayload(payload);
+      return payload;
+    }
+    const response = await fetch(`${getFlaskApiOrigin()}${path}`);
     const payload = await parseApiJsonResponse(response);
     if (!response.ok) {
       throw new Error(payload.error || `HTTP ${response.status}`);
@@ -288,7 +352,7 @@
       return;
     }
 
-    showAuspiciousStatus("Loading…");
+    showAuspiciousLoading();
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
     hideKundaliDetail();
     lastScanPlace = place;
@@ -297,10 +361,14 @@
       const payload = await fetchAuspiciousJsonFromApi(dateFrom.value, dateTo.value, place);
       renderAuspiciousResponseIntoPage(payload);
     } catch (err) {
-      const apiHint = isLocalDevUi()
-        ? `Is Flask running on http://localhost:${AC.FLASK_PORT}?`
-        : `Is the API reachable at ${getFlaskApiOrigin()}?`;
-      showAuspiciousStatus(`Failed: ${err.message}. ${apiHint}`, true);
+      const formatted = formatAuspiciousLoadError(err);
+      if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
+        SaptarishiAuth.clearSession();
+      }
+      showAuspiciousStatus(formatted.text, true, formatted.limitReached);
+      if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
+        await SaptarishiAuth.handlePremiumRequired(err);
+      }
     }
   }
 
@@ -312,12 +380,7 @@
     auspiciousForm.addEventListener("submit", handleAuspiciousFormSubmit);
   }
 
-  if (dateFrom && !dateFrom.value) {
-    dateFrom.value = "2026-05-20";
-  }
-  if (dateTo && !dateTo.value) {
-    dateTo.value = "2026-06-20";
-  }
+  setDefaultAuspiciousDateRange();
 
   if (window.SaptarishiKundaliView) {
     window.SaptarishiKundaliView.ensurePlanetDatabase().catch(() => {});

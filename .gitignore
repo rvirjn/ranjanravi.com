@@ -48,6 +48,9 @@ __pycache__/
 # Saptarishi generated kundali / auspicious JSON dumps
 saptarishi/output/
 
+# Registered users and sessions (created automatically by the API if missing)
+saptarishi/database/users.json
+
 # System Files
 .DS_Store
 Thumbs.db

@@ -9,6 +9,7 @@ import swisseph as swe
 
 # --- paths (relative to project root) ---
 DATA_JSON_REL_PATH = "database/data.json"
+USERS_JSON_REL_PATH = "database/users.json"
 OUTPUT_DIR_REL_PATH = "output"
 KUNDALI_OUTPUT_SUBDIR = "kundali"
 AUSPICIOUS_OUTPUT_SUBDIR = "auspicious"
@@ -187,6 +188,20 @@ AUSPICIOUS_TOP_COUNT = 5
 AUSPICIOUS_MAX_RANGE_DAYS = 62
 AUSPICIOUS_OUTPUT_BASENAME = AUSPICIOUS_OUTPUT_SUBDIR
 AUSPICIOUS_READY_STATUS_MESSAGE = "Top auspicious date and time slots are ready"
+
+# --- Auth / commercial limits ---
+MAX_KUNDALI_PER_USER = 5
+MAX_AUSPICIOUS_PER_USER = 2
+MAX_KUNDALI_PER_GUEST = 5
+MAX_AUSPICIOUS_PER_GUEST = 2
+AUTH_TOKEN_HEADER = "Authorization"
+AUTH_TOKEN_PREFIX = "Bearer "
+GUEST_ID_HEADER = "X-Guest-Id"
+GUEST_ID_MAX_LENGTH = 64
+SESSION_TTL_DAYS = 30
+MIN_PASSWORD_LENGTH = 4
+MOBILE_DIGITS_MIN = 10
+MOBILE_DIGITS_MAX = 15
 
 # --- Mongo defaults (read_collection CLI) ---
 MONGO_DEFAULT_URI = "mongodb://host.docker.internal:27017"

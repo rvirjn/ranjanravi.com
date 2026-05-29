@@ -5,27 +5,27 @@
  */
 
 :root {
-  /* Page background */
-  --color-bg-top: #f4f0e8;
-  --color-bg-bottom: #e8e2d6;
-  --color-bg-accent: rgba(30, 58, 95, 0.06);
+  /* Page background — commercial warm yellow */
+  --color-bg-top: #fff9c4;
+  --color-bg-bottom: #ffeb3b;
+  --color-bg-accent: rgba(139, 105, 20, 0.08);
 
   /* Surfaces */
-  --color-surface: #fffdf9;
-  --color-surface-border: rgba(30, 58, 95, 0.12);
-  --color-surface-shadow: 0 12px 40px rgba(30, 58, 95, 0.08),
-    0 2px 8px rgba(30, 58, 95, 0.04);
+  --color-surface: #fffef5;
+  --color-surface-border: rgba(120, 90, 10, 0.18);
+  --color-surface-shadow: 0 12px 40px rgba(120, 90, 10, 0.12),
+    0 2px 8px rgba(120, 90, 10, 0.06);
 
   /* Text */
-  --color-text: #1a2744;
-  --color-text-muted: #5c6478;
-  --color-heading: #142238;
+  --color-text: #2a2208;
+  --color-text-muted: #5c4f1a;
+  --color-heading: #1f1806;
 
-  /* Brand / accents (Vedic-inspired: deep indigo + copper gold) */
-  --color-primary: #1e3a5f;
-  --color-primary-hover: #2a4d7a;
-  --color-accent: #b8860b;
-  --color-accent-soft: rgba(184, 134, 11, 0.15);
+  /* Brand / accents */
+  --color-primary: #8b6914;
+  --color-primary-hover: #a67c1a;
+  --color-accent: #c9a227;
+  --color-accent-soft: rgba(201, 162, 39, 0.22);
 
   /* Horizontal margins: responsive left/right gutter */
   --page-margin-inline: clamp(1rem, 5vw, 3.5rem);
@@ -54,13 +54,17 @@
 body.saptarishi-page {
   margin: 0;
   min-height: 100vh;
+  box-sizing: border-box;
+  padding-left: var(--page-margin-inline);
+  padding-right: var(--page-margin-inline);
+  padding-bottom: var(--page-margin-block);
   font-family: var(--font-ui);
   color: var(--color-text);
   background: linear-gradient(
       165deg,
       var(--color-bg-top) 0%,
       var(--color-bg-bottom) 45%,
-      #dfd8cc 100%
+      #fdd835 100%
     ),
     radial-gradient(
       ellipse 120% 80% at 50% -20%,
@@ -70,9 +74,10 @@ body.saptarishi-page {
   background-attachment: fixed;
 }
 
-/* Main shell: consistent left/right margin + centered column */
+/* Main shell: centered column (page gutters from body padding) */
 #saptarishi.main-shell {
   box-sizing: border-box;
+  width: 100%;
   max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
@@ -261,6 +266,58 @@ body.saptarishi-page {
   margin: var(--space-sm) 0 var(--space-md);
   font-size: 0.95rem;
   color: var(--color-text-muted);
+}
+
+.status.error {
+  color: #b71c1c;
+  font-weight: 600;
+}
+
+.status.status--limit {
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-weight: 700;
+  color: #c62828;
+  line-height: 1.4;
+}
+
+.status.status--loading {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.status-loader {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.status-loader__ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid rgba(139, 105, 20, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: status-loader-spin 0.85s linear infinite;
+}
+
+.status-loader__seconds {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+@keyframes status-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---------- Tables ---------- */
@@ -1182,5 +1239,322 @@ tbody tr:last-child td {
 .auspicious-kundali-detail {
   margin-top: 2rem;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(30, 58, 95, 0.12);
+  border-top: 1px solid rgba(120, 90, 10, 0.15);
+}
+
+/* ---------- Site chrome (header / footer) ---------- */
+
+/* Header, main shell, and footer share the same max width and side gutters */
+.site-header,
+.site-footer,
+#saptarishi.main-shell {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+  margin-top: var(--page-margin-block);
+  padding: var(--space-sm) var(--page-margin-inline);
+  background: linear-gradient(180deg, #ffd54f 0%, #ffca28 100%);
+  border: 1px solid var(--color-surface-border);
+  border-bottom: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 4px 16px rgba(120, 90, 10, 0.15);
+}
+
+.site-header__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 10rem;
+}
+
+.site-header__logo {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.site-header__tagline {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.site-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.site-header__link {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-header__link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.site-header__link--active {
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-surface-border);
+}
+
+.site-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+
+.site-header__views {
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+}
+
+.site-header__user {
+  font-weight: 600;
+}
+
+.site-header__usage {
+  color: var(--color-text-muted);
+}
+
+.site-header__logout {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.site-header__logout:hover {
+  background: #fff;
+}
+
+.site-footer {
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--page-margin-inline) var(--space-xl);
+  text-align: center;
+  background: linear-gradient(0deg, #fbc02d 0%, #fdd835 100%);
+  border: 1px solid var(--color-surface-border);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  box-shadow: var(--color-surface-shadow);
+}
+
+.site-footer__copy {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.site-footer__note {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+/* Stack main card under header with no double outer margin */
+#saptarishi.main-shell--with-chrome {
+  margin-top: 0;
+  margin-bottom: 0;
+  border-radius: 0;
+  border-top: none;
+  box-shadow: none;
+}
+
+body.saptarishi-page:has(.site-header) #saptarishi.main-shell--with-chrome {
+  border-radius: 0;
+}
+
+body.saptarishi-page:has(.site-footer) #saptarishi.main-shell--with-chrome {
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+body.saptarishi-page:has(.site-header):has(.site-footer) .site-header {
+  margin-bottom: 0;
+}
+
+body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
+  margin-top: 0;
+}
+
+/* ---------- Login / register ---------- */
+
+.saptarishi-page--login #saptarishi.main-shell--login,
+.saptarishi-page--login .site-header,
+.saptarishi-page--login .site-footer {
+  max-width: min(480px, 100%);
+}
+
+.saptarishi-page--login:has(.site-header) #saptarishi.main-shell--login {
+  margin-top: 0;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.auth-tabs__btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-tabs__btn--active {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.auth-form .form-field label {
+  font-weight: 600;
+}
+
+.auth-form {
+  display: block;
+}
+
+.auth-modal__panel--hidden,
+.auth-modal__panel[hidden] {
+  display: none !important;
+}
+
+.auth-modal .auth-form .form-field {
+  margin-bottom: var(--space-sm);
+}
+
+.auth-modal .auth-form button[type="submit"] {
+  padding: var(--space-sm) var(--space-lg);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.auth-modal .auth-form button[type="submit"]:hover {
+  background: var(--color-primary-hover);
+}
+
+/* ---------- Auth popup modal ---------- */
+
+body.auth-modal-open {
+  overflow: hidden;
+}
+
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-margin-inline);
+  background: rgba(31, 24, 6, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.auth-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.auth-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: min(90vh, 640px);
+  overflow-y: auto;
+  padding: var(--space-lg) var(--page-margin-inline) var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 64px rgba(31, 24, 6, 0.35);
+}
+
+.auth-modal__close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.auth-modal__close:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-heading);
+}
+
+.auth-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin: 0 2rem var(--space-xs) 0;
+  color: var(--color-heading);
+}
+
+.auth-modal__lead {
+  margin: 0 0 var(--space-md);
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.auth-modal__status {
+  margin-top: var(--space-sm);
+}
+
+.auth-modal .auth-tabs {
+  margin-bottom: var(--space-md);
+}
+
+.site-header__login {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.site-header__login:hover {
+  background: #fff;
 }

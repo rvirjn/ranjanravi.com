@@ -5,7 +5,11 @@
 Vedic birth chart (kundali): sidereal chart, planet strength table, and Moon janma nakshatra wheel.  
 Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights reserved.
 
-## URL : [https://ranjanravi.com/saptarishi/ui/html/kundali.html](https://ranjanravi.com/saptarishi/ui/html/kundali.html)
+## URL
+
+- **Entry:** [https://ranjanravi.com/saptarishi/ui/html/kundali.html](https://ranjanravi.com/saptarishi/ui/html/kundali.html) (login/register open in a popup)
+- **Kundali:** [https://ranjanravi.com/saptarishi/ui/html/kundali.html](https://ranjanravi.com/saptarishi/ui/html/kundali.html)
+- **Auspicious:** [https://ranjanravi.com/saptarishi/ui/html/auspicious.html](https://ranjanravi.com/saptarishi/ui/html/auspicious.html)
 
 ## Deployments
 
@@ -17,7 +21,14 @@ Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights rese
 The UI calls the production API when opened from a non-localhost host (`ui/utils/constants.js` → `PRODUCTION_API_ORIGIN`).  
 On **localhost**, it calls port **8081** automatically.
 
-There is **no** `index.html` — open **`ui/html/kundali.html`** (or `auspicious.html`).
+Open **`ui/html/kundali.html`** (or `index.html`). No login is required at first.
+
+### Accounts and limits
+
+- **Without login:** **5 free kundali** and **2 free auspicious** scans per browser (tracked by guest id in `users.json` → `guests`).
+- **After the free limit:** login/register popup for **premium** (registered accounts: 5 kundali + 2 auspicious until upgrade).
+- Register with **name**, **mobile**, **email**, and **password** (stored in `database/users.json`; created automatically on first use).
+- **Website view count** is tracked in `users.json` under `site.view_count` and shown in the header.
 
 ## Project layout
 
@@ -29,7 +40,9 @@ There is **no** `index.html` — open **`ui/html/kundali.html`** (or `auspicious
 | `py/utils/constant.py` | Shared constants (`FLASK_PUBLIC_API_ORIGIN`, etc.) |
 | `api/flask/app.py` | Flask app (Render + local container) |
 | `database/data.json` | Planets, nakshatras, `planet_strength_rules` |
-| `ui/html/`, `ui/js/`, `ui/style/`, `ui/utils/` | Static UI |
+| `database/users.json` | Registered users, sessions, site view count (gitignored; auto-created by API) |
+| `py/auth.py` | Registration, login, session tokens, usage limits |
+| `ui/html/`, `ui/js/`, `ui/style/`, `ui/utils/` | Static UI (`common.js` = header/footer/nav; `auth-modal.js` = login popup) |
 | `Dockerfile.flask` | Local API image only |
 | `output/kundali/` | CLI-written kundali JSON (`{date}_{time}_{place}.json`) |
 | `output/auspicious/` | CLI-written auspicious JSON (`{from}_{to}_{place}.json`) |
@@ -57,11 +70,16 @@ Ensure `database/data.json`, `py/`, and `ephe/` (if used) are deployed with the 
 
 ### API (production)
 
+All chart endpoints require `Authorization: Bearer <token>` from login/register.
+
 ```text
-GET https://saptarishi.ranjanravi.com/
-GET https://saptarishi.ranjanravi.com/api/planet-database
-GET https://saptarishi.ranjanravi.com/api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W
-GET https://saptarishi.ranjanravi.com/api/auspicious?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&place=City&house_system=W
+GET  https://saptarishi.ranjanravi.com/
+POST https://saptarishi.ranjanravi.com/api/site/view
+POST https://saptarishi.ranjanravi.com/api/auth/register   JSON: name, mobile, email, password
+POST https://saptarishi.ranjanravi.com/api/auth/login      JSON: mobile, password
+GET  https://saptarishi.ranjanravi.com/api/planet-database
+GET  https://saptarishi.ranjanravi.com/api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W
+GET  https://saptarishi.ranjanravi.com/api/auspicious?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&place=City&house_system=W
 ```
 
 After deploy, verify:

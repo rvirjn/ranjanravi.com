@@ -9,6 +9,17 @@ const SAPTARISHI_CONSTANTS = {
   API_KUNDALI_PATH: "/api/kundali",
   API_AUSPICIOUS_PATH: "/api/auspicious",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
+  API_AUTH_REGISTER_PATH: "/api/auth/register",
+  API_AUTH_LOGIN_PATH: "/api/auth/login",
+  API_AUTH_LOGOUT_PATH: "/api/auth/logout",
+  API_AUTH_ME_PATH: "/api/auth/me",
+  API_SITE_VIEW_PATH: "/api/site/view",
+  API_USAGE_PATH: "/api/usage",
+  GUEST_ID_HEADER: "X-Guest-Id",
+  MAX_KUNDALI_PER_USER: 5,
+  MAX_KUNDALI_PER_GUEST: 5,
+  MAX_AUSPICIOUS_PER_USER: 2,
+  MAX_AUSPICIOUS_PER_GUEST: 2,
   KUNDALI_READY_STATUS_MESSAGE:
     "Kundali Chart prepared and planet/nakshtra table is also ready",
   AUSPICIOUS_READY_STATUS_MESSAGE:
