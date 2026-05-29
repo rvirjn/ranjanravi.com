@@ -21,7 +21,7 @@
     if (!usage) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
-      return u.is_guest ? "Premium · unlimited scans" : "Premium · unlimited scans";
+      return "Premium · unlimited scans";
     }
     const k = Number(u.kundali_used) || 0;
     const a = Number(u.auspicious_used) || 0;
@@ -37,11 +37,11 @@
     header.innerHTML = `
       <div class="site-header__brand">
         <a href="${navHref("kundali.html")}" class="site-header__logo">Saptarishi</a>
-        <span class="site-header__tagline">Vedic charts &amp; auspicious times</span>
       </div>
       <nav class="site-header__nav" aria-label="Main">
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
         <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
+        <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__user" hidden></span>

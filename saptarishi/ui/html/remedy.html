@@ -5,15 +5,15 @@
   <meta charset="UTF-8">
   <meta name="copyright" content="ranjanravi.com">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kundali by Saptarishi</title>
+  <title>Remedy by Saptarishi</title>
   <link rel="stylesheet" href="../style/styles.css?v=84">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
-    <h1>Kundali by Saptarishi</h1>
+    <h1>Remedy by Saptarishi</h1>
     <p class="lead">Enter birth details</p>
 
-    <form id="birth-form" class="search-form kundali-form" autocomplete="off">
+    <form id="remedy-form" class="search-form kundali-form" autocomplete="off">
       <div class="form-field">
         <label for="place-preset">Place</label>
         <select id="place-preset">
@@ -46,43 +46,9 @@
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
 
     <div id="results" hidden>
-      <h2 class="result-heading">Summary</h2>
-      <div class="summary-chart-row">
-        <div class="summary-chart-row__summary table-wrap">
-          <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
-        </div>
-        <div class="summary-chart-row__chart">
-          <h3 class="result-heading kundali-chart-heading">Birth Chart</h3>
-          <div id="kundali-chart" class="kundali-chart-host"></div>
-        </div>
-      </div>
-
-      <h2 class="result-heading">Planets</h2>
-      <div class="table-wrap">
-        <table id="planets-table" class="navatara-data-table kundali-table">
-          <thead>
-            <tr>
-              <th>Your Age</th>
-              <th>House</th>
-              <th>Planet</th>
-              <th>Aspected By</th>
-              <th>Planet Strength</th>
-              <th>House Strength</th>
-              <th>Malefic 6/8/12</th>
-              <th>Lagna Lord Enemy</th>
-              <th>Death Degree</th>
-              <th>Rashi Status</th>
-              <th>Rashi</th>
-              <th>Nakshatra</th>
-              <th>Karakwaqt</th>
-              <th>Nakshatra Status</th>
-              <th>Nakshatra navatara</th>
-              <th>Degree</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <h2 class="result-heading">Remedy for</h2>
+      <p class="remedy-navatara-hint">Tap a row to see remedy details.</p>
+      <div id="navatara-buttons" class="remedy-navatara-buttons" role="group" aria-label="Auspicious nava-tara"></div>
     </div>
   </div>
 
@@ -93,5 +59,6 @@
   <script src="../js/premium-modal.js?v=2"></script>
   <script src="../js/common.js?v=17"></script>
   <script src="../js/kundali.js?v=127"></script>
+  <script src="../js/remedy.js?v=3"></script>
 </body>
 </html>

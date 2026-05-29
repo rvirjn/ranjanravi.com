@@ -142,8 +142,9 @@ class AuspiciousBuilder:
 
     @staticmethod
     def write_report_to_file(report: dict[str, Any], path: Path) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        from utils.util import write_json_report
+
+        write_json_report(path, report)
 
     @staticmethod
     def build_summary_table_rows(report: dict[str, Any]) -> list[dict[str, str]]:
@@ -267,8 +268,8 @@ def build_full_auspicious(
     house_system: str = DEFAULT_HOUSE_SYSTEM,
     top_n: int = AUSPICIOUS_TOP_COUNT,
 ) -> dict[str, Any]:
-    """Build auspicious scan + write ``output/auspicious/{from}_{to}_{place}.json``."""
-    return AuspiciousBuilder(root).create_dumps_auspicious_report(
+    """Build auspicious scan in memory (no ``output/`` write)."""
+    return AuspiciousBuilder(root).build_full_report(
         date_from, date_to, place_query, house_system, top_n
     )
 
@@ -297,8 +298,7 @@ def main() -> None:
     ap.add_argument("--top", type=int, default=AUSPICIOUS_TOP_COUNT)
     args = ap.parse_args()
 
-    payload = build_full_auspicious(
-        root,
+    payload = AuspiciousBuilder(root).create_dumps_auspicious_report(
         args.date_from,
         args.date_to,
         args.place,

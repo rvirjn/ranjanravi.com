@@ -26,7 +26,9 @@ except ImportError:  # pragma: no cover - CLI without Flask
     g = None  # type: ignore[assignment]
 
 from utils.constant import (
+    BIRTH_VIEWS_MAX,
     GUEST_ID_MAX_LENGTH,
+    GUESTS_MAX,
     MAX_AUSPICIOUS_PER_GUEST,
     MAX_AUSPICIOUS_PER_IP,
     MAX_AUSPICIOUS_PER_USER,
@@ -39,7 +41,10 @@ from utils.constant import (
     PREMIUM_AMOUNT_INR,
     PREMIUM_CONTACT_PHONE,
     SESSION_TTL_DAYS,
+    SESSIONS_MAX_PER_USER,
+    SITE_VIEW_BATCH_SIZE,
     USERS_JSON_REL_PATH,
+    USAGE_BY_IP_MAX,
 )
 
 
@@ -166,6 +171,7 @@ class UserStore:
     def __init__(self, project_root: Path) -> None:
         self.root = project_root
         self.path = project_root / USERS_JSON_REL_PATH
+        self._pending_view_bumps = 0
 
     @staticmethod
     def _cache_ttl_seconds() -> float:
@@ -247,6 +253,81 @@ class UserStore:
         return copy.deepcopy(data)
 
     @staticmethod
+    def _parse_session_expires(session: dict[str, Any]) -> datetime | None:
+        expires_raw = session.get("expires_at")
+        try:
+            expires = datetime.fromisoformat(str(expires_raw))
+            if expires.tzinfo is None:
+                expires = expires.replace(tzinfo=timezone.utc)
+            return expires
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _parse_session_created(session: dict[str, Any]) -> datetime:
+        created_raw = session.get("created_at")
+        try:
+            created = datetime.fromisoformat(str(created_raw))
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            return created
+        except (TypeError, ValueError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+
+    @classmethod
+    def _prune_sessions(cls, sessions: dict[str, Any]) -> dict[str, Any]:
+        """Drop expired sessions and keep only the newest per user."""
+        if not isinstance(sessions, dict):
+            return {}
+        now = _utc_now()
+        active: dict[str, dict[str, Any]] = {}
+        for token, session in sessions.items():
+            if not isinstance(session, dict):
+                continue
+            expires = cls._parse_session_expires(session)
+            if expires is None or now > expires:
+                continue
+            active[str(token)] = session
+
+        by_user: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+        for token, session in active.items():
+            uid = str(session.get("user_id") or "")
+            by_user.setdefault(uid, []).append((token, session))
+
+        kept: dict[str, dict[str, Any]] = {}
+        for entries in by_user.values():
+            entries.sort(key=lambda item: cls._parse_session_created(item[1]), reverse=True)
+            for token, session in entries[:SESSIONS_MAX_PER_USER]:
+                kept[token] = session
+        return kept
+
+    @staticmethod
+    def _entry_activity_score(entry: dict[str, Any]) -> int:
+        return int(entry.get("kundali_used") or 0) + int(entry.get("auspicious_used") or 0)
+
+    @classmethod
+    def _prune_map_by_activity(
+        cls,
+        items: dict[str, Any],
+        *,
+        max_entries: int,
+    ) -> dict[str, Any]:
+        if max_entries <= 0 or len(items) <= max_entries:
+            return items
+        ranked = sorted(
+            items.items(),
+            key=lambda pair: cls._entry_activity_score(pair[1])
+            if isinstance(pair[1], dict)
+            else 0,
+            reverse=True,
+        )
+        kept: dict[str, Any] = {}
+        for key, value in ranked[:max_entries]:
+            if isinstance(value, dict):
+                kept[str(key)] = value
+        return kept
+
+    @staticmethod
     def _normalize_db(data: dict[str, Any]) -> dict[str, Any]:
         data.setdefault("site", {"view_count": 0})
         data.setdefault("sessions", {})
@@ -265,6 +346,18 @@ class UserStore:
             premium.setdefault("amount_inr", PREMIUM_AMOUNT_INR)
             premium.setdefault("contact_phone", PREMIUM_CONTACT_PHONE)
             premium.setdefault("coupon_codes", [])
+        sessions = data.get("sessions")
+        if isinstance(sessions, dict):
+            data["sessions"] = UserStore._prune_sessions(sessions)
+        guests = data.get("guests")
+        if isinstance(guests, dict):
+            data["guests"] = UserStore._prune_map_by_activity(guests, max_entries=GUESTS_MAX)
+        usage_by_ip = data.get("usage_by_ip")
+        if isinstance(usage_by_ip, dict):
+            data["usage_by_ip"] = UserStore._prune_map_by_activity(
+                usage_by_ip,
+                max_entries=USAGE_BY_IP_MAX,
+            )
         return data
 
     @staticmethod
@@ -299,7 +392,51 @@ class UserStore:
         for key in ("premium_activated_at", "premium_coupon_code", "premium_amount_inr"):
             if local.get(key) is not None:
                 merged[key] = local[key]
+        merged["birth_views"] = UserStore._merge_birth_views(
+            local.get("birth_views"),
+            remote.get("birth_views"),
+        )
         return merged
+
+    @staticmethod
+    def _merge_birth_views(
+        local_views: Any,
+        remote_views: Any,
+    ) -> list[str]:
+        out: list[str] = []
+        seen: set[str] = set()
+        for src in (local_views, remote_views):
+            if not isinstance(src, list):
+                continue
+            for item in src:
+                label = str(item or "").strip()
+                if not label or label in seen:
+                    continue
+                seen.add(label)
+                out.append(label)
+        if len(out) > BIRTH_VIEWS_MAX:
+            out = out[-BIRTH_VIEWS_MAX:]
+        return out
+
+    @staticmethod
+    def _append_birth_view(
+        user: dict[str, Any],
+        birth_date: str,
+        birth_time: str,
+        birth_place: str = "",
+    ) -> None:
+        from utils.util import format_birth_view
+
+        label = format_birth_view(birth_date, birth_time, birth_place)
+        if not label:
+            return
+        views = user.get("birth_views")
+        if not isinstance(views, list):
+            views = []
+        views.append(label)
+        if len(views) > BIRTH_VIEWS_MAX:
+            views = views[-BIRTH_VIEWS_MAX:]
+        user["birth_views"] = views
 
     @classmethod
     def _merge_map_by_key(
@@ -620,7 +757,6 @@ class UserStore:
         a_used = int(ip_record.get("auspicious_used") or 0)
         payload: dict[str, Any] = {
             "is_guest": is_guest,
-            "ip": ip_record.get("ip"),
             "kundali_used": k_used,
             "auspicious_used": a_used,
             "kundali_remaining": max(0, MAX_KUNDALI_PER_IP - k_used),
@@ -648,31 +784,64 @@ class UserStore:
         user: dict[str, Any] | None = None,
         guest_id: str = "",
     ) -> dict[str, Any]:
+        """Read-only usage snapshot for API responses (no Drive write)."""
         data = self.load()
-        ip_key = str(client_ip or "").strip() or "unknown"
-        dirty = ip_key not in (data.get("usage_by_ip") or {})
-        ip_record = self.get_or_create_ip_record(data, client_ip)
-        if self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id):
-            dirty = True
-        k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
-        if int(ip_record.get("kundali_used") or 0) != k or int(ip_record.get("auspicious_used") or 0) != a:
-            ip_record["kundali_used"] = k
-            ip_record["auspicious_used"] = a
-            dirty = True
-        if guest_id:
-            guest = self.get_or_create_guest(data, guest_id)
-            if int(guest.get("kundali_used") or 0) != k or int(guest.get("auspicious_used") or 0) != a:
-                guest["kundali_used"] = k
-                guest["auspicious_used"] = a
-                dirty = True
-        if user:
-            if int(user.get("kundali_used") or 0) != k or int(user.get("auspicious_used") or 0) != a:
-                user["kundali_used"] = k
-                user["auspicious_used"] = a
-                dirty = True
-        if dirty:
-            self.save(data)
-        return self.public_usage_from_ip(ip_record, is_guest=user is None, user=user)
+        k, a = self._projected_usage(data, client_ip, user=user, guest_id=guest_id)
+        return self.public_usage_from_ip(
+            {"kundali_used": k, "auspicious_used": a},
+            is_guest=user is None,
+            user=user,
+        )
+
+    def _projected_usage(
+        self,
+        data: dict[str, Any],
+        client_ip: str,
+        *,
+        user: dict[str, Any] | None = None,
+        guest_id: str = "",
+    ) -> tuple[int, int]:
+        """Read-only usage counts from cached ``users.json`` (no Drive write)."""
+        work = copy.deepcopy(data)
+        ip_record = self.get_or_create_ip_record(work, client_ip)
+        self._bootstrap_ip_from_legacy(work, ip_record, user=user, guest_id=guest_id)
+        return self._aggregate_usage_counts(work, ip_record, user=user, guest_id=guest_id)
+
+    def ensure_kundali_allowed(
+        self,
+        client_ip: str,
+        *,
+        user: dict[str, Any] | None = None,
+        guest_id: str = "",
+    ) -> None:
+        if self.is_premium(user):
+            return
+        k, _ = self._projected_usage(
+            self.load(), client_ip, user=user, guest_id=guest_id
+        )
+        if k >= MAX_KUNDALI_PER_IP:
+            raise ValueError(
+                f"Free kundali limit reached ({MAX_KUNDALI_PER_IP} scans used). "
+                "Buy Premium for unlimited scans."
+            )
+
+    def ensure_auspicious_allowed(
+        self,
+        client_ip: str,
+        *,
+        user: dict[str, Any] | None = None,
+        guest_id: str = "",
+    ) -> None:
+        if self.is_premium(user):
+            return
+        _, a = self._projected_usage(
+            self.load(), client_ip, user=user, guest_id=guest_id
+        )
+        if a >= MAX_AUSPICIOUS_PER_IP:
+            raise ValueError(
+                f"Free auspicious limit reached ({MAX_AUSPICIOUS_PER_IP} scans used). "
+                "Buy Premium for unlimited scans."
+            )
 
     def check_ip_kundali_allowed(
         self, ip_record: dict[str, Any], user: dict[str, Any] | None = None
@@ -704,8 +873,12 @@ class UserStore:
         *,
         user: dict[str, Any] | None = None,
         guest_id: str = "",
+        birth_date: str = "",
+        birth_time: str = "",
+        birth_place: str = "",
     ) -> dict[str, Any]:
         usage: dict[str, Any] = {}
+        user_id = str(user.get("id") or "") if user else ""
 
         def apply(data: dict[str, Any]) -> None:
             ip_record = self.get_or_create_ip_record(data, client_ip)
@@ -715,11 +888,19 @@ class UserStore:
             ip_record["auspicious_used"] = a
             self.check_ip_kundali_allowed(ip_record, user=user)
             ip_record["kundali_used"] = k + 1
-            if user:
-                self._sync_ip_usage_to_user(data, ip_record, user)
-            if guest_id:
+            stored_user = self.find_user_by_id(data, user_id) if user_id else None
+            if stored_user:
+                self._sync_ip_usage_to_user(data, ip_record, stored_user)
+                self._append_birth_view(stored_user, birth_date, birth_time, birth_place)
+            elif guest_id:
                 self._sync_ip_usage_to_guest(data, ip_record, guest_id)
-            usage.update(self.public_usage_from_ip(ip_record, is_guest=user is None, user=user))
+            usage.update(
+                self.public_usage_from_ip(
+                    ip_record,
+                    is_guest=stored_user is None,
+                    user=stored_user,
+                )
+            )
 
         self._mutate(apply)
         return usage
@@ -808,12 +989,26 @@ class UserStore:
             self._write_raw(payload)
 
     def increment_view_count(self) -> int:
-        def bump(data: dict[str, Any]) -> None:
-            site = data.setdefault("site", {})
-            site["view_count"] = int(site.get("view_count") or 0) + 1
+        with self._io_lock:
+            self._pending_view_bumps += 1
+            pending = self._pending_view_bumps
+        if pending >= SITE_VIEW_BATCH_SIZE:
+            self._flush_view_count()
+            return self.get_view_count()
+        return int(self.load().get("site", {}).get("view_count") or 0) + pending
 
-        data = self._mutate(bump)
-        return int(data.get("site", {}).get("view_count") or 0)
+    def _flush_view_count(self) -> None:
+        with self._io_lock:
+            bumps = self._pending_view_bumps
+            if bumps <= 0:
+                return
+            self._pending_view_bumps = 0
+
+        def apply(data: dict[str, Any]) -> None:
+            site = data.setdefault("site", {})
+            site["view_count"] = int(site.get("view_count") or 0) + bumps
+
+        self._mutate(apply)
 
     def get_view_count(self) -> int:
         return int(self.load().get("site", {}).get("view_count") or 0)
@@ -851,6 +1046,7 @@ class UserStore:
                 "created_at": _iso_now(),
                 "kundali_used": 0,
                 "auspicious_used": 0,
+                "birth_views": [],
             }
             data.setdefault("users", []).append(user)
             created.clear()
@@ -890,6 +1086,19 @@ class UserStore:
 
         self._mutate(apply)
 
+    def compact_sessions(self) -> int:
+        """Drop expired/excess sessions and persist the trimmed list."""
+        removed = 0
+
+        def apply(data: dict[str, Any]) -> None:
+            nonlocal removed
+            before = len(data.get("sessions") or {})
+            data["sessions"] = self._prune_sessions(data.get("sessions") or {})
+            removed = before - len(data["sessions"])
+
+        self._mutate(apply)
+        return removed
+
     def resolve_token(self, token: str) -> dict[str, Any] | None:
         if not token:
             return None
@@ -897,14 +1106,8 @@ class UserStore:
         session = (data.get("sessions") or {}).get(token)
         if not isinstance(session, dict):
             return None
-        expires_raw = session.get("expires_at")
-        try:
-            expires = datetime.fromisoformat(str(expires_raw))
-            if expires.tzinfo is None:
-                expires = expires.replace(tzinfo=timezone.utc)
-        except (TypeError, ValueError):
-            return None
-        if _utc_now() > expires:
+        expires = self._parse_session_expires(session)
+        if expires is None or _utc_now() > expires:
             self.logout(token)
             return None
         user = self.find_user_by_id(data, session.get("user_id", ""))

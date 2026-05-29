@@ -7,6 +7,10 @@
   const STORAGE_USAGE = "saptarishi_usage";
   const STORAGE_GUEST = "saptarishi_guest_id";
   const STORAGE_VIEW_COUNT = "saptarishi_view_count";
+  const STORAGE_KUNDALI_CACHE = "saptarishi_kundali_cache";
+  const STORAGE_AUSPICIOUS_CACHE = "saptarishi_auspicious_cache";
+  const STORAGE_VIEW_RECORDED = "saptarishi_view_recorded_session";
+  const SCAN_CACHE_MAX_ENTRIES = 5;
 
   const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
     FLASK_PORT: 8081,
@@ -217,6 +221,12 @@
   }
 
   async function fetchUsage() {
+    if (!getToken()) {
+      const cached = getUsage();
+      if (cached && cached.kundali_limit != null) {
+        return { usage: cached };
+      }
+    }
     try {
       const payload = await apiFetch(AC.API_USAGE_PATH || "/api/usage");
       if (payload.usage) setUsage(payload.usage);
@@ -278,8 +288,11 @@
     }
   }
 
-  /** Count every visit; no login or guest id required. */
+  /** Count once per browser session; GET uses cached count only. */
   async function recordSiteView() {
+    if (sessionStorage.getItem(STORAGE_VIEW_RECORDED)) {
+      return { view_count: getCachedViewCount() };
+    }
     const path = AC.API_SITE_VIEW_PATH || "/api/site/view";
     const url = `${apiOrigin()}${path}`;
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -292,6 +305,7 @@
       });
       const payload = await parseJsonResponse(response);
       if (response.ok && payload.view_count != null) {
+        sessionStorage.setItem(STORAGE_VIEW_RECORDED, "1");
         cacheViewCount(payload.view_count);
         return payload;
       }
@@ -301,6 +315,99 @@
       if (timer) window.clearTimeout(timer);
     }
     return { view_count: getCachedViewCount() };
+  }
+
+  function isPremiumActive() {
+    return Boolean(getUser()?.is_premium);
+  }
+
+  function isGuestScanLimitReached(scanType) {
+    if (requireAuth() || isPremiumActive()) return false;
+    const usage = getUsage();
+    if (!usage) return false;
+    if (scanType === "kundali") {
+      const remaining = usage.kundali_remaining;
+      return remaining != null && Number(remaining) <= 0;
+    }
+    if (scanType === "auspicious") {
+      const remaining = usage.auspicious_remaining;
+      return remaining != null && Number(remaining) <= 0;
+    }
+    return false;
+  }
+
+  function buildScanCacheKey(parts) {
+    return parts.map((part) => String(part || "").trim().toLowerCase()).join("|");
+  }
+
+  function readScanCache(storageKey) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function getCachedScanResult(storageKey, cacheKey) {
+    const cache = readScanCache(storageKey);
+    return cache[cacheKey] || null;
+  }
+
+  function setCachedScanResult(storageKey, cacheKey, payload) {
+    try {
+      const cache = readScanCache(storageKey);
+      delete cache[cacheKey];
+      const next = { [cacheKey]: payload, ...cache };
+      const keys = Object.keys(next);
+      while (keys.length > SCAN_CACHE_MAX_ENTRIES) {
+        delete next[keys.pop()];
+      }
+      localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch {
+      /* ignore quota errors */
+    }
+  }
+
+  function createLimitError(scanType) {
+    const message =
+      scanType === "auspicious"
+        ? "Free auspicious limit reached."
+        : "Free kundali limit reached.";
+    const err = new Error(message);
+    err.premiumRequired = true;
+    err.status = 403;
+    return err;
+  }
+
+  async function fetchKundali(path, date, time, place) {
+    const cacheKey = buildScanCacheKey([date, time, place]);
+    if (isGuestScanLimitReached("kundali")) {
+      const cached = getCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey);
+      if (cached) return cached;
+      throw createLimitError("kundali");
+    }
+    const payload = await apiFetch(path);
+    updateUserFromApiPayload(payload);
+    if (!requireAuth() && !isPremiumActive()) {
+      setCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey, payload);
+    }
+    return payload;
+  }
+
+  async function fetchAuspicious(path, dateFrom, dateTo, place) {
+    const cacheKey = buildScanCacheKey([dateFrom, dateTo, place]);
+    if (isGuestScanLimitReached("auspicious")) {
+      const cached = getCachedScanResult(STORAGE_AUSPICIOUS_CACHE, cacheKey);
+      if (cached) return cached;
+      throw createLimitError("auspicious");
+    }
+    const payload = await apiFetch(path);
+    updateUserFromApiPayload(payload);
+    if (!requireAuth() && !isPremiumActive()) {
+      setCachedScanResult(STORAGE_AUSPICIOUS_CACHE, cacheKey, payload);
+    }
+    return payload;
   }
 
   function updateUserFromApiPayload(payload) {
@@ -394,6 +501,9 @@
     recordSiteView,
     getCachedViewCount,
     cacheViewCount,
+    isGuestScanLimitReached,
+    fetchKundali,
+    fetchAuspicious,
     updateUserFromApiPayload,
     normalizeUsage,
     activatePremium,

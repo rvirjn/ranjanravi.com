@@ -72,7 +72,7 @@
             <li>
               You will get a coupon code on your email and phone from
               <strong id="premium-modal-phone">${AC.PREMIUM_CONTACT_PHONE || "8184046618"}</strong>
-              — enter it below.
+              enter that below.
             </li>
           </ol>
           <form id="premium-modal-form" class="premium-modal__form" autocomplete="off">

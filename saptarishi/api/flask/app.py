@@ -30,7 +30,7 @@ from utils.constant import (  # noqa: E402
     SERVICE_NAME,
     VALID_HOUSE_SYSTEMS,
 )
-from auspicious import build_full_auspicious  # noqa: E402
+from auspicious import AuspiciousBuilder, build_full_auspicious  # noqa: E402
 from kundali import EnrichKundali, build_full_kundali  # noqa: E402
 
 app = Flask(__name__)
@@ -58,6 +58,31 @@ def _validate_user_storage() -> None:
 
 
 _validate_user_storage()
+
+
+def _trim_output_folder() -> None:
+    try:
+        from utils.util import prune_project_output
+
+        prune_project_output(ROOT)
+    except Exception as exc:
+        app.logger.warning("Output folder trim skipped: %s", exc)
+
+
+_trim_output_folder()
+
+
+def _compact_user_sessions() -> None:
+    try:
+        removed = user_store.compact_sessions()
+        if removed:
+            app.logger.info("Removed %s stale session(s) from users.json", removed)
+        user_store._flush_view_count()
+    except Exception as exc:
+        app.logger.warning("Session compact skipped: %s", exc)
+
+
+_compact_user_sessions()
 
 
 def _api_url(path: str, query: str = "") -> str:
@@ -133,32 +158,33 @@ def home():
 
     sample = "date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India&house_system=W"
     storage = users_storage_backend()
-    return jsonify(
-        {
-            "service": SERVICE_NAME,
-            "deployment": "render" if IS_RENDER else "local",
-            "public_api_origin": PUBLIC_API_ORIGIN,
-            "listen_port": LISTEN_PORT,
-            "users_storage": storage,
-            "gdrive_credentials_configured": gdrive_credentials_configured(),
-            "view_count": user_store.get_view_count(),
-            "ui": {
-                "login": "/ui/html/login.html",
-                "entry": "/ui/html/kundali.html",
-                "auspicious": "/ui/html/auspicious.html",
-            },
-            "endpoints": {
-                "register": _api_url("/api/auth/register"),
-                "login": _api_url("/api/auth/login"),
-                "kundali": _api_url("/api/kundali", sample),
-                "auspicious": _api_url(
-                    "/api/auspicious",
-                    "date_from=2026-05-20&date_to=2026-06-20&place=Bengaluru%2C%20India",
-                ),
-                "planet_database": _api_url("/api/planet-database"),
-            },
-        }
-    )
+    payload: dict[str, Any] = {
+        "service": SERVICE_NAME,
+        "deployment": "render" if IS_RENDER else "local",
+        "public_api_origin": PUBLIC_API_ORIGIN,
+        "listen_port": LISTEN_PORT,
+        "users_storage": storage,
+        "view_count": user_store.get_view_count(),
+        "ui": {
+            "login": "/ui/html/login.html",
+            "entry": "/ui/html/kundali.html",
+            "auspicious": "/ui/html/auspicious.html",
+            "remedy": "/ui/html/remedy.html",
+        },
+        "endpoints": {
+            "register": _api_url("/api/auth/register"),
+            "login": _api_url("/api/auth/login"),
+            "kundali": _api_url("/api/kundali", sample),
+            "auspicious": _api_url(
+                "/api/auspicious",
+                "date_from=2026-05-20&date_to=2026-06-20&place=Bengaluru%2C%20India",
+            ),
+            "planet_database": _api_url("/api/planet-database"),
+        },
+    }
+    if not IS_RENDER:
+        payload["gdrive_credentials_configured"] = gdrive_credentials_configured()
+    return jsonify(payload)
 
 
 @app.route("/api/site/view", methods=["GET", "POST", "OPTIONS"], strict_slashes=False)
@@ -308,7 +334,9 @@ def api_premium_activate():
 @app.route("/api/planet-database", methods=["GET"], strict_slashes=False)
 def api_planet_database():
     try:
-        return jsonify(EnrichKundali(ROOT).load_planet_database())
+        response = jsonify(EnrichKundali(ROOT).load_planet_database())
+        response.headers["Cache-Control"] = "public, max-age=3600"
+        return response
     except OSError as e:
         return jsonify({"error": str(e)}), 500
     except json.JSONDecodeError as e:
@@ -334,12 +362,19 @@ def api_kundali():
         if not user:
             guest_id = UserStore.normalize_guest_id(_extract_guest_id())
 
+        user_store.ensure_kundali_allowed(
+            client_ip, user=user, guest_id=guest_id
+        )
+
         payload = build_full_kundali(ROOT, date_s, time_s, place, house_system)
 
         usage = user_store.record_kundali_for_ip(
             client_ip,
             user=user,
             guest_id=guest_id,
+            birth_date=date_s,
+            birth_time=time_s,
+            birth_place=place,
         )
         payload["usage"] = usage
         payload["user"] = usage if user else None
@@ -373,6 +408,10 @@ def api_auspicious():
         guest_id = ""
         if not user:
             guest_id = UserStore.normalize_guest_id(_extract_guest_id())
+
+        user_store.ensure_auspicious_allowed(
+            client_ip, user=user, guest_id=guest_id
+        )
 
         payload = build_full_auspicious(ROOT, date_from, date_to, place, house_system)
 

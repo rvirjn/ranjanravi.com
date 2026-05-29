@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -20,8 +19,9 @@ def main(input_nakshatra: str) -> None:
     root = Path(__file__).resolve().parent.parent
     result = build_navatara(root, input_nakshatra)
     out = root / "output" / f"navatara_{input_nakshatra.lower().replace(' ', '_')}.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    from utils.util import write_json_report
+
+    write_json_report(out, result)
     print(f"output saved to: {out}")
 
 

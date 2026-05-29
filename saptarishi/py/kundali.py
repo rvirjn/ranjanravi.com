@@ -260,8 +260,9 @@ class KundaliBuilder:
         return EnrichKundali(self.root).enrich_chart_for_house_strength(chart)
 
     def write_report_to_file(self, report: dict[str, Any], path: Path) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        from utils.util import write_json_report
+
+        write_json_report(path, report)
 
     def create_dumps_kundali_chart(
         self,
@@ -2971,10 +2972,8 @@ def build_full_kundali(
     place_query: str,
     house_system: str = DEFAULT_HOUSE_SYSTEM,
 ) -> dict[str, Any]:
-    """Build chart + UI tables, write ``output/kundali/{date}_{time}_{place}.json``."""
-    return KundaliBuilder(root).create_dumps_kundali_chart(
-        date_str, time_str, place_query, house_system
-    )
+    """Build chart + UI tables in memory (no ``output/`` write)."""
+    return KundaliBuilder(root).build_full_report(date_str, time_str, place_query, house_system)
 
 
 def build_navatara(

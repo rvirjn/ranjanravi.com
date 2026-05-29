@@ -1105,18 +1105,21 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   }
 }
 
-/** Fill summary, planets, and nakshatra tables from /api/kundali JSON. */
+/** Fill summary, planets, and optional nakshatra tables from /api/kundali JSON. */
 function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   const summaryBody = document.querySelector(targets.summaryTable || "#summary-table tbody");
   const planetsBody = document.querySelector(targets.planetsTable || "#planets-table tbody");
-  const nakshatraBody = document.querySelector(targets.nakshatraTable || "#nakshatra-table tbody");
+  const nakshatraSelector = targets.nakshatraTable || "#nakshatra-table tbody";
+  const nakshatraBody = document.querySelector(nakshatraSelector);
   const chartHost = targets.chartHost || "kundali-chart";
 
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHost);
 
   renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
-  renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
+  if (nakshatraBody) {
+    renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
+  }
 
   if (!targets.skipShellUpdates) {
     if (resultsEl) resultsEl.hidden = false;
@@ -1139,6 +1142,9 @@ async function fetchKundaliJsonFromApi(date, time, place) {
   const params = buildKundaliApiQueryParams(date, time, place);
   const path = `${C.API_KUNDALI_PATH}?${params}`;
   if (typeof SaptarishiAuth !== "undefined") {
+    if (SaptarishiAuth.fetchKundali) {
+      return SaptarishiAuth.fetchKundali(path, date, time, place);
+    }
     const payload = await SaptarishiAuth.apiFetch(path);
     SaptarishiAuth.updateUserFromApiPayload(payload);
     return payload;
@@ -1213,5 +1219,8 @@ if (document.getElementById("birth-form")) {
 window.SaptarishiKundaliView = {
   ensurePlanetDatabase,
   fetchJson: fetchKundaliJsonFromApi,
-  renderIntoPage: renderKundaliResponseIntoPage
+  renderIntoPage: renderKundaliResponseIntoPage,
+  renderNakshatraTableWithColors,
+  formatNavataraName,
+  normalizeText
 };

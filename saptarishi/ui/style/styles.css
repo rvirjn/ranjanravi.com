@@ -5,10 +5,13 @@
  */
 
 :root {
-  /* Page background — commercial warm yellow */
-  --color-bg-top: #fff9c4;
-  --color-bg-bottom: #ffeb3b;
-  --color-bg-accent: rgba(139, 105, 20, 0.08);
+  /* Page background — light yellow */
+  --color-bg-top: #fffef5;
+  --color-bg-bottom: #fff9c4;
+  --color-bg-page: #fffbea;
+  --color-bg-accent: rgba(139, 105, 20, 0.05);
+  --color-header-bg: #fff8dc;
+  --color-footer-bg: #fff8dc;
 
   /* Surfaces */
   --color-surface: #fffef5;
@@ -63,8 +66,8 @@ body.saptarishi-page {
   background: linear-gradient(
       165deg,
       var(--color-bg-top) 0%,
-      var(--color-bg-bottom) 45%,
-      #fdd835 100%
+      var(--color-bg-bottom) 55%,
+      var(--color-bg-page) 100%
     ),
     radial-gradient(
       ellipse 120% 80% at 50% -20%,
@@ -1156,14 +1159,14 @@ tbody tr:last-child td {
 
 /* ---------- Nakshatra table (27 rows, full data) ---------- */
 
-:is(#nakshatra-table, #slot-nakshatra-table) {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) {
   width: 100%;
   min-width: 68rem;
   max-width: none;
   table-layout: auto;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table).kundali-table thead th {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table).kundali-table thead th {
   font-size: 0.58rem;
   line-height: 1.15;
   padding: 0.2rem 0.2rem;
@@ -1171,30 +1174,30 @@ tbody tr:last-child td {
   vertical-align: bottom;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table).kundali-table tbody td {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table).kundali-table tbody td {
   font-size: 0.62rem;
   line-height: 1.2;
   padding: 0.22rem 0.2rem;
   vertical-align: top;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-td-nakshatra {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-nakshatra {
   font-weight: 700;
   min-width: 4.5rem;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-td-navatara {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-navatara {
   min-width: 6rem;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-navatara-name {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-navatara-name {
   font-weight: 700;
   font-size: 0.66rem;
   line-height: 1.15;
   margin-bottom: 0.08rem;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-navatara-about {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-navatara-about {
   font-size: 0.54rem;
   line-height: 1.2;
   color: var(--color-text-muted);
@@ -1202,31 +1205,31 @@ tbody tr:last-child td {
   overflow-wrap: anywhere;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-td-remedy,
-:is(#nakshatra-table, #slot-nakshatra-table) .nakshatra-td-mantra {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-remedy,
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-mantra {
   min-width: 5.5rem;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr.navatara-row--helpful td {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr.navatara-row--helpful td {
   background-color: rgba(46, 125, 50, calc(0.06 + var(--navatara-intensity, 0.5) * 0.44));
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr.navatara-row--harmful td {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr.navatara-row--harmful td {
   background-color: rgba(183, 28, 28, calc(0.06 + var(--navatara-intensity, 0.5) * 0.4));
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr.navatara-row--helpful .nakshatra-navatara-about {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr.navatara-row--helpful .nakshatra-navatara-about {
   font-weight: 600;
   color: #1b5e20;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr.navatara-row--harmful .nakshatra-navatara-about {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr.navatara-row--harmful .nakshatra-navatara-about {
   font-weight: 600;
   color: #6d1b1b;
 }
 
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr + tr.navatara-row--helpful,
-:is(#nakshatra-table, #slot-nakshatra-table) tbody tr + tr.navatara-row--harmful {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr + tr.navatara-row--helpful,
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr + tr.navatara-row--harmful {
   border-top: 1px solid rgba(30, 58, 95, 0.06);
 }
 
@@ -1269,13 +1272,13 @@ tbody tr:last-child td {
 }
 
 .site-header {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-sm) var(--space-md);
   margin-top: var(--page-margin-block);
   padding: var(--space-sm) var(--page-margin-inline);
-  background: linear-gradient(180deg, #ffd54f 0%, #ffca28 100%);
+  background: var(--color-header-bg);
   border: 1px solid var(--color-surface-border);
   border-bottom: 2px solid var(--color-primary);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -1286,7 +1289,8 @@ tbody tr:last-child td {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  min-width: 10rem;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .site-header__logo {
@@ -1295,6 +1299,7 @@ tbody tr:last-child td {
   font-weight: 700;
   color: var(--color-heading);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .site-header__tagline {
@@ -1304,9 +1309,10 @@ tbody tr:last-child td {
 
 .site-header__nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
   gap: var(--space-sm);
-  flex: 1;
+  min-width: 0;
 }
 
 .site-header__link {
@@ -1315,6 +1321,7 @@ tbody tr:last-child td {
   color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .site-header__link:hover {
@@ -1328,32 +1335,26 @@ tbody tr:last-child td {
 
 .site-header__meta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-sm);
-  margin-left: auto;
+  min-width: 0;
   font-size: 0.85rem;
-}
-
-.site-header__views {
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.65);
-  border-radius: var(--radius-sm);
-  color: var(--color-heading);
-  font-weight: 600;
-}
-
-.site-header__views--pending {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  white-space: nowrap;
 }
 
 .site-header__user {
   font-weight: 600;
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .site-header__usage {
   color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .site-header__logout {
@@ -1367,6 +1368,7 @@ tbody tr:last-child td {
   color: var(--color-primary);
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .site-header__logout:hover:not(:disabled) {
@@ -1382,7 +1384,7 @@ tbody tr:last-child td {
   margin-top: var(--space-md);
   padding: var(--space-md) var(--page-margin-inline) var(--space-xl);
   text-align: center;
-  background: linear-gradient(0deg, #fbc02d 0%, #fdd835 100%);
+  background: var(--color-footer-bg);
   border: 1px solid var(--color-surface-border);
   border-top: 2px solid var(--color-primary);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -1593,6 +1595,7 @@ body.auth-modal-open {
   color: var(--color-primary);
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .site-header__login:hover {
@@ -1607,6 +1610,7 @@ body.auth-modal-open {
   color: #7a5c00;
   cursor: pointer;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .site-header__premium:hover {
@@ -1746,4 +1750,59 @@ body.premium-modal-open {
 
 .premium-modal__done:hover {
   background: #fff;
+}
+
+.remedy-navatara-hint {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.remedy-navatara-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.remedy-navatara-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.remedy-navatara-btn {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(46, 125, 50, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(46, 125, 50, 0.06);
+  color: #1b5e20;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.remedy-navatara-btn:hover {
+  background: rgba(46, 125, 50, 0.12);
+  border-color: #2e7d32;
+  color: #145a18;
+}
+
+.remedy-navatara-btn--active {
+  background: rgba(46, 125, 50, 0.14);
+  border-color: #2e7d32;
+  box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.2);
+  color: #145a18;
+}
+
+.remedy-navatara-panel {
+  margin: 0 0 var(--space-xs);
+  padding: var(--space-sm) 0 0;
+}
+
+.remedy-navatara-panel__table {
+  margin-top: 0;
 }

@@ -327,6 +327,14 @@
     });
     const path = `${AC.API_AUSPICIOUS_PATH}?${params}`;
     if (typeof SaptarishiAuth !== "undefined") {
+      if (SaptarishiAuth.fetchAuspicious) {
+        return SaptarishiAuth.fetchAuspicious(
+          path,
+          dateFromValue,
+          dateToValue,
+          place
+        );
+      }
       const payload = await SaptarishiAuth.apiFetch(path);
       SaptarishiAuth.updateUserFromApiPayload(payload);
       return payload;
