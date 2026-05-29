@@ -2938,6 +2938,12 @@ class EnrichKundali:
             if isinstance(p, dict) and p.get("retrograde")
         ]
         rows.append({"label": "Retrograde Planet", "value": ", ".join(retrograde) if retrograde else "None"})
+        houses_total = chart.get("houses_strength_total")
+        if isinstance(houses_total, (int, float)):
+            rows.append({
+                "label": "Houses strength",
+                "value": str(int(round(houses_total))),
+            })
         return rows
 
     @staticmethod

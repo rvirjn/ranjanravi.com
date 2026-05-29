@@ -2105,6 +2105,10 @@
     {
       "label": "Retrograde Planet",
       "value": "Rahu, Ketu"
+    },
+    {
+      "label": "Houses strength",
+      "value": "2329"
     }
   ],
   "ui_status_message": "Kundali Chart prepared and planet/nakshtra table is also ready"
