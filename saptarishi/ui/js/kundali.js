@@ -2,7 +2,7 @@
 
 const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
   FLASK_PORT: 8081,
-  PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
+  PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
@@ -48,7 +48,7 @@ function getFlaskApiOrigin() {
   if (isLocalDevUi()) {
     return `http://localhost:${C.FLASK_PORT}`;
   }
-  return String(C.PRODUCTION_API_ORIGIN || "https://saptarishi.ranjanravi.com").replace(
+  return String(C.PRODUCTION_API_ORIGIN || "https://api.ranjanravi.com").replace(
     /\/$/,
     ""
   );

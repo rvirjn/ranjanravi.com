@@ -4,7 +4,7 @@
 const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,
   /** Production API (Render). Local UI uses localhost:8081 instead. */
-  PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
+  PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
   API_AUSPICIOUS_PATH: "/api/auspicious",

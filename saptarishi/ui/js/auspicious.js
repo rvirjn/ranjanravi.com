@@ -3,7 +3,7 @@
 (function auspiciousPage() {
   const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
     FLASK_PORT: 8081,
-    PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
+    PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
     DEFAULT_HOUSE_SYSTEM: "W",
     API_AUSPICIOUS_PATH: "/api/auspicious",
     PLACE_CUSTOM_VALUE: "__custom__",
@@ -78,7 +78,7 @@
     if (isLocalDevUi()) {
       return `http://localhost:${AC.FLASK_PORT}`;
     }
-    return String(AC.PRODUCTION_API_ORIGIN || "https://saptarishi.ranjanravi.com").replace(
+    return String(AC.PRODUCTION_API_ORIGIN || "https://api.ranjanravi.com").replace(
       /\/$/,
       ""
     );

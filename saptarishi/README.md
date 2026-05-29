@@ -15,7 +15,7 @@ Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights rese
 
 | Environment | Flask API | UI |
 |-------------|-----------|-----|
-| **Production** | [https://saptarishi.ranjanravi.com](https://saptarishi.ranjanravi.com) (Render) | Static `ui/html/` on your web host (e.g. nginx under `ranjanravi.com`) |
+| **Production** | [https://api.ranjanravi.com](https://api.ranjanravi.com) (Render) | Static `ui/html/` on your web host (e.g. nginx under `ranjanravi.com`) |
 | **Local dev** | `http://localhost:8081` (Docker `saptarishi_flask`) | `http://localhost:9999/ui/html/kundali.html` (Docker `saptarishi_ui`) |
 
 The UI calls the production API when opened from a non-localhost host (`ui/utils/constants.js` → `PRODUCTION_API_ORIGIN`).  
@@ -49,7 +49,7 @@ Open **`ui/html/kundali.html`** (or `index.html`). No login is required at first
 
 ## Production (Render)
 
-**URL:** `https://saptarishi.ranjanravi.com`
+**URL:** `https://api.ranjanravi.com`
 
 Flask runs on Render and listens on Render’s `PORT` (see `api/flask/app.py`).  
 CORS is enabled so the static UI on another host can call the API.
@@ -60,7 +60,7 @@ CORS is enabled so the static UI on another host can call the API.
 - **Root directory:** `saptarishi` (repo subfolder if the repo root is the site monorepo)
 - **Build command:** `pip install -r requirements-flask.txt`
 - **Start command:** `python api/flask/app.py`
-- **Environment (optional):** `SAPTARISHI_PUBLIC_ORIGIN=https://saptarishi.ranjanravi.com` (default in code)
+- **Environment (optional):** `SAPTARISHI_PUBLIC_ORIGIN=https://api.ranjanravi.com` (default in code)
 
 Repo root [`render.yaml`](../render.yaml) documents the same settings for a Blueprint deploy.
 
@@ -73,23 +73,23 @@ Ensure `database/data.json`, `py/`, and `ephe/` (if used) are deployed with the 
 All chart endpoints require `Authorization: Bearer <token>` from login/register.
 
 ```text
-GET  https://saptarishi.ranjanravi.com/
-POST https://saptarishi.ranjanravi.com/api/site/view
-POST https://saptarishi.ranjanravi.com/api/auth/register   JSON: name, mobile, email, password
-POST https://saptarishi.ranjanravi.com/api/auth/login      JSON: mobile, password
-GET  https://saptarishi.ranjanravi.com/api/planet-database
-GET  https://saptarishi.ranjanravi.com/api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W
-GET  https://saptarishi.ranjanravi.com/api/auspicious?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&place=City&house_system=W
+GET  https://api.ranjanravi.com/
+POST https://api.ranjanravi.com/api/site/view
+POST https://api.ranjanravi.com/api/auth/register   JSON: name, mobile, email, password
+POST https://api.ranjanravi.com/api/auth/login      JSON: mobile, password
+GET  https://api.ranjanravi.com/api/planet-database
+GET  https://api.ranjanravi.com/api/kundali?date=YYYY-MM-DD&time=HH:MM&place=City&house_system=W
+GET  https://api.ranjanravi.com/api/auspicious?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&place=City&house_system=W
 ```
 
 After deploy, verify:
 
 ```powershell
-curl.exe -s "https://saptarishi.ranjanravi.com/"
+curl.exe -s "https://api.ranjanravi.com/"
 
-curl.exe -s "https://saptarishi.ranjanravi.com/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W"
+curl.exe -s "https://api.ranjanravi.com/api/kundali?date=2026-06-18&time=13:00&place=Bengaluru,+India&house_system=W"
 
-curl.exe -s "https://saptarishi.ranjanravi.com/api/auspicious?date_from=2026-05-20&date_to=2026-06-20&place=Bengaluru,+India&house_system=W"
+curl.exe -s "https://api.ranjanravi.com/api/auspicious?date_from=2026-05-20&date_to=2026-06-20&place=Bengaluru,+India&house_system=W"
 ```
 
 Redeploy on Render after changing Python or `data.json`.
