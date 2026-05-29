@@ -7,15 +7,21 @@ Copyright © 2018-2026 [ranjanravi.com](https://ranjanravi.com). All rights rese
 
 ## URL
 
-- **Entry:** [https://ranjanravi.com/saptarishi/ui/html/kundali.html](https://ranjanravi.com/saptarishi/ui/html/kundali.html) (login/register open in a popup)
-- **Kundali:** [https://ranjanravi.com/saptarishi/ui/html/kundali.html](https://ranjanravi.com/saptarishi/ui/html/kundali.html)
-- **Auspicious:** [https://ranjanravi.com/saptarishi/ui/html/auspicious.html](https://ranjanravi.com/saptarishi/ui/html/auspicious.html)
+| What | URL |
+|------|-----|
+| **App (subdomain)** | [https://saptarishi.ranjanravi.com/](https://saptarishi.ranjanravi.com/) → Kundali |
+| **Auspicious** | [https://saptarishi.ranjanravi.com/ui/html/auspicious.html](https://saptarishi.ranjanravi.com/ui/html/auspicious.html) |
+| **API (Render)** | [https://api.ranjanravi.com](https://api.ranjanravi.com) |
+
+Legacy path on main domain: `https://ranjanravi.com/saptarishi/` (same files under `public_html/saptarishi/`).
+
+GoDaddy upload steps: [`deploy/godaddy/README.md`](deploy/godaddy/README.md).
 
 ## Deployments
 
 | Environment | Flask API | UI |
 |-------------|-----------|-----|
-| **Production** | [https://api.ranjanravi.com](https://api.ranjanravi.com) (Render) | Static `ui/html/` on your web host (e.g. nginx under `ranjanravi.com`) |
+| **Production** | [https://api.ranjanravi.com](https://api.ranjanravi.com) (Render) | GoDaddy static: subdomain `saptarishi.ranjanravi.com` (see `index.html` + `.htaccess` at `saptarishi/` root) |
 | **Local dev** | `http://localhost:8081` (Docker `saptarishi_flask`) | `http://localhost:9999/ui/html/kundali.html` (Docker `saptarishi_ui`) |
 
 The UI calls the production API when opened from a non-localhost host (`ui/utils/constants.js` → `PRODUCTION_API_ORIGIN`).  
