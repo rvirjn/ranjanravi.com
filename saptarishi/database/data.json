@@ -34,11 +34,6 @@
     ],
     "strength_factors": [
       {
-        "id": "degree_in_sign",
-        "increase_strength_percent": 100,
-        "decrease_strength_percent": 25
-      },
-      {
         "id": "exalted",
         "increase_strength_percent": 100,
         "decrease_strength_percent": 0
@@ -81,9 +76,7 @@
       },
       {
         "id": "strength_limits",
-        "factor": "Minimum and maximum strength % after all adjustments",
-        "increase_strength_percent": 0,
-        "decrease_strength_percent": 0,
+        "factor": "Final strength % clamp (min_percent floor, max_percent ceiling; not a bonus/penalty).",
         "min_percent": 0,
         "max_percent": 500
       }
@@ -182,12 +175,12 @@
     "strength_factors": [
       {
         "id": "aspect_by_own_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 3
       },
       {
         "id": "aspect_by_own_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 4
       },
       {
@@ -197,12 +190,12 @@
       },
       {
         "id": "aspect_by_own_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 100,
         "offset": 7
       },
       {
         "id": "aspect_by_own_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 8
       },
       {
@@ -212,17 +205,17 @@
       },
       {
         "id": "aspect_by_own_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 10
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 25,
         "offset": 3
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 33,
         "offset": 4
       },
       {
@@ -232,12 +225,12 @@
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 100,
         "offset": 7
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 33,
         "offset": 8
       },
       {
@@ -247,17 +240,17 @@
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 25,
         "offset": 10
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 3
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 4
       },
       {
@@ -267,12 +260,12 @@
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 100,
         "offset": 7
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 8
       },
       {
@@ -282,17 +275,17 @@
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 10
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 25,
         "offset": 3
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 33,
         "offset": 4
       },
       {
@@ -302,12 +295,12 @@
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 100,
         "offset": 7
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 33,
         "offset": 8
       },
       {
@@ -317,17 +310,17 @@
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
-        "decrease_strength_percent": 50,
+        "decrease_strength_percent": 25,
         "offset": 10
       },
       {
         "id": "aspect_by_friend_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 3
       },
       {
         "id": "aspect_by_friend_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 4
       },
       {
@@ -337,12 +330,12 @@
       },
       {
         "id": "aspect_by_friend_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 100,
         "offset": 7
       },
       {
         "id": "aspect_by_friend_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 33,
         "offset": 8
       },
       {
@@ -352,7 +345,7 @@
       },
       {
         "id": "aspect_by_friend_rashi_planet",
-        "increase_strength_percent": 50,
+        "increase_strength_percent": 25,
         "offset": 10
       },
       {

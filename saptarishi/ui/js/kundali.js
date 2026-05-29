@@ -76,12 +76,18 @@ function showLoadingStatus() {
   showStatusMessage("Loading…");
 }
 
+function stripPerIpWording(message) {
+  return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
+}
+
 function formatKundaliLoadError(err) {
-  const msg = err?.message || "Request failed";
+  const msg = stripPerIpWording(err?.message || "Request failed");
   const limitReached =
     Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
   return {
-    text: `Failed to load kundali: ${msg}`,
+    text: limitReached
+      ? msg || "Free kundali limit reached."
+      : `Failed to load kundali: ${msg}`,
     limitReached
   };
 }
@@ -357,23 +363,10 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
-/** Strength cap from ``planet_strength_rules`` (resolved API or ``strength_factors[id=strength_limits]``). */
-function strengthMaxPercent(kundaliPayload) {
-  const rules = kundaliPayload?.planet_strength_rules || planetDatabase?.planet_strength_rules;
-  if (typeof rules?.max_percent === "number" && rules.max_percent > 0) {
-    return rules.max_percent;
-  }
-  const factors = rules?.strength_factors;
-  if (Array.isArray(factors)) {
-    const limits = factors.find((f) => {
-      const id = normalizeText(f?.id);
-      return id === "strength_limits" || id === "clamp";
-    });
-    if (typeof limits?.max_percent === "number" && limits.max_percent > 0) {
-      return limits.max_percent;
-    }
-  }
-  return C.PLANET_STRENGTH_MAX_PERCENT || 200;
+/** Chart shading cap from API ``strength_max`` (from data.json ``strength_limits.max_percent``). */
+function strengthMaxFromPayload(kundaliPayload) {
+  const max = kundaliPayload?.strength_max;
+  return typeof max === "number" && max > 0 ? max : null;
 }
 
 /** Fetch and cache full planet database JSON from API. */
@@ -413,8 +406,25 @@ async function parseApiJsonResponse(response) {
 
 function strengthPercentFromRow(row) {
   if (typeof row?.strength_percent === "number") return row.strength_percent;
-  const match = String(row?.strength || "").match(/(\d+)/);
-  return match ? Number(match[1]) : 25;
+  return null;
+}
+
+/** Map strength % to 0–1 chart shading using API ``strength_max`` only. */
+function planetStrengthVisualVars(strengthPercent, strengthMax) {
+  if (!(strengthMax > 0) || typeof strengthPercent !== "number") {
+    return { intensity: 0 };
+  }
+  const pct = Math.max(0, strengthPercent);
+  const intensity = Math.min(1, pct / strengthMax);
+  return { intensity };
+}
+
+function applyPlanetStrengthStyle(el, strengthPercent, strengthMax) {
+  if (!(strengthMax > 0) || typeof strengthPercent !== "number") {
+    return;
+  }
+  const { intensity } = planetStrengthVisualVars(strengthPercent, strengthMax);
+  el.style.setProperty("--planet-strength", String(intensity));
 }
 
 /** Lagna / ascendant row from ``planets[]`` (legacy top-level ``ascendant`` supported). */
@@ -450,19 +460,6 @@ function planetHouseNumber(planet) {
     return h.number;
   }
   return planet?.whole_sign_house;
-}
-
-/** Map 0–max% strength to 0–1 intensity (100% ≠ 125% when max is 200). */
-function planetStrengthVisualVars(strengthPercent, strengthMax) {
-  const max = Math.max(100, strengthMax || C.PLANET_STRENGTH_MAX_PERCENT || 200);
-  const pct = Math.max(0, Number(strengthPercent) || 0);
-  const intensity = Math.min(1, pct / max);
-  return { intensity };
-}
-
-function applyPlanetStrengthStyle(el, strengthPercent, strengthMax) {
-  const { intensity } = planetStrengthVisualVars(strengthPercent, strengthMax);
-  el.style.setProperty("--planet-strength", String(intensity));
 }
 
 /** Status columns use one intensity so Own/Friend/Enemy match across rashi and nakshatra. */
@@ -597,12 +594,9 @@ function createPlanetTextEl(x, y, anchor, dense) {
   return plEl;
 }
 
-/** Nava-tara row shading depth from name (see NAVATARA_INTENSITY in constants.js). */
-function navataraIntensity(navataraName, isHelpful) {
-  const key = normalizeText(navataraName);
-  const map = C.NAVATARA_INTENSITY || {};
-  if (map[key] != null) return map[key];
-  return isHelpful ? 0.5 : 0.5;
+/** Nava-tara row shading depth from API ``auspicious`` (yes/no in data.json). */
+function navataraIntensity(_navataraName, isHelpful) {
+  return isHelpful ? 0.72 : 0.72;
 }
 
 function formatHouseForList(text) {
@@ -884,7 +878,7 @@ function buildNorthIndianChartFromPayload(payload) {
     layout: "north_indian",
     lagna_label: lagnaLabel,
     lagna_rashi_number: lagnaRashiNumber,
-    strength_max: strengthMaxPercent(payload),
+    strength_max: strengthMaxFromPayload(payload),
     cells
   };
 }
@@ -899,7 +893,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
     return;
   }
 
-  const strengthMax = chartData.strength_max || C.PLANET_STRENGTH_MAX_PERCENT || 200;
+  const strengthMax = chartData.strength_max;
   const planetOpts = { strengthMax };
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

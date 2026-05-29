@@ -10,7 +10,7 @@
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    "Your free limit for this network (IP) is used. Login does not add more free scans. Register for premium access.";
+    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code for unlimited scans.";
 
   const LOADING = global.SaptarishiLoading;
 

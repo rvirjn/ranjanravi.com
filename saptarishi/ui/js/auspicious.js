@@ -105,22 +105,30 @@
     showAuspiciousStatus("Loading…");
   }
 
+  function stripPerIpWording(message) {
+    return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
+  }
+
   function formatAuspiciousLoadError(err) {
-    const msg = err?.message || "Request failed";
+    const msg = stripPerIpWording(err?.message || "Request failed");
     const limitReached =
       Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
     return {
-      text: `Failed to load auspicious times: ${msg}`,
+      text: limitReached
+        ? msg || "Free auspicious limit reached."
+        : `Failed to load auspicious times: ${msg}`,
       limitReached
     };
   }
 
   function formatKundaliSlotLoadError(err) {
-    const msg = err?.message || "Request failed";
+    const msg = stripPerIpWording(err?.message || "Request failed");
     const limitReached =
       Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
     return {
-      text: `Failed to load kundali: ${msg}`,
+      text: limitReached
+        ? msg || "Free kundali limit reached."
+        : `Failed to load kundali: ${msg}`,
       limitReached
     };
   }

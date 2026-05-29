@@ -15,6 +15,11 @@ const SAPTARISHI_CONSTANTS = {
   API_AUTH_ME_PATH: "/api/auth/me",
   API_SITE_VIEW_PATH: "/api/site/view",
   API_USAGE_PATH: "/api/usage",
+  API_PREMIUM_INFO_PATH: "/api/premium/info",
+  API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
+  PREMIUM_AMOUNT_INR: 499,
+  PREMIUM_CONTACT_PHONE: "8184046618",
+  PREMIUM_SCANNER_IMAGE: "../images/RaviRanjanScanner.png",
   GUEST_ID_HEADER: "X-Guest-Id",
   MAX_KUNDALI_PER_USER: 5,
   MAX_KUNDALI_PER_GUEST: 5,
@@ -26,23 +31,8 @@ const SAPTARISHI_CONSTANTS = {
     "Top auspicious date and time slots are ready",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
-  /**
-   * Nava-tara helpfulness intensity (0–1) for row shading.
-   * Ati-maitri & janma strongest; maitri moderate; harmful taras scale red depth.
-   */
   /** Fixed shade for Status In Rashi / Nakshatra cells (not tied to planet strength %). */
   PLANET_STATUS_COLOR_INTENSITY: 0.72,
-  NAVATARA_INTENSITY: {
-    "ati-maitri": 1,
-    janma: 1,
-    sadhaka: 0.85,
-    sampat: 0.75,
-    kshema: 0.7,
-    maitri: 0.5,
-    vipat: 0.75,
-    pratyari: 0.65,
-    vadha: 1
-  },
   /** Sign order for number 1–12 (sync with py/utils/constant.py RASHI_IN_ENG). */
   RASHI_IN_EN: [
     "aries",
@@ -87,18 +77,6 @@ const SAPTARISHI_CONSTANTS = {
     "saturn",
     "jupiter"
   ],
-  /** Parashari drishti offsets (sync with py/utils/constant.py / data.json). */
-  DEFAULT_PLANET_ASPECT_OFFSETS: {
-    sun: [7],
-    moon: [7],
-    mercury: [7],
-    venus: [7],
-    mars: [4, 7, 8],
-    jupiter: [5, 7, 9],
-    saturn: [3, 7, 10],
-    rahu: [5, 7, 9],
-    ketu: []
-  },
   /** Chart labels from output JSON ``planets[].name`` (keep in sync with py/utils/constant.py). */
   PLANET_SHORT: {
     sun: "Su",
@@ -139,7 +117,5 @@ const SAPTARISHI_CONSTANTS = {
     "jupiter",
     "saturn",
     "mercury"
-  ],
-  /** Fallback max for chart color scaling if API omits strength rules. */
-  PLANET_STRENGTH_MAX_PERCENT: 200
+  ]
 };

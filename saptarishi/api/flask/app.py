@@ -114,6 +114,8 @@ def add_cors_headers(response):
 def require_login(view: Callable) -> Callable:
     @wraps(view)
     def wrapped(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return view(*args, **kwargs)
         token = _extract_bearer_token()
         user = user_store.resolve_token(token)
         if not user:
@@ -263,6 +265,44 @@ def api_usage():
         return jsonify({"error": str(e)}), 400
     usage = _usage_payload(guest_id=guest_id)
     return jsonify({"usage": usage, "user": None})
+
+
+@app.route("/api/premium/info", methods=["GET", "OPTIONS"], strict_slashes=False)
+def api_premium_info():
+    if request.method == "OPTIONS":
+        return "", 204
+    try:
+        return jsonify(user_store.premium_info_for_client())
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/premium/activate", methods=["POST", "OPTIONS"], strict_slashes=False)
+@require_login
+def api_premium_activate():
+    if request.method == "OPTIONS":
+        return "", 204
+    body = request.get_json(silent=True) or {}
+    try:
+        user_store.activate_premium(
+            g.current_user["id"],
+            body.get("coupon_code", body.get("transaction_ref", "")),
+        )
+        data = user_store.load()
+        user = user_store.find_user_by_id(data, g.current_user["id"])
+        usage = _usage_payload(user=user)
+        return jsonify(
+            {
+                "ok": True,
+                "user": usage,
+                "usage": usage,
+                "message": "Premium activated. You now have unlimited kundali and auspicious scans.",
+            }
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
 
 
 @app.route("/api/planet-database", methods=["GET"], strict_slashes=False)

@@ -16,6 +16,10 @@
     API_AUTH_LOGOUT_PATH: "/api/auth/logout",
     API_AUTH_ME_PATH: "/api/auth/me",
     API_USAGE_PATH: "/api/usage",
+    API_PREMIUM_INFO_PATH: "/api/premium/info",
+    API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
+    PREMIUM_AMOUNT_INR: 499,
+    PREMIUM_CONTACT_PHONE: "8184046618",
     API_SITE_VIEW_PATH: "/api/site/view",
     GUEST_ID_HEADER: "X-Guest-Id",
     MAX_KUNDALI_PER_USER: 5,
@@ -26,6 +30,16 @@
 
   function normalizeUsage(usage) {
     if (!usage || typeof usage !== "object") return usage;
+    if (usage.is_premium) {
+      return {
+        ...usage,
+        is_premium: true,
+        kundali_limit: null,
+        auspicious_limit: null,
+        kundali_remaining: null,
+        auspicious_remaining: null
+      };
+    }
     const isGuest = Boolean(usage.is_guest);
     const kLimit = isGuest ? (AC.MAX_KUNDALI_PER_GUEST ?? 5) : (AC.MAX_KUNDALI_PER_USER ?? 5);
     const aLimit = isGuest
@@ -123,6 +137,11 @@
     try {
       return JSON.parse(text);
     } catch {
+      if (response.status === 404) {
+        throw new Error(
+          `API route not found (HTTP 404). Deploy the latest Saptarishi API — ${response.url || "premium endpoint missing"}.`
+        );
+      }
       throw new Error(
         `API returned HTML (HTTP ${response.status}). Restart Flask on port ${AC.FLASK_PORT}.`
       );
@@ -140,10 +159,19 @@
     if (options.body && !headers["Content-Type"]) {
       headers["Content-Type"] = "application/json";
     }
-    const response = await fetch(`${apiOrigin()}${path}`, {
-      ...options,
-      headers
-    });
+    let response;
+    try {
+      response = await fetch(`${apiOrigin()}${path}`, {
+        ...options,
+        headers
+      });
+    } catch (err) {
+      const origin = apiOrigin();
+      const hint = isLocalDevUi()
+        ? `Cannot reach API at ${origin}. Start Flask on port ${AC.FLASK_PORT}.`
+        : `Cannot reach API at ${origin}. Check your connection, or wait if the API was just updated.`;
+      throw new Error(err?.message === "Failed to fetch" ? hint : err.message || hint);
+    }
     const payload = await parseJsonResponse(response);
     if (!response.ok) {
       const err = new Error(payload.error || `HTTP ${response.status}`);
@@ -219,12 +247,22 @@
   }
 
   async function logout() {
-    try {
-      await apiFetch(AC.API_AUTH_LOGOUT_PATH, { method: "POST" });
-    } catch {
-      /* ignore */
-    }
+    const token = getToken();
     clearSession();
+    global.dispatchEvent(
+      new CustomEvent("saptarishi-auth-changed", {
+        detail: { user: null, usage: null }
+      })
+    );
+    if (!token) return;
+    try {
+      await fetch(`${apiOrigin()}${AC.API_AUTH_LOGOUT_PATH}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch {
+      /* session already cleared locally */
+    }
   }
 
   function getCachedViewCount() {
@@ -279,13 +317,59 @@
     );
   }
 
+  async function activatePremium(couponCode) {
+    const payload = await apiFetch(AC.API_PREMIUM_ACTIVATE_PATH || "/api/premium/activate", {
+      method: "POST",
+      body: JSON.stringify({ coupon_code: couponCode })
+    });
+    if (payload.user) setSession(getToken(), payload.user);
+    if (payload.usage) setUsage(payload.usage);
+    global.dispatchEvent(
+      new CustomEvent("saptarishi-auth-changed", {
+        detail: { user: getUser(), usage: getUsage() }
+      })
+    );
+    return payload;
+  }
+
+  async function openPremiumFlow(options = {}) {
+    if (!getToken()) {
+      const authed = await ensureAuth({
+        tab: options.tab || "login",
+        required: options.required !== false,
+        reason: "premium",
+        message:
+          options.loginMessage ||
+          "Sign in or register, then scan the QR and enter your coupon code to unlock Premium."
+      });
+      if (!authed) return false;
+    }
+    if (getUser()?.is_premium) {
+      if (global.SaptarishiPremiumModal) {
+        await global.SaptarishiPremiumModal.open({
+          message: "Premium is already active on your account."
+        });
+      }
+      return true;
+    }
+    if (global.SaptarishiPremiumModal) {
+      await global.SaptarishiPremiumModal.open({
+        message: options.message
+      });
+      return Boolean(getUser()?.is_premium);
+    }
+    return false;
+  }
+
   async function handlePremiumRequired(err, options = {}) {
     if (!err || (!err.premiumRequired && err.status !== 403)) return false;
-    await ensureAuth({
+    await openPremiumFlow({
       tab: options.tab || "login",
       required: true,
-      reason: "premium",
-      message: err.message || options.message
+      message:
+        err.message ||
+        options.message ||
+        "Your free scan limit is used. Buy Premium for unlimited access."
     });
     return true;
   }
@@ -312,6 +396,8 @@
     cacheViewCount,
     updateUserFromApiPayload,
     normalizeUsage,
+    activatePremium,
+    openPremiumFlow,
     handlePremiumRequired,
     loginPagePath,
     isLocalDevUi

@@ -6,9 +6,11 @@
 (function common(global) {
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
+  const PREMIUM = global.SaptarishiPremiumModal;
   if (!AUTH) return;
 
   const isLoginPage = /login\.html$/i.test(window.location.pathname);
+  const logoutTimers = new WeakMap();
 
   function navHref(file) {
     const base = window.location.pathname.replace(/\/[^/]+$/, "");
@@ -18,6 +20,9 @@
   function usageText(usage) {
     if (!usage) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
+    if (u.is_premium) {
+      return u.is_guest ? "Premium · unlimited scans" : "Premium · unlimited scans";
+    }
     const k = Number(u.kundali_used) || 0;
     const a = Number(u.auspicious_used) || 0;
     const kMax = u.kundali_limit ?? 5;
@@ -39,9 +44,9 @@
         <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
       </nav>
       <div class="site-header__meta">
-        <span class="site-header__views site-header__views--pending" title="Website views">Views: …</span>
         <span class="site-header__user" hidden></span>
         <span class="site-header__usage" hidden></span>
+        <button type="button" id="site-premium-btn" class="site-header__premium">Buy Premium</button>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
         <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
       </div>
@@ -58,8 +63,14 @@
     const displayUsage = usage || user || AUTH.getUsage();
     const userEl = header.querySelector(".site-header__user");
     const usageEl = header.querySelector(".site-header__usage");
+    const premiumBtn = header.querySelector("#site-premium-btn");
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
+
+    const isPremium = Boolean(displayUsage && displayUsage.is_premium);
+    if (premiumBtn) {
+      premiumBtn.hidden = isPremium;
+    }
 
     if (user) {
       if (userEl) {
@@ -85,9 +96,55 @@
     }
   }
 
+  function setLogoutLoading(logoutBtn, loading) {
+    if (!logoutBtn) return;
+
+    const timerId = logoutTimers.get(logoutBtn);
+    if (timerId != null) {
+      window.clearInterval(timerId);
+      logoutTimers.delete(logoutBtn);
+    }
+
+    logoutBtn.disabled = loading;
+    logoutBtn.classList.toggle("site-header__logout--loading", loading);
+    logoutBtn.setAttribute("aria-busy", loading ? "true" : "false");
+
+    if (loading) {
+      const startedAt = Date.now();
+      logoutBtn.innerHTML = `
+        <span class="status-loader status-loader--inline" aria-label="Logging out">
+          <span class="status-loader__ring"></span>
+          <span class="status-loader__seconds">0</span>
+        </span>
+        <span>Logging out…</span>
+      `;
+      const secondsEl = logoutBtn.querySelector(".status-loader__seconds");
+      const tick = () => {
+        if (secondsEl) {
+          secondsEl.textContent = String(Math.floor((Date.now() - startedAt) / 1000));
+        }
+      };
+      tick();
+      logoutTimers.set(logoutBtn, window.setInterval(tick, 250));
+    } else {
+      logoutBtn.textContent = "Logout";
+    }
+  }
+
   function wireHeaderAuthButtons(header) {
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
+    const premiumBtn = header.querySelector("#site-premium-btn");
+
+    if (premiumBtn) {
+      premiumBtn.addEventListener("click", () => {
+        if (AUTH.openPremiumFlow) {
+          AUTH.openPremiumFlow({ required: false });
+        } else if (PREMIUM) {
+          PREMIUM.open();
+        }
+      });
+    }
 
     if (loginBtn) {
       loginBtn.addEventListener("click", () => {
@@ -97,9 +154,16 @@
 
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async () => {
-        await AUTH.logout();
-        await AUTH.fetchUsage();
-        updateHeaderAuth(header, null, AUTH.getUsage());
+        if (logoutBtn.disabled) return;
+        setLogoutLoading(logoutBtn, true);
+        try {
+          await AUTH.logout();
+          updateHeaderAuth(header, null, AUTH.getUsage());
+          await AUTH.fetchUsage();
+          updateHeaderAuth(header, null, AUTH.getUsage());
+        } finally {
+          setLogoutLoading(logoutBtn, false);
+        }
       });
     }
   }
@@ -109,7 +173,8 @@
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
-      <p class="site-footer__note">5 free kundali and 2 free auspicious scans without login. Premium after that.</p>
+      <p class="site-footer__note">5 free kundali and 2 free auspicious scans per device. Buy Premium for unlimited access.</p>
+      <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
     `;
     return footer;
   }
@@ -147,26 +212,26 @@
     return tab;
   }
 
-  function updateHeaderViews(viewCount) {
-    const viewsEl = document.querySelector(".site-header__views");
+  function updateFooterViews(viewCount) {
+    const viewsEl = document.querySelector(".site-footer__views");
     if (!viewsEl) return;
     if (viewCount == null || viewCount === "") {
-      viewsEl.textContent = "Views: …";
-      viewsEl.classList.add("site-header__views--pending");
+      viewsEl.textContent = "Site views: …";
+      viewsEl.classList.add("site-footer__views--pending");
       return;
     }
-    viewsEl.textContent = `Views: ${viewCount}`;
-    viewsEl.classList.remove("site-header__views--pending");
+    viewsEl.textContent = `Site views: ${viewCount}`;
+    viewsEl.classList.remove("site-footer__views--pending");
   }
 
   function recordPageView() {
     const cached = AUTH.getCachedViewCount ? AUTH.getCachedViewCount() : null;
-    if (cached != null) updateHeaderViews(cached);
+    if (cached != null) updateFooterViews(cached);
 
     AUTH.recordSiteView()
       .then((result) => {
         if (result && result.view_count != null) {
-          updateHeaderViews(result.view_count);
+          updateFooterViews(result.view_count);
         }
       })
       .catch(() => {

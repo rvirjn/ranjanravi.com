@@ -36,6 +36,8 @@ from utils.constant import (
     MIN_PASSWORD_LENGTH,
     MOBILE_DIGITS_MAX,
     MOBILE_DIGITS_MIN,
+    PREMIUM_AMOUNT_INR,
+    PREMIUM_CONTACT_PHONE,
     SESSION_TTL_DAYS,
     USERS_JSON_REL_PATH,
 )
@@ -162,6 +164,7 @@ class UserStore:
     _cache_at: float = 0.0
 
     def __init__(self, project_root: Path) -> None:
+        self.root = project_root
         self.path = project_root / USERS_JSON_REL_PATH
 
     @staticmethod
@@ -213,6 +216,12 @@ class UserStore:
             "users": [],
             "guests": {},
             "usage_by_ip": {},
+            "redeemed_coupons": {},
+            "premium": {
+                "amount_inr": PREMIUM_AMOUNT_INR,
+                "contact_phone": PREMIUM_CONTACT_PHONE,
+                "coupon_codes": ["RRPREMIUM01", "VEDIC499"],
+            },
         }
 
     def _read_raw(self, *, force: bool = False) -> dict[str, Any]:
@@ -244,6 +253,18 @@ class UserStore:
         data.setdefault("users", [])
         data.setdefault("guests", {})
         data.setdefault("usage_by_ip", {})
+        data.setdefault("redeemed_coupons", {})
+        premium = data.get("premium")
+        if not isinstance(premium, dict):
+            data["premium"] = {
+                "amount_inr": PREMIUM_AMOUNT_INR,
+                "contact_phone": PREMIUM_CONTACT_PHONE,
+                "coupon_codes": [],
+            }
+        else:
+            premium.setdefault("amount_inr", PREMIUM_AMOUNT_INR)
+            premium.setdefault("contact_phone", PREMIUM_CONTACT_PHONE)
+            premium.setdefault("coupon_codes", [])
         return data
 
     @staticmethod
@@ -273,6 +294,11 @@ class UserStore:
             merged["email"] = local["email"]
         if local.get("name"):
             merged["name"] = local["name"]
+        if local.get("is_premium"):
+            merged["is_premium"] = True
+        for key in ("premium_activated_at", "premium_coupon_code", "premium_amount_inr"):
+            if local.get(key) is not None:
+                merged[key] = local[key]
         return merged
 
     @classmethod
@@ -338,6 +364,80 @@ class UserStore:
             int(into_site.get("view_count") or 0),
             int(fresh_site.get("view_count") or 0),
         )
+
+        into_redeemed = into.setdefault("redeemed_coupons", {})
+        fresh_redeemed = fresh.get("redeemed_coupons")
+        if isinstance(fresh_redeemed, dict):
+            for code, entry in fresh_redeemed.items():
+                if code not in into_redeemed:
+                    into_redeemed[code] = entry
+
+        cls._merge_premium_block(into, fresh)
+
+    @staticmethod
+    def _merge_premium_block(into: dict[str, Any], fresh: dict[str, Any]) -> None:
+        into_premium = into.setdefault("premium", {})
+        fresh_premium = fresh.get("premium") if isinstance(fresh.get("premium"), dict) else {}
+        codes: set[str] = set()
+        for src in (into_premium.get("coupon_codes"), fresh_premium.get("coupon_codes")):
+            if isinstance(src, list):
+                for item in src:
+                    code = UserStore._normalize_coupon_code(str(item))
+                    if code:
+                        codes.add(code)
+        into_premium["coupon_codes"] = sorted(codes)
+        amount = into_premium.get("amount_inr")
+        if amount in (None, ""):
+            amount = fresh_premium.get("amount_inr", PREMIUM_AMOUNT_INR)
+        try:
+            into_premium["amount_inr"] = int(amount)
+        except (TypeError, ValueError):
+            into_premium["amount_inr"] = PREMIUM_AMOUNT_INR
+        phone = str(into_premium.get("contact_phone") or fresh_premium.get("contact_phone") or "").strip()
+        into_premium["contact_phone"] = phone or PREMIUM_CONTACT_PHONE
+
+    @staticmethod
+    def _normalize_coupon_code(value: str) -> str:
+        return re.sub(r"\s+", "", str(value or "").strip()).upper()
+
+    @classmethod
+    def _parse_premium_config(cls, db: dict[str, Any]) -> dict[str, Any]:
+        premium = db.get("premium")
+        if not isinstance(premium, dict):
+            raise ValueError("premium settings missing in users.json")
+        raw_codes = premium.get("coupon_codes")
+        if not isinstance(raw_codes, list) or not raw_codes:
+            raise ValueError("premium.coupon_codes missing in users.json")
+        codes: set[str] = set()
+        for item in raw_codes:
+            code = cls._normalize_coupon_code(str(item))
+            if code:
+                codes.add(code)
+        if not codes:
+            raise ValueError("premium.coupon_codes missing in users.json")
+        amount = premium.get("amount_inr", PREMIUM_AMOUNT_INR)
+        try:
+            amount_inr = int(amount)
+        except (TypeError, ValueError):
+            amount_inr = PREMIUM_AMOUNT_INR
+        phone = str(premium.get("contact_phone") or PREMIUM_CONTACT_PHONE).strip()
+        return {
+            "amount_inr": amount_inr,
+            "contact_phone": phone or PREMIUM_CONTACT_PHONE,
+            "coupon_codes": codes,
+        }
+
+    def _load_premium_config(self, db: dict[str, Any] | None = None) -> dict[str, Any]:
+        data = self._normalize_db(db if db is not None else self.load())
+        return self._parse_premium_config(data)
+
+    def premium_info_for_client(self) -> dict[str, Any]:
+        premium = self._load_premium_config()
+        return {
+            "amount_inr": premium["amount_inr"],
+            "currency": "INR",
+            "contact_phone": premium["contact_phone"],
+        }
 
     def load(self) -> dict[str, Any]:
         request_db = self._get_request_db()
@@ -460,6 +560,56 @@ class UserStore:
         user["auspicious_used"] = int(ip_record.get("auspicious_used") or 0)
 
     @staticmethod
+    def is_premium(user: dict[str, Any] | None) -> bool:
+        if not isinstance(user, dict):
+            return False
+        return bool(user.get("is_premium"))
+
+    @staticmethod
+    def _premium_usage_fields(user: dict[str, Any] | None) -> dict[str, Any]:
+        if not UserStore.is_premium(user):
+            return {"is_premium": False}
+        return {
+            "is_premium": True,
+            "kundali_limit": None,
+            "auspicious_limit": None,
+            "kundali_remaining": None,
+            "auspicious_remaining": None,
+        }
+
+    def activate_premium(self, user_id: str, coupon_code: str) -> dict[str, Any]:
+        """Mark account premium after coupon verification (codes in ``users.json``)."""
+        code = self._normalize_coupon_code(coupon_code)
+        if not code:
+            raise ValueError("Enter your coupon code.")
+        stored: dict[str, Any] = {}
+
+        def apply(data: dict[str, Any]) -> None:
+            premium = self._load_premium_config(data)
+            if code not in premium["coupon_codes"]:
+                raise ValueError(
+                    "Invalid coupon code. Check the code sent to your email or phone."
+                )
+            user = self.find_user_by_id(data, user_id)
+            if not user:
+                raise ValueError("user not found")
+            if self.is_premium(user):
+                raise ValueError("Premium is already active on this account.")
+            redeemed = data.setdefault("redeemed_coupons", {})
+            if code in redeemed:
+                raise ValueError("This coupon code has already been used.")
+            redeemed[code] = {"user_id": user_id, "redeemed_at": _iso_now()}
+            user["is_premium"] = True
+            user["premium_activated_at"] = _iso_now()
+            user["premium_coupon_code"] = code
+            user["premium_amount_inr"] = premium["amount_inr"]
+            stored.clear()
+            stored.update(user)
+
+        self._mutate(apply)
+        return self.public_user(stored)
+
+    @staticmethod
     def public_usage_from_ip(
         ip_record: dict[str, Any],
         *,
@@ -488,6 +638,7 @@ class UserStore:
                     "is_guest": False,
                 }
             )
+            payload.update(UserStore._premium_usage_fields(user))
         return payload
 
     def usage_for_client(
@@ -523,20 +674,28 @@ class UserStore:
             self.save(data)
         return self.public_usage_from_ip(ip_record, is_guest=user is None, user=user)
 
-    def check_ip_kundali_allowed(self, ip_record: dict[str, Any]) -> None:
+    def check_ip_kundali_allowed(
+        self, ip_record: dict[str, Any], user: dict[str, Any] | None = None
+    ) -> None:
+        if self.is_premium(user):
+            return
         used = int(ip_record.get("kundali_used") or 0)
         if used >= MAX_KUNDALI_PER_IP:
             raise ValueError(
-                f"kundali limit reached ({MAX_KUNDALI_PER_IP} per IP address). "
-                "Logging in does not add more free uses. Contact support for premium."
+                f"Free kundali limit reached ({MAX_KUNDALI_PER_IP} scans used). "
+                "Buy Premium for unlimited scans."
             )
 
-    def check_ip_auspicious_allowed(self, ip_record: dict[str, Any]) -> None:
+    def check_ip_auspicious_allowed(
+        self, ip_record: dict[str, Any], user: dict[str, Any] | None = None
+    ) -> None:
+        if self.is_premium(user):
+            return
         used = int(ip_record.get("auspicious_used") or 0)
         if used >= MAX_AUSPICIOUS_PER_IP:
             raise ValueError(
-                f"auspicious scan limit reached ({MAX_AUSPICIOUS_PER_IP} per IP address). "
-                "Logging in does not add more free uses. Contact support for premium."
+                f"Free auspicious limit reached ({MAX_AUSPICIOUS_PER_IP} scans used). "
+                "Buy Premium for unlimited scans."
             )
 
     def record_kundali_for_ip(
@@ -554,7 +713,7 @@ class UserStore:
             k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
             ip_record["kundali_used"] = k
             ip_record["auspicious_used"] = a
-            self.check_ip_kundali_allowed(ip_record)
+            self.check_ip_kundali_allowed(ip_record, user=user)
             ip_record["kundali_used"] = k + 1
             if user:
                 self._sync_ip_usage_to_user(data, ip_record, user)
@@ -580,7 +739,7 @@ class UserStore:
             k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
             ip_record["kundali_used"] = k
             ip_record["auspicious_used"] = a
-            self.check_ip_auspicious_allowed(ip_record)
+            self.check_ip_auspicious_allowed(ip_record, user=user)
             ip_record["auspicious_used"] = a + 1
             if user:
                 self._sync_ip_usage_to_user(data, ip_record, user)
@@ -758,7 +917,7 @@ class UserStore:
         """Legacy account view; prefer ``usage_for_client`` with IP."""
         k_used = int(user.get("kundali_used") or 0)
         a_used = int(user.get("auspicious_used") or 0)
-        return {
+        payload: dict[str, Any] = {
             "is_guest": False,
             "id": user.get("id"),
             "name": user.get("name"),
@@ -771,3 +930,5 @@ class UserStore:
             "kundali_limit": MAX_KUNDALI_PER_IP,
             "auspicious_limit": MAX_AUSPICIOUS_PER_IP,
         }
+        payload.update(UserStore._premium_usage_fields(user))
+        return payload

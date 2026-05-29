@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 import swisseph as swe
@@ -127,33 +128,6 @@ VIMSHOTTARI_MAHADASHA_SEQUENCE = (
     "mercury",
 )
 VIMSHOTTARI_CYCLE_YEARS = 120
-DEFAULT_MAHADASHA_YEARS_BY_PLANET = {
-    "ketu": 7,
-    "venus": 20,
-    "sun": 6,
-    "moon": 10,
-    "mars": 7,
-    "rahu": 18,
-    "jupiter": 16,
-    "saturn": 19,
-    "mercury": 17,
-}
-
-# --- sign degree strength bands (fallback if data.json omits degree_in_sign_bands) ---
-_SIGN_PHASE_STEP = ONE_HOUSE_DEGREES / 5
-DEFAULT_SIGN_DEGREE_PHASE_BANDS = tuple(
-    (
-        i * _SIGN_PHASE_STEP,
-        (i + 1) * _SIGN_PHASE_STEP,
-        phase,
-        pct,
-    )
-    for i, (phase, pct) in enumerate(
-        (("born", 25), ("child", 50), ("youth", 100), ("old", 50), ("dead", 25))
-    )
-)
-# Backward-compatible alias
-SIGN_DEGREE_PHASE_BANDS = DEFAULT_SIGN_DEGREE_PHASE_BANDS
 
 # --- planet friendship labels ---
 PLANET_RELATION_OWN = "own"
@@ -161,25 +135,10 @@ PLANET_RELATION_FRIEND = "friend"
 PLANET_RELATION_ENEMY = "enemy"
 PLANET_RELATION_NEUTRAL = "neutral"
 
-# Exaltation / debilitation (defaults; overridden by database/data.json planet_strength_rules).
-EXALTED_STRENGTH_BONUS = 100
-DEBILITATED_STRENGTH_PENALTY = 100
-OWN_RASHI_STRENGTH_BONUS = 100
-RETROGRADE_STRENGTH_BONUS = 40
-COMBUSTION_STRENGTH_PENALTY = 60
-COMBUSTION_DEFAULT_MAX_ANGULAR_DISTANCE_DEG = 14.0
-PLANET_STRENGTH_MIN_PERCENT = 0
-PLANET_STRENGTH_MAX_PERCENT = 200
-STRENGTH_HIGH_GREEN_THRESHOLD_PERCENT = 100
-PLANET_STRENGTH_DEATH_DEGREE_PERCENT = 0
 PLANET_DIGNITY_EXALTED = "exalted"
 PLANET_DIGNITY_DEBILITATED = "debilitated"
 PLANET_STATUS_HIGH = "high"
 PLANET_STATUS_LOW = "low"
-
-# --- navatara auspicious markers ---
-AUSPICIOUS_NAVATARA_VALUES = frozenset({HOUSE_6_8_12_YES, "true", "1"})
-HARMFUL_NAVATARA_NAMES = frozenset({"vadha", "vipat", "pratyari"})
 
 # --- Flask API ---
 SERVICE_NAME = "saptarishi"
@@ -201,6 +160,8 @@ MAX_KUNDALI_PER_USER = MAX_KUNDALI_PER_IP
 MAX_AUSPICIOUS_PER_USER = MAX_AUSPICIOUS_PER_IP
 MAX_KUNDALI_PER_GUEST = MAX_KUNDALI_PER_IP
 MAX_AUSPICIOUS_PER_GUEST = MAX_AUSPICIOUS_PER_IP
+PREMIUM_AMOUNT_INR = int(os.environ.get("SAPTARISHI_PREMIUM_AMOUNT_INR", "499"))
+PREMIUM_CONTACT_PHONE = os.environ.get("SAPTARISHI_PREMIUM_CONTACT_PHONE", "8184046618")
 AUTH_TOKEN_HEADER = "Authorization"
 AUTH_TOKEN_PREFIX = "Bearer "
 GUEST_ID_HEADER = "X-Guest-Id"
@@ -236,16 +197,3 @@ DEFAULT_GRAHA_BODIES = (
 
 # Ketu is derived in chart (not a separate Swiss body); all graha names for lookups
 PLANET_NAMES = frozenset(g.key for g in DEFAULT_GRAHA_BODIES) | {"ketu"}
-
-# Parashari drishti: house numbers counted from the planet's whole-sign house (1–12).
-DEFAULT_PLANET_ASPECT_OFFSETS: dict[str, tuple[int, ...]] = {
-    "sun": (7,),
-    "moon": (7,),
-    "mercury": (7,),
-    "venus": (7,),
-    "mars": (4, 7, 8),
-    "jupiter": (5, 7, 9),
-    "saturn": (3, 7, 10),
-    "rahu": (5, 7, 9),
-    "ketu": (),
-}
