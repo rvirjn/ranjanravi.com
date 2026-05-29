@@ -6,6 +6,7 @@
   const STORAGE_USER = "saptarishi_user";
   const STORAGE_USAGE = "saptarishi_usage";
   const STORAGE_GUEST = "saptarishi_guest_id";
+  const STORAGE_VIEW_COUNT = "saptarishi_view_count";
 
   const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
     FLASK_PORT: 8081,
@@ -226,12 +227,42 @@
     clearSession();
   }
 
-  async function recordSiteView() {
-    try {
-      return await apiFetch(AC.API_SITE_VIEW_PATH, { method: "POST" });
-    } catch {
-      return { view_count: 0 };
+  function getCachedViewCount() {
+    const raw = localStorage.getItem(STORAGE_VIEW_COUNT);
+    if (raw == null || raw === "") return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function cacheViewCount(count) {
+    if (count != null && Number.isFinite(Number(count))) {
+      localStorage.setItem(STORAGE_VIEW_COUNT, String(count));
     }
+  }
+
+  /** Count every visit; no login or guest id required. */
+  async function recordSiteView() {
+    const path = AC.API_SITE_VIEW_PATH || "/api/site/view";
+    const url = `${apiOrigin()}${path}`;
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer =
+      controller && window.setTimeout(() => controller.abort(), 25000);
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        signal: controller ? controller.signal : undefined
+      });
+      const payload = await parseJsonResponse(response);
+      if (response.ok && payload.view_count != null) {
+        cacheViewCount(payload.view_count);
+        return payload;
+      }
+    } catch {
+      /* fall through to cache */
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
+    return { view_count: getCachedViewCount() };
   }
 
   function updateUserFromApiPayload(payload) {
@@ -277,6 +308,8 @@
     register,
     logout,
     recordSiteView,
+    getCachedViewCount,
+    cacheViewCount,
     updateUserFromApiPayload,
     normalizeUsage,
     handlePremiumRequired,

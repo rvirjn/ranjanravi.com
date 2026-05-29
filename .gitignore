@@ -50,6 +50,9 @@ saptarishi/output/
 
 # Registered users and sessions (created automatically by the API if missing)
 saptarishi/database/users.json
+saptarishi/database/gdrive-service-account.json
+saptarishi/database/database-497809-*.json
+**/*service-account*.json
 
 # System Files
 .DS_Store

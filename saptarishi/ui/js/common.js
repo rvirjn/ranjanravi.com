@@ -39,7 +39,7 @@
         <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
       </nav>
       <div class="site-header__meta">
-        <span class="site-header__views" title="Website views">Views: ${viewCount ?? "—"}</span>
+        <span class="site-header__views site-header__views--pending" title="Website views">Views: …</span>
         <span class="site-header__user" hidden></span>
         <span class="site-header__usage" hidden></span>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
@@ -147,19 +147,34 @@
     return tab;
   }
 
-  async function init() {
-    if (isLoginPage) {
-      window.location.replace(`${navHref("kundali.html")}?auth=login`);
+  function updateHeaderViews(viewCount) {
+    const viewsEl = document.querySelector(".site-header__views");
+    if (!viewsEl) return;
+    if (viewCount == null || viewCount === "") {
+      viewsEl.textContent = "Views: …";
+      viewsEl.classList.add("site-header__views--pending");
       return;
     }
+    viewsEl.textContent = `Views: ${viewCount}`;
+    viewsEl.classList.remove("site-header__views--pending");
+  }
 
-    let viewPayload = { view_count: 0 };
-    try {
-      viewPayload = await AUTH.recordSiteView();
-    } catch {
-      /* view count is optional when API is down */
-    }
+  function recordPageView() {
+    const cached = AUTH.getCachedViewCount ? AUTH.getCachedViewCount() : null;
+    if (cached != null) updateHeaderViews(cached);
 
+    AUTH.recordSiteView()
+      .then((result) => {
+        if (result && result.view_count != null) {
+          updateHeaderViews(result.view_count);
+        }
+      })
+      .catch(() => {
+        /* keep cached or … */
+      });
+  }
+
+  async function refreshAuthState() {
     let user = AUTH.getUser();
     let usage = AUTH.getUsage();
 
@@ -168,10 +183,15 @@
         const me = await AUTH.refreshMe();
         user = me.user || user;
         usage = me.usage || usage;
-        viewPayload.view_count = me.view_count ?? viewPayload.view_count;
       } catch (err) {
-        if (err.status === 401) AUTH.clearSession();
-        user = null;
+        if (err.status === 401) {
+          AUTH.clearSession();
+          user = null;
+          usage = null;
+        } else {
+          user = AUTH.getUser() || user;
+          usage = AUTH.getUsage() || usage;
+        }
       }
     } else {
       try {
@@ -182,12 +202,17 @@
       }
     }
 
-    mountLayout(user, viewPayload.view_count, usage);
+    updateHeaderAuth(document.querySelector(".site-header"), user, usage);
+  }
 
-    const authTab = authQueryTab();
-    if (authTab && MODAL) {
-      MODAL.open({ tab: authTab, required: false });
+  function init() {
+    if (isLoginPage) {
+      window.location.replace(`${navHref("kundali.html")}?auth=login`);
+      return;
     }
+
+    mountLayout(AUTH.getUser(), null, AUTH.getUsage());
+    recordPageView();
 
     global.addEventListener("saptarishi-auth-changed", (event) => {
       updateHeaderAuth(
@@ -195,6 +220,15 @@
         event.detail?.user || AUTH.getUser(),
         event.detail?.usage || AUTH.getUsage()
       );
+    });
+
+    const authTab = authQueryTab();
+    if (authTab && MODAL) {
+      MODAL.open({ tab: authTab, required: false });
+    }
+
+    refreshAuthState().catch(() => {
+      /* keep header visible with cached session */
     });
   }
 

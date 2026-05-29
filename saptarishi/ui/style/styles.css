@@ -1324,8 +1324,15 @@ tbody tr:last-child td {
 
 .site-header__views {
   padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.65);
   border-radius: var(--radius-sm);
+  color: var(--color-heading);
+  font-weight: 600;
+}
+
+.site-header__views--pending {
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .site-header__user {

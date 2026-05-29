@@ -10,6 +10,11 @@ import swisseph as swe
 # --- paths (relative to project root) ---
 DATA_JSON_REL_PATH = "database/data.json"
 USERS_JSON_REL_PATH = "database/users.json"
+# Google Drive file for production user DB (share file with service account email).
+USERS_GDRIVE_FILE_ID = "1nJFTRaRi-I7YWwu7KnkI-lHWjGlH2R-H"
+USERS_GDRIVE_MIME_TYPE = "application/json"
+# Local service account key (gitignored); share Drive file with client_email in JSON.
+USERS_GDRIVE_CREDENTIALS_REL_PATH = "database/database-497809-3e1d0c4b0858.json"
 OUTPUT_DIR_REL_PATH = "output"
 KUNDALI_OUTPUT_SUBDIR = "kundali"
 AUSPICIOUS_OUTPUT_SUBDIR = "auspicious"
@@ -189,11 +194,13 @@ AUSPICIOUS_MAX_RANGE_DAYS = 62
 AUSPICIOUS_OUTPUT_BASENAME = AUSPICIOUS_OUTPUT_SUBDIR
 AUSPICIOUS_READY_STATUS_MESSAGE = "Top auspicious date and time slots are ready"
 
-# --- Auth / commercial limits ---
-MAX_KUNDALI_PER_USER = 5
-MAX_AUSPICIOUS_PER_USER = 2
-MAX_KUNDALI_PER_GUEST = 5
-MAX_AUSPICIOUS_PER_GUEST = 2
+# --- Auth / commercial limits (shared per public IP for guest + logged-in) ---
+MAX_KUNDALI_PER_IP = 5
+MAX_AUSPICIOUS_PER_IP = 2
+MAX_KUNDALI_PER_USER = MAX_KUNDALI_PER_IP
+MAX_AUSPICIOUS_PER_USER = MAX_AUSPICIOUS_PER_IP
+MAX_KUNDALI_PER_GUEST = MAX_KUNDALI_PER_IP
+MAX_AUSPICIOUS_PER_GUEST = MAX_AUSPICIOUS_PER_IP
 AUTH_TOKEN_HEADER = "Authorization"
 AUTH_TOKEN_PREFIX = "Bearer "
 GUEST_ID_HEADER = "X-Guest-Id"

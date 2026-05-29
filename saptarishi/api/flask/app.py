@@ -17,7 +17,7 @@ _PY_DIR = ROOT / "py"
 if str(_PY_DIR) not in sys.path:
     sys.path.insert(0, str(_PY_DIR))
 
-from auth import UserStore  # noqa: E402
+from auth import UserStore, normalize_mobile, parse_client_ip  # noqa: E402
 from utils.constant import (  # noqa: E402
     AUTH_TOKEN_HEADER,
     AUTH_TOKEN_PREFIX,
@@ -47,6 +47,19 @@ IS_RENDER = os.environ.get("RENDER", "").lower() in {"true", "1", "yes"}
 user_store = UserStore(ROOT)
 
 
+def _validate_user_storage() -> None:
+    try:
+        from utils.googledrive import ensure_google_drive_deps, users_storage_backend
+
+        if users_storage_backend() == "gdrive":
+            ensure_google_drive_deps(install_if_missing=True)
+    except Exception as exc:
+        app.logger.warning("User storage startup check failed: %s", exc)
+
+
+_validate_user_storage()
+
+
 def _api_url(path: str, query: str = "") -> str:
     base = PUBLIC_API_ORIGIN + path
     return f"{base}?{query}" if query else base
@@ -59,8 +72,18 @@ def _extract_bearer_token() -> str:
     return (request.args.get("token") or "").strip()
 
 
-def _auth_user_payload(user: dict[str, Any]) -> dict[str, Any]:
-    return UserStore.public_user(user)
+def _client_ip() -> str:
+    return parse_client_ip(
+        request.headers.get("X-Forwarded-For", ""),
+        request.remote_addr or "",
+        real_ip=request.headers.get("X-Real-IP", ""),
+        cf_connecting_ip=request.headers.get("CF-Connecting-IP", ""),
+        true_client_ip=request.headers.get("True-Client-IP", ""),
+    )
+
+
+def _usage_payload(user: dict[str, Any] | None = None, guest_id: str = "") -> dict[str, Any]:
+    return user_store.usage_for_client(_client_ip(), user=user, guest_id=guest_id)
 
 
 def _extract_guest_id() -> str:
@@ -72,16 +95,6 @@ def _resolve_logged_in_user() -> dict[str, Any] | None:
     if not token:
         return None
     return user_store.resolve_token(token)
-
-
-def _guest_usage_or_default(guest_id: str) -> dict[str, Any]:
-    data = user_store.load()
-    guest = user_store.find_guest(data, guest_id)
-    if not guest:
-        return UserStore.public_guest(
-            {"id": guest_id, "kundali_used": 0, "auspicious_used": 0}
-        )
-    return UserStore.public_guest(guest)
 
 
 def _limit_response(message: str) -> tuple[Any, int]:
@@ -145,6 +158,8 @@ def home():
 def api_site_view():
     if request.method == "OPTIONS":
         return "", 204
+    if request.method == "GET":
+        return jsonify({"view_count": user_store.get_view_count()})
     count = user_store.increment_view_count()
     return jsonify({"view_count": count})
 
@@ -161,11 +176,15 @@ def api_auth_register():
             body.get("email", ""),
             body.get("password", ""),
         )
-        public_user, token = user_store.login(body.get("mobile", ""), body.get("password", ""))
+        _, token = user_store.login(body.get("mobile", ""), body.get("password", ""))
+        data = user_store.load()
+        user = user_store.find_user_by_mobile(data, normalize_mobile(body.get("mobile", "")))
+        usage = _usage_payload(user=user) if user else _usage_payload()
         return jsonify(
             {
-                "user": public_user,
+                "user": usage,
                 "token": token,
+                "usage": usage,
                 "view_count": user_store.get_view_count(),
             }
         )
@@ -183,10 +202,12 @@ def api_auth_login():
             body.get("mobile", ""),
             body.get("password", ""),
         )
+        usage = _usage_payload(user=public_user)
         return jsonify(
             {
-                "user": public_user,
+                "user": usage,
                 "token": token,
+                "usage": usage,
                 "view_count": user_store.get_view_count(),
             }
         )
@@ -208,11 +229,13 @@ def api_auth_logout():
 def api_auth_me():
     if request.method == "OPTIONS":
         return "", 204
+    usage = _usage_payload(user=g.current_user)
+    view_count = int(user_store.load().get("site", {}).get("view_count") or 0)
     return jsonify(
         {
-            "user": _auth_user_payload(g.current_user),
-            "usage": _auth_user_payload(g.current_user),
-            "view_count": user_store.get_view_count(),
+            "user": usage,
+            "usage": usage,
+            "view_count": view_count,
         }
     )
 
@@ -223,13 +246,13 @@ def api_usage():
         return "", 204
     user = _resolve_logged_in_user()
     if user:
-        usage = _auth_user_payload(user)
+        usage = _usage_payload(user=user)
         return jsonify({"usage": usage, "user": usage})
     try:
         guest_id = UserStore.normalize_guest_id(_extract_guest_id())
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    usage = _guest_usage_or_default(guest_id)
+    usage = _usage_payload(guest_id=guest_id)
     return jsonify({"usage": usage, "user": None})
 
 
@@ -256,26 +279,21 @@ def api_kundali():
     if house_system not in VALID_HOUSE_SYSTEMS:
         return jsonify({"error": f"house_system must be one of {', '.join(VALID_HOUSE_SYSTEMS)}"}), 400
     try:
+        client_ip = _client_ip()
         user = _resolve_logged_in_user()
         guest_id = ""
-        if user:
-            user_store.check_kundali_allowed(user)
-        else:
+        if not user:
             guest_id = UserStore.normalize_guest_id(_extract_guest_id())
-            data = user_store.load()
-            guest = user_store.get_or_create_guest(data, guest_id)
-            user_store.save(data)
-            user_store.check_guest_kundali_allowed(guest)
 
         payload = build_full_kundali(ROOT, date_s, time_s, place, house_system)
 
-        if user:
-            usage = user_store.record_kundali_use(user["id"])
-            payload["user"] = usage
-        else:
-            usage = user_store.record_guest_kundali_use(guest_id)
-            payload["user"] = None
+        usage = user_store.record_kundali_for_ip(
+            client_ip,
+            user=user,
+            guest_id=guest_id,
+        )
         payload["usage"] = usage
+        payload["user"] = usage if user else None
         return jsonify(payload)
     except ValueError as e:
         msg = str(e)
@@ -301,26 +319,21 @@ def api_auspicious():
     if house_system not in VALID_HOUSE_SYSTEMS:
         return jsonify({"error": f"house_system must be one of {', '.join(VALID_HOUSE_SYSTEMS)}"}), 400
     try:
+        client_ip = _client_ip()
         user = _resolve_logged_in_user()
         guest_id = ""
-        if user:
-            user_store.check_auspicious_allowed(user)
-        else:
+        if not user:
             guest_id = UserStore.normalize_guest_id(_extract_guest_id())
-            data = user_store.load()
-            guest = user_store.get_or_create_guest(data, guest_id)
-            user_store.save(data)
-            user_store.check_guest_auspicious_allowed(guest)
 
         payload = build_full_auspicious(ROOT, date_from, date_to, place, house_system)
 
-        if user:
-            usage = user_store.record_auspicious_use(user["id"])
-            payload["user"] = usage
-        else:
-            usage = user_store.record_guest_auspicious_use(guest_id)
-            payload["user"] = None
+        usage = user_store.record_auspicious_for_ip(
+            client_ip,
+            user=user,
+            guest_id=guest_id,
+        )
         payload["usage"] = usage
+        payload["user"] = usage if user else None
         return jsonify(payload)
     except ValueError as e:
         msg = str(e)

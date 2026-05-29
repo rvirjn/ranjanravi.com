@@ -10,7 +10,9 @@
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    "Your free limit is used. Login or register to continue with premium access.";
+    "Your free limit for this network (IP) is used. Login does not add more free scans. Register for premium access.";
+
+  const LOADING = global.SaptarishiLoading;
 
   let overlay = null;
   let resolvePending = null;
@@ -18,6 +20,7 @@
   let loginForm = null;
   let registerForm = null;
   let leadEl = null;
+  let authBusy = false;
 
   function ensureMounted() {
     if (overlay) return;
@@ -103,21 +106,23 @@
 
     loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      showStatus("Signing in…");
+      startAuthLoading();
       try {
         await AUTH.login(
           overlay.querySelector("#auth-modal-login-mobile").value,
           overlay.querySelector("#auth-modal-login-password").value
         );
+        stopAuthLoading();
         finishSuccess();
       } catch (err) {
+        stopAuthLoading();
         showStatus(err.message || "Login failed", true);
       }
     });
 
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      showStatus("Creating account…");
+      startAuthLoading();
       try {
         await AUTH.register(
           overlay.querySelector("#auth-modal-reg-name").value,
@@ -125,21 +130,62 @@
           overlay.querySelector("#auth-modal-reg-email").value,
           overlay.querySelector("#auth-modal-reg-password").value
         );
+        stopAuthLoading();
         finishSuccess();
       } catch (err) {
+        stopAuthLoading();
         showStatus(err.message || "Registration failed", true);
       }
     });
   }
 
+  function setAuthBusy(busy) {
+    authBusy = busy;
+    if (!overlay) return;
+    [loginForm, registerForm].forEach((form) => {
+      if (!form) return;
+      form.querySelectorAll("input, button[type='submit']").forEach((el) => {
+        el.disabled = busy;
+      });
+    });
+    overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
+      btn.disabled = busy;
+    });
+    const closeBtn = overlay.querySelector("#auth-modal-close");
+    if (closeBtn) closeBtn.disabled = busy && overlay.dataset.required !== "true";
+  }
+
+  function startAuthLoading() {
+    setAuthBusy(true);
+    if (LOADING && statusEl) {
+      LOADING.start(statusEl);
+      return;
+    }
+    if (statusEl) {
+      statusEl.hidden = false;
+      statusEl.classList.remove("error");
+      statusEl.textContent = "Please wait…";
+    }
+  }
+
+  function stopAuthLoading() {
+    setAuthBusy(false);
+    if (LOADING && statusEl) {
+      LOADING.stop(statusEl);
+    }
+  }
+
   function showStatus(message, isError) {
     if (!statusEl) return;
+    if (LOADING) LOADING.stop(statusEl);
     statusEl.textContent = message || "";
     statusEl.hidden = !message;
+    statusEl.classList.remove("status--loading");
     statusEl.classList.toggle("error", Boolean(isError));
   }
 
   function setActiveTab(tab) {
+    if (authBusy) return;
     const isLogin = tab !== "register";
     overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
       const active = btn.dataset.tab === (isLogin ? "login" : "register");
@@ -175,6 +221,7 @@
 
   function hide() {
     if (!overlay) return;
+    stopAuthLoading();
     overlay.hidden = true;
     document.body.classList.remove("auth-modal-open");
     showStatus("");
