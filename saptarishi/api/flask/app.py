@@ -10,12 +10,12 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request
 
-ROOT = Path(__file__).resolve().parents[1]
-MAIN_DIR = ROOT / "main"
-if str(MAIN_DIR) not in sys.path:
-    sys.path.insert(0, str(MAIN_DIR))
+ROOT = Path(__file__).resolve().parents[2]
+_PY_DIR = ROOT / "py"
+if str(_PY_DIR) not in sys.path:
+    sys.path.insert(0, str(_PY_DIR))
 
-from constant import (  # noqa: E402
+from utils.constant import (  # noqa: E402
     DEFAULT_HOUSE_SYSTEM,
     FLASK_HOST,
     FLASK_PORT,
@@ -24,7 +24,8 @@ from constant import (  # noqa: E402
     SERVICE_NAME,
     VALID_HOUSE_SYSTEMS,
 )
-from get_kundali import EnrichKundali, build_full_kundali  # noqa: E402
+from auspicious import build_full_auspicious  # noqa: E402
+from kundali import EnrichKundali, build_full_kundali  # noqa: E402
 
 app = Flask(__name__)
 
@@ -59,11 +60,16 @@ def home():
             "public_api_origin": PUBLIC_API_ORIGIN,
             "listen_port": LISTEN_PORT,
             "ui": {
-                "entry": "/ui/kundali.html",
+                "entry": "/ui/html/kundali.html",
+                "auspicious": "/ui/html/auspicious.html",
                 "note": "UI is static (nginx locally); Flask serves JSON API only on Render.",
             },
             "endpoints": {
                 "kundali": _api_url("/api/kundali", sample),
+                "auspicious": _api_url(
+                    "/api/auspicious",
+                    "date_from=2026-05-20&date_to=2026-06-20&place=Bengaluru%2C%20India",
+                ),
                 "planet_database": _api_url("/api/planet-database"),
             },
         }
@@ -101,6 +107,29 @@ def api_kundali():
     except json.JSONDecodeError as e:
         return jsonify({"error": f"invalid JSON: {e}"}), 500
     except OSError as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/auspicious", methods=["GET"], strict_slashes=False)
+def api_auspicious():
+    date_from = (request.args.get("date_from") or request.args.get("from") or "").strip()
+    date_to = (request.args.get("date_to") or request.args.get("to") or "").strip()
+    place = (request.args.get("place") or "").strip()
+    house_system = (request.args.get("house_system") or DEFAULT_HOUSE_SYSTEM).strip().upper()
+    if not date_from or not date_to or not place:
+        return jsonify({"error": "date_from, date_to, and place are required"}), 400
+    if len(place) > MAX_PLACE_QUERY_LENGTH:
+        return jsonify({"error": "place is too long"}), 400
+    if house_system not in VALID_HOUSE_SYSTEMS:
+        return jsonify({"error": f"house_system must be one of {', '.join(VALID_HOUSE_SYSTEMS)}"}), 400
+    try:
+        payload = build_full_auspicious(
+            ROOT, date_from, date_to, place, house_system
+        )
+        return jsonify(payload)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except (RuntimeError, OSError) as e:
         return jsonify({"error": str(e)}), 500
 
 

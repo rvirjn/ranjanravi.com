@@ -2,7 +2,7 @@
 """
 Sidereal birth chart (kundali) from civil date, time, and place name.
 
-CLI: ``python main/get_kundali.py --date YYYY-MM-DD --time HH:MM --place "City, Country"``
+CLI: ``python py/kundali.py --date YYYY-MM-DD --time HH:MM --place "City, Country"``
 
 Flask/UI: ``build_full_kundali(root, date, time, place)`` → chart + ``nakshatras`` + UI tables.
 """
@@ -36,7 +36,11 @@ except ImportError:  # Python < 3.9
 
 import swisseph as swe
 
-from constant import (
+_PY_DIR = Path(__file__).resolve().parent
+if str(_PY_DIR) not in sys.path:
+    sys.path.insert(0, str(_PY_DIR))
+
+from utils.constant import (
     AUSPICIOUS_NAVATARA_VALUES,
     HARMFUL_NAVATARA_NAMES,
     AYANAMSA_NAME,
@@ -74,6 +78,7 @@ from constant import (
     GEOCODE_TIMEOUT_SECONDS,
     GEOCODE_USER_AGENT,
     KUNDALI_READY_STATUS_MESSAGE,
+    KUNDALI_OUTPUT_SUBDIR,
     NAKSHATRA_COUNT,
     OUTPUT_DIR_REL_PATH,
     PADAS_PER_NAKSHATRA,
@@ -205,6 +210,61 @@ class KundaliBuilder:
         EnrichKundali(self.root).enrich_chart_for_api_and_ui(chart)
         return chart
 
+    def build_report_with_geo(
+        self,
+        date_str: str,
+        time_str: str,
+        place_query: str,
+        geo: dict[str, Any],
+        house_system: str = DEFAULT_HOUSE_SYSTEM,
+    ) -> dict[str, Any]:
+        """Like ``build_full_report`` but reuses a prior geocode result (auspicious scans)."""
+        dt_local = self.parse_birth_datetime_local(date_str, time_str, geo["timezone"])
+        chart = self.compute_sidereal_birth_chart(
+            dt_local,
+            geo["latitude"],
+            geo["longitude"],
+            {
+                "query": place_query,
+                "name": geo["name"],
+                "admin1": geo.get("admin1"),
+                "country": geo.get("country"),
+            },
+            house_system=house_system,
+        )
+        if geo.get("alternatives"):
+            place = chart.setdefault("place_resolved", {})
+            if isinstance(place, dict):
+                place["alternatives"] = KundaliBuilder.format_geocode_alternatives(
+                    geo["alternatives"]
+                )
+        EnrichKundali(self.root).enrich_chart_for_api_and_ui(chart)
+        return chart
+
+    def houses_strength_for_datetime(
+        self,
+        date_str: str,
+        time_str: str,
+        place_query: str,
+        geo: dict[str, Any],
+        house_system: str = DEFAULT_HOUSE_SYSTEM,
+    ) -> int:
+        """Fast path: sidereal chart + house strength total only (no file dump / navatara)."""
+        dt_local = self.parse_birth_datetime_local(date_str, time_str, geo["timezone"])
+        chart = self.compute_sidereal_birth_chart(
+            dt_local,
+            geo["latitude"],
+            geo["longitude"],
+            {
+                "query": place_query,
+                "name": geo["name"],
+                "admin1": geo.get("admin1"),
+                "country": geo.get("country"),
+            },
+            house_system=house_system,
+        )
+        return EnrichKundali(self.root).enrich_chart_for_house_strength(chart)
+
     def write_report_to_file(self, report: dict[str, Any], path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -216,7 +276,7 @@ class KundaliBuilder:
         place_query: str,
         house_system: str = DEFAULT_HOUSE_SYSTEM,
     ) -> dict[str, Any]:
-        """Build full kundali, write JSON dump to ``output/``, return report."""
+        """Build full kundali, write JSON dump to ``output/kundali/``, return report."""
         report = self.build_full_report(date_str, time_str, place_query, house_system)
         dump_path = self.output_dir / self.birth_output_filename(date_str, time_str, place_query)
         self.write_report_to_file(report, dump_path)
@@ -230,6 +290,7 @@ class KundaliBuilder:
 
     @staticmethod
     def birth_output_filename(date_str: str, time_str: str, place_query: str) -> str:
+        """Relative path under ``output/``: ``kundali/{date}_{time}_{place}.json``."""
         parts = time_str.strip().split(":")
         hh = parts[0].zfill(2) if parts else "00"
         mm = parts[1].zfill(2) if len(parts) > 1 else "00"
@@ -238,7 +299,7 @@ class KundaliBuilder:
         slug = re.sub(r"_+", "_", slug).strip("_") or "place"
         if len(slug) > 96:
             slug = slug[:96].rstrip("_")
-        return f"kundali_{date_str.strip()}_{hh}-{mm}-{ss}_{slug}.json"
+        return f"{KUNDALI_OUTPUT_SUBDIR}/{date_str.strip()}_{hh}-{mm}-{ss}_{slug}.json"
 
     def print_debug_tables(self, report: dict[str, Any], stream: Any = sys.stderr) -> None:
         place = report.get("place_resolved") or {}
@@ -788,6 +849,35 @@ class EnrichKundali:
             pr = chart["place_resolved"]
             if not pr.get("alternatives"):
                 pr["alternatives"] = alts if isinstance(alts, list) else []
+
+    def enrich_chart_for_house_strength(self, chart: dict[str, Any]) -> int:
+        """Minimal enrich for auspicious scans: house strength total only."""
+        try:
+            friendship = self.load_planet_friendship_lookup_table()
+            strength_rules = self.load_planet_strength_rules()
+            house_strength_rules = self.load_house_strength_rules()
+        except OSError:
+            friendship = {}
+            strength_rules = EnrichKundali.resolve_strength_numeric_rules({})
+            house_strength_rules = {
+                "base_percent": 100,
+                "planet_aspect_area_cover_by_offset": {7: 100.0},
+                "aspect_strength_by_id_offset": {},
+                "min_percent": 0,
+                "max_percent": 500,
+                "strength_factors": None,
+            }
+        chart["planet_strength_rules"] = strength_rules
+        chart["house_strength_rules"] = house_strength_rules
+        degree_bands = EnrichKundali.parse_degree_in_sign_bands(strength_rules)
+        self.enrich_birth_planets_with_database_metadata(
+            chart, friendship, strength_rules, degree_bands
+        )
+        self.attach_house_context_to_planets(chart)
+        self.attach_planet_aspects(chart, self.load_planet_aspect_offsets_by_planet())
+        planets_table = self.build_planets_table_rows(chart)
+        houses = self.build_houses_table_rows({**chart, "planets_table": planets_table})
+        return EnrichKundali.houses_strength_total(houses)
 
     @staticmethod
     def find_ascendant_planet(chart: dict[str, Any]) -> dict[str, Any] | None:
@@ -2953,6 +3043,17 @@ class EnrichKundali:
 
 # --- module API (Flask, scripts) ---
 
+def build_kundali_chart(
+    root: Path,
+    date_str: str,
+    time_str: str,
+    place_query: str,
+    house_system: str = DEFAULT_HOUSE_SYSTEM,
+) -> dict[str, Any]:
+    """Build full kundali in memory (no ``output/`` JSON dump)."""
+    return KundaliBuilder(root).build_full_report(date_str, time_str, place_query, house_system)
+
+
 def build_full_kundali(
     root: Path,
     date_str: str,
@@ -2960,7 +3061,7 @@ def build_full_kundali(
     place_query: str,
     house_system: str = DEFAULT_HOUSE_SYSTEM,
 ) -> dict[str, Any]:
-    """Build chart + UI tables, write ``output/kundali_<birth>.json`` via ``create_dumps_kundali_chart``."""
+    """Build chart + UI tables, write ``output/kundali/{date}_{time}_{place}.json``."""
     return KundaliBuilder(root).create_dumps_kundali_chart(
         date_str, time_str, place_query, house_system
     )

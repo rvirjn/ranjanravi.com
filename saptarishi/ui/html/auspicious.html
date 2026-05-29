@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!-- Copyright © 2018-2026 ranjanravi.com. All rights reserved. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="copyright" content="ranjanravi.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auspicious times by Saptarishi</title>
+  <link rel="stylesheet" href="../style/styles.css?v=65">
+</head>
+<body class="saptarishi-page">
+  <div id="saptarishi" class="container main-shell">
+    <h1>Auspicious times by Saptarishi</h1>
+    <p class="lead">Find the strongest house-strength slots in a date range (checked every 2 hours)</p>
+
+    <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
+      <div class="form-field">
+        <label for="place-preset">Place</label>
+        <select id="place-preset">
+          <option value="">Select place…</option>
+          <option value="New Delhi, India">New Delhi, India</option>
+          <option value="Mumbai, India">Mumbai, India</option>
+          <option value="Kolkata, India">Kolkata, India</option>
+          <option value="Bengaluru, India">Bengaluru, India</option>
+          <option value="Patna, India">Patna, India</option>
+          <option value="Motihari, India">Motihari, India</option>
+          <option value="__custom__">Other…</option>
+        </select>
+      </div>
+      <div class="form-field" id="custom-place-wrap" hidden>
+        <label for="place-custom">Custom Place</label>
+        <input type="text" id="place-custom" maxlength="240" placeholder="City, Country" />
+      </div>
+      <div class="form-field">
+        <label for="date-from">From date</label>
+        <input type="date" id="date-from" required />
+      </div>
+      <div class="form-field">
+        <label for="date-to">To date</label>
+        <input type="date" id="date-to" required />
+      </div>
+      <div class="form-field form-field--submit">
+        <button type="submit" id="submit-btn">Show</button>
+      </div>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+
+    <div id="results" hidden>
+      <h2 class="result-heading">Summary</h2>
+      <div class="table-wrap">
+        <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+      </div>
+
+      <h2 class="result-heading">Top 5 dates (best time each day)</h2>
+      <div class="table-wrap">
+        <table id="top-table" class="navatara-data-table kundali-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Houses strength total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="kundali-detail" class="auspicious-kundali-detail" hidden>
+        <h2 id="kundali-detail-heading" class="result-heading">Kundali for selected slot</h2>
+        <div class="summary-chart-row">
+          <div class="summary-chart-row__summary table-wrap">
+            <table id="slot-summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+          </div>
+          <div class="summary-chart-row__chart">
+            <h3 class="result-heading kundali-chart-heading">Birth Chart</h3>
+            <div id="slot-kundali-chart" class="kundali-chart-host"></div>
+          </div>
+        </div>
+
+        <h2 class="result-heading">Planets</h2>
+        <div class="table-wrap">
+          <table id="slot-planets-table" class="navatara-data-table kundali-table">
+            <thead>
+              <tr>
+                <th>Your Age</th>
+                <th>House</th>
+                <th>Planet</th>
+                <th>Aspected By</th>
+                <th>Planet Strength</th>
+                <th>House Strength</th>
+                <th>Malefic 6/8/12</th>
+                <th>Lagna Lord Enemy</th>
+                <th>Death Degree</th>
+                <th>Rashi Status</th>
+                <th>Rashi</th>
+                <th>Nakshatra</th>
+                <th>Karakwaqt</th>
+                <th>Nakshatra Status</th>
+                <th>Nakshatra navatara</th>
+                <th>Degree</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <h2 class="result-heading">Nakshatra</h2>
+        <div class="table-wrap nakshatra-table-wrap">
+          <table id="slot-nakshatra-table" class="navatara-data-table kundali-table">
+            <thead>
+              <tr>
+                <th>Nakshatra</th>
+                <th>Navatara</th>
+                <th>Symbol</th>
+                <th>Ruling Planet</th>
+                <th>Deity</th>
+                <th>Tree</th>
+                <th>Directions</th>
+                <th>Lunar Month</th>
+                <th>Tithi</th>
+                <th>Remedy</th>
+                <th>Mantra</th>
+                <th>Animal</th>
+                <th>Colors</th>
+                <th>Number</th>
+                <th>Day</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../utils/constants.js?v=35"></script>
+  <script src="../js/kundali.js?v=121"></script>
+  <script src="../js/auspicious.js?v=5"></script>
+</body>
+</html>

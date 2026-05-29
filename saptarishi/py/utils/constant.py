@@ -10,6 +10,8 @@ import swisseph as swe
 # --- paths (relative to project root) ---
 DATA_JSON_REL_PATH = "database/data.json"
 OUTPUT_DIR_REL_PATH = "output"
+KUNDALI_OUTPUT_SUBDIR = "kundali"
+AUSPICIOUS_OUTPUT_SUBDIR = "auspicious"
 EPHEMERIS_DIR_REL_PATH = "ephe"
 
 # --- zodiac & nakshatra ---
@@ -179,6 +181,12 @@ FLASK_HOST = "0.0.0.0"
 FLASK_PORT = 8081
 FLASK_PUBLIC_API_ORIGIN = "https://saptarishi.ranjanravi.com"
 MAX_PLACE_QUERY_LENGTH = 240
+API_AUSPICIOUS_PATH = "/api/auspicious"
+AUSPICIOUS_SLOT_HOUR_STEP = 2
+AUSPICIOUS_TOP_COUNT = 5
+AUSPICIOUS_MAX_RANGE_DAYS = 62
+AUSPICIOUS_OUTPUT_BASENAME = AUSPICIOUS_OUTPUT_SUBDIR
+AUSPICIOUS_READY_STATUS_MESSAGE = "Top auspicious date and time slots are ready"
 
 # --- Mongo defaults (read_collection CLI) ---
 MONGO_DEFAULT_URI = "mongodb://host.docker.internal:27017"

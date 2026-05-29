@@ -461,7 +461,7 @@ function planetStatusKind(status) {
   return "";
 }
 
-/** Apply ``cell_styles`` color from API (get_kundali.py). */
+/** Apply ``cell_styles`` color from API (kundali.py). */
 function applyPlanetTableCellStyle(td, colorKind, columnKey) {
   if (!colorKind) return;
   const yesNoCol =
@@ -624,7 +624,7 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
 }
 
-/** Planets table: values and ``cell_styles`` come from API (get_kundali.py). */
+/** Planets table: values and ``cell_styles`` come from API (kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
@@ -864,8 +864,9 @@ function buildNorthIndianChartFromPayload(payload) {
 }
 
 /** Traditional North Indian chart: diagonals + diamond house regions (SVG). */
-function renderKundaliChart(chartData) {
-  const host = document.getElementById("kundali-chart");
+function renderKundaliChart(chartData, chartHost = "kundali-chart") {
+  const host =
+    typeof chartHost === "string" ? document.getElementById(chartHost) : chartHost;
   if (!host) return;
   host.innerHTML = "";
   if (!chartData || !Array.isArray(chartData.cells)) {
@@ -1075,7 +1076,7 @@ function renderKundaliChart(chartData) {
   host.appendChild(svg);
 }
 
-/** Fill summary table from API ``summary_table`` rows (built in get_kundali.py). */
+/** Fill summary table from API ``summary_table`` rows (built in kundali.py). */
 function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   if (!summaryBody) return;
   summaryBody.innerHTML = "";
@@ -1085,19 +1086,22 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
 }
 
 /** Fill summary, planets, and nakshatra tables from /api/kundali JSON. */
-function renderKundaliResponseIntoPage(kundaliPayload) {
-  const summaryBody = document.querySelector("#summary-table tbody");
-  const planetsBody = document.querySelector("#planets-table tbody");
-  const nakshatraBody = document.querySelector("#nakshatra-table tbody");
+function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
+  const summaryBody = document.querySelector(targets.summaryTable || "#summary-table tbody");
+  const planetsBody = document.querySelector(targets.planetsTable || "#planets-table tbody");
+  const nakshatraBody = document.querySelector(targets.nakshatraTable || "#nakshatra-table tbody");
+  const chartHost = targets.chartHost || "kundali-chart";
 
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
-  renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload));
+  renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHost);
 
   renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
   renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
 
-  if (resultsEl) resultsEl.hidden = false;
-  showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
+  if (!targets.skipShellUpdates) {
+    if (resultsEl) resultsEl.hidden = false;
+    showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
+  }
 }
 
 /** Build query string for GET /api/kundali from form fields. */
@@ -1165,12 +1169,19 @@ async function handleBirthFormSubmit(event) {
   }
 }
 
-if (placePreset) {
-  placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
+if (document.getElementById("birth-form")) {
+  if (placePreset) {
+    placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
+  }
+  if (form) {
+    form.addEventListener("submit", handleBirthFormSubmit);
+    ensurePlanetDatabase().catch(() => {});
+  }
 }
 
-if (form) {
-  form.addEventListener("submit", handleBirthFormSubmit);
-}
-
-ensurePlanetDatabase().catch(() => {});
+/** Shared kundali view helpers (auspicious page row drill-down). */
+window.SaptarishiKundaliView = {
+  ensurePlanetDatabase,
+  fetchJson: fetchKundaliJsonFromApi,
+  renderIntoPage: renderKundaliResponseIntoPage
+};

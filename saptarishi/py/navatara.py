@@ -1,5 +1,5 @@
 # Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-"""Backward-compatible shim — navatara logic lives in ``get_kundali.py``."""
+"""CLI for Moon janma nakshatra navatara wheel (logic in ``kundali.py``)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,11 @@ import json
 import sys
 from pathlib import Path
 
-from get_kundali import EnrichKundali, NavataraFinder, build_navatara
+_PY_DIR = Path(__file__).resolve().parent
+if str(_PY_DIR) not in sys.path:
+    sys.path.insert(0, str(_PY_DIR))
+
+from kundali import EnrichKundali, NavataraFinder, build_navatara
 
 __all__ = ["EnrichKundali", "NavataraFinder", "build_navatara"]
 
@@ -23,6 +27,6 @@ def main(input_nakshatra: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Usage: python main/get_navatara.py "<Nakshatra Name>"')
+        print('Usage: python py/navatara.py "<Nakshatra Name>"')
         sys.exit(1)
     main(" ".join(sys.argv[1:]).strip())

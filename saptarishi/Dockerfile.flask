@@ -13,4 +13,4 @@ RUN apt-get update \
 
 WORKDIR /app
 EXPOSE 8081
-CMD ["python", "ui/app.py"]
+CMD ["python", "api/flask/app.py"]

@@ -1,5 +1,5 @@
 # Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-# Minimal deps for the Flask kundali API container (see Dockerfile.flask).
+# Flask API + kundali/auspicious/navatara (Dockerfile.flask, Render).
 flask>=3.0.0
 pyswisseph>=2.10.0
 tzdata

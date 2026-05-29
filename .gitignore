@@ -45,6 +45,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Saptarishi generated kundali / auspicious JSON dumps
+saptarishi/output/
+
 # System Files
 .DS_Store
 Thumbs.db

@@ -1,15 +1,18 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 
-/** Shared UI constants (keep in sync with main/constant.py where applicable). */
+/** Shared UI constants (keep in sync with py/utils/constant.py where applicable). */
 const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,
   /** Production API (Render). Local UI uses localhost:8081 instead. */
   PRODUCTION_API_ORIGIN: "https://saptarishi.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  API_AUSPICIOUS_PATH: "/api/auspicious",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
   KUNDALI_READY_STATUS_MESSAGE:
     "Kundali Chart prepared and planet/nakshtra table is also ready",
+  AUSPICIOUS_READY_STATUS_MESSAGE:
+    "Top auspicious date and time slots are ready",
   PLACE_CUSTOM_VALUE: "__custom__",
   MAX_PLACE_QUERY_LENGTH: 240,
   /**
@@ -29,7 +32,7 @@ const SAPTARISHI_CONSTANTS = {
     pratyari: 0.65,
     vadha: 1
   },
-  /** Sign order for number 1–12 (sync with main/constant.py RASHI_IN_ENG). */
+  /** Sign order for number 1–12 (sync with py/utils/constant.py RASHI_IN_ENG). */
   RASHI_IN_EN: [
     "aries",
     "taurus",
@@ -58,7 +61,7 @@ const SAPTARISHI_CONSTANTS = {
     "kumbha",
     "meena"
   ],
-  /** Sign lord per rashi index (sync with main/constant.py RASHI_SIGN_LORD_IN_ENG). */
+  /** Sign lord per rashi index (sync with py/utils/constant.py RASHI_SIGN_LORD_IN_ENG). */
   RASHI_SIGN_LORD_IN_EN: [
     "mars",
     "venus",
@@ -73,7 +76,7 @@ const SAPTARISHI_CONSTANTS = {
     "saturn",
     "jupiter"
   ],
-  /** Parashari drishti offsets (sync with main/constant.py / data.json). */
+  /** Parashari drishti offsets (sync with py/utils/constant.py / data.json). */
   DEFAULT_PLANET_ASPECT_OFFSETS: {
     sun: [7],
     moon: [7],
@@ -85,7 +88,7 @@ const SAPTARISHI_CONSTANTS = {
     rahu: [5, 7, 9],
     ketu: []
   },
-  /** Chart labels from output JSON ``planets[].name`` (keep in sync with main/constant.py). */
+  /** Chart labels from output JSON ``planets[].name`` (keep in sync with py/utils/constant.py). */
   PLANET_SHORT: {
     sun: "Su",
     moon: "Mo",
@@ -97,7 +100,7 @@ const SAPTARISHI_CONSTANTS = {
     rahu: "Ra",
     ketu: "Ke"
   },
-  /** North Indian layout: houses 1–12 anticlockwise — sync with main/constant.py */
+  /** North Indian layout: houses 1–12 anticlockwise — sync with py/utils/constant.py */
   NORTH_INDIAN_HOUSE_REGIONS: [
     [1, "", 50, 14],
     [2, "", 26, 12],
@@ -114,7 +117,7 @@ const SAPTARISHI_CONSTANTS = {
   ],
   /** Display order for planet abbreviations in each house cell */
   PLANET_DISPLAY_ORDER: ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"],
-  /** Vimshottari order for ``aspected_by`` column (sync with main/constant.py). */
+  /** Vimshottari order for ``aspected_by`` column (sync with py/utils/constant.py). */
   VIMSHOTTARI_PLANET_ORDER: [
     "ketu",
     "venus",
