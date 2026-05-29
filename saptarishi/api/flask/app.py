@@ -127,13 +127,18 @@ def require_login(view: Callable) -> Callable:
 
 @app.route("/", methods=["GET"])
 def home():
+    from utils.googledrive import gdrive_credentials_configured, users_storage_backend
+
     sample = "date=1990-05-15&time=14:30&place=New%20Delhi%2C%20India&house_system=W"
+    storage = users_storage_backend()
     return jsonify(
         {
             "service": SERVICE_NAME,
             "deployment": "render" if IS_RENDER else "local",
             "public_api_origin": PUBLIC_API_ORIGIN,
             "listen_port": LISTEN_PORT,
+            "users_storage": storage,
+            "gdrive_credentials_configured": gdrive_credentials_configured(),
             "view_count": user_store.get_view_count(),
             "ui": {
                 "login": "/ui/html/login.html",
@@ -190,6 +195,8 @@ def api_auth_register():
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
 
 
 @app.route("/api/auth/login", methods=["POST", "OPTIONS"], strict_slashes=False)
@@ -213,6 +220,8 @@ def api_auth_login():
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
 
 
 @app.route("/api/auth/logout", methods=["POST", "OPTIONS"], strict_slashes=False)
