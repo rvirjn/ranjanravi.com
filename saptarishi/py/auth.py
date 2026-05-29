@@ -166,7 +166,7 @@ class UserStore:
 
     @staticmethod
     def _cache_ttl_seconds() -> float:
-        raw = os.environ.get("SAPTARISHI_USERS_CACHE_SECONDS", "15")
+        raw = os.environ.get("SAPTARISHI_USERS_CACHE_SECONDS", "5")
         try:
             return max(0.0, float(raw))
         except ValueError:
@@ -247,8 +247,57 @@ class UserStore:
         return data
 
     @staticmethod
-    def _merge_db(into: dict[str, Any], fresh: dict[str, Any]) -> None:
-        """Merge concurrent Drive writes so sessions/users are not dropped."""
+    def _merge_usage_stats(local: dict[str, Any], remote: dict[str, Any]) -> dict[str, Any]:
+        """Keep the highest usage counters when merging concurrent writes."""
+        merged = {**remote, **local}
+        merged["kundali_used"] = max(
+            int(local.get("kundali_used") or 0),
+            int(remote.get("kundali_used") or 0),
+        )
+        merged["auspicious_used"] = max(
+            int(local.get("auspicious_used") or 0),
+            int(remote.get("auspicious_used") or 0),
+        )
+        if local.get("_bootstrapped") or remote.get("_bootstrapped"):
+            merged["_bootstrapped"] = True
+        return merged
+
+    @classmethod
+    def _merge_user_entry(cls, local: dict[str, Any], remote: dict[str, Any]) -> dict[str, Any]:
+        merged = cls._merge_usage_stats(local, remote)
+        if local.get("password_hash"):
+            merged["password_hash"] = local["password_hash"]
+        if local.get("mobile"):
+            merged["mobile"] = local["mobile"]
+        if local.get("email"):
+            merged["email"] = local["email"]
+        if local.get("name"):
+            merged["name"] = local["name"]
+        return merged
+
+    @classmethod
+    def _merge_map_by_key(
+        cls,
+        local_map: dict[str, Any],
+        remote_map: dict[str, Any],
+        *,
+        merge_entry: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
+    ) -> dict[str, Any]:
+        merged: dict[str, Any] = {}
+        for key in set(local_map) | set(remote_map):
+            local_val = local_map.get(key)
+            remote_val = remote_map.get(key)
+            if isinstance(local_val, dict) and isinstance(remote_val, dict):
+                merged[key] = merge_entry(local_val, remote_val)
+            elif isinstance(local_val, dict):
+                merged[key] = dict(local_val)
+            elif isinstance(remote_val, dict):
+                merged[key] = dict(remote_val)
+        return merged
+
+    @classmethod
+    def _merge_db(cls, into: dict[str, Any], fresh: dict[str, Any]) -> None:
+        """Merge concurrent Drive writes without lowering usage counts."""
         into_sessions = into.setdefault("sessions", {})
         fresh_sessions = fresh.get("sessions") or {}
         if isinstance(fresh_sessions, dict):
@@ -256,25 +305,32 @@ class UserStore:
             into["sessions"] = {**fresh_sessions, **into_sessions}
 
         users_by_id: dict[str, dict[str, Any]] = {}
-        for user in fresh.get("users") or []:
-            if isinstance(user, dict) and user.get("id"):
-                users_by_id[str(user["id"])] = user
-        for user in into.get("users") or []:
-            if isinstance(user, dict) and user.get("id"):
-                users_by_id[str(user["id"])] = user
+        for user in list(fresh.get("users") or []) + list(into.get("users") or []):
+            if not isinstance(user, dict) or not user.get("id"):
+                continue
+            uid = str(user["id"])
+            if uid in users_by_id:
+                users_by_id[uid] = cls._merge_user_entry(users_by_id[uid], user)
+            else:
+                users_by_id[uid] = dict(user)
         into["users"] = list(users_by_id.values())
 
-        into_guests = into.setdefault("guests", {})
-        fresh_guests = fresh.get("guests") or {}
-        if isinstance(fresh_guests, dict):
-            into_guests.update(fresh_guests)
-            into["guests"] = {**fresh_guests, **into_guests}
+        into["guests"] = cls._merge_map_by_key(
+            into.get("guests") or {},
+            fresh.get("guests") or {},
+            merge_entry=cls._merge_usage_stats,
+        )
 
-        into_ip = into.setdefault("usage_by_ip", {})
-        fresh_ip = fresh.get("usage_by_ip") or {}
-        if isinstance(fresh_ip, dict):
-            into_ip.update(fresh_ip)
-            into["usage_by_ip"] = {**fresh_ip, **into_ip}
+        def merge_ip(local: dict[str, Any], remote: dict[str, Any]) -> dict[str, Any]:
+            merged = cls._merge_usage_stats(local, remote)
+            merged["ip"] = local.get("ip") or remote.get("ip")
+            return merged
+
+        into["usage_by_ip"] = cls._merge_map_by_key(
+            into.get("usage_by_ip") or {},
+            fresh.get("usage_by_ip") or {},
+            merge_entry=merge_ip,
+        )
 
         into_site = into.setdefault("site", {})
         fresh_site = fresh.get("site") if isinstance(fresh.get("site"), dict) else {}
@@ -344,6 +400,27 @@ class UserStore:
             }
             by_ip[ip] = record
         return record
+
+    def _aggregate_usage_counts(
+        self,
+        data: dict[str, Any],
+        ip_record: dict[str, Any],
+        *,
+        user: dict[str, Any] | None = None,
+        guest_id: str = "",
+    ) -> tuple[int, int]:
+        """Max usage across IP, guest id, and account (IP may change between requests)."""
+        k = int(ip_record.get("kundali_used") or 0)
+        a = int(ip_record.get("auspicious_used") or 0)
+        if guest_id:
+            guest = self.find_guest(data, guest_id)
+            if guest:
+                k = max(k, int(guest.get("kundali_used") or 0))
+                a = max(a, int(guest.get("auspicious_used") or 0))
+        if user:
+            k = max(k, int(user.get("kundali_used") or 0))
+            a = max(a, int(user.get("auspicious_used") or 0))
+        return k, a
 
     def _bootstrap_ip_from_legacy(
         self,
@@ -426,6 +503,22 @@ class UserStore:
         ip_record = self.get_or_create_ip_record(data, client_ip)
         if self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id):
             dirty = True
+        k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
+        if int(ip_record.get("kundali_used") or 0) != k or int(ip_record.get("auspicious_used") or 0) != a:
+            ip_record["kundali_used"] = k
+            ip_record["auspicious_used"] = a
+            dirty = True
+        if guest_id:
+            guest = self.get_or_create_guest(data, guest_id)
+            if int(guest.get("kundali_used") or 0) != k or int(guest.get("auspicious_used") or 0) != a:
+                guest["kundali_used"] = k
+                guest["auspicious_used"] = a
+                dirty = True
+        if user:
+            if int(user.get("kundali_used") or 0) != k or int(user.get("auspicious_used") or 0) != a:
+                user["kundali_used"] = k
+                user["auspicious_used"] = a
+                dirty = True
         if dirty:
             self.save(data)
         return self.public_usage_from_ip(ip_record, is_guest=user is None, user=user)
@@ -453,17 +546,24 @@ class UserStore:
         user: dict[str, Any] | None = None,
         guest_id: str = "",
     ) -> dict[str, Any]:
-        data = self.load()
-        ip_record = self.get_or_create_ip_record(data, client_ip)
-        self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id)
-        self.check_ip_kundali_allowed(ip_record)
-        ip_record["kundali_used"] = int(ip_record.get("kundali_used") or 0) + 1
-        if user:
-            self._sync_ip_usage_to_user(data, ip_record, user)
-        if guest_id:
-            self._sync_ip_usage_to_guest(data, ip_record, guest_id)
-        self.save(data)
-        return self.public_usage_from_ip(ip_record, is_guest=user is None, user=user)
+        usage: dict[str, Any] = {}
+
+        def apply(data: dict[str, Any]) -> None:
+            ip_record = self.get_or_create_ip_record(data, client_ip)
+            self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id)
+            k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
+            ip_record["kundali_used"] = k
+            ip_record["auspicious_used"] = a
+            self.check_ip_kundali_allowed(ip_record)
+            ip_record["kundali_used"] = k + 1
+            if user:
+                self._sync_ip_usage_to_user(data, ip_record, user)
+            if guest_id:
+                self._sync_ip_usage_to_guest(data, ip_record, guest_id)
+            usage.update(self.public_usage_from_ip(ip_record, is_guest=user is None, user=user))
+
+        self._mutate(apply)
+        return usage
 
     def record_auspicious_for_ip(
         self,
@@ -472,17 +572,24 @@ class UserStore:
         user: dict[str, Any] | None = None,
         guest_id: str = "",
     ) -> dict[str, Any]:
-        data = self.load()
-        ip_record = self.get_or_create_ip_record(data, client_ip)
-        self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id)
-        self.check_ip_auspicious_allowed(ip_record)
-        ip_record["auspicious_used"] = int(ip_record.get("auspicious_used") or 0) + 1
-        if user:
-            self._sync_ip_usage_to_user(data, ip_record, user)
-        if guest_id:
-            self._sync_ip_usage_to_guest(data, ip_record, guest_id)
-        self.save(data)
-        return self.public_usage_from_ip(ip_record, is_guest=user is None, user=user)
+        usage: dict[str, Any] = {}
+
+        def apply(data: dict[str, Any]) -> None:
+            ip_record = self.get_or_create_ip_record(data, client_ip)
+            self._bootstrap_ip_from_legacy(data, ip_record, user=user, guest_id=guest_id)
+            k, a = self._aggregate_usage_counts(data, ip_record, user=user, guest_id=guest_id)
+            ip_record["kundali_used"] = k
+            ip_record["auspicious_used"] = a
+            self.check_ip_auspicious_allowed(ip_record)
+            ip_record["auspicious_used"] = a + 1
+            if user:
+                self._sync_ip_usage_to_user(data, ip_record, user)
+            if guest_id:
+                self._sync_ip_usage_to_guest(data, ip_record, guest_id)
+            usage.update(self.public_usage_from_ip(ip_record, is_guest=user is None, user=user))
+
+        self._mutate(apply)
+        return usage
 
     @staticmethod
     def normalize_guest_id(value: str) -> str:
