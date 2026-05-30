@@ -59,8 +59,35 @@
         "decrease_strength_percent": 0
       },
       {
+        "id": "own_nakshatra",
+        "increase_strength_percent": 55,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "enemy_nakshatra",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 30
+      },
+      {
+        "id": "friend_nakshatra",
+        "increase_strength_percent": 30,
+        "decrease_strength_percent": 0
+      },
+      {
         "id": "retrograde",
         "increase_strength_percent": 40,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "dusthana_house",
+        "houses": [6, 8, 12],
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 60
+      },
+      {
+        "id": "trikona_house",
+        "houses": [5, 9, 1],
+        "increase_strength_percent": 60,
         "decrease_strength_percent": 0
       },
       {
@@ -83,6 +110,18 @@
         "factor": "Mrityu Bhaga death degree (sets strength to increase_strength_percent when matched)",
         "increase_strength_percent": 0,
         "decrease_strength_percent": 100
+      },
+      {
+        "id": "good_karakwaqt",
+        "karakwaqt_names": ["yog karak", "karak"],
+        "increase_strength_percent": 40,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "bad_karakwaqt",
+        "karakwaqt_names": ["marak", "badhak", "prabal marak"],
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 40
       },
       {
         "id": "strength_limits",

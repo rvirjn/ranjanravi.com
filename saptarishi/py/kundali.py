@@ -50,6 +50,7 @@ from utils.constant import (
     HOUSE_6_8_12,
     HOUSE_6_8_12_NO,
     HOUSE_6_8_12_YES,
+    HOUSE_TRIKONA,
     ONE_HOUSE_DEGREES,
     ONE_NAKSHATRA_DEGREES,
     PLANET_RELATION_ENEMY,
@@ -589,7 +590,14 @@ class EnrichKundali:
         own_rashi = EnrichKundali._strength_factor_by_id(factors, "own_rashi")
         enemy_rashi = EnrichKundali._strength_factor_by_id(factors, "enemy_rashi")
         friend_rashi = EnrichKundali._strength_factor_by_id(factors, "friend_rashi")
+        own_nakshatra = EnrichKundali._strength_factor_by_id(factors, "own_nakshatra")
+        enemy_nakshatra = EnrichKundali._strength_factor_by_id(factors, "enemy_nakshatra")
+        friend_nakshatra = EnrichKundali._strength_factor_by_id(factors, "friend_nakshatra")
         retrograde = EnrichKundali._strength_factor_by_id(factors, "retrograde")
+        dusthana_house = EnrichKundali._strength_factor_by_id(factors, "dusthana_house")
+        trikona_house = EnrichKundali._strength_factor_by_id(factors, "trikona_house")
+        good_karakwaqt = EnrichKundali._strength_factor_by_id(factors, "good_karakwaqt")
+        bad_karakwaqt = EnrichKundali._strength_factor_by_id(factors, "bad_karakwaqt")
         combustion = EnrichKundali._strength_factor_by_id(factors, "combustion")
         limits = EnrichKundali._strength_factor_by_id(factors, "strength_limits") or EnrichKundali._strength_factor_by_id(
             factors, "clamp"
@@ -614,8 +622,29 @@ class EnrichKundali:
             "friend_rashi_bonus": EnrichKundali._required_strength_int(
                 friend_rashi, "increase_strength_percent", factor_id="friend_rashi"
             ),
+            "own_nakshatra_bonus": EnrichKundali._required_strength_int(
+                own_nakshatra, "increase_strength_percent", factor_id="own_nakshatra"
+            ),
+            "enemy_nakshatra_penalty": EnrichKundali._required_strength_int(
+                enemy_nakshatra, "decrease_strength_percent", factor_id="enemy_nakshatra"
+            ),
+            "friend_nakshatra_bonus": EnrichKundali._required_strength_int(
+                friend_nakshatra, "increase_strength_percent", factor_id="friend_nakshatra"
+            ),
             "retrograde_bonus": EnrichKundali._required_strength_int(
                 retrograde, "increase_strength_percent", factor_id="retrograde"
+            ),
+            "dusthana_house_penalty": EnrichKundali._required_strength_int(
+                dusthana_house, "decrease_strength_percent", factor_id="dusthana_house"
+            ),
+            "trikona_house_bonus": EnrichKundali._required_strength_int(
+                trikona_house, "increase_strength_percent", factor_id="trikona_house"
+            ),
+            "good_karakwaqt_bonus": EnrichKundali._required_strength_int(
+                good_karakwaqt, "increase_strength_percent", factor_id="good_karakwaqt"
+            ),
+            "bad_karakwaqt_penalty": EnrichKundali._required_strength_int(
+                bad_karakwaqt, "decrease_strength_percent", factor_id="bad_karakwaqt"
             ),
             "combustion_penalty": EnrichKundali._required_strength_int(
                 combustion, "decrease_strength_percent", factor_id="combustion"
@@ -644,6 +673,22 @@ class EnrichKundali:
         if not isinstance(factors, list):
             raise ValueError("planet_rules.strength_factors required")
         combustion = EnrichKundali._strength_factor_by_id(factors, "combustion")
+        dusthana_house = EnrichKundali._strength_factor_by_id(factors, "dusthana_house")
+        trikona_house = EnrichKundali._strength_factor_by_id(factors, "trikona_house")
+        dusthana_houses = EnrichKundali._houses_from_strength_factor(
+            dusthana_house, HOUSE_6_8_12
+        )
+        trikona_houses = EnrichKundali._houses_from_strength_factor(
+            trikona_house, HOUSE_TRIKONA
+        )
+        good_karakwaqt = EnrichKundali._strength_factor_by_id(factors, "good_karakwaqt")
+        bad_karakwaqt = EnrichKundali._strength_factor_by_id(factors, "bad_karakwaqt")
+        good_karakwaqt_names = EnrichKundali._karakwaqt_names_from_factor(
+            good_karakwaqt, frozenset({"yog karak", "karak"})
+        )
+        bad_karakwaqt_names = EnrichKundali._karakwaqt_names_from_factor(
+            bad_karakwaqt, EnrichKundali.KARAKWAQT_HARMFUL_LABELS
+        )
         combustion_by_planet = combustion.get("max_angular_distance_deg_by_planet")
         if not isinstance(combustion_by_planet, dict):
             combustion_by_planet = {}
@@ -677,6 +722,10 @@ class EnrichKundali:
             "aspect_rules": aspect_rules,
             "combustion_default_max_angular_distance_deg": combustion_default_f,
             "combustion_max_angular_distance_deg_by_planet": combustion_by_planet,
+            "dusthana_houses": dusthana_houses,
+            "trikona_houses": trikona_houses,
+            "good_karakwaqt_names": good_karakwaqt_names,
+            "bad_karakwaqt_names": bad_karakwaqt_names,
             **numeric,
             "color_intensity": color_intensity,
         }
@@ -817,13 +866,13 @@ class EnrichKundali:
         chart["planet_rules"] = strength_rules
         chart["house_rules"] = house_rules
         degree_bands = EnrichKundali.parse_degree_in_sign_bands(strength_rules)
+        self.attach_planet_karakwaqt(chart)
         self.enrich_birth_planets_with_database_metadata(
             chart, friendship, strength_rules, degree_bands
         )
         self.normalize_moon_nakshatra(chart)
         self.attach_planet_navatara_from_janma(chart)
         self.attach_death_degree_flags(chart)
-        self.attach_planet_karakwaqt(chart)
         self.attach_planet_mahadasha_ages(chart)
         self.attach_house_context_to_planets(chart)
         self.attach_planet_aspects(chart, self.load_planet_aspect_offsets_by_planet())
@@ -859,6 +908,7 @@ class EnrichKundali:
         chart["planet_rules"] = strength_rules
         chart["house_rules"] = house_rules
         degree_bands = EnrichKundali.parse_degree_in_sign_bands(strength_rules)
+        self.attach_planet_karakwaqt(chart)
         self.enrich_birth_planets_with_database_metadata(
             chart, friendship, strength_rules, degree_bands
         )
@@ -1575,12 +1625,38 @@ class EnrichKundali:
             p["planet_relation_with_rashi_lord"] = status
             p["sign_lord"] = sign_lord
             dignity: str | None = None
+            dusthana_houses = strength_rules.get("dusthana_houses") or HOUSE_6_8_12
+            planet_house = EnrichKundali.planet_house_number(p)
             p["is_planet_in_6_8_12_house"] = self.dusthana_house_flag(
-                EnrichKundali.planet_house_number(p)
+                planet_house, dusthana_houses
             )
             p["is_planet_lagna_lord_enemy"] = self.lagna_lord_enemy_flag(
                 friendship, pkey, lagna_rashi_index
             )
+            nakshatra_lord_status = UNKNOWN_LABEL
+            lon = p.get("sidereal_longitude")
+            if isinstance(lon, (int, float)) and nakshatra_list:
+                nk_i, pada = KundaliBuilder.longitude_to_nakshatra_pada(float(lon))
+                nak = dict(nakshatra_list[nk_i])
+                p["nakshatra"] = nak.get("nakshatra") or ""
+                p["nakshatra_pada"] = pada
+                p["nakshatra_ruling_planet"] = nak.get("ruling_planet") or ""
+                nlord = VIMSHOTTARI_MAHADASHA_SEQUENCE[
+                    nk_i % len(VIMSHOTTARI_MAHADASHA_SEQUENCE)
+                ]
+                nakshatra_lord_status = EnrichKundali.natural_friendship_with_lord_planet(
+                    friendship, pkey, nlord
+                )
+                p["planet_relation_with_nakshatra_lord"] = nakshatra_lord_status
+                p["planet_status_in_nakshatra"] = EnrichKundali.planet_status_for_ui(
+                    nakshatra_lord_status, None
+                )
+            else:
+                p["nakshatra"] = ""
+                p.pop("nakshatra_pada", None)
+                p.pop("nakshatra_ruling_planet", None)
+                p["planet_relation_with_nakshatra_lord"] = UNKNOWN_LABEL
+                p["planet_status_in_nakshatra"] = UNKNOWN_LABEL
             din = p.get("degree_in_rashi")
             if isinstance(din, (int, float)):
                 phase = self.degree_phase_within_sign(float(din), degree_bands)
@@ -1598,6 +1674,9 @@ class EnrichKundali:
                     retrograde=bool(p.get("retrograde")),
                     planet_longitude=p.get("sidereal_longitude"),
                     sun_longitude=sun_longitude,
+                    whole_sign_house=EnrichKundali.planet_house_number(p),
+                    nakshatra_lord_status=nakshatra_lord_status,
+                    planet_karakwaqt=str(p.get("planet_karakwaqt") or ""),
                 )
                 p["planet_strength"] = strength
                 if dignity:
@@ -1619,27 +1698,6 @@ class EnrichKundali:
             p["planet_status_in_rashi"] = EnrichKundali.planet_status_for_ui(
                 status, dignity
             )
-            lon = p.get("sidereal_longitude")
-            if isinstance(lon, (int, float)) and nakshatra_list:
-                nk_i, pada = KundaliBuilder.longitude_to_nakshatra_pada(float(lon))
-                nak = dict(nakshatra_list[nk_i])
-                p["nakshatra"] = nak.get("nakshatra") or ""
-                p["nakshatra_pada"] = pada
-                p["nakshatra_ruling_planet"] = nak.get("ruling_planet") or ""
-                nlord = VIMSHOTTARI_MAHADASHA_SEQUENCE[nk_i % len(VIMSHOTTARI_MAHADASHA_SEQUENCE)]
-                nstatus = EnrichKundali.natural_friendship_with_lord_planet(
-                    friendship, pkey, nlord
-                )
-                p["planet_relation_with_nakshatra_lord"] = nstatus
-                p["planet_status_in_nakshatra"] = EnrichKundali.planet_status_for_ui(
-                    nstatus, None
-                )
-            else:
-                p["nakshatra"] = ""
-                p.pop("nakshatra_pada", None)
-                p.pop("nakshatra_ruling_planet", None)
-                p["planet_relation_with_nakshatra_lord"] = UNKNOWN_LABEL
-                p["planet_status_in_nakshatra"] = UNKNOWN_LABEL
 
     @staticmethod
     def planet_in_own_rashi(planet_key: str, rashi_english: str) -> bool:
@@ -1688,6 +1746,9 @@ class EnrichKundali:
         retrograde: bool = False,
         planet_longitude: Any = None,
         sun_longitude: Any = None,
+        whole_sign_house: Any = None,
+        nakshatra_lord_status: str | None = None,
+        planet_karakwaqt: str = "",
     ) -> tuple[int | None, str | None]:
         if not isinstance(base_strength, (int, float)):
             return None, None
@@ -1701,7 +1762,18 @@ class EnrichKundali:
         own_bonus = int(strength_rules["own_rashi_bonus"])
         enemy_penalty = int(strength_rules["enemy_rashi_penalty"])
         friend_bonus = int(strength_rules["friend_rashi_bonus"])
+        own_nakshatra_bonus = int(strength_rules["own_nakshatra_bonus"])
+        enemy_nakshatra_penalty = int(strength_rules["enemy_nakshatra_penalty"])
+        friend_nakshatra_bonus = int(strength_rules["friend_nakshatra_bonus"])
         retro_bonus = int(strength_rules["retrograde_bonus"])
+        dusthana_penalty = int(strength_rules["dusthana_house_penalty"])
+        dusthana_houses = strength_rules.get("dusthana_houses") or HOUSE_6_8_12
+        trikona_bonus = int(strength_rules["trikona_house_bonus"])
+        trikona_houses = strength_rules.get("trikona_houses") or HOUSE_TRIKONA
+        good_karakwaqt_bonus = int(strength_rules["good_karakwaqt_bonus"])
+        bad_karakwaqt_penalty = int(strength_rules["bad_karakwaqt_penalty"])
+        good_karakwaqt_names = strength_rules.get("good_karakwaqt_names") or frozenset()
+        bad_karakwaqt_names = strength_rules.get("bad_karakwaqt_names") or frozenset()
         combustion_penalty = int(strength_rules["combustion_penalty"])
         min_pct = int(strength_rules["min_percent"])
         max_pct = int(strength_rules["max_percent"])
@@ -1721,8 +1793,32 @@ class EnrichKundali:
             planet_key, rashi_english, friendship
         ):
             adjusted -= enemy_penalty
+        nstatus = remove_white_space(nakshatra_lord_status or "").lower()
+        if nstatus == PLANET_RELATION_OWN:
+            adjusted += own_nakshatra_bonus
+        elif nstatus == PLANET_RELATION_FRIEND:
+            adjusted += friend_nakshatra_bonus
+        elif nstatus == PLANET_RELATION_ENEMY:
+            adjusted -= enemy_nakshatra_penalty
         if retrograde:
             adjusted += retro_bonus
+        if (
+            isinstance(whole_sign_house, int)
+            and whole_sign_house in dusthana_houses
+        ):
+            adjusted -= dusthana_penalty
+        if (
+            isinstance(whole_sign_house, int)
+            and whole_sign_house in trikona_houses
+        ):
+            adjusted += trikona_bonus
+        adjusted += EnrichKundali.karakwaqt_strength_delta(
+            planet_karakwaqt,
+            good_karakwaqt_names,
+            bad_karakwaqt_names,
+            good_karakwaqt_bonus,
+            bad_karakwaqt_penalty,
+        )
         if EnrichKundali.is_planet_combust(
             planet_key,
             planet_longitude,
@@ -1800,8 +1896,66 @@ class EnrichKundali:
         return status, sign_lord
 
     @staticmethod
-    def dusthana_house_flag(whole_sign_house: Any) -> str:
-        if isinstance(whole_sign_house, int) and whole_sign_house in HOUSE_6_8_12:
+    def _karakwaqt_names_from_factor(
+        factor: dict[str, Any], default_names: frozenset[str]
+    ) -> frozenset[str]:
+        names_raw = factor.get("karakwaqt_names")
+        if isinstance(names_raw, list) and names_raw:
+            parsed = {remove_white_space(x) for x in names_raw if remove_white_space(x)}
+            if parsed:
+                return frozenset(parsed)
+        return default_names
+
+    @staticmethod
+    def karakwaqt_labels(planet_karakwaqt: str) -> tuple[str, ...]:
+        return tuple(
+            remove_white_space(part)
+            for part in str(planet_karakwaqt or "").split("|")
+            if remove_white_space(part)
+        )
+
+    @staticmethod
+    def karakwaqt_strength_delta(
+        planet_karakwaqt: str,
+        good_names: frozenset[str],
+        bad_names: frozenset[str],
+        good_bonus: int,
+        bad_penalty: int,
+    ) -> int:
+        labels = EnrichKundali.karakwaqt_labels(planet_karakwaqt)
+        if not labels:
+            return 0
+        delta = 0
+        if good_names and any(label in good_names for label in labels):
+            delta += good_bonus
+        if bad_names and any(label in bad_names for label in labels):
+            delta -= bad_penalty
+        return delta
+
+    @staticmethod
+    def _houses_from_strength_factor(
+        factor: dict[str, Any], default_houses: frozenset[int]
+    ) -> frozenset[int]:
+        houses_raw = factor.get("houses")
+        if isinstance(houses_raw, list) and houses_raw:
+            parsed: set[int] = set()
+            for h in houses_raw:
+                try:
+                    n = int(h)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= n <= RASHI_COUNT:
+                    parsed.add(n)
+            if parsed:
+                return frozenset(parsed)
+        return default_houses
+
+    @staticmethod
+    def dusthana_house_flag(
+        whole_sign_house: Any, dusthana_houses: frozenset[int] | None = None
+    ) -> str:
+        houses = dusthana_houses if dusthana_houses is not None else HOUSE_6_8_12
+        if isinstance(whole_sign_house, int) and whole_sign_house in houses:
             return HOUSE_6_8_12_YES
         return HOUSE_6_8_12_NO
 

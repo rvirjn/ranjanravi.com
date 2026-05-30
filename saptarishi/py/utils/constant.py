@@ -79,6 +79,7 @@ DEGREES_180 = FULL_CIRCLE_DEGREES / 2
 
 # --- houses ---
 HOUSE_6_8_12 = frozenset({6, 8, 12})
+HOUSE_TRIKONA = frozenset({1, 5, 9})
 DEFAULT_HOUSE_SYSTEM = "W"
 VALID_HOUSE_SYSTEMS = ("W", "P", "A")
 
