@@ -43,11 +43,11 @@
           <form id="auth-modal-login-form" class="auth-form" autocomplete="on">
             <div class="form-field">
               <label for="auth-modal-login-mobile">Mobile number</label>
-              <input type="tel" id="auth-modal-login-mobile" inputmode="numeric" required placeholder="10-digit mobile" />
+              <input type="tel" id="auth-modal-login-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
             </div>
             <div class="form-field">
               <label for="auth-modal-login-password">Password</label>
-              <input type="password" id="auth-modal-login-password" required minlength="4" />
+              <input type="password" id="auth-modal-login-password" name="password" autocomplete="current-password" required minlength="4" placeholder="Enter your password" />
             </div>
             <div class="form-field form-field--submit">
               <button type="submit">Sign in</button>
@@ -58,19 +58,23 @@
           <form id="auth-modal-register-form" class="auth-form" autocomplete="on">
             <div class="form-field">
               <label for="auth-modal-reg-name">Full name</label>
-              <input type="text" id="auth-modal-reg-name" required maxlength="120" />
+              <input type="text" id="auth-modal-reg-name" name="name" autocomplete="name" required maxlength="120" placeholder="Your full name" />
             </div>
             <div class="form-field">
               <label for="auth-modal-reg-mobile">Mobile number</label>
-              <input type="tel" id="auth-modal-reg-mobile" inputmode="numeric" required placeholder="10-digit mobile" />
+              <input type="tel" id="auth-modal-reg-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
             </div>
             <div class="form-field">
               <label for="auth-modal-reg-email">Email</label>
-              <input type="email" id="auth-modal-reg-email" required maxlength="240" />
+              <input type="email" id="auth-modal-reg-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
             </div>
             <div class="form-field">
               <label for="auth-modal-reg-password">Password</label>
-              <input type="password" id="auth-modal-reg-password" required minlength="4" />
+              <input type="password" id="auth-modal-reg-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" />
+            </div>
+            <div class="form-field">
+              <label for="auth-modal-reg-password-confirm">Confirm password</label>
+              <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
             </div>
             <div class="form-field form-field--submit">
               <button type="submit">Create account</button>
@@ -122,13 +126,20 @@
 
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const password = overlay.querySelector("#auth-modal-reg-password").value;
+      const confirmPassword = overlay.querySelector("#auth-modal-reg-password-confirm").value;
+      if (password !== confirmPassword) {
+        showStatus("Passwords do not match", true);
+        return;
+      }
       startAuthLoading();
       try {
         await AUTH.register(
           overlay.querySelector("#auth-modal-reg-name").value,
           overlay.querySelector("#auth-modal-reg-mobile").value,
           overlay.querySelector("#auth-modal-reg-email").value,
-          overlay.querySelector("#auth-modal-reg-password").value
+          password,
+          confirmPassword
         );
         stopAuthLoading();
         finishSuccess();

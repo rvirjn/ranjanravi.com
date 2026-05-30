@@ -170,10 +170,13 @@ def home():
             "entry": "/ui/html/kundali.html",
             "auspicious": "/ui/html/auspicious.html",
             "remedy": "/ui/html/remedy.html",
+            "profile": "/ui/html/profile.html",
         },
         "endpoints": {
             "register": _api_url("/api/auth/register"),
             "login": _api_url("/api/auth/login"),
+            "profile": _api_url("/api/auth/profile"),
+            "profile_update": _api_url("/api/auth/profile/update"),
             "kundali": _api_url("/api/kundali", sample),
             "auspicious": _api_url(
                 "/api/auspicious",
@@ -208,6 +211,7 @@ def api_auth_register():
             body.get("mobile", ""),
             body.get("email", ""),
             body.get("password", ""),
+            body.get("confirm_password", ""),
         )
         _, token = user_store.login(body.get("mobile", ""), body.get("password", ""))
         data = user_store.load()
@@ -248,6 +252,47 @@ def api_auth_login():
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
+
+
+@app.route("/api/auth/profile", methods=["GET", "OPTIONS"], strict_slashes=False)
+@require_login
+def api_auth_profile():
+    if request.method == "OPTIONS":
+        return "", 204
+    usage = _usage_payload(user=g.current_user)
+    profile = user_store.profile_details(g.current_user)
+    return jsonify({"profile": profile, "user": usage, "usage": usage})
+
+
+@app.route("/api/auth/profile/update", methods=["POST", "OPTIONS"], strict_slashes=False)
+@require_login
+def api_auth_profile_update():
+    if request.method == "OPTIONS":
+        return "", 204
+    body = request.get_json(silent=True) or {}
+    try:
+        profile = user_store.update_profile(
+            g.current_user["id"],
+            body.get("name", ""),
+            body.get("mobile", ""),
+            body.get("email", ""),
+        )
+        data = user_store.load()
+        user = user_store.find_user_by_id(data, g.current_user["id"])
+        usage = _usage_payload(user=user) if user else _usage_payload(user=g.current_user)
+        return jsonify(
+            {
+                "ok": True,
+                "message": "Profile updated.",
+                "profile": profile,
+                "user": usage,
+                "usage": usage,
+            }
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 503
 

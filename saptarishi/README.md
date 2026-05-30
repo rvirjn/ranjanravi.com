@@ -46,7 +46,7 @@ Open **`ui/html/kundali.html`** (or `index.html`). No login is required at first
 | `py/navatara.py` | Navatara CLI shim |
 | `py/utils/constant.py` | Shared constants (`FLASK_PUBLIC_API_ORIGIN`, etc.) |
 | `api/flask/app.py` | Flask app (Render + local container) |
-| `database/data.json` | Planets, nakshatras, `planet_strength_rules` |
+| `database/data.json` | Planets, nakshatras, `planet_rules`, `house_rules` |
 | `database/users.json` | Local dev only (gitignored). **Production:** Google Drive via `py/utils/googledrive.py` (file id in `py/utils/constant.py`) |
 | `py/auth.py` | Registration, login, session tokens, usage limits |
 | `ui/html/`, `ui/js/`, `ui/style/`, `ui/utils/` | Static UI (`common.js` = header/footer/nav; `auth-modal.js` = login popup) |
@@ -201,7 +201,7 @@ python py/auspicious.py --from 2026-05-20 --to 2026-06-20 --place "Bengaluru, In
 
 ## Planet strength rules
 
-Edit `database/data.json` → `planet_strength_rules`.  
+Edit `database/data.json` → `planet_rules` and `house_rules`.  
 Restart local Flask or redeploy Render, then hard-refresh the UI (Ctrl+Shift+R).
 
 ## Legal

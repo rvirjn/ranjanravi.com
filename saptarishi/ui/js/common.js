@@ -7,7 +7,6 @@
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
   const PREMIUM = global.SaptarishiPremiumModal;
-  if (!AUTH) return;
 
   const isLoginPage = /login\.html$/i.test(window.location.pathname);
   const logoutTimers = new WeakMap();
@@ -18,7 +17,7 @@
   }
 
   function usageText(usage) {
-    if (!usage) return "";
+    if (!usage || !AUTH) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
       return "Premium · unlimited scans";
@@ -44,8 +43,8 @@
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
       </nav>
       <div class="site-header__meta">
-        <span class="site-header__user" hidden></span>
         <span class="site-header__usage" hidden></span>
+        <a href="${navHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden title="My profile">Profile</a>
         <button type="button" id="site-premium-btn" class="site-header__premium">Buy Premium</button>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
         <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
@@ -56,12 +55,19 @@
     return header;
   }
 
+  function resolveHeaderUser(userArg) {
+    if (userArg !== undefined) return userArg;
+    if (!AUTH || !AUTH.getToken()) return null;
+    return AUTH.getUser();
+  }
+
   function updateHeaderAuth(header, user, usage) {
     if (!header) header = document.querySelector(".site-header");
     if (!header) return;
 
-    const displayUsage = usage || user || AUTH.getUsage();
-    const userEl = header.querySelector(".site-header__user");
+    const resolvedUser = resolveHeaderUser(user);
+    const displayUsage = usage || resolvedUser || (AUTH ? AUTH.getUsage() : null);
+    const profileLink = header.querySelector("#site-profile-link");
     const usageEl = header.querySelector(".site-header__usage");
     const premiumBtn = header.querySelector("#site-premium-btn");
     const loginBtn = header.querySelector("#site-login-btn");
@@ -72,15 +78,19 @@
       premiumBtn.hidden = isPremium;
     }
 
-    if (user) {
-      if (userEl) {
-        userEl.textContent = user.name || user.mobile;
-        userEl.hidden = false;
+    if (resolvedUser) {
+      if (profileLink) {
+        profileLink.textContent = resolvedUser.name || resolvedUser.mobile || "Profile";
+        profileLink.hidden = false;
+        profileLink.title = "My profile";
       }
       if (loginBtn) loginBtn.hidden = true;
       if (logoutBtn) logoutBtn.hidden = false;
     } else {
-      if (userEl) userEl.hidden = true;
+      if (profileLink) {
+        profileLink.hidden = true;
+        profileLink.textContent = "Profile";
+      }
       if (loginBtn) loginBtn.hidden = false;
       if (logoutBtn) logoutBtn.hidden = true;
     }
@@ -132,6 +142,7 @@
   }
 
   function wireHeaderAuthButtons(header) {
+    if (!AUTH) return;
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
     const premiumBtn = header.querySelector("#site-premium-btn");
@@ -158,25 +169,67 @@
         setLogoutLoading(logoutBtn, true);
         try {
           await AUTH.logout();
-          updateHeaderAuth(header, null, AUTH.getUsage());
+          updateHeaderAuth(header, null, null);
           await AUTH.fetchUsage();
           updateHeaderAuth(header, null, AUTH.getUsage());
         } finally {
           setLogoutLoading(logoutBtn, false);
+          updateHeaderAuth(header, null, AUTH ? AUTH.getUsage() : null);
         }
       });
     }
   }
 
   function buildFooter() {
+    const AC =
+      typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {};
+    const phone = String(AC.PREMIUM_CONTACT_PHONE || "8184046618").replace(/\D/g, "");
+    const email = String(AC.SUPPORT_EMAIL || "raviranjan.amu@gmail.com").trim();
+    const phoneIntl = phone.startsWith("91") ? phone : `91${phone}`;
+    const phoneDisplay = phone.length === 10 ? phone : phone.replace(/^91/, "");
+    const waMessage = encodeURIComponent(
+      String(AC.SUPPORT_WHATSAPP_MESSAGE || "Hi, I need support with Saptarishi.")
+    );
+    const mailSubject = encodeURIComponent(
+      String(AC.SUPPORT_EMAIL_SUBJECT || "Saptarishi support")
+    );
+    const mailBody = encodeURIComponent(
+      String(AC.SUPPORT_EMAIL_BODY || "Hi,\n\nI need help with Saptarishi.\n\n")
+    );
+    const mailHref = `mailto:${encodeURIComponent(email)}?subject=${mailSubject}&body=${mailBody}`;
+    const waHref = `https://wa.me/${phoneIntl}?text=${waMessage}`;
+
     const footer = document.createElement("footer");
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
       <p class="site-footer__note">5 free kundali and 2 free auspicious scans per device. Buy Premium for unlimited access.</p>
-      <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
+      <div class="site-footer__meta">
+        <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
+        <span class="site-footer__meta-sep" aria-hidden="true">·</span>
+        <button type="button" class="site-footer__contact-toggle" id="site-contact-toggle" aria-expanded="false" aria-controls="site-contact">Contact us</button>
+      </div>
+      <div id="site-contact" class="site-footer__support" hidden>
+        <a class="site-footer__support-link" href="${mailHref}">Email</a>
+        <span class="site-footer__support-sep" aria-hidden="true">·</span>
+        <a class="site-footer__support-link" href="${waHref}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <span class="site-footer__support-sep" aria-hidden="true">·</span>
+        <a class="site-footer__support-link" href="tel:+${phoneIntl}">Call ${phoneDisplay}</a>
+      </div>
     `;
     return footer;
+  }
+
+  function wireFooterContact(footer) {
+    const toggle = footer.querySelector("#site-contact-toggle");
+    const panel = footer.querySelector("#site-contact");
+    if (!toggle || !panel) return;
+
+    toggle.addEventListener("click", () => {
+      const show = panel.hidden;
+      panel.hidden = !show;
+      toggle.setAttribute("aria-expanded", show ? "true" : "false");
+    });
   }
 
   function mountLayout(user, viewCount, usage) {
@@ -194,13 +247,19 @@
     } else {
       body.appendChild(footer);
     }
+    wireFooterContact(footer);
 
     const path = window.location.pathname;
-    body.querySelectorAll(".site-header__link").forEach((link) => {
+    body.querySelectorAll(".site-header__nav .site-header__link").forEach((link) => {
       if (path.endsWith(link.getAttribute("href").split("/").pop())) {
         link.classList.add("site-header__link--active");
       }
     });
+
+    const profileLink = body.querySelector("#site-profile-link");
+    if (profileLink && /profile\.html$/i.test(path)) {
+      profileLink.classList.add("site-header__link--active");
+    }
   }
 
   function authQueryTab() {
@@ -225,6 +284,7 @@
   }
 
   function recordPageView() {
+    if (!AUTH || !AUTH.recordSiteView) return;
     const cached = AUTH.getCachedViewCount ? AUTH.getCachedViewCount() : null;
     if (cached != null) updateFooterViews(cached);
 
@@ -240,6 +300,7 @@
   }
 
   async function refreshAuthState() {
+    if (!AUTH) return;
     let user = AUTH.getUser();
     let usage = AUTH.getUsage();
 
@@ -276,14 +337,16 @@
       return;
     }
 
-    mountLayout(AUTH.getUser(), null, AUTH.getUsage());
+    mountLayout(AUTH ? AUTH.getUser() : null, null, AUTH ? AUTH.getUsage() : null);
     recordPageView();
 
     global.addEventListener("saptarishi-auth-changed", (event) => {
+      if (!AUTH) return;
+      const detail = event.detail || {};
       updateHeaderAuth(
         document.querySelector(".site-header"),
-        event.detail?.user || AUTH.getUser(),
-        event.detail?.usage || AUTH.getUsage()
+        "user" in detail ? detail.user : undefined,
+        "usage" in detail ? detail.usage : undefined
       );
     });
 

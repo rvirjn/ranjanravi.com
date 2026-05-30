@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- Copyright © 2018-2026 ranjanravi.com. All rights reserved. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="copyright" content="ranjanravi.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My profile — Saptarishi</title>
+  <link rel="stylesheet" href="../style/styles.css?v=91">
+</head>
+<body class="saptarishi-page">
+  <div id="saptarishi" class="container main-shell">
+    <h1>My profile</h1>
+    <p class="lead">View and update your account details.</p>
+
+    <div id="profile-summary" class="profile-summary" hidden>
+      <p id="profile-plan" class="profile-summary__plan"></p>
+      <p id="profile-usage" class="profile-summary__usage"></p>
+      <p id="profile-member-since" class="profile-summary__meta"></p>
+    </div>
+
+    <form id="profile-form" class="auth-form profile-form" autocomplete="on" hidden>
+      <div class="form-field">
+        <label for="profile-name">Full name</label>
+        <input type="text" id="profile-name" name="name" autocomplete="name" required maxlength="120" />
+      </div>
+      <div class="form-field">
+        <label for="profile-mobile">Mobile number</label>
+        <input type="tel" id="profile-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+      </div>
+      <div class="form-field">
+        <label for="profile-email">Email</label>
+        <input type="email" id="profile-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+      </div>
+      <div class="form-field form-field--submit">
+        <button type="submit">Save changes</button>
+      </div>
+    </form>
+
+    <p id="profile-status" class="status" role="status" aria-live="polite" hidden></p>
+  </div>
+
+  <script src="../utils/constants.js?v=42"></script>
+  <script src="../js/auth.js?v=13"></script>
+  <script src="../js/loading.js?v=1"></script>
+  <script src="../js/auth-modal.js?v=8"></script>
+  <script src="../js/premium-modal.js?v=2"></script>
+  <script src="../js/profile.js?v=1"></script>
+  <script src="../js/common.js?v=24"></script>
+</body>
+</html>

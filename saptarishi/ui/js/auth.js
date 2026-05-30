@@ -17,6 +17,8 @@
     PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
     API_AUTH_LOGIN_PATH: "/api/auth/login",
     API_AUTH_REGISTER_PATH: "/api/auth/register",
+    API_AUTH_PROFILE_PATH: "/api/auth/profile",
+    API_AUTH_PROFILE_UPDATE_PATH: "/api/auth/profile/update",
     API_AUTH_LOGOUT_PATH: "/api/auth/logout",
     API_AUTH_ME_PATH: "/api/auth/me",
     API_USAGE_PATH: "/api/usage",
@@ -211,10 +213,14 @@
   }
 
   async function refreshMe() {
-    if (!getToken()) {
+    const tokenAtStart = getToken();
+    if (!tokenAtStart) {
       return fetchUsage();
     }
     const payload = await apiFetch(AC.API_AUTH_ME_PATH);
+    if (getToken() !== tokenAtStart) {
+      return { user: getUser(), usage: getUsage() };
+    }
     if (payload.user) setSession(getToken(), payload.user);
     if (payload.usage) setUsage(payload.usage);
     return payload;
@@ -246,13 +252,38 @@
     return payload;
   }
 
-  async function register(name, mobile, email, password) {
+  async function register(name, mobile, email, password, confirmPassword) {
     const payload = await apiFetch(AC.API_AUTH_REGISTER_PATH, {
       method: "POST",
-      body: JSON.stringify({ name, mobile, email, password })
+      body: JSON.stringify({
+        name,
+        mobile,
+        email,
+        password,
+        confirm_password: confirmPassword
+      })
     });
     setSession(payload.token, payload.user);
     if (payload.user) setUsage(payload.user);
+    return payload;
+  }
+
+  async function fetchProfile() {
+    return apiFetch(AC.API_AUTH_PROFILE_PATH || "/api/auth/profile");
+  }
+
+  async function updateProfile(name, mobile, email) {
+    const payload = await apiFetch(AC.API_AUTH_PROFILE_UPDATE_PATH || "/api/auth/profile/update", {
+      method: "POST",
+      body: JSON.stringify({ name, mobile, email })
+    });
+    if (payload.user) setSession(getToken(), payload.user);
+    if (payload.usage) setUsage(payload.usage);
+    global.dispatchEvent(
+      new CustomEvent("saptarishi-auth-changed", {
+        detail: { user: getUser(), usage: getUsage() }
+      })
+    );
     return payload;
   }
 
@@ -497,6 +528,8 @@
     fetchUsage,
     login,
     register,
+    fetchProfile,
+    updateProfile,
     logout,
     recordSiteView,
     getCachedViewCount,

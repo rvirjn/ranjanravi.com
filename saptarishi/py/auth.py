@@ -161,6 +161,11 @@ def verify_password(password: str, stored_hash: str) -> bool:
         return False
 
 
+def validate_password_pair(password: str, confirm_password: str) -> None:
+    if str(password or "") != str(confirm_password or ""):
+        raise ValueError("passwords do not match")
+
+
 class UserStore:
     """Read/write user DB (Google Drive when configured, else ``database/users.json``)."""
 
@@ -1025,10 +1030,25 @@ class UserStore:
                 return user
         return None
 
-    def register(self, name: str, mobile: str, email: str, password: str) -> dict[str, Any]:
+    def find_user_by_email(self, data: dict[str, Any], email: str) -> dict[str, Any] | None:
+        email_n = normalize_email(email)
+        for user in data.get("users") or []:
+            if isinstance(user, dict) and str(user.get("email", "")).lower() == email_n:
+                return user
+        return None
+
+    def register(
+        self,
+        name: str,
+        mobile: str,
+        email: str,
+        password: str,
+        confirm_password: str = "",
+    ) -> dict[str, Any]:
         mobile_n = normalize_mobile(mobile)
         email_n = normalize_email(email)
         name_n = normalize_name(name)
+        validate_password_pair(password, confirm_password or password)
         created: dict[str, Any] = {}
 
         def apply(data: dict[str, Any]) -> None:
@@ -1114,6 +1134,48 @@ class UserStore:
         if not user:
             return None
         return user
+
+    @staticmethod
+    def profile_details(user: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": user.get("id"),
+            "name": user.get("name"),
+            "mobile": user.get("mobile"),
+            "email": user.get("email"),
+            "created_at": user.get("created_at"),
+            "updated_at": user.get("updated_at"),
+            "is_premium": UserStore.is_premium(user),
+        }
+
+    def update_profile(self, user_id: str, name: str, mobile: str, email: str) -> dict[str, Any]:
+        mobile_n = normalize_mobile(mobile)
+        email_n = normalize_email(email)
+        name_n = normalize_name(name)
+        updated: dict[str, Any] = {}
+
+        def apply(data: dict[str, Any]) -> None:
+            user = self.find_user_by_id(data, user_id)
+            if not user:
+                raise ValueError("user not found")
+            other_mobile = self.find_user_by_mobile(data, mobile_n)
+            if other_mobile and str(other_mobile.get("id") or "") != str(user_id):
+                raise ValueError("mobile number is already registered")
+            for entry in data.get("users") or []:
+                if not isinstance(entry, dict):
+                    continue
+                if str(entry.get("id") or "") == str(user_id):
+                    continue
+                if str(entry.get("email", "")).lower() == email_n:
+                    raise ValueError("email is already registered")
+            user["name"] = name_n
+            user["mobile"] = mobile_n
+            user["email"] = email_n
+            user["updated_at"] = _iso_now()
+            updated.clear()
+            updated.update(user)
+
+        self._mutate(apply)
+        return self.profile_details(updated)
 
     @staticmethod
     def public_user(user: dict[str, Any]) -> dict[str, Any]:

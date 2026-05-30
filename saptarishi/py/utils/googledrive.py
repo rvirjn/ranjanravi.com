@@ -99,6 +99,15 @@ def _load_service_account_info() -> dict[str, Any]:
     )
 
 
+def load_service_account_info() -> dict[str, Any]:
+    """Service account JSON used for Drive and Gmail send."""
+    return _load_service_account_info()
+
+
+def service_account_client_email() -> str:
+    return str(load_service_account_info().get("client_email") or "").strip()
+
+
 _GOOGLE_DRIVE_PIP_PACKAGES = (
     "google-api-python-client>=2.100.0",
     "google-auth>=2.23.0",

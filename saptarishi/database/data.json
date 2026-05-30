@@ -1,5 +1,5 @@
 {
-  "planet_strength_rules": {
+  "planet_rules": {
     "degree_in_sign_bands": [
       {
         "low_deg": 0,
@@ -46,6 +46,16 @@
       {
         "id": "own_rashi",
         "increase_strength_percent": 75,
+        "decrease_strength_percent": 0
+      },
+      {
+        "id": "enemy_rashi",
+        "increase_strength_percent": 0,
+        "decrease_strength_percent": 50
+      },
+      {
+        "id": "friend_rashi",
+        "increase_strength_percent": 50,
         "decrease_strength_percent": 0
       },
       {
@@ -136,41 +146,41 @@
       "high_green_above_percent": 100,
       "red_at_or_below_percent": 0,
       "red_if_death_degree": true
+    },
+    "aspect_rules": {
+      "by_offset": [
+        {
+          "offset": 3,
+          "area_cover_percent": 25
+        },
+        {
+          "offset": 4,
+          "area_cover_percent": 33.33
+        },
+        {
+          "offset": 5,
+          "area_cover_percent": 50
+        },
+        {
+          "offset": 7,
+          "area_cover_percent": 100
+        },
+        {
+          "offset": 8,
+          "area_cover_percent": 33.33
+        },
+        {
+          "offset": 9,
+          "area_cover_percent": 50
+        },
+        {
+          "offset": 10,
+          "area_cover_percent": 25
+        }
+      ]
     }
   },
-  "planet_aspect_rules": {
-    "by_offset": [
-      {
-        "offset": 3,
-        "area_cover_percent": 25
-      },
-      {
-        "offset": 4,
-        "area_cover_percent": 33.33
-      },
-      {
-        "offset": 5,
-        "area_cover_percent": 50
-      },
-      {
-        "offset": 7,
-        "area_cover_percent": 100
-      },
-      {
-        "offset": 8,
-        "area_cover_percent": 33.33
-      },
-      {
-        "offset": 9,
-        "area_cover_percent": 50
-      },
-      {
-        "offset": 10,
-        "area_cover_percent": 25
-      }
-    ]
-  },
-  "house_strength_rules": {
+  "house_rules": {
     "base_percent": 100,
     "strength_factors": [
       {
@@ -353,7 +363,8 @@
         "min_percent": 0,
         "max_percent": 500
       }
-    ]
+    ],
+    "total_strength_percent": "house_strength_percent + planet_strength_percent"
   },
   "planets": [
     {
