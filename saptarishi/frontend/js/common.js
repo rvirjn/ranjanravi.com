@@ -18,9 +18,13 @@
       typeof SAPTARISHI_CONSTANTS !== "undefined"
         ? SAPTARISHI_CONSTANTS
         : global.SAPTARISHI_CONSTANTS;
+    const prefix = (C && C.DEPLOY_PREFIX) || "";
+    if (/\/frontend\/html\//i.test(window.location.pathname)) {
+      return `${prefix}/frontend/html/${file}`;
+    }
     const map = C && C.PAGE_FILE_TO_PATH;
     if (map && map[file]) return map[file];
-    return `/frontend/html/${file}`;
+    return `${prefix}/frontend/html/${file}`;
   }
 
   function navHref(file) {

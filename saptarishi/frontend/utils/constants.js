@@ -1,17 +1,24 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 
 /** Shared UI constants (keep in sync with backend/utils/constant.py where applicable). */
+const _DEPLOY_PREFIX =
+  typeof window !== "undefined" && window.SAPTARISHI_DEPLOY_PREFIX != null
+    ? window.SAPTARISHI_DEPLOY_PREFIX
+    : "";
+
 const SAPTARISHI_CONSTANTS = {
   FLASK_PORT: 8081,
+  /** Empty on subdomain/Docker; "/saptarishi" on GitHub Pages subdirectory deploy. */
+  DEPLOY_PREFIX: _DEPLOY_PREFIX,
   /** Document base for relative assets when the browser shows /kundali, /auspicious, etc. */
-  HTML_BASE: "/frontend/html/",
+  HTML_BASE: _DEPLOY_PREFIX + "/frontend/html/",
   /** Clean URL paths (sync with frontend/nginx.conf for local Docker). */
   PAGE_FILE_TO_PATH: {
-    "kundali.html": "/kundali",
-    "auspicious.html": "/auspicious",
-    "remedy.html": "/remedy",
-    "profile.html": "/profile",
-    "login.html": "/login"
+    "kundali.html": _DEPLOY_PREFIX + "/kundali",
+    "auspicious.html": _DEPLOY_PREFIX + "/auspicious",
+    "remedy.html": _DEPLOY_PREFIX + "/remedy",
+    "profile.html": _DEPLOY_PREFIX + "/profile",
+    "login.html": _DEPLOY_PREFIX + "/login"
   },
   /** Production API (Render). Local UI uses localhost:8081 instead. */
   PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
@@ -39,7 +46,7 @@ const SAPTARISHI_CONSTANTS = {
   SUPPORT_WHATSAPP_MESSAGE: "Hi, I need support with Saptarishi.",
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
-  PREMIUM_SCANNER_IMAGE: "/frontend/images/RaviRanjanScanner.png",
+  PREMIUM_SCANNER_IMAGE: _DEPLOY_PREFIX + "/frontend/images/RaviRanjanScanner.png",
   GUEST_ID_HEADER: "X-Guest-Id",
   MAX_KUNDALI_PER_USER: 5,
   MAX_KUNDALI_PER_GUEST: 5,
