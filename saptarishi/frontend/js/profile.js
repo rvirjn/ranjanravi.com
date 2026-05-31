@@ -39,10 +39,27 @@
     summaryEl.hidden = false;
 
     if (planEl) {
-      planEl.textContent = profile.is_premium || usage?.is_premium
-        ? "Plan: Premium · unlimited scans"
-        : "Plan: Free";
-      planEl.classList.toggle("profile-summary__plan--premium", Boolean(profile.is_premium || usage?.is_premium));
+      const tier = profile.premium_tier || usage?.premium_tier;
+      const isPaid = profile.is_premium || usage?.is_premium;
+      if (isPaid && tier === "pack_50") {
+        const limit = usage?.query_limit ?? 50;
+        const used = usage?.queries_used ?? 0;
+        planEl.textContent = `Plan: 50 queries · ${used}/${limit} used`;
+      } else if (isPaid) {
+        const until = usage?.premium_expires_at
+          ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+            })
+          : "";
+        planEl.textContent = until
+          ? `Plan: Unlimited until ${until}`
+          : "Plan: Unlimited (1 month)";
+      } else {
+        planEl.textContent = "Plan: Free";
+      }
+      planEl.classList.toggle("profile-summary__plan--premium", Boolean(isPaid));
     }
 
     if (usageEl && usage && !usage.is_premium) {
@@ -89,7 +106,7 @@
     } catch (err) {
       if (err.status === 401) {
         AUTH.clearSession();
-        window.location.href = "kundali.html?auth=login";
+        window.location.href = "/kundali?auth=login";
         return;
       }
       showStatus(err.message || "Could not load profile", true);
@@ -99,7 +116,7 @@
   async function init() {
     const authed = await ensureLoggedIn();
     if (!authed) {
-      window.location.href = "kundali.html?auth=login";
+      window.location.href = "/kundali?auth=login";
       return;
     }
     await loadProfile();

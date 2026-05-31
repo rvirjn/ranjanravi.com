@@ -24,7 +24,10 @@
     API_USAGE_PATH: "/api/usage",
     API_PREMIUM_INFO_PATH: "/api/premium/info",
     API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
-    PREMIUM_AMOUNT_INR: 499,
+    PREMIUM_PACK_AMOUNT_INR: 299,
+    PREMIUM_PACK_QUERY_LIMIT: 50,
+    PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
+    PREMIUM_AMOUNT_INR: 1899,
     PREMIUM_CONTACT_PHONE: "8184046618",
     API_SITE_VIEW_PATH: "/api/site/view",
     GUEST_ID_HEADER: "X-Guest-Id",
@@ -37,13 +40,39 @@
   function normalizeUsage(usage) {
     if (!usage || typeof usage !== "object") return usage;
     if (usage.is_premium) {
+      const tier = usage.premium_tier || "unlimited";
+      if (tier === "pack_50") {
+        const limit = Number(usage.query_limit) || AC.PREMIUM_PACK_QUERY_LIMIT || 50;
+        const used = Number(usage.queries_used) || 0;
+        const remaining = Math.max(
+          0,
+          usage.queries_remaining != null ? Number(usage.queries_remaining) : limit - used
+        );
+        return {
+          ...usage,
+          is_premium: true,
+          premium_tier: "pack_50",
+          query_limit: limit,
+          queries_used: used,
+          queries_remaining: remaining,
+          kundali_limit: limit,
+          auspicious_limit: limit,
+          kundali_remaining: remaining,
+          auspicious_remaining: remaining
+        };
+      }
       return {
         ...usage,
         is_premium: true,
+        premium_tier: "unlimited",
+        premium_expires_at: usage.premium_expires_at || null,
         kundali_limit: null,
         auspicious_limit: null,
         kundali_remaining: null,
-        auspicious_remaining: null
+        auspicious_remaining: null,
+        query_limit: null,
+        queries_used: null,
+        queries_remaining: null
       };
     }
     const isGuest = Boolean(usage.is_guest);
@@ -190,8 +219,13 @@
   }
 
   function loginPagePath() {
-    const base = window.location.pathname.replace(/\/[^/]+$/, "");
-    return `${base}/kundali.html?auth=login`;
+    const C =
+      typeof SAPTARISHI_CONSTANTS !== "undefined"
+        ? SAPTARISHI_CONSTANTS
+        : global.SAPTARISHI_CONSTANTS;
+    const map = C && C.PAGE_FILE_TO_PATH;
+    const base = (map && map["kundali.html"]) || "/kundali";
+    return `${base}?auth=login`;
   }
 
   function requireAuth() {
@@ -348,13 +382,36 @@
     return { view_count: getCachedViewCount() };
   }
 
+  function hasUnlimitedPremium() {
+    const usage = normalizeUsage(getUsage());
+    if (!usage?.is_premium || usage.premium_tier === "pack_50") return false;
+    if (usage.premium_expires_at) {
+      const expires = new Date(usage.premium_expires_at);
+      if (!Number.isNaN(expires.getTime()) && expires.getTime() <= Date.now()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   function isPremiumActive() {
-    return Boolean(getUser()?.is_premium);
+    const usage = normalizeUsage(getUsage());
+    if (!usage?.is_premium) return false;
+    if (usage.premium_tier === "pack_50") {
+      return (Number(usage.queries_remaining) || 0) > 0;
+    }
+    return hasUnlimitedPremium();
   }
 
   function isGuestScanLimitReached(scanType) {
-    if (requireAuth() || isPremiumActive()) return false;
-    const usage = getUsage();
+    const usage = normalizeUsage(getUsage());
+    if (usage?.is_premium) {
+      if (usage.premium_tier === "pack_50") {
+        return (Number(usage.queries_remaining) || 0) <= 0;
+      }
+      return false;
+    }
+    if (requireAuth()) return false;
     if (!usage) return false;
     if (scanType === "kundali") {
       const remaining = usage.kundali_remaining;
@@ -482,19 +539,25 @@
       });
       if (!authed) return false;
     }
-    if (getUser()?.is_premium) {
+    if (hasUnlimitedPremium()) {
       if (global.SaptarishiPremiumModal) {
         await global.SaptarishiPremiumModal.open({
-          message: "Premium is already active on your account."
+          message: "Unlimited plan is already active on your account."
         });
       }
       return true;
     }
     if (global.SaptarishiPremiumModal) {
+      const usage = normalizeUsage(getUsage());
+      const upgradeMessage =
+        usage?.premium_tier === "pack_50"
+          ? "Upgrade to Unlimited (₹1899 for 1 month) for unlimited kundali and auspicious scans."
+          : options.message;
       await global.SaptarishiPremiumModal.open({
-        message: options.message
+        message: upgradeMessage,
+        selectedPlanId: usage?.premium_tier === "pack_50" ? "unlimited" : options.selectedPlanId
       });
-      return Boolean(getUser()?.is_premium);
+      return hasUnlimitedPremium() || isPremiumActive();
     }
     return false;
   }
@@ -507,7 +570,7 @@
       message:
         err.message ||
         options.message ||
-        "Your free scan limit is used. Buy Premium for unlimited access."
+        "Your scan limit is used. Choose ₹299 for 50 queries or ₹1899 for unlimited access."
     });
     return true;
   }
@@ -539,6 +602,8 @@
     fetchAuspicious,
     updateUserFromApiPayload,
     normalizeUsage,
+    hasUnlimitedPremium,
+    isPremiumActive,
     activatePremium,
     openPremiumFlow,
     handlePremiumRequired,

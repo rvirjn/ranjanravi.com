@@ -9,12 +9,27 @@
     typeof SAPTARISHI_CONSTANTS !== "undefined"
       ? SAPTARISHI_CONSTANTS
       : {
-          PREMIUM_AMOUNT_INR: 499,
+          PREMIUM_PACK_AMOUNT_INR: 299,
+          PREMIUM_PACK_QUERY_LIMIT: 50,
+          PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
           PREMIUM_CONTACT_PHONE: "8184046618",
           PREMIUM_SCANNER_IMAGE: "../images/RaviRanjanScanner.png",
           API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
           API_PREMIUM_INFO_PATH: "/api/premium/info"
         };
+
+  const DEFAULT_PLANS = [
+    {
+      id: "pack_50",
+      amount_inr: AC.PREMIUM_PACK_AMOUNT_INR || 299,
+      query_limit: AC.PREMIUM_PACK_QUERY_LIMIT || 50
+    },
+    {
+      id: "unlimited",
+      amount_inr: AC.PREMIUM_UNLIMITED_AMOUNT_INR || 1899,
+      query_limit: null
+    }
+  ];
 
   const LOADING = global.SaptarishiLoading;
 
@@ -23,21 +38,80 @@
   let statusEl = null;
   let form = null;
   let amountEl = null;
+  let planSummaryEl = null;
   let contactPhoneEl = null;
   let leadEl = null;
   let successPanel = null;
   let paymentPanel = null;
+  let planPickerEl = null;
   let busy = false;
+  let plans = DEFAULT_PLANS.slice();
+  let selectedPlanId = "pack_50";
 
   function scannerImageUrl() {
-    const rel = AC.PREMIUM_SCANNER_IMAGE || "../images/RaviRanjanScanner.png";
-    if (/^https?:\/\//i.test(rel)) return rel;
-    const pageDir = window.location.pathname.replace(/\/[^/]+$/, "");
-    if (rel.startsWith("../")) {
-      const parentDir = pageDir.replace(/\/[^/]+$/, "");
-      return `${parentDir}/${rel.slice(3)}`;
+    const rel = AC.PREMIUM_SCANNER_IMAGE || "/frontend/images/RaviRanjanScanner.png";
+    if (/^https?:\/\//i.test(rel) || rel.startsWith("/")) return rel;
+    return `/frontend/html/${rel.replace(/^\.\//, "")}`;
+  }
+
+  function planById(planId) {
+    return plans.find((plan) => plan.id === planId) || plans[0] || DEFAULT_PLANS[0];
+  }
+
+  function planLabel(plan) {
+    if (!plan) return "";
+    if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
+    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 50;
+    return `${limit} queries · ₹${plan.amount_inr}`;
+  }
+
+  function planDescription(plan) {
+    if (!plan) return "";
+    if (plan.id === "unlimited") {
+      const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS || 1;
+      return `Unlimited kundali and auspicious scans for ${months} month(s).`;
     }
-    return `${pageDir}/${rel.replace(/^\.\//, "")}`;
+    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 50;
+    return `${limit} kundali or auspicious queries combined.`;
+  }
+
+  function renderPlanPicker() {
+    if (!planPickerEl) return;
+    planPickerEl.replaceChildren();
+    for (const plan of plans) {
+      const label = document.createElement("label");
+      label.className = "premium-modal__plan";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "premium-plan";
+      input.value = plan.id;
+      input.checked = plan.id === selectedPlanId;
+      input.addEventListener("change", () => {
+        if (input.checked) {
+          selectedPlanId = plan.id;
+          updateSelectedPlanDisplay();
+        }
+      });
+      const text = document.createElement("span");
+      text.className = "premium-modal__plan-text";
+      text.textContent = planLabel(plan);
+      const detail = document.createElement("span");
+      detail.className = "premium-modal__plan-detail";
+      detail.textContent = planDescription(plan);
+      label.append(input, text, detail);
+      planPickerEl.appendChild(label);
+    }
+    updateSelectedPlanDisplay();
+  }
+
+  function updateSelectedPlanDisplay() {
+    const plan = planById(selectedPlanId);
+    if (amountEl && plan) {
+      amountEl.textContent = `₹${plan.amount_inr}`;
+    }
+    if (planSummaryEl && plan) {
+      planSummaryEl.textContent = planDescription(plan);
+    }
   }
 
   function ensureMounted() {
@@ -54,6 +128,7 @@
         <h2 id="premium-modal-title" class="premium-modal__title">Buy Premium</h2>
         <p id="premium-modal-lead" class="premium-modal__lead"></p>
         <div id="premium-modal-payment-panel" class="premium-modal__panel">
+          <div id="premium-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose a plan"></div>
           <div class="premium-modal__qr-wrap">
             <img
               id="premium-modal-qr"
@@ -65,10 +140,11 @@
             />
           </div>
           <p class="premium-modal__amount">
-            Amount: <strong id="premium-modal-amount">₹${AC.PREMIUM_AMOUNT_INR || 499}</strong> ·
+            Amount: <strong id="premium-modal-amount">₹${AC.PREMIUM_PACK_AMOUNT_INR || 299}</strong>
           </p>
+          <p id="premium-modal-plan-summary" class="premium-modal__plan-summary"></p>
           <ol class="premium-modal__steps">
-            <li>Scan the QR code and complete payment in PhonePe or any UPI app.</li>
+            <li>Select a plan, scan the QR code, and complete payment in PhonePe or any UPI app.</li>
             <li>
               You will get a coupon code on your email and phone from
               <strong id="premium-modal-phone">${AC.PREMIUM_CONTACT_PHONE || "8184046618"}</strong>
@@ -95,7 +171,7 @@
           </form>
         </div>
         <div id="premium-modal-success-panel" class="premium-modal__panel premium-modal__panel--success" hidden>
-          <p class="premium-modal__success">Premium is active. Enjoy unlimited kundali and auspicious scans.</p>
+          <p class="premium-modal__success">Premium is active.</p>
           <button type="button" class="premium-modal__done" id="premium-modal-done">Continue</button>
         </div>
         <p id="premium-modal-status" class="status premium-modal__status" role="status" aria-live="polite" hidden></p>
@@ -107,9 +183,11 @@
     leadEl = overlay.querySelector("#premium-modal-lead");
     form = overlay.querySelector("#premium-modal-form");
     amountEl = overlay.querySelector("#premium-modal-amount");
+    planSummaryEl = overlay.querySelector("#premium-modal-plan-summary");
     contactPhoneEl = overlay.querySelector("#premium-modal-phone");
     successPanel = overlay.querySelector("#premium-modal-success-panel");
     paymentPanel = overlay.querySelector("#premium-modal-payment-panel");
+    planPickerEl = overlay.querySelector("#premium-modal-plan-picker");
 
     overlay.querySelector("#premium-modal-close").addEventListener("click", () => close(false));
     overlay.querySelector("#premium-modal-done").addEventListener("click", () => close(true));
@@ -146,19 +224,30 @@
         showStatus(err.message || "Could not verify coupon code.", true);
       }
     });
+
+    renderPlanPicker();
   }
 
   async function loadPremiumInfo() {
     try {
       const payload = await AUTH.apiFetch(AC.API_PREMIUM_INFO_PATH || "/api/premium/info");
-      if (amountEl && payload.amount_inr != null) {
-        amountEl.textContent = `₹${payload.amount_inr}`;
+      if (Array.isArray(payload.plans) && payload.plans.length) {
+        plans = payload.plans.map((plan) => ({
+          id: plan.id,
+          amount_inr: plan.amount_inr,
+          query_limit: plan.query_limit,
+          duration_months: plan.duration_months
+        }));
+        if (!plans.some((plan) => plan.id === selectedPlanId)) {
+          selectedPlanId = plans[0].id;
+        }
+        renderPlanPicker();
       }
       if (contactPhoneEl && payload.contact_phone) {
         contactPhoneEl.textContent = payload.contact_phone;
       }
     } catch {
-      /* keep defaults from constants */
+      renderPlanPicker();
     }
   }
 
@@ -168,6 +257,11 @@
     form.querySelectorAll("input, button").forEach((el) => {
       el.disabled = value;
     });
+    if (planPickerEl) {
+      planPickerEl.querySelectorAll("input").forEach((el) => {
+        el.disabled = value;
+      });
+    }
     const closeBtn = overlay.querySelector("#premium-modal-close");
     if (closeBtn) closeBtn.disabled = value;
   }
@@ -245,17 +339,25 @@
     ensureMounted();
     resetPanels();
 
+    if (options.selectedPlanId && plans.some((plan) => plan.id === options.selectedPlanId)) {
+      selectedPlanId = options.selectedPlanId;
+    }
+    renderPlanPicker();
+
+    const usage = AUTH.normalizeUsage ? AUTH.normalizeUsage(AUTH.getUsage()) : AUTH.getUsage();
     const user = AUTH.getUser();
     if (leadEl) {
       leadEl.textContent =
         options.message ||
-        (user && user.is_premium
-          ? "Premium is already active on your account."
-          : "Unlimited kundali and auspicious scans after one-time payment.");
+        (usage?.premium_tier === "pack_50"
+          ? "Upgrade to Unlimited, or verify a coupon for your selected plan."
+          : user && usage?.is_premium
+            ? "Your paid plan is already active."
+            : "Choose ₹299 for 50 queries or ₹1899 for unlimited scans for 1 month.");
     }
 
-    if (user && user.is_premium) {
-      showSuccess("Premium is already active on your account.");
+    if (usage?.is_premium && usage.premium_tier !== "pack_50") {
+      showSuccess("Unlimited plan is already active on your account.");
     }
 
     overlay.hidden = false;
@@ -263,7 +365,7 @@
     loadPremiumInfo();
 
     const couponInput = overlay.querySelector("#premium-modal-coupon");
-    if (couponInput && !user?.is_premium) {
+    if (couponInput && !(usage?.is_premium && usage.premium_tier !== "pack_50")) {
       window.requestAnimationFrame(() => couponInput.focus());
     }
 

@@ -48,10 +48,20 @@ __pycache__/
 # Saptarishi generated kundali / auspicious JSON dumps
 saptarishi/output/
 
-# Registered users and sessions (created automatically by the API if missing)
-saptarishi/database/users.json
-saptarishi/database/gdrive-service-account.json
-saptarishi/database/database-497809-*.json
+# Backend (deploy separately to Render; GitHub hosts static frontend only)
+saptarishi/backend/
+saptarishi/requirements-flask.txt
+saptarishi/requirements.txt
+saptarishi/Dockerfile.flask
+
+# Legacy paths (if still present locally)
+saptarishi/api/
+
+# Saptarishi backend database (inside backend/; deploy with backend to Render)
+saptarishi/backend/database/data.json
+saptarishi/backend/database/users.json
+saptarishi/backend/database/gdrive-service-account.json
+saptarishi/backend/database/database-497809-*.json
 **/*service-account*.json
 
 # System Files

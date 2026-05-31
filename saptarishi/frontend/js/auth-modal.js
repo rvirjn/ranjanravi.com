@@ -10,7 +10,7 @@
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code for unlimited scans.";
+    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 50 queries or ₹1899 for unlimited).";
 
   const LOADING = global.SaptarishiLoading;
 

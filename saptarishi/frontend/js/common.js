@@ -8,19 +8,54 @@
   const MODAL = global.SaptarishiAuthModal;
   const PREMIUM = global.SaptarishiPremiumModal;
 
-  const isLoginPage = /login\.html$/i.test(window.location.pathname);
+  const isLoginPage =
+    /^\/login\/?$/i.test(window.location.pathname) ||
+    /login\.html$/i.test(window.location.pathname);
   const logoutTimers = new WeakMap();
 
+  function pageHref(file) {
+    const C =
+      typeof SAPTARISHI_CONSTANTS !== "undefined"
+        ? SAPTARISHI_CONSTANTS
+        : global.SAPTARISHI_CONSTANTS;
+    const map = C && C.PAGE_FILE_TO_PATH;
+    if (map && map[file]) return map[file];
+    return `/frontend/html/${file}`;
+  }
+
   function navHref(file) {
-    const base = window.location.pathname.replace(/\/[^/]+$/, "");
-    return `${base}/${file}`;
+    return pageHref(file);
+  }
+
+  function normalizePath(path) {
+    const value = String(path || "").split("?")[0].replace(/\/+$/, "");
+    return value || "/";
+  }
+
+  function formatPremiumExpiry(isoValue) {
+    if (!isoValue) return "";
+    const date = new Date(isoValue);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
   }
 
   function usageText(usage) {
     if (!usage || !AUTH) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
-      return "Premium · unlimited scans";
+      if (u.premium_tier === "pack_50") {
+        const limit = u.query_limit ?? 50;
+        const used = u.queries_used ?? 0;
+        return `Premium · ${used}/${limit} queries`;
+      }
+      const until = formatPremiumExpiry(u.premium_expires_at);
+      return until
+        ? `Premium · unlimited until ${until}`
+        : "Premium · unlimited (1 month)";
     }
     const k = Number(u.kundali_used) || 0;
     const a = Number(u.auspicious_used) || 0;
@@ -73,9 +108,15 @@
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
 
-    const isPremium = Boolean(displayUsage && displayUsage.is_premium);
+    const isUnlimited = Boolean(
+      displayUsage &&
+      displayUsage.is_premium &&
+      displayUsage.premium_tier !== "pack_50"
+    );
     if (premiumBtn) {
-      premiumBtn.hidden = isPremium;
+      premiumBtn.hidden = isUnlimited;
+      premiumBtn.textContent =
+        displayUsage?.premium_tier === "pack_50" ? "Upgrade" : "Buy Premium";
     }
 
     if (resolvedUser) {
@@ -203,7 +244,7 @@
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
-      <p class="site-footer__note">5 free kundali and 2 free auspicious scans per device. Buy Premium for unlimited access.</p>
+      <p class="site-footer__note">5 queries per device. Paid plans: ₹299 for 50 queries or ₹1899 for unlimited access for 1 month.</p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
@@ -249,15 +290,16 @@
     }
     wireFooterContact(footer);
 
-    const path = window.location.pathname;
+    const path = normalizePath(window.location.pathname);
     body.querySelectorAll(".site-header__nav .site-header__link").forEach((link) => {
-      if (path.endsWith(link.getAttribute("href").split("/").pop())) {
+      const href = normalizePath(link.getAttribute("href"));
+      if (path === href) {
         link.classList.add("site-header__link--active");
       }
     });
 
     const profileLink = body.querySelector("#site-profile-link");
-    if (profileLink && /profile\.html$/i.test(path)) {
+    if (profileLink && (path === "/profile" || /profile\.html$/i.test(window.location.pathname))) {
       profileLink.classList.add("site-header__link--active");
     }
   }

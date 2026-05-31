@@ -21,7 +21,7 @@ const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
   }
 };
 
-/** Cached ``database/data.json`` from ``/api/planet-database``. */
+/** Cached planet database from ``/api/planet-database`` (``backend/database/data.json``). */
 let planetDatabase = null;
 
 const form = document.getElementById("birth-form");
