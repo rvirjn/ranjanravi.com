@@ -257,7 +257,7 @@
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
-      <p class="site-footer__note">5 queries per device. Paid plans: ₹299 for 50 queries or ₹1899 for unlimited access for 1 month.</p>
+      <p class="site-footer__note">Paid plans: ₹299 for 50 queries or ₹1899 for unlimited access for 1 month.</p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
