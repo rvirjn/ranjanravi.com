@@ -1,5 +1,5 @@
 # Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-# Saptarishi static UI (local Docker). Build from saptarishi/:
+# Saptarishi static UI (local Docker). Build from repo saptarishi/ (parent of frontend/):
 #   docker build -f frontend/Dockerfile -t saptarishi-ui:latest .
 FROM nginx:1.27-alpine
 
