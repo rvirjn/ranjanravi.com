@@ -159,6 +159,90 @@
         "apply_rule": "yes"
       },
       {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 25,
+        "offset": 3,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 33,
+        "offset": 4,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 50,
+        "offset": 5,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 100,
+        "offset": 7,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 33,
+        "offset": 8,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 50,
+        "offset": 9,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_friend_planet",
+        "increase_strength_percent": 25,
+        "offset": 10,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 25,
+        "offset": 3,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 33,
+        "offset": 4,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 50,
+        "offset": 5,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 100,
+        "offset": 7,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 33,
+        "offset": 8,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 50,
+        "offset": 9,
+        "apply_rule": "yes"
+      },
+      {
+        "id": "aspect_by_enemy_planet",
+        "decrease_strength_percent": 25,
+        "offset": 10,
+        "apply_rule": "yes"
+      },
+      {
         "id": "strength_limits",
         "factor": "Final strength % clamp (min_percent floor, max_percent ceiling; not a bonus/penalty).",
         "min_percent": 0,

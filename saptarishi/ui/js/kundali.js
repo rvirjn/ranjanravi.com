@@ -1343,6 +1343,8 @@ window.SaptarishiKundaliView = {
   renderSummaryTable: renderSummaryTableFromApiRows,
   buildViewTargets: buildKundaliViewTargets,
   createStandardPanel: createStandardKundaliPanelElement,
+  buildNorthIndianChartFromPayload,
+  renderKundaliChart,
   MAIN_TARGETS: buildKundaliViewTargets(),
   SLOT_TARGETS: buildKundaliViewTargets({ idPrefix: "slot", skipShellUpdates: true }),
   renderNakshatraTableWithColors,

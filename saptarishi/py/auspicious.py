@@ -204,13 +204,13 @@ class AuspiciousBuilder:
                     str(slot.get("time") or ""),
                 ),
                 "houses_strength_total": slot.get("houses_strength_total"),
+                "kundali_chart": slot.get("kundali_chart"),
             })
 
         lord_order = AUSPICIOUS_LORD_COMPARE_PLANETS
         rows: list[dict[str, Any]] = []
         for lord in lord_order:
             cells: list[dict[str, Any]] = []
-            houses: list[int] = []
             signatures: set[tuple[Any, ...]] = set()
             for slot in top_slots:
                 lords = slot.get("lord_strength") or {}
@@ -246,8 +246,6 @@ class AuspiciousBuilder:
                     "breakdown": str(entry.get("breakdown") or ""),
                     "factor_sum": entry.get("factor_sum"),
                 })
-                if entry.get("houses"):
-                    houses = [int(h) for h in entry["houses"] if isinstance(h, int)]
                 signatures.add(str(entry.get("display_main") or display))
 
             if len(signatures) <= 1:
@@ -255,7 +253,6 @@ class AuspiciousBuilder:
 
             rows.append({
                 "planet": lord,
-                "houses": houses,
                 "cells": cells,
             })
 
@@ -317,6 +314,14 @@ class AuspiciousBuilder:
 
         days_in_range = (d_to - d_from).days + 1
         top = select_top_auspicious_slots(scanned, top_n)
+        for slot in top:
+            slot["kundali_chart"] = builder.kundali_chart_payload_for_datetime(
+                str(slot.get("date") or ""),
+                str(slot.get("time") or ""),
+                place_query,
+                geo,
+                house_system,
+            )
 
         report: dict[str, Any] = {
             "place_query": place_query,

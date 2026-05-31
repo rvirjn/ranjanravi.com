@@ -267,6 +267,31 @@ class KundaliBuilder:
             **detail,
         }
 
+    def kundali_chart_payload_for_datetime(
+        self,
+        date_str: str,
+        time_str: str,
+        place_query: str,
+        geo: dict[str, Any],
+        house_system: str = DEFAULT_HOUSE_SYSTEM,
+    ) -> dict[str, Any]:
+        """Minimal ``planets[]`` payload for North Indian chart (auspicious compare columns)."""
+        dt_local = self.parse_birth_datetime_local(date_str, time_str, geo["timezone"])
+        chart = self.compute_sidereal_birth_chart(
+            dt_local,
+            geo["latitude"],
+            geo["longitude"],
+            {
+                "query": place_query,
+                "name": geo["name"],
+                "admin1": geo.get("admin1"),
+                "country": geo.get("country"),
+            },
+            house_system=house_system,
+        )
+        EnrichKundali(self.root).enrich_chart_for_api_and_ui(chart)
+        return EnrichKundali.compact_kundali_chart_payload(chart)
+
     def houses_strength_for_datetime(
         self,
         date_str: str,
@@ -846,6 +871,9 @@ class EnrichKundali:
         by_offset = aspect_rules.get("by_offset")
         if not isinstance(by_offset, list) or not by_offset:
             raise ValueError("planet_rules.aspect_rules.by_offset required")
+        planet_aspect_strength_by_id_offset = (
+            EnrichKundali.parse_house_strength_aspect_factors(factors)
+        )
         return {
             "strength_factors": factors,
             "status_column_color": raw.get("status_column_color"),
@@ -857,6 +885,7 @@ class EnrichKundali:
             "trikona_houses": trikona_houses,
             "good_karakwaqt_names": good_karakwaqt_names,
             "bad_karakwaqt_names": bad_karakwaqt_names,
+            "planet_aspect_strength_by_id_offset": planet_aspect_strength_by_id_offset,
             **numeric,
             "color_intensity": color_intensity,
         }
@@ -1017,11 +1046,15 @@ class EnrichKundali:
         )
         self.normalize_moon_nakshatra(chart)
         self.attach_planet_navatara_from_janma(chart)
-        self.attach_death_degree_flags(chart)
         self.attach_planet_mahadasha_ages(chart)
         self.attach_house_context_to_planets(chart)
-        self.attach_planet_aspects(chart, self.load_planet_aspect_offsets_by_planet())
+        offsets_by_planet = self.load_planet_aspect_offsets_by_planet()
+        self.attach_planet_aspects(chart, offsets_by_planet)
         self.attach_planet_aspected_by(chart)
+        self.apply_incoming_aspect_strength_to_planets(
+            chart, friendship, strength_rules, offsets_by_planet
+        )
+        self.attach_death_degree_flags(chart)
         self.attach_planet_table_ui_metadata(chart)
         self.compact_planets_for_api(chart)
         self.add_kundali_summary_block(chart)
@@ -1065,9 +1098,14 @@ class EnrichKundali:
         self.enrich_birth_planets_with_database_metadata(
             chart, friendship, strength_rules, degree_bands
         )
-        self.attach_death_degree_flags(chart)
         self.attach_house_context_to_planets(chart)
-        self.attach_planet_aspects(chart, self.load_planet_aspect_offsets_by_planet())
+        offsets_by_planet = self.load_planet_aspect_offsets_by_planet()
+        self.attach_planet_aspects(chart, offsets_by_planet)
+        self.attach_planet_aspected_by(chart)
+        self.apply_incoming_aspect_strength_to_planets(
+            chart, friendship, strength_rules, offsets_by_planet
+        )
+        self.attach_death_degree_flags(chart)
         planets_table = self.build_planets_table_rows(chart)
         houses = self.build_houses_table_rows({**chart, "planets_table": planets_table})
         return {
@@ -1252,6 +1290,28 @@ class EnrichKundali:
             entries.append(EnrichKundali._lord_signed_factor_entry("karak good", good_bonus))
         if bad_penalty and bad_names and any(label in bad_names for label in kw_labels):
             entries.append(EnrichKundali._lord_signed_factor_entry("karak bad", -bad_penalty))
+
+        aspect_order = {
+            name: idx for idx, name in enumerate(VIMSHOTTARI_MAHADASHA_SEQUENCE)
+        }
+        incoming_aspects = planet.get("incoming_aspect_strength")
+        if isinstance(incoming_aspects, list):
+            sorted_aspects = sorted(
+                (row for row in incoming_aspects if isinstance(row, dict)),
+                key=lambda row: aspect_order.get(
+                    remove_white_space(str(row.get("aspector") or "")).lower(), 99
+                ),
+            )
+            for row in sorted_aspects:
+                aspector = remove_white_space(str(row.get("aspector") or "")).lower()
+                delta = row.get("delta")
+                if not aspector or not isinstance(delta, int) or delta == 0:
+                    continue
+                entries.append(
+                    EnrichKundali._lord_signed_factor_entry(
+                        f"{aspector} aspect", delta
+                    )
+                )
 
         combustion_pen = int(strength_rules.get("combustion_penalty") or 0)
         if combustion_pen and EnrichKundali.is_planet_combust(
@@ -1849,6 +1909,137 @@ class EnrichKundali:
     def house_reached_by_aspect_offset(planet_house: int, offset: int) -> int:
         """Whole-sign house aspected (e.g. Mars in 2nd with offset 4 → 5th house)."""
         return ((int(planet_house) + int(offset) - 2) % RASHI_COUNT) + 1
+
+    @staticmethod
+    def aspect_offset_from_aspector_to_target(
+        aspector_house: int,
+        target_house: int,
+        offsets: tuple[int, ...] | list[int],
+    ) -> int | None:
+        """Drishti offset used when ``aspector_house`` aspects ``target_house``."""
+        if not (1 <= int(aspector_house) <= RASHI_COUNT and 1 <= int(target_house) <= RASHI_COUNT):
+            return None
+        for offset in offsets:
+            try:
+                off = int(offset)
+            except (TypeError, ValueError):
+                continue
+            if EnrichKundali.house_reached_by_aspect_offset(aspector_house, off) == int(
+                target_house
+            ):
+                return off
+        return None
+
+    @staticmethod
+    def planet_incoming_aspect_delta_at_offset(
+        target_planet_key: str,
+        aspector_planet_key: str,
+        offset: int,
+        friendship: dict[str, Any],
+        strength_rules: dict[str, Any],
+    ) -> int:
+        """Signed strength delta from one incoming drishti (friend / enemy only)."""
+        target = remove_white_space(target_planet_key).lower()
+        aspector = remove_white_space(aspector_planet_key).lower()
+        if not target or not aspector or target == aspector:
+            return 0
+        relation = EnrichKundali.natural_friendship_with_lord_planet(
+            friendship, target, aspector
+        )
+        aspect_map = strength_rules.get("planet_aspect_strength_by_id_offset") or {}
+        if not isinstance(aspect_map, dict):
+            aspect_map = {}
+        if relation == PLANET_RELATION_FRIEND:
+            row = EnrichKundali._house_strength_factor_at_offset(
+                aspect_map, "aspect_by_friend_planet", int(offset)
+            )
+            inc = row.get("increase")
+            return int(inc) if inc is not None else 0
+        if relation == PLANET_RELATION_ENEMY:
+            row = EnrichKundali._house_strength_factor_at_offset(
+                aspect_map, "aspect_by_enemy_planet", int(offset)
+            )
+            dec = row.get("decrease")
+            return -int(dec) if dec is not None else 0
+        return 0
+
+    def apply_incoming_aspect_strength_to_planets(
+        self,
+        chart: dict[str, Any],
+        friendship: dict[str, Any],
+        strength_rules: dict[str, Any],
+        offsets_by_planet: dict[str, tuple[int, ...]],
+    ) -> None:
+        """Apply drishti from friend/enemy grahas to ``planet_strength`` (per-aspector audit)."""
+        by_name: dict[str, dict[str, Any]] = {}
+        for row in chart.get("planets") or []:
+            if isinstance(row, dict):
+                key = remove_white_space(row.get("name", "")).lower()
+                if key:
+                    by_name[key] = row
+
+        apply_limits = strength_rules.get("apply_strength_limits")
+        min_pct = int(strength_rules.get("min_percent") or 0)
+        max_pct = int(strength_rules.get("max_percent") or 500)
+
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            pkey = remove_white_space(p.get("name", "")).lower()
+            if not pkey or pkey == "ascendant":
+                continue
+            target_house = EnrichKundali.planet_house_number(p)
+            if not isinstance(target_house, int):
+                p["incoming_aspect_strength"] = []
+                continue
+
+            incoming: list[dict[str, Any]] = []
+            aspectors = p.get("aspected_by")
+            if not isinstance(aspectors, list):
+                aspectors = []
+
+            for aspector_key in aspectors:
+                ak = remove_white_space(str(aspector_key or "")).lower()
+                if not ak or ak == pkey:
+                    continue
+                aspector = by_name.get(ak)
+                if not isinstance(aspector, dict):
+                    continue
+                aspector_house = EnrichKundali.planet_house_number(aspector)
+                if not isinstance(aspector_house, int):
+                    continue
+                offset = EnrichKundali.aspect_offset_from_aspector_to_target(
+                    aspector_house,
+                    target_house,
+                    offsets_by_planet.get(ak, ()),
+                )
+                if offset is None:
+                    continue
+                delta = EnrichKundali.planet_incoming_aspect_delta_at_offset(
+                    pkey, ak, offset, friendship, strength_rules
+                )
+                if delta == 0:
+                    continue
+                incoming.append({
+                    "aspector": ak,
+                    "offset": offset,
+                    "delta": delta,
+                })
+
+            p["incoming_aspect_strength"] = incoming
+            if not incoming:
+                continue
+            strength = p.get("planet_strength")
+            if not isinstance(strength, (int, float)):
+                continue
+            adjusted = int(strength) + sum(int(row["delta"]) for row in incoming)
+            if apply_limits:
+                adjusted = max(min_pct, min(max_pct, adjusted))
+            p["planet_strength"] = adjusted
+            phase = p.get("sign_degree_phase")
+            if isinstance(phase, dict):
+                phase["strength_percent"] = adjusted
+                phase["label"] = f"{adjusted}%"
 
     @staticmethod
     def planet_in_debilitated_rashi(
@@ -2781,6 +2972,7 @@ class EnrichKundali:
             "planet_relation_with_rashi_lord",
             "planet_relation_with_nakshatra_lord",
             "planet_strength_base",
+            "incoming_aspect_strength",
             "is_planet_marak_and_badhak",
             "nakshatra_ruling_planet",
             "whole_sign_house",
@@ -2790,6 +2982,50 @@ class EnrichKundali:
                 continue
             for key in drop_keys:
                 p.pop(key, None)
+
+    @staticmethod
+    def compact_kundali_chart_payload(chart: dict[str, Any]) -> dict[str, Any]:
+        """``planets`` + ``strength_max`` for inline North Indian chart rendering."""
+        strength_max = chart.get("strength_max")
+        if not isinstance(strength_max, (int, float)):
+            strength_max = 500
+        planets_out: list[dict[str, Any]] = []
+        for p in chart.get("planets") or []:
+            if not isinstance(p, dict):
+                continue
+            name = remove_white_space(p.get("name", "")).lower()
+            if not name:
+                continue
+            row: dict[str, Any] = {"name": name}
+            ri = p.get("rashi_index")
+            if isinstance(ri, int):
+                row["rashi_index"] = ri
+            strength = p.get("planet_strength")
+            if isinstance(strength, (int, float)):
+                row["planet_strength"] = int(strength)
+            status_color = p.get("planet_status_color")
+            if status_color:
+                row["planet_status_color"] = str(status_color)
+            status_rashi = p.get("planet_status_in_rashi") or p.get(
+                "planet_relation_with_rashi_lord"
+            )
+            if status_rashi:
+                row["planet_status_in_rashi"] = str(status_rashi)
+            house_num = EnrichKundali.planet_house_number(p)
+            if isinstance(house_num, int):
+                row["whole_sign_house"] = house_num
+            phase = p.get("sign_degree_phase")
+            if isinstance(phase, dict) and isinstance(
+                phase.get("strength_percent"), (int, float)
+            ):
+                row["sign_degree_phase"] = {
+                    "strength_percent": int(phase["strength_percent"]),
+                }
+            planets_out.append(row)
+        return {
+            "planets": planets_out,
+            "strength_max": int(strength_max),
+        }
 
     def attach_planet_table_ui_metadata(self, chart: dict[str, Any]) -> None:
         """Chart color hint on each planet (table styling lives in ``planets_table``)."""

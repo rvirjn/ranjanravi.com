@@ -14,8 +14,6 @@
   const auspiciousForm = document.getElementById("auspicious-form");
   const auspiciousStatusEl = document.getElementById("status");
   const auspiciousResultsEl = document.getElementById("results");
-  const kundaliDetailEl = document.getElementById("kundali-detail");
-  const kundaliDetailHeading = document.getElementById("kundali-detail-heading");
   const auspiciousPlacePreset = document.getElementById("place-preset");
   const auspiciousCustomWrap = document.getElementById("custom-place-wrap");
   const auspiciousPlaceCustom = document.getElementById("place-custom");
@@ -52,19 +50,6 @@
     { key: "time", className: "" },
     { key: "houses_strength_total", className: "planets-td-strength" }
   ];
-
-  const SLOT_KUNDALI_TARGETS =
-    (window.SaptarishiKundaliView && window.SaptarishiKundaliView.SLOT_TARGETS) ||
-    {
-      summaryTable: "#slot-summary-table tbody",
-      chartHost: "slot-kundali-chart",
-      planetsTable: "#slot-planets-table tbody",
-      skipShellUpdates: true
-    };
-
-  let lastScanPlace = "";
-  let selectedTopRow = null;
-  let kundaliLoadToken = 0;
 
   function isLocalDevUi() {
     const host = window.location.hostname;
@@ -122,18 +107,6 @@
     };
   }
 
-  function formatKundaliSlotLoadError(err) {
-    const msg = stripPerIpWording(err?.message || "Request failed");
-    const limitReached =
-      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
-    return {
-      text: limitReached
-        ? msg || "Free kundali limit reached."
-        : `Failed to load kundali: ${msg}`,
-      limitReached
-    };
-  }
-
   function getPlaceFromForm() {
     if (!auspiciousPlacePreset) return "";
     if (auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE) {
@@ -152,84 +125,6 @@
     const value = rowData[key];
     if (value == null || value === "") return "—";
     return String(value);
-  }
-
-  function normalizeKundaliTimeValue(timeValue) {
-    const raw = String(timeValue ?? "").trim();
-    if (!raw) return raw;
-    const parts = raw.split(":");
-    if (parts.length === 1) return `${parts[0].padStart(2, "0")}:00:00`;
-    if (parts.length === 2) {
-      return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:00`;
-    }
-    return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:${parts[2].padStart(2, "0")}`;
-  }
-
-  function setSelectedTopRow(tr) {
-    if (selectedTopRow) {
-      selectedTopRow.classList.remove("auspicious-top-row--selected");
-      selectedTopRow.removeAttribute("aria-selected");
-    }
-    selectedTopRow = tr || null;
-    if (selectedTopRow) {
-      selectedTopRow.classList.add("auspicious-top-row--selected");
-      selectedTopRow.setAttribute("aria-selected", "true");
-    }
-  }
-
-  function hideKundaliDetail() {
-    if (kundaliDetailEl) kundaliDetailEl.hidden = true;
-    setSelectedTopRow(null);
-  }
-
-  async function loadKundaliForTopRow(rowData) {
-    const view = window.SaptarishiKundaliView;
-    if (!view || !lastScanPlace || !rowData?.date || !rowData?.time) return;
-
-    const loadToken = ++kundaliLoadToken;
-    const date = String(rowData.date);
-    const time = normalizeKundaliTimeValue(rowData.time);
-
-    if (kundaliDetailHeading) {
-      kundaliDetailHeading.textContent = `Kundali — ${date} ${time.slice(0, 5)}`;
-    }
-    if (kundaliDetailEl) kundaliDetailEl.hidden = false;
-    showAuspiciousLoading();
-
-    try {
-      await view.ensurePlanetDatabase();
-      const payload = await view.fetchJson(date, time, lastScanPlace);
-      if (loadToken !== kundaliLoadToken) return;
-      view.renderIntoPage(payload, SLOT_KUNDALI_TARGETS);
-      if (kundaliDetailEl) {
-        kundaliDetailEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      showAuspiciousStatus(AC.AUSPICIOUS_READY_STATUS_MESSAGE);
-    } catch (err) {
-      if (loadToken !== kundaliLoadToken) return;
-      const formatted = formatKundaliSlotLoadError(err);
-      showAuspiciousStatus(formatted.text, true, formatted.limitReached);
-      if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
-        await SaptarishiAuth.handlePremiumRequired(err);
-      }
-    }
-  }
-
-  function handleTopRowClick(event) {
-    const tr = event.currentTarget;
-    if (!tr?.dataset?.date || !tr?.dataset?.time) return;
-    setSelectedTopRow(tr);
-    loadKundaliForTopRow({
-      date: tr.dataset.date,
-      time: tr.dataset.time,
-      houses_strength_total: tr.dataset.strength
-    });
-  }
-
-  function handleTopRowKeydown(event) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    handleTopRowClick(event);
   }
 
   function formatPlanetDisplayName(planetKey) {
@@ -270,7 +165,7 @@
     } else if (typeof cell?.strength_percent === "number") {
       parts.push(`Total ${cell.strength_percent} (100 + adjustments)`);
     }
-    return parts.join(" · ") || "Show kundali for this slot";
+    return parts.join(" · ");
   }
 
   function lordFactorBracketText(factor) {
@@ -372,48 +267,14 @@
     return wrap;
   }
 
-  function highlightTopRowForSlot(date, time) {
-    const tbody = document.querySelector("#top-table tbody");
-    if (!tbody) return;
-    let match = null;
-    for (const tr of tbody.querySelectorAll("tr.auspicious-top-row")) {
-      if (tr.dataset.date === String(date || "") && tr.dataset.time === String(time || "")) {
-        match = tr;
-        break;
-      }
-    }
-    setSelectedTopRow(match);
-  }
-
-  function handleLordComparisonSlotActivate(slotData) {
-    if (!slotData?.date || !slotData?.time) return;
-    highlightTopRowForSlot(slotData.date, slotData.time);
-    loadKundaliForTopRow({
-      date: slotData.date,
-      time: slotData.time,
-      houses_strength_total: slotData.houses_strength_total
-    });
-  }
-
-  function handleLordComparisonHeaderClick(event) {
-    const th = event.currentTarget;
-    if (!th?.dataset?.date || !th?.dataset?.time) return;
-    handleLordComparisonSlotActivate({
-      date: th.dataset.date,
-      time: th.dataset.time,
-      houses_strength_total: th.dataset.strength
-    });
-  }
-
-  function handleLordComparisonCellClick(event) {
-    const td = event.currentTarget;
-    const columnIndex = Number(td.dataset.columnIndex);
-    const table = document.getElementById("lord-comparison-table");
-    const columns = table?._lordComparisonColumns;
-    if (!Number.isInteger(columnIndex) || !Array.isArray(columns)) return;
-    const slot = columns[columnIndex];
-    if (!slot) return;
-    handleLordComparisonSlotActivate(slot);
+  function renderInlineColumnChart(column, chartHost) {
+    const view = window.SaptarishiKundaliView;
+    if (!view || !column?.kundali_chart || !chartHost) return;
+    const build = view.buildNorthIndianChartFromPayload;
+    const render = view.renderKundaliChart;
+    if (typeof build !== "function" || typeof render !== "function") return;
+    const chartData = build(column.kundali_chart);
+    render(chartData, chartHost);
   }
 
   function renderLordComparisonTable(comparison) {
@@ -439,18 +300,10 @@
 
     const headerRow = document.createElement("tr");
     headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Planet" }));
-    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Houses" }));
 
-    columns.forEach((column, index) => {
+    columns.forEach((column) => {
       const th = document.createElement("th");
-      th.className = "auspicious-lord-col auspicious-lord-col--clickable";
-      th.tabIndex = 0;
-      th.setAttribute("role", "button");
-      th.dataset.date = String(column.date || "");
-      th.dataset.time = String(column.time || "");
-      th.dataset.strength = String(column.houses_strength_total ?? "");
-      th.dataset.columnIndex = String(index);
-      th.title = "Show kundali for this slot";
+      th.className = "auspicious-lord-col";
 
       const label = document.createElement("span");
       label.className = "auspicious-lord-col__label";
@@ -463,13 +316,10 @@
           ? `Total ${column.houses_strength_total}`
           : "";
 
-      th.append(label, total);
-      th.addEventListener("click", handleLordComparisonHeaderClick);
-      th.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        handleLordComparisonHeaderClick({ currentTarget: th });
-      });
+      const chartHost = document.createElement("div");
+      chartHost.className = "auspicious-lord-col__chart kundali-chart-host";
+      th.append(label, total, chartHost);
+      renderInlineColumnChart(column, chartHost);
       headerRow.appendChild(th);
     });
     thead.replaceChildren(headerRow);
@@ -483,23 +333,11 @@
         })
       );
 
-      const houses = Array.isArray(rowData.houses) ? rowData.houses.join(", ") : "";
-      tr.appendChild(Object.assign(document.createElement("td"), { textContent: houses || "—" }));
-
-      (rowData.cells || []).forEach((cell, index) => {
+      (rowData.cells || []).forEach((cell) => {
         const td = document.createElement("td");
-        td.className = "auspicious-lord-col auspicious-lord-col--clickable";
-        td.tabIndex = 0;
-        td.setAttribute("role", "button");
-        td.dataset.columnIndex = String(index);
+        td.className = "auspicious-lord-col";
         td.title = lordComparisonCellTitle(cell);
         td.appendChild(buildLordComparisonCellElement(cell));
-        td.addEventListener("click", handleLordComparisonCellClick);
-        td.addEventListener("keydown", (event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          event.preventDefault();
-          handleLordComparisonCellClick({ currentTarget: td });
-        });
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -509,17 +347,9 @@
   function renderTopTableFromApiRows(tbody, rows) {
     if (!tbody) return;
     tbody.replaceChildren();
-    hideKundaliDetail();
 
     for (const rowData of rows || []) {
       const tr = document.createElement("tr");
-      tr.className = "auspicious-top-row";
-      tr.tabIndex = 0;
-      tr.setAttribute("role", "button");
-      tr.title = "Show kundali for this date and time";
-      tr.dataset.date = String(rowData.date || "");
-      tr.dataset.time = String(rowData.time || "");
-      tr.dataset.strength = String(rowData.houses_strength_total ?? "");
 
       const cellStyles = rowData.cell_styles || {};
       for (const col of TOP_TABLE_COLUMNS) {
@@ -530,8 +360,6 @@
         tr.appendChild(td);
       }
 
-      tr.addEventListener("click", handleTopRowClick);
-      tr.addEventListener("keydown", handleTopRowKeydown);
       tbody.appendChild(tr);
     }
   }
@@ -602,7 +430,6 @@
     const topBody = document.querySelector("#top-table tbody");
     const topHeading = document.getElementById("top-table-heading");
 
-    lastScanPlace = payload.place_query || getPlaceFromForm();
     if (topHeading) {
       topHeading.textContent = topTableHeadingText(payload);
     }
@@ -628,8 +455,6 @@
 
     showAuspiciousLoading();
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
-    hideKundaliDetail();
-    lastScanPlace = place;
 
     try {
       const payload = await fetchAuspiciousJsonFromApi(dateFrom.value, dateTo.value, place);
