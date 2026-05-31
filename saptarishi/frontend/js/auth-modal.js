@@ -6,7 +6,7 @@
   if (!AUTH) return;
 
   const DEFAULT_LEAD =
-    "Try 5 free kundali and 2 free auspicious scans without login. " +
+    "Try 5 free queries per device without login (kundali or auspicious). " +
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =

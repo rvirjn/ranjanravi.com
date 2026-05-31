@@ -31,10 +31,8 @@
     PREMIUM_CONTACT_PHONE: "8184046618",
     API_SITE_VIEW_PATH: "/api/site/view",
     GUEST_ID_HEADER: "X-Guest-Id",
-    MAX_KUNDALI_PER_USER: 5,
-    MAX_KUNDALI_PER_GUEST: 5,
-    MAX_AUSPICIOUS_PER_USER: 2,
-    MAX_AUSPICIOUS_PER_GUEST: 2
+    MAX_FREE_QUERIES_PER_USER: 5,
+    MAX_FREE_QUERIES_PER_GUEST: 5
   };
 
   function normalizeUsage(usage) {
@@ -76,18 +74,28 @@
       };
     }
     const isGuest = Boolean(usage.is_guest);
-    const kLimit = isGuest ? (AC.MAX_KUNDALI_PER_GUEST ?? 5) : (AC.MAX_KUNDALI_PER_USER ?? 5);
-    const aLimit = isGuest
-      ? (AC.MAX_AUSPICIOUS_PER_GUEST ?? 2)
-      : (AC.MAX_AUSPICIOUS_PER_USER ?? 2);
+    const limit = isGuest
+      ? (AC.MAX_FREE_QUERIES_PER_GUEST ?? 5)
+      : (AC.MAX_FREE_QUERIES_PER_USER ?? 5);
     const kUsed = Number(usage.kundali_used) || 0;
     const aUsed = Number(usage.auspicious_used) || 0;
+    const totalUsed =
+      usage.queries_used != null ? Number(usage.queries_used) : kUsed + aUsed;
+    const remaining = Math.max(
+      0,
+      usage.queries_remaining != null
+        ? Number(usage.queries_remaining)
+        : limit - totalUsed
+    );
     return {
       ...usage,
-      kundali_limit: kLimit,
-      auspicious_limit: aLimit,
-      kundali_remaining: Math.max(0, kLimit - kUsed),
-      auspicious_remaining: Math.max(0, aLimit - aUsed)
+      queries_used: totalUsed,
+      query_limit: usage.query_limit ?? limit,
+      queries_remaining: remaining,
+      kundali_limit: limit,
+      auspicious_limit: limit,
+      kundali_remaining: remaining,
+      auspicious_remaining: remaining
     };
   }
 
@@ -263,7 +271,7 @@
   async function fetchUsage() {
     if (!getToken()) {
       const cached = getUsage();
-      if (cached && cached.kundali_limit != null) {
+      if (cached && cached.query_limit != null) {
         return { usage: cached };
       }
     }
@@ -413,15 +421,8 @@
     }
     if (requireAuth()) return false;
     if (!usage) return false;
-    if (scanType === "kundali") {
-      const remaining = usage.kundali_remaining;
-      return remaining != null && Number(remaining) <= 0;
-    }
-    if (scanType === "auspicious") {
-      const remaining = usage.auspicious_remaining;
-      return remaining != null && Number(remaining) <= 0;
-    }
-    return false;
+    const remaining = usage.queries_remaining;
+    return remaining != null && Number(remaining) <= 0;
   }
 
   function buildScanCacheKey(parts) {
@@ -457,11 +458,8 @@
     }
   }
 
-  function createLimitError(scanType) {
-    const message =
-      scanType === "auspicious"
-        ? "Free auspicious limit reached."
-        : "Free kundali limit reached.";
+  function createLimitError() {
+    const message = "Free query limit reached (5 queries per device).";
     const err = new Error(message);
     err.premiumRequired = true;
     err.status = 403;
@@ -473,7 +471,7 @@
     if (isGuestScanLimitReached("kundali")) {
       const cached = getCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey);
       if (cached) return cached;
-      throw createLimitError("kundali");
+      throw createLimitError();
     }
     const payload = await apiFetch(path);
     updateUserFromApiPayload(payload);
@@ -488,7 +486,7 @@
     if (isGuestScanLimitReached("auspicious")) {
       const cached = getCachedScanResult(STORAGE_AUSPICIOUS_CACHE, cacheKey);
       if (cached) return cached;
-      throw createLimitError("auspicious");
+      throw createLimitError();
     }
     const payload = await apiFetch(path);
     updateUserFromApiPayload(payload);

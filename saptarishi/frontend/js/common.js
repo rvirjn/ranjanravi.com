@@ -61,12 +61,21 @@
         ? `Premium · unlimited until ${until}`
         : "Premium · unlimited (1 month)";
     }
-    const k = Number(u.kundali_used) || 0;
-    const a = Number(u.auspicious_used) || 0;
-    const kMax = u.kundali_limit ?? 5;
-    const aMax = u.auspicious_limit ?? 2;
-    const counts = `${k}/${kMax} kundali · ${a}/${aMax} auspicious`;
-    return u.is_guest ? `Free plan: ${counts}` : counts;
+    const used =
+      u.queries_used != null
+        ? Number(u.queries_used)
+        : (Number(u.kundali_used) || 0) + (Number(u.auspicious_used) || 0);
+    const limit = u.query_limit ?? 5;
+    const remaining =
+      u.queries_remaining != null ? Number(u.queries_remaining) : Math.max(0, limit - used);
+    const displayUsed = Math.min(used, limit);
+    const label =
+      remaining > 0 && used === 0
+        ? `${limit} free queries`
+        : remaining > 0
+          ? `${remaining}/${limit} free queries`
+          : `${displayUsed}/${limit} queries`;
+    return u.is_guest ? `Free plan: ${label}` : label;
   }
 
   function buildHeader(user, viewCount, usage) {

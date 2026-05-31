@@ -48,10 +48,8 @@ const SAPTARISHI_CONSTANTS = {
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
   PREMIUM_SCANNER_IMAGE: _DEPLOY_PREFIX + "/frontend/images/RaviRanjanScanner.png",
   GUEST_ID_HEADER: "X-Guest-Id",
-  MAX_KUNDALI_PER_USER: 5,
-  MAX_KUNDALI_PER_GUEST: 5,
-  MAX_AUSPICIOUS_PER_USER: 2,
-  MAX_AUSPICIOUS_PER_GUEST: 2,
+  MAX_FREE_QUERIES_PER_USER: 5,
+  MAX_FREE_QUERIES_PER_GUEST: 5,
   KUNDALI_READY_STATUS_MESSAGE:
     "Kundali Chart prepared and planet/nakshtra table is also ready",
   AUSPICIOUS_READY_STATUS_MESSAGE:

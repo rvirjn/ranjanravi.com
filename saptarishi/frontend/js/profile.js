@@ -63,11 +63,12 @@
     }
 
     if (usageEl && usage && !usage.is_premium) {
-      const k = Number(usage.kundali_used) || 0;
-      const a = Number(usage.auspicious_used) || 0;
-      const kMax = usage.kundali_limit ?? 5;
-      const aMax = usage.auspicious_limit ?? 2;
-      usageEl.textContent = `Usage: ${k}/${kMax} kundali · ${a}/${aMax} auspicious`;
+      const used =
+        usage.queries_used != null
+          ? Number(usage.queries_used)
+          : (Number(usage.kundali_used) || 0) + (Number(usage.auspicious_used) || 0);
+      const limit = usage.query_limit ?? 5;
+      usageEl.textContent = `Usage: ${used}/${limit} queries`;
       usageEl.hidden = false;
     } else if (usageEl) {
       usageEl.hidden = true;
