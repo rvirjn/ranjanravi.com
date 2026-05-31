@@ -28,6 +28,7 @@ if str(_PY_DIR) not in sys.path:
     sys.path.insert(0, str(_PY_DIR))
 
 from utils.constant import (
+    AUSPICIOUS_LORD_COMPARE_PLANETS,
     AUSPICIOUS_MAX_RANGE_DAYS,
     AUSPICIOUS_OUTPUT_SUBDIR,
     AUSPICIOUS_READY_STATUS_MESSAGE,
@@ -80,25 +81,35 @@ def select_top_auspicious_slots(
     scanned: list[dict[str, Any]],
     top_n: int = AUSPICIOUS_TOP_COUNT,
 ) -> list[dict[str, Any]]:
-    """Keep the strongest slot on each calendar day, then return top ``top_n`` days."""
-    best_by_date: dict[str, dict[str, Any]] = {}
-    for row in scanned:
-        day = str(row.get("date") or "")
-        if not day:
-            continue
-        strength = row.get("houses_strength_total")
-        prev = best_by_date.get(day)
-        if prev is None or (
-            isinstance(strength, (int, float))
-            and strength > prev.get("houses_strength_total", -1)
-        ):
-            best_by_date[day] = row
+    """Top ``top_n`` slots by unique ``houses_strength_total`` (highest first)."""
+    limit = max(1, int(top_n))
+
+    def strength(row: dict[str, Any]) -> float:
+        value = row.get("houses_strength_total")
+        return float(value) if isinstance(value, (int, float)) else float("-inf")
+
     ranked = sorted(
-        best_by_date.values(),
-        key=lambda row: row.get("houses_strength_total", 0),
-        reverse=True,
+        scanned,
+        key=lambda row: (
+            -strength(row),
+            str(row.get("date") or ""),
+            str(row.get("time") or ""),
+        ),
     )
-    return ranked[: max(1, int(top_n))]
+    result: list[dict[str, Any]] = []
+    seen_totals: set[int] = set()
+    for row in ranked:
+        total = row.get("houses_strength_total")
+        if not isinstance(total, (int, float)):
+            continue
+        total_key = int(round(total))
+        if total_key in seen_totals:
+            continue
+        seen_totals.add(total_key)
+        result.append(row)
+        if len(result) >= limit:
+            break
+    return result
 
 
 def format_place_resolved(geo: dict[str, Any]) -> str:
@@ -147,18 +158,108 @@ class AuspiciousBuilder:
         write_json_report(path, report)
 
     @staticmethod
+    def selection_summary_label(top_n: int = AUSPICIOUS_TOP_COUNT) -> str:
+        return f"Top {top_n} unique highest house strength totals"
+
+    @staticmethod
     def build_summary_table_rows(report: dict[str, Any]) -> list[dict[str, str]]:
         place = report.get("place_resolved") or {}
+        days_in_range = int(report.get("days_in_range") or 1)
+        top_n = int(report.get("top_count") or AUSPICIOUS_TOP_COUNT)
         return [
             {"label": "Place", "value": format_place_resolved(place) or report.get("place_query", "")},
             {"label": "From date", "value": report.get("date_from", "")},
             {"label": "To date", "value": report.get("date_to", "")},
             {"label": "Slot interval", "value": f"Every {report.get('slot_hour_step', AUSPICIOUS_SLOT_HOUR_STEP)} hours"},
-            {"label": "Days in range", "value": str(report.get("days_in_range", ""))},
+            {"label": "Days in range", "value": str(days_in_range)},
             {"label": "Slots scanned", "value": str(report.get("slots_scanned", ""))},
-            {"label": "Selection", "value": "Best time on each day, then top days by strength"},
+            {
+                "label": "Selection",
+                "value": AuspiciousBuilder.selection_summary_label(top_n),
+            },
             {"label": "House system", "value": house_system_label(report.get("house_system", DEFAULT_HOUSE_SYSTEM))},
         ]
+
+    @staticmethod
+    def format_slot_column_label(date_s: str, time_s: str) -> str:
+        """Compact column label for lord comparison, e.g. ``2 Jun 12:00``."""
+        try:
+            dt = datetime.strptime(f"{date_s} {time_s}", "%Y-%m-%d %H:%M")
+            return f"{dt.day} {dt.strftime('%b')} {dt.strftime('%H:%M')}"
+        except ValueError:
+            return f"{date_s} {time_s}"
+
+    @staticmethod
+    def build_lord_comparison_table(
+        top_slots: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Lord% differences across top slots (rows only where sign or strength changes)."""
+        columns: list[dict[str, Any]] = []
+        for slot in top_slots:
+            columns.append({
+                "date": slot.get("date", ""),
+                "time": slot.get("time", ""),
+                "label": AuspiciousBuilder.format_slot_column_label(
+                    str(slot.get("date") or ""),
+                    str(slot.get("time") or ""),
+                ),
+                "houses_strength_total": slot.get("houses_strength_total"),
+            })
+
+        lord_order = AUSPICIOUS_LORD_COMPARE_PLANETS
+        rows: list[dict[str, Any]] = []
+        for lord in lord_order:
+            cells: list[dict[str, Any]] = []
+            houses: list[int] = []
+            signatures: set[tuple[Any, ...]] = set()
+            for slot in top_slots:
+                lords = slot.get("lord_strength") or {}
+                entry = lords.get(lord) if isinstance(lords, dict) else None
+                if not isinstance(entry, dict):
+                    cells.append({
+                        "rashi_english": "",
+                        "strength_percent": None,
+                        "rashi_relation": "",
+                        "adjustment": None,
+                        "factors": [],
+                        "display": "",
+                        "breakdown": "",
+                    })
+                    signatures.add(())
+                    continue
+                rashi = str(entry.get("rashi_english") or "").strip().lower()
+                strength = entry.get("strength_percent")
+                relation = str(entry.get("rashi_relation") or "neutral")
+                adjustment = entry.get("adjustment")
+                factors = entry.get("factors") if isinstance(entry.get("factors"), list) else []
+                display = str(entry.get("display") or "")
+                cells.append({
+                    "rashi_english": rashi,
+                    "strength_percent": strength,
+                    "rashi_relation": relation,
+                    "adjustment": adjustment,
+                    "lord_strength_base": entry.get("lord_strength_base", 100),
+                    "factors": factors,
+                    "display_main": str(entry.get("display_main") or ""),
+                    "display_total": str(entry.get("display_total") or ""),
+                    "display": display,
+                    "breakdown": str(entry.get("breakdown") or ""),
+                    "factor_sum": entry.get("factor_sum"),
+                })
+                if entry.get("houses"):
+                    houses = [int(h) for h in entry["houses"] if isinstance(h, int)]
+                signatures.add(str(entry.get("display_main") or display))
+
+            if len(signatures) <= 1:
+                continue
+
+            rows.append({
+                "planet": lord,
+                "houses": houses,
+                "cells": cells,
+            })
+
+        return {"columns": columns, "rows": rows, "lord_strength_base": 100}
 
     @staticmethod
     def build_top_table_rows(top_slots: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -202,7 +303,7 @@ class AuspiciousBuilder:
         for slot_dt in iter_slot_datetimes(d_from, d_to, tz_name):
             date_s = slot_dt.strftime("%Y-%m-%d")
             time_s = slot_dt.strftime("%H:%M")
-            strength = builder.houses_strength_for_datetime(
+            snapshot = builder.house_strength_snapshot_for_datetime(
                 date_s, time_s, place_query, geo, house_system
             )
             slot_count += 1
@@ -210,11 +311,12 @@ class AuspiciousBuilder:
                 "date": date_s,
                 "time": time_s,
                 "datetime_local_iso": slot_dt.isoformat(),
-                "houses_strength_total": strength,
+                "houses_strength_total": snapshot.get("houses_strength_total"),
+                "lord_strength": snapshot.get("lord_strength") or {},
             })
 
-        top = select_top_auspicious_slots(scanned, top_n)
         days_in_range = (d_to - d_from).days + 1
+        top = select_top_auspicious_slots(scanned, top_n)
 
         report: dict[str, Any] = {
             "place_query": place_query,
@@ -230,10 +332,12 @@ class AuspiciousBuilder:
             "slot_hour_step": AUSPICIOUS_SLOT_HOUR_STEP,
             "slots_scanned": slot_count,
             "days_in_range": days_in_range,
+            "top_count": top_n,
             "top": top,
         }
         report["summary_table"] = self.build_summary_table_rows(report)
         report["top_table"] = self.build_top_table_rows(top)
+        report["lord_comparison_table"] = self.build_lord_comparison_table(top)
         report["ui_status_message"] = AUSPICIOUS_READY_STATUS_MESSAGE
         return report
 

@@ -6,7 +6,7 @@
   <meta name="copyright" content="ranjanravi.com">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auspicious baby birth times by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=91">
+  <link rel="stylesheet" href="../style/styles.css?v=95">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -51,7 +51,7 @@
         <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
       </div>
 
-      <h2 class="result-heading">Top 5 dates (best time each day)</h2>
+      <h2 id="top-table-heading" class="result-heading">Top 5 unique highest house strength totals</h2>
       <div class="table-wrap">
         <table id="top-table" class="navatara-data-table kundali-table">
           <thead>
@@ -66,8 +66,22 @@
         </table>
       </div>
 
+      <div id="lord-comparison-section" hidden>
+        <h2 id="lord-comparison-heading" class="result-heading">Lord strength differences across top slots</h2>
+        <p class="lead auspicious-lord-comparison-lead">
+          Details of the dates and times above. Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Click a date column to open kundali.
+        </p>
+        <div class="table-wrap">
+          <table id="lord-comparison-table" class="navatara-data-table kundali-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="kundali-detail" class="auspicious-kundali-detail" hidden>
         <h2 id="kundali-detail-heading" class="result-heading">Kundali for selected slot</h2>
+        <h2 class="result-heading">Summary</h2>
         <div class="summary-chart-row">
           <div class="summary-chart-row__summary table-wrap">
             <table id="slot-summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
@@ -104,33 +118,6 @@
             <tbody></tbody>
           </table>
         </div>
-
-        <h2 class="result-heading">Nakshatra</h2>
-        <div class="table-wrap nakshatra-table-wrap">
-          <table id="slot-nakshatra-table" class="navatara-data-table kundali-table">
-            <thead>
-              <tr>
-                <th>Nakshatra</th>
-                <th>Navatara</th>
-                <th>Symbol</th>
-                <th>Ruling Planet</th>
-                <th>Deity</th>
-                <th>Tree</th>
-                <th>Directions</th>
-                <th>Lunar Month</th>
-                <th>Tithi</th>
-                <th>Remedy</th>
-                <th>Mantra</th>
-                <th>Animal</th>
-                <th>Colors</th>
-                <th>Number</th>
-                <th>Day</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
       </div>
     </div>
   </div>
@@ -141,7 +128,7 @@
   <script src="../js/auth-modal.js?v=8"></script>
   <script src="../js/premium-modal.js?v=2"></script>
   <script src="../js/common.js?v=24"></script>
-  <script src="../js/kundali.js?v=126"></script>
-  <script src="../js/auspicious.js?v=13"></script>
+  <script src="../js/kundali.js?v=128"></script>
+  <script src="../js/auspicious.js?v=25"></script>
 </body>
 </html>

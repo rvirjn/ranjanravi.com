@@ -151,6 +151,17 @@ MAX_PLACE_QUERY_LENGTH = 240
 API_AUSPICIOUS_PATH = "/api/auspicious"
 AUSPICIOUS_SLOT_HOUR_STEP = 2
 AUSPICIOUS_TOP_COUNT = 5
+AUSPICIOUS_LORD_COMPARE_PLANETS = (
+    "sun",
+    "moon",
+    "mars",
+    "mercury",
+    "jupiter",
+    "venus",
+    "saturn",
+    "rahu",
+    "ketu",
+)
 AUSPICIOUS_MAX_RANGE_DAYS = 62
 AUSPICIOUS_OUTPUT_BASENAME = AUSPICIOUS_OUTPUT_SUBDIR
 AUSPICIOUS_READY_STATUS_MESSAGE = "Top auspicious date and time slots are ready"

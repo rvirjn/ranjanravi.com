@@ -1258,6 +1258,106 @@ tbody tr:last-child td {
   border-top: 1px solid rgba(120, 90, 10, 0.15);
 }
 
+.auspicious-lord-comparison-lead {
+  margin-top: -0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+#lord-comparison-table th.auspicious-lord-col--clickable,
+#lord-comparison-table td.auspicious-lord-col--clickable {
+  cursor: pointer;
+}
+
+#lord-comparison-table td.auspicious-lord-col--clickable {
+  min-height: 4.5rem;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  vertical-align: top;
+  white-space: normal;
+}
+
+#lord-comparison-table th.auspicious-lord-col--clickable {
+  vertical-align: bottom;
+}
+
+.auspicious-lord-col__label {
+  display: block;
+  font-weight: 600;
+}
+
+.auspicious-lord-col__total {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.82em;
+  font-weight: 400;
+  opacity: 0.78;
+}
+
+#lord-comparison-table th.auspicious-lord-col--clickable:hover,
+#lord-comparison-table td.auspicious-lord-col--clickable:hover {
+  background-color: rgba(30, 58, 95, 0.06);
+}
+
+#lord-comparison-table th.auspicious-lord-col--clickable:focus-visible,
+#lord-comparison-table td.auspicious-lord-col--clickable:focus-visible {
+  outline: 2px solid var(--color-accent, #1e3a5f);
+  outline-offset: -2px;
+}
+
+.auspicious-lord-cell {
+  line-height: 1.45;
+  max-width: 14rem;
+}
+
+.auspicious-lord-cell__part {
+  display: inline;
+  font-weight: 600;
+}
+
+.auspicious-lord-cell__total {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-weight: 800;
+  font-size: 1.02em;
+}
+
+.auspicious-lord-cell__rashi {
+  font-weight: 600;
+}
+
+.auspicious-lord-cell__relation {
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.auspicious-lord-relation--own,
+.auspicious-lord-relation--friend,
+.auspicious-lord-relation--exalted {
+  color: #1a6b3a;
+}
+
+.auspicious-lord-relation--enemy,
+.auspicious-lord-relation--debilitated {
+  color: #a12424;
+}
+
+.auspicious-lord-relation--neutral {
+  color: #555;
+}
+
+.auspicious-lord-cell__adj {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.auspicious-lord-adj--plus {
+  color: #1a6b3a;
+}
+
+.auspicious-lord-adj--minus {
+  color: #a12424;
+}
+
 /* ---------- Site chrome (header / footer) ---------- */
 
 /* Header, main shell, and footer share the same max width and side gutters */

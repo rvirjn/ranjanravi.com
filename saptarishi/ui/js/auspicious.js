@@ -53,13 +53,14 @@
     { key: "houses_strength_total", className: "planets-td-strength" }
   ];
 
-  const SLOT_KUNDALI_TARGETS = {
-    summaryTable: "#slot-summary-table tbody",
-    chartHost: "slot-kundali-chart",
-    planetsTable: "#slot-planets-table tbody",
-    nakshatraTable: "#slot-nakshatra-table tbody",
-    skipShellUpdates: true
-  };
+  const SLOT_KUNDALI_TARGETS =
+    (window.SaptarishiKundaliView && window.SaptarishiKundaliView.SLOT_TARGETS) ||
+    {
+      summaryTable: "#slot-summary-table tbody",
+      chartHost: "slot-kundali-chart",
+      planetsTable: "#slot-planets-table tbody",
+      skipShellUpdates: true
+    };
 
   let lastScanPlace = "";
   let selectedTopRow = null;
@@ -139,35 +140,6 @@
       return (auspiciousPlaceCustom && auspiciousPlaceCustom.value.trim()) || "";
     }
     return auspiciousPlacePreset.value.trim();
-  }
-
-  function toTitleCaseWords(text) {
-    return String(text ?? "")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  }
-
-  function createSummaryLabelValueRow(label, value) {
-    const tr = document.createElement("tr");
-    const th = document.createElement("th");
-    th.scope = "row";
-    th.textContent = toTitleCaseWords(label);
-    const td = document.createElement("td");
-    td.textContent = String(value ?? "");
-    tr.appendChild(th);
-    tr.appendChild(td);
-    return tr;
-  }
-
-  function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
-    if (!summaryBody) return;
-    summaryBody.replaceChildren();
-    for (const row of summaryRows || []) {
-      summaryBody.appendChild(createSummaryLabelValueRow(row.label, row.value));
-    }
   }
 
   function applyTopTableCellStyle(td, colorKind) {
@@ -260,6 +232,280 @@
     handleTopRowClick(event);
   }
 
+  function formatPlanetDisplayName(planetKey) {
+    const key = String(planetKey || "").trim().toLowerCase();
+    if (!key) return "—";
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+
+  function formatRashiTitle(rashiEnglish) {
+    const text = String(rashiEnglish || "").trim();
+    if (!text) return "—";
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function formatLordComparisonCell(cell) {
+    if (cell?.display) return String(cell.display);
+    if (!cell || (!cell.rashi_english && cell.strength_percent == null)) return "—";
+    const rashi = formatRashiTitle(cell.rashi_english);
+    const relation = String(cell.rashi_relation || "neutral").toLowerCase();
+    const adjustment = cell.adjustment;
+    if (typeof adjustment === "number" && adjustment !== 0) {
+      return adjustment > 0
+        ? `${rashi} · ${relation} +${adjustment}`
+        : `${rashi} · ${relation} ${adjustment}`;
+    }
+    return `${rashi} · ${relation}`;
+  }
+
+  function lordComparisonCellTitle(cell) {
+    const parts = [];
+    if (cell?.breakdown) parts.push(String(cell.breakdown));
+    if (
+      typeof cell?.factor_sum === "number" &&
+      typeof cell?.strength_percent === "number" &&
+      cell.factor_sum === cell.strength_percent
+    ) {
+      parts.push(`100 + adjustments = ${cell.factor_sum}`);
+    } else if (typeof cell?.strength_percent === "number") {
+      parts.push(`Total ${cell.strength_percent} (100 + adjustments)`);
+    }
+    return parts.join(" · ") || "Show kundali for this slot";
+  }
+
+  function lordFactorBracketText(factor) {
+    const text = String(factor?.text || "").trim();
+    const value = factor?.value;
+    const name = text.replace(/\s+house$/i, "").replace(/\s+[+-]?\d+$/, "").trim();
+    if (typeof value === "number") {
+      if (value > 0) return `${name}(+${value})`;
+      if (value < 0) return `${name}(${value})`;
+      return `${name}(+0)`;
+    }
+    return text;
+  }
+
+  function appendLordFactorSpan(parent, factor) {
+    const tone = String(factor?.tone || "").toLowerCase();
+    const part = document.createElement("span");
+    part.className = "auspicious-lord-cell__part";
+    if (tone === "sign") part.classList.add("auspicious-lord-cell__rashi");
+    else if (tone === "plus") part.classList.add("auspicious-lord-adj--plus");
+    else if (tone === "minus") part.classList.add("auspicious-lord-adj--minus");
+    else if (tone === "neutral") part.classList.add("auspicious-lord-relation--neutral");
+    else if (tone === "total") part.classList.add("auspicious-lord-cell__total");
+    part.textContent = String(factor?.text || "");
+    parent.appendChild(part);
+    return part;
+  }
+
+  function buildLordComparisonCellElement(cell) {
+    const wrap = document.createElement("div");
+    wrap.className = "auspicious-lord-cell";
+    if (!cell || (!cell.rashi_english && cell.strength_percent == null)) {
+      wrap.textContent = "—";
+      return wrap;
+    }
+
+    const factors = Array.isArray(cell.factors) ? cell.factors : [];
+    if (factors.length) {
+      let signFactor = null;
+      let rashiFactor = null;
+      const otherFactors = [];
+      let totalFactor = null;
+      for (const factor of factors) {
+        const tone = String(factor?.tone || "").toLowerCase();
+        if (tone === "sign") signFactor = factor;
+        else if (tone === "total") totalFactor = factor;
+        else if (!rashiFactor && (tone === "plus" || tone === "minus" || tone === "neutral")) {
+          rashiFactor = factor;
+        } else {
+          otherFactors.push(factor);
+        }
+      }
+
+      if (signFactor && rashiFactor) {
+        appendLordFactorSpan(wrap, signFactor);
+        wrap.appendChild(document.createTextNode("("));
+        appendLordFactorSpan(wrap, rashiFactor);
+        wrap.appendChild(document.createTextNode(")"));
+      } else if (signFactor) {
+        appendLordFactorSpan(wrap, signFactor);
+      } else if (rashiFactor) {
+        appendLordFactorSpan(wrap, rashiFactor);
+      }
+
+      otherFactors.forEach((factor, index) => {
+        wrap.appendChild(document.createTextNode(", "));
+        const bracket = lordFactorBracketText(factor);
+        const part = document.createElement("span");
+        part.className = "auspicious-lord-cell__part";
+        const tone = String(factor?.tone || "").toLowerCase();
+        if (tone === "plus") part.classList.add("auspicious-lord-adj--plus");
+        else if (tone === "minus") part.classList.add("auspicious-lord-adj--minus");
+        part.textContent = bracket;
+        wrap.appendChild(part);
+      });
+
+      if (totalFactor) {
+        wrap.appendChild(document.createElement("br"));
+        appendLordFactorSpan(wrap, totalFactor);
+      }
+      return wrap;
+    }
+
+    if (cell.display_main || cell.display_total) {
+      if (cell.display_main) {
+        wrap.appendChild(document.createTextNode(String(cell.display_main)));
+      }
+      if (cell.display_total) {
+        wrap.appendChild(document.createElement("br"));
+        const total = document.createElement("span");
+        total.className = "auspicious-lord-cell__part auspicious-lord-cell__total";
+        total.textContent = String(cell.display_total);
+        wrap.appendChild(total);
+      }
+      return wrap;
+    }
+
+    wrap.textContent = formatLordComparisonCell(cell);
+    return wrap;
+  }
+
+  function highlightTopRowForSlot(date, time) {
+    const tbody = document.querySelector("#top-table tbody");
+    if (!tbody) return;
+    let match = null;
+    for (const tr of tbody.querySelectorAll("tr.auspicious-top-row")) {
+      if (tr.dataset.date === String(date || "") && tr.dataset.time === String(time || "")) {
+        match = tr;
+        break;
+      }
+    }
+    setSelectedTopRow(match);
+  }
+
+  function handleLordComparisonSlotActivate(slotData) {
+    if (!slotData?.date || !slotData?.time) return;
+    highlightTopRowForSlot(slotData.date, slotData.time);
+    loadKundaliForTopRow({
+      date: slotData.date,
+      time: slotData.time,
+      houses_strength_total: slotData.houses_strength_total
+    });
+  }
+
+  function handleLordComparisonHeaderClick(event) {
+    const th = event.currentTarget;
+    if (!th?.dataset?.date || !th?.dataset?.time) return;
+    handleLordComparisonSlotActivate({
+      date: th.dataset.date,
+      time: th.dataset.time,
+      houses_strength_total: th.dataset.strength
+    });
+  }
+
+  function handleLordComparisonCellClick(event) {
+    const td = event.currentTarget;
+    const columnIndex = Number(td.dataset.columnIndex);
+    const table = document.getElementById("lord-comparison-table");
+    const columns = table?._lordComparisonColumns;
+    if (!Number.isInteger(columnIndex) || !Array.isArray(columns)) return;
+    const slot = columns[columnIndex];
+    if (!slot) return;
+    handleLordComparisonSlotActivate(slot);
+  }
+
+  function renderLordComparisonTable(comparison) {
+    const section = document.getElementById("lord-comparison-section");
+    const table = document.getElementById("lord-comparison-table");
+    if (!section || !table) return;
+
+    const columns = comparison?.columns || [];
+    const rows = comparison?.rows || [];
+    table._lordComparisonColumns = columns;
+
+    if (!columns.length || !rows.length) {
+      section.hidden = true;
+      table.querySelector("thead")?.replaceChildren();
+      table.querySelector("tbody")?.replaceChildren();
+      return;
+    }
+
+    section.hidden = false;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    if (!thead || !tbody) return;
+
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Planet" }));
+    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Houses" }));
+
+    columns.forEach((column, index) => {
+      const th = document.createElement("th");
+      th.className = "auspicious-lord-col auspicious-lord-col--clickable";
+      th.tabIndex = 0;
+      th.setAttribute("role", "button");
+      th.dataset.date = String(column.date || "");
+      th.dataset.time = String(column.time || "");
+      th.dataset.strength = String(column.houses_strength_total ?? "");
+      th.dataset.columnIndex = String(index);
+      th.title = "Show kundali for this slot";
+
+      const label = document.createElement("span");
+      label.className = "auspicious-lord-col__label";
+      label.textContent = column.label || `${column.date} ${column.time}`;
+
+      const total = document.createElement("span");
+      total.className = "auspicious-lord-col__total";
+      total.textContent =
+        typeof column.houses_strength_total === "number"
+          ? `Total ${column.houses_strength_total}`
+          : "";
+
+      th.append(label, total);
+      th.addEventListener("click", handleLordComparisonHeaderClick);
+      th.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        handleLordComparisonHeaderClick({ currentTarget: th });
+      });
+      headerRow.appendChild(th);
+    });
+    thead.replaceChildren(headerRow);
+    tbody.replaceChildren();
+
+    for (const rowData of rows) {
+      const tr = document.createElement("tr");
+      tr.appendChild(
+        Object.assign(document.createElement("td"), {
+          textContent: formatPlanetDisplayName(rowData.planet)
+        })
+      );
+
+      const houses = Array.isArray(rowData.houses) ? rowData.houses.join(", ") : "";
+      tr.appendChild(Object.assign(document.createElement("td"), { textContent: houses || "—" }));
+
+      (rowData.cells || []).forEach((cell, index) => {
+        const td = document.createElement("td");
+        td.className = "auspicious-lord-col auspicious-lord-col--clickable";
+        td.tabIndex = 0;
+        td.setAttribute("role", "button");
+        td.dataset.columnIndex = String(index);
+        td.title = lordComparisonCellTitle(cell);
+        td.appendChild(buildLordComparisonCellElement(cell));
+        td.addEventListener("click", handleLordComparisonCellClick);
+        td.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          handleLordComparisonCellClick({ currentTarget: td });
+        });
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+  }
+
   function renderTopTableFromApiRows(tbody, rows) {
     if (!tbody) return;
     tbody.replaceChildren();
@@ -347,13 +593,25 @@
     return payload;
   }
 
+  function topTableHeadingText(payload) {
+    const topCount = Number(payload.top_count) || 5;
+    return `Top ${topCount} unique highest house strength totals`;
+  }
+
   function renderAuspiciousResponseIntoPage(payload) {
-    const summaryBody = document.querySelector("#summary-table tbody");
     const topBody = document.querySelector("#top-table tbody");
+    const topHeading = document.getElementById("top-table-heading");
 
     lastScanPlace = payload.place_query || getPlaceFromForm();
-    renderSummaryTableFromApiRows(summaryBody, payload.summary_table);
+    if (topHeading) {
+      topHeading.textContent = topTableHeadingText(payload);
+    }
+    const summaryRenderer = window.SaptarishiKundaliView?.renderSummaryTable;
+    if (summaryRenderer) {
+      summaryRenderer(document.querySelector("#summary-table tbody"), payload.summary_table);
+    }
     renderTopTableFromApiRows(topBody, payload.top_table || []);
+    renderLordComparisonTable(payload.lord_comparison_table || {});
 
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = false;
     showAuspiciousStatus(payload.ui_status_message || AC.AUSPICIOUS_READY_STATUS_MESSAGE);

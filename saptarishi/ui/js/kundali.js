@@ -1096,6 +1096,121 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
   host.appendChild(svg);
 }
 
+/** Planets table column headers (keep in sync with kundali.html). */
+const KUNDALI_PLANETS_TABLE_HEADERS = [
+  "Your Age",
+  "House",
+  "Planet",
+  "Aspected By",
+  "Planet Strength",
+  "House Strength",
+  "Malefic 6/8/12",
+  "Lagna Lord Enemy",
+  "Death Degree",
+  "Rashi Status",
+  "Rashi",
+  "Nakshatra",
+  "Karakwaqt",
+  "Nakshatra Status",
+  "Nakshatra navatara",
+  "Degree"
+];
+
+function kundaliElementId(idPrefix, base) {
+  return idPrefix ? `${idPrefix}-${base}` : base;
+}
+
+/** DOM selectors for the standard kundali view (summary + chart + planets). */
+function buildKundaliViewTargets(options = {}) {
+  const idPrefix = String(options.idPrefix || "").trim();
+  const dash = idPrefix ? `${idPrefix}-` : "";
+  return {
+    summaryTable: `#${dash}summary-table tbody`,
+    chartHost: kundaliElementId(idPrefix, "kundali-chart"),
+    planetsTable: `#${dash}planets-table tbody`,
+    skipShellUpdates: Boolean(options.skipShellUpdates)
+  };
+}
+
+function createKundaliSummaryTableElement(idPrefix) {
+  const table = document.createElement("table");
+  table.id = kundaliElementId(idPrefix, "summary-table");
+  table.className = "navatara-data-table kundali-table";
+  table.appendChild(document.createElement("tbody"));
+  return table;
+}
+
+function createKundaliPlanetsTableElement(idPrefix) {
+  const table = document.createElement("table");
+  table.id = kundaliElementId(idPrefix, "planets-table");
+  table.className = "navatara-data-table kundali-table";
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  for (const label of KUNDALI_PLANETS_TABLE_HEADERS) {
+    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: label }));
+  }
+  thead.appendChild(headerRow);
+  table.append(thead, document.createElement("tbody"));
+  return table;
+}
+
+/**
+ * Standard kundali panel: Summary (table + chart) and Planets table — same as kundali.html.
+ * Use on auspicious and other pages that drill down into a birth chart.
+ */
+function createStandardKundaliPanelElement(options = {}) {
+  const idPrefix = String(options.idPrefix || "slot").trim() || "slot";
+  const panel = document.createElement("div");
+  if (options.wrapperId) panel.id = options.wrapperId;
+  if (options.wrapperClass) panel.className = options.wrapperClass;
+  if (options.hidden) panel.hidden = true;
+
+  if (options.headingText) {
+    const title = document.createElement("h2");
+    title.className = "result-heading";
+    if (options.headingId) title.id = options.headingId;
+    title.textContent = options.headingText;
+    panel.appendChild(title);
+  }
+
+  panel.appendChild(Object.assign(document.createElement("h2"), {
+    className: "result-heading",
+    textContent: "Summary"
+  }));
+
+  const summaryRow = document.createElement("div");
+  summaryRow.className = "summary-chart-row";
+
+  const summaryWrap = document.createElement("div");
+  summaryWrap.className = "summary-chart-row__summary table-wrap";
+  summaryWrap.appendChild(createKundaliSummaryTableElement(idPrefix));
+
+  const chartWrap = document.createElement("div");
+  chartWrap.className = "summary-chart-row__chart";
+  chartWrap.appendChild(Object.assign(document.createElement("h3"), {
+    className: "result-heading kundali-chart-heading",
+    textContent: "Birth Chart"
+  }));
+  const chartHost = document.createElement("div");
+  chartHost.id = kundaliElementId(idPrefix, "kundali-chart");
+  chartHost.className = "kundali-chart-host";
+  chartWrap.appendChild(chartHost);
+
+  summaryRow.append(summaryWrap, chartWrap);
+  panel.appendChild(summaryRow);
+
+  panel.appendChild(Object.assign(document.createElement("h2"), {
+    className: "result-heading",
+    textContent: "Planets"
+  }));
+  const planetsWrap = document.createElement("div");
+  planetsWrap.className = "table-wrap";
+  planetsWrap.appendChild(createKundaliPlanetsTableElement(idPrefix));
+  panel.appendChild(planetsWrap);
+
+  return panel;
+}
+
 /** Fill summary table from API ``summary_table`` rows (built in kundali.py). */
 function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   if (!summaryBody) return;
@@ -1105,23 +1220,28 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   }
 }
 
-/** Fill summary, planets, and optional nakshatra tables from /api/kundali JSON. */
+/** Fill summary, chart, planets (and optional nakshatra when requested) from /api/kundali JSON. */
 function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
-  const summaryBody = document.querySelector(targets.summaryTable || "#summary-table tbody");
-  const planetsBody = document.querySelector(targets.planetsTable || "#planets-table tbody");
-  const nakshatraSelector = targets.nakshatraTable || "#nakshatra-table tbody";
-  const nakshatraBody = document.querySelector(nakshatraSelector);
-  const chartHost = targets.chartHost || "kundali-chart";
+  const viewTargets = targets.summaryTable ? targets : buildKundaliViewTargets(targets);
+  const summaryBody = document.querySelector(viewTargets.summaryTable || "#summary-table tbody");
+  const planetsBody = document.querySelector(viewTargets.planetsTable || "#planets-table tbody");
+  const chartHostId = viewTargets.chartHost || "kundali-chart";
+  const chartHostEl = document.getElementById(chartHostId);
 
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
-  renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHost);
-
+  if (chartHostEl) {
+    renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHostId);
+  }
   renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
-  if (nakshatraBody) {
-    renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
+
+  if (viewTargets.nakshatraTable) {
+    const nakshatraBody = document.querySelector(viewTargets.nakshatraTable);
+    if (nakshatraBody) {
+      renderNakshatraTableWithColors(nakshatraBody, kundaliPayload.nakshatras || []);
+    }
   }
 
-  if (!targets.skipShellUpdates) {
+  if (!viewTargets.skipShellUpdates) {
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
   }
@@ -1220,6 +1340,11 @@ window.SaptarishiKundaliView = {
   ensurePlanetDatabase,
   fetchJson: fetchKundaliJsonFromApi,
   renderIntoPage: renderKundaliResponseIntoPage,
+  renderSummaryTable: renderSummaryTableFromApiRows,
+  buildViewTargets: buildKundaliViewTargets,
+  createStandardPanel: createStandardKundaliPanelElement,
+  MAIN_TARGETS: buildKundaliViewTargets(),
+  SLOT_TARGETS: buildKundaliViewTargets({ idPrefix: "slot", skipShellUpdates: true }),
   renderNakshatraTableWithColors,
   formatNavataraName,
   normalizeText

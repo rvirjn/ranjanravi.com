@@ -46,11 +46,51 @@ def _prune_output_dir(directory: Path, *, max_files: int, keep: Path | None = No
             pass
 
 
+def yes_no_str(flag: bool) -> str:
+    """``yes`` / ``no`` string for JSON (no boolean literals in output)."""
+    from utils.constant import HOUSE_6_8_12_NO, HOUSE_6_8_12_YES
+
+    return HOUSE_6_8_12_YES if flag else HOUSE_6_8_12_NO
+
+
+def parse_required_yes_no(value: Any, *, field: str, context: str) -> bool:
+    """Read required ``yes`` / ``no`` flag from ``data.json`` (boolean not allowed)."""
+    if value is None or (isinstance(value, str) and not str(value).strip()):
+        raise ValueError(f"{context} missing {field}")
+    if isinstance(value, bool):
+        raise ValueError(f"{context} {field} must be yes/no string, not boolean")
+    text = str(value).strip().lower()
+    if text == "yes":
+        return True
+    if text == "no":
+        return False
+    raise ValueError(f"{context} {field} must be yes or no, got {value!r}")
+
+
+def is_yes_no(value: Any) -> bool:
+    """True when value is ``yes`` (string). Legacy boolean accepted when reading charts."""
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() == "yes"
+
+
+def json_stringify_yes_no_values(obj: Any) -> Any:
+    """Recursively replace booleans with ``yes``/``no`` for JSON file output."""
+    if isinstance(obj, bool):
+        return yes_no_str(obj)
+    if isinstance(obj, dict):
+        return {key: json_stringify_yes_no_values(val) for key, val in obj.items()}
+    if isinstance(obj, list):
+        return [json_stringify_yes_no_values(item) for item in obj]
+    return obj
+
+
 def write_json_report(path: Path, report: dict[str, Any], *, max_files: int | None = None) -> None:
     """Write JSON to ``path`` and drop older ``*.json`` files in the same folder."""
     limit = _output_max_files() if max_files is None else max_files
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    safe_report = json_stringify_yes_no_values(report)
+    path.write_text(json.dumps(safe_report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if limit > 0:
         _prune_output_dir(path.parent, max_files=limit, keep=path)
 

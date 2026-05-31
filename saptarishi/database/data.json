@@ -5,30 +5,35 @@
         "low_deg": 0,
         "high_deg": 6,
         "phase": "born",
+        "apply_rule": "no",
         "strength_percent": 25
       },
       {
         "low_deg": 6,
         "high_deg": 12,
         "phase": "child",
+        "apply_rule": "no",
         "strength_percent": 50
       },
       {
         "low_deg": 12,
         "high_deg": 18,
         "phase": "youth",
+        "apply_rule": "no",
         "strength_percent": 100
       },
       {
         "low_deg": 18,
         "high_deg": 24,
         "phase": "old",
+        "apply_rule": "no",
         "strength_percent": 50
       },
       {
         "low_deg": 24,
         "high_deg": 30,
         "phase": "dead",
+        "apply_rule": "no",
         "strength_percent": 25
       }
     ],
@@ -36,59 +41,78 @@
       {
         "id": "exalted",
         "increase_strength_percent": 100,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "debilitated",
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 100
+        "decrease_strength_percent": 100,
+        "apply_rule": "yes"
       },
       {
         "id": "own_rashi",
         "increase_strength_percent": 75,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "enemy_rashi",
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 50
+        "decrease_strength_percent": 50,
+        "apply_rule": "yes"
       },
       {
         "id": "friend_rashi",
         "increase_strength_percent": 50,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "own_nakshatra",
         "increase_strength_percent": 55,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "enemy_nakshatra",
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 30
+        "decrease_strength_percent": 30,
+        "apply_rule": "yes"
       },
       {
         "id": "friend_nakshatra",
         "increase_strength_percent": 30,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "retrograde",
         "increase_strength_percent": 40,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "dusthana_house",
-        "houses": [6, 8, 12],
+        "houses": [
+          6,
+          8,
+          12
+        ],
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 60
+        "decrease_strength_percent": 45,
+        "apply_rule": "yes"
       },
       {
         "id": "trikona_house",
-        "houses": [5, 9, 1],
-        "increase_strength_percent": 60,
-        "decrease_strength_percent": 0
+        "houses": [
+          5,
+          9,
+          1
+        ],
+        "increase_strength_percent": 45,
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "combustion",
@@ -103,37 +127,49 @@
           "jupiter": 11,
           "venus": 10,
           "saturn": 15
-        }
+        },
+        "apply_rule": "yes"
       },
       {
         "id": "death_degree",
         "factor": "Mrityu Bhaga death degree (sets strength to increase_strength_percent when matched)",
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 100
+        "decrease_strength_percent": 100,
+        "apply_rule": "yes"
       },
       {
         "id": "good_karakwaqt",
-        "karakwaqt_names": ["yog karak", "karak"],
+        "karakwaqt_names": [
+          "yog karak",
+          "karak"
+        ],
         "increase_strength_percent": 40,
-        "decrease_strength_percent": 0
+        "decrease_strength_percent": 0,
+        "apply_rule": "yes"
       },
       {
         "id": "bad_karakwaqt",
-        "karakwaqt_names": ["marak", "badhak", "prabal marak"],
+        "karakwaqt_names": [
+          "marak",
+          "badhak",
+          "prabal marak"
+        ],
         "increase_strength_percent": 0,
-        "decrease_strength_percent": 40
+        "decrease_strength_percent": 40,
+        "apply_rule": "yes"
       },
       {
         "id": "strength_limits",
         "factor": "Final strength % clamp (min_percent floor, max_percent ceiling; not a bonus/penalty).",
         "min_percent": 0,
-        "max_percent": 500
+        "max_percent": 500,
+        "apply_rule": "no"
       }
     ],
     "status_column_color": [
       {
         "column": "Rashi Status",
-        "affects_strength_percent": false,
+        "affects_strength_percent": "no",
         "cell_color": {
           "own": "green",
           "friend": "green",
@@ -144,7 +180,7 @@
       },
       {
         "column": "Nakshatra Status",
-        "affects_strength_percent": false,
+        "affects_strength_percent": "no",
         "cell_color": {
           "own": "green",
           "friend": "green",
@@ -156,7 +192,7 @@
       {
         "column": "Nakshatra navatara",
         "factor": "Harmful nava-tara (vipat, pratyak, vadha, etc.) from Moon janma wheel",
-        "affects_strength_percent": false,
+        "affects_strength_percent": "no",
         "cell_color": {
           "harmful": "red"
         }
@@ -164,14 +200,14 @@
       {
         "column": "Malefic 6/8/12, Lagna Lord Enemy, Death Degree",
         "factor": "Yes if planet in dusthana house, enemy of lagna lord, or Mrityu Bhaga",
-        "affects_strength_percent": false,
+        "affects_strength_percent": "no",
         "cell_color": {
           "yes": "red"
         }
       },
       {
         "column": "Karakwaqt",
-        "affects_strength_percent": false,
+        "affects_strength_percent": "no",
         "cell_color": {
           "yog_karak": "green",
           "marak": "red",
@@ -184,7 +220,7 @@
       "factor": "Planet Strength column cell background (green if strength > high_green_above_percent; red at death degree or strength <= red_at_or_below_percent; does not change %)",
       "high_green_above_percent": 100,
       "red_at_or_below_percent": 0,
-      "red_if_death_degree": true
+      "red_if_death_degree": "yes"
     },
     "aspect_rules": {
       "by_offset": [
@@ -225,182 +261,218 @@
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 3
+        "offset": 3,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 4
+        "offset": 4,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 5
+        "offset": 5,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 100,
-        "offset": 7
+        "offset": 7,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 8
+        "offset": 8,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 9
+        "offset": 9,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_own_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 10
+        "offset": 10,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 25,
-        "offset": 3
+        "offset": 3,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 33,
-        "offset": 4
+        "offset": 4,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 50,
-        "offset": 5
+        "offset": 5,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 100,
-        "offset": 7
+        "offset": 7,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 33,
-        "offset": 8
+        "offset": 8,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 50,
-        "offset": 9
+        "offset": 9,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_debilitated_rashi_planet",
         "decrease_strength_percent": 25,
-        "offset": 10
+        "offset": 10,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 3
+        "offset": 3,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 4
+        "offset": 4,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 5
+        "offset": 5,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 100,
-        "offset": 7
+        "offset": 7,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 8
+        "offset": 8,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 9
+        "offset": 9,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_exalted_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 10
+        "offset": 10,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 25,
-        "offset": 3
+        "offset": 3,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 33,
-        "offset": 4
+        "offset": 4,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 50,
-        "offset": 5
+        "offset": 5,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 100,
-        "offset": 7
+        "offset": 7,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 33,
-        "offset": 8
+        "offset": 8,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 50,
-        "offset": 9
+        "offset": 9,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_enemy_rashi_planet",
         "decrease_strength_percent": 25,
-        "offset": 10
+        "offset": 10,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 3
+        "offset": 3,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 4
+        "offset": 4,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 5
+        "offset": 5,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 100,
-        "offset": 7
+        "offset": 7,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 33,
-        "offset": 8
+        "offset": 8,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 50,
-        "offset": 9
+        "offset": 9,
+        "apply_rule": "no"
       },
       {
         "id": "aspect_by_friend_rashi_planet",
         "increase_strength_percent": 25,
-        "offset": 10
+        "offset": 10,
+        "apply_rule": "no"
       },
       {
         "id": "strength_limits",
         "min_percent": 0,
-        "max_percent": 500
+        "max_percent": 500,
+        "apply_rule": "no"
       }
     ],
     "total_strength_percent": "house_strength_percent + planet_strength_percent"
