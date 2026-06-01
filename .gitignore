@@ -40,10 +40,11 @@ yarn-error.log
 testem.log
 /typings
 
-# Python
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # Saptarishi generated kundali / auspicious JSON dumps
 saptarishi/output/
