@@ -24,6 +24,7 @@ const SAPTARISHI_CONSTANTS = {
   PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
+  API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
   API_AUSPICIOUS_PATH: "/api/auspicious",
   API_PLANET_DATABASE_PATH: "/api/planet-database",
   API_AUTH_REGISTER_PATH: "/api/auth/register",

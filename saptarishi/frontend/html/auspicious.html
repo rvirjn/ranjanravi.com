@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Auspicious baby birth times by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=97">
+  <link rel="stylesheet" href="../style/styles.css?v=102">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -41,31 +41,53 @@
         <label for="date-to">To date</label>
         <input type="date" id="date-to" required />
       </div>
-      <div class="form-field form-field--submit">
-        <button type="submit" id="submit-btn">Show</button>
+      <div class="form-field form-field--submit form-field--actions">
+        <div class="form-actions">
+          <button type="submit" id="submit-btn">Show</button>
+          <button type="button" id="compare-toggle-btn" class="btn-secondary">Kundali compare</button>
+        </div>
       </div>
     </form>
+
+    <section id="kundali-compare-panel" class="kundali-compare-panel" hidden>
+      <h2 class="result-heading">Kundali Compare</h2>
+      <p class="lead">Enter 2–5 birth details (same fields as kundali), then <strong>Show</strong>.</p>
+      <form id="kundali-compare-form" class="kundali-compare-form" autocomplete="off">
+        <div id="compare-births" class="kundali-compare-births"></div>
+        <div class="search-form kundali-form kundali-compare-actions">
+          <div class="form-field form-field--submit form-field--actions">
+            <div class="form-actions">
+              <button type="button" id="compare-add-btn" class="btn-secondary">+ Add More</button>
+              <button type="submit" id="compare-show-btn">Show</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
 
     <div id="results" hidden>
-      <h2 class="result-heading">Summary</h2>
-      <div class="table-wrap">
-        <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
-      </div>
+      <div id="auspicious-scan-results">
+        <h2 class="result-heading">Summary</h2>
+        <div class="table-wrap">
+          <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+        </div>
 
-      <h2 id="top-table-heading" class="result-heading">Top 5 unique highest house strength totals</h2>
-      <div class="table-wrap">
-        <table id="top-table" class="navatara-data-table kundali-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Houses strength total</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <h2 id="top-table-heading" class="result-heading">Top 5 unique highest house strength totals</h2>
+        <div class="table-wrap">
+          <table id="top-table" class="navatara-data-table kundali-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Houses strength total</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
 
       <div id="lord-comparison-section" hidden>
@@ -83,13 +105,13 @@
     </div>
   </div>
 
-  <script src="../utils/constants.js?v=43"></script>
+  <script src="../utils/constants.js?v=44"></script>
   <script src="../js/auth.js?v=14"></script>
   <script src="../js/loading.js?v=1"></script>
   <script src="../js/auth-modal.js?v=8"></script>
   <script src="../js/premium-modal.js?v=3"></script>
   <script src="../js/common.js?v=27"></script>
   <script src="../js/kundali.js?v=129"></script>
-  <script src="../js/auspicious.js?v=26"></script>
+  <script src="../js/auspicious.js?v=35"></script>
 </body>
 </html>

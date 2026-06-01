@@ -287,13 +287,8 @@ function planetsTableCellText(key, rowData) {
   if (key === "aspected_by") {
     return formatAspectedByPlanets(rowData);
   }
-  if (key === "house_strength") {
-    const text = rowData.house_strength ?? rowData[key];
-    if (String(text ?? "").trim()) return text;
-    if (typeof rowData.house_strength_percent === "number") {
-      return `${rowData.house_strength_percent}%`;
-    }
-    return "";
+  if (key === "house_lord") {
+    return rowData.house_lord ?? rowData[key] ?? "";
   }
   return rowData[key];
 }
@@ -315,8 +310,8 @@ function formatTableCellForDisplay(key, cell) {
     }
     return text;
   }
-  if (key === "planet") {
-    if (!String(text).trim()) return "No planet";
+  if (key === "planet" || key === "house_lord") {
+    if (!String(text).trim()) return key === "planet" ? "No planet" : "—";
     return toTitleCaseWords(text);
   }
   if (key === "planet_status_in_rashi" || key === "planet_status_in_nakshatra") {
@@ -329,7 +324,7 @@ function formatTableCellForDisplay(key, cell) {
   }
   if (
     key === "strength" ||
-    key === "house_strength" ||
+    key === "house_lord" ||
     key === "degree" ||
     key === "nakshatra" ||
     key === "navatara" ||
@@ -653,7 +648,7 @@ function renderPlanetsTableWithColors(tbody, rows) {
     "planet",
     "aspected_by",
     "strength",
-    "house_strength",
+    "house_lord",
     "is_planet_in_6_8_12_house",
     "is_planet_lagna_lord_enemy",
     "is_planet_at_death_degree",
@@ -1103,7 +1098,7 @@ const KUNDALI_PLANETS_TABLE_HEADERS = [
   "Planet",
   "Aspected By",
   "Planet Strength",
-  "House Strength",
+  "House Lord",
   "Malefic 6/8/12",
   "Lagna Lord Enemy",
   "Death Degree",

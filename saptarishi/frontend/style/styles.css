@@ -816,7 +816,8 @@ tbody tr:last-child td {
 
 #results .table-wrap,
 #results .navatara-table-wrap,
-#results .nakshatra-table-wrap {
+#results .nakshatra-table-wrap,
+#lord-comparison-section .table-wrap {
   overflow: visible;
   max-width: 100%;
 }
@@ -825,7 +826,8 @@ tbody tr:last-child td {
   overflow-x: auto;
 }
 
-#results table.kundali-table {
+#results table.kundali-table,
+#lord-comparison-section table.kundali-table {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -833,7 +835,9 @@ tbody tr:last-child td {
 }
 
 #results table.kundali-table th,
-#results table.kundali-table td {
+#results table.kundali-table td,
+#lord-comparison-section table.kundali-table th,
+#lord-comparison-section table.kundali-table td {
   padding: 0.2rem 0.15rem;
   font-size: 0.65rem;
   line-height: 1.15;
@@ -843,7 +847,8 @@ tbody tr:last-child td {
   vertical-align: top;
 }
 
-#results table.kundali-table th {
+#results table.kundali-table th,
+#lord-comparison-section table.kundali-table th {
   font-size: 0.6rem;
   font-weight: 600;
   white-space: normal;
@@ -1331,6 +1336,68 @@ tbody tr:last-child td {
 
 .auspicious-lord-adj--minus {
   color: #a12424;
+}
+
+.btn-secondary {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-heading);
+  background: #fff;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted, #f4f6fa);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-form.kundali-form .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.kundali-compare-panel {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-surface-border);
+}
+
+.kundali-compare-births {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.kundali-compare-birth.search-form.kundali-form {
+  margin-bottom: 0;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+.kundali-compare-births .kundali-compare-birth.search-form.kundali-form:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.kundali-compare-actions.search-form.kundali-form {
+  margin-top: var(--space-lg);
+  margin-bottom: 0;
+  padding-top: var(--space-md);
+}
+
+.kundali-compare-form .search-form button[type="submit"] {
+  min-width: 7rem;
 }
 
 /* ---------- Site chrome (header / footer) ---------- */
