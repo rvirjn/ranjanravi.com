@@ -224,7 +224,8 @@ body.saptarishi-page {
   box-sizing: border-box;
 }
 
-.search-form button[type="submit"] {
+.search-form button[type="submit"],
+.search-form.kundali-form .form-actions #compare-toggle-btn {
   padding: var(--space-sm) var(--space-lg);
   font-family: var(--font-ui);
   font-weight: 600;
@@ -237,7 +238,8 @@ body.saptarishi-page {
   transition: background 0.15s ease;
 }
 
-.search-form button[type="submit"]:hover {
+.search-form button[type="submit"]:hover,
+.search-form.kundali-form .form-actions #compare-toggle-btn:hover {
   background: var(--color-primary-hover);
 }
 
