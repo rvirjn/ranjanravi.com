@@ -1299,6 +1299,10 @@ async function handleBirthFormSubmit(event) {
 
   showLoadingStatus();
   if (resultsEl) resultsEl.hidden = true;
+  const lordSection = document.getElementById("lord-comparison-section");
+  if (lordSection) lordSection.hidden = true;
+  const singleResults = document.getElementById("kundali-single-results");
+  if (singleResults) singleResults.hidden = false;
 
   try {
     await ensurePlanetDatabase();
@@ -1345,4 +1349,11 @@ window.SaptarishiKundaliView = {
   renderNakshatraTableWithColors,
   formatNavataraName,
   normalizeText
+};
+
+window.SaptarishiKundaliPage = {
+  showStatus: showStatusMessage,
+  showLoading: showLoadingStatus,
+  formatError: formatKundaliLoadError,
+  getApiOrigin: getFlaskApiOrigin
 };
