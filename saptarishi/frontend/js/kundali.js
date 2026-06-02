@@ -1,25 +1,10 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 
-const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
-  FLASK_PORT: 8081,
-  PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
-  DEFAULT_HOUSE_SYSTEM: "W",
-  API_KUNDALI_PATH: "/api/kundali",
-  API_PLANET_DATABASE_PATH: "/api/planet-database",
-  PLACE_CUSTOM_VALUE: "__custom__",
-  MAX_PLACE_QUERY_LENGTH: 240,
-  NAVATARA_INTENSITY: {
-    "ati-maitri": 1,
-    janma: 1,
-    sadhaka: 0.85,
-    sampat: 0.75,
-    kshema: 0.7,
-    maitri: 0.5,
-    vipat: 0.75,
-    pratyari: 0.65,
-    vadha: 1
-  }
-};
+const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+const CU = window.SaptarishiCommonUtils || null;
+if (!C) {
+  throw new Error("SAPTARISHI_CONSTANTS is required");
+}
 
 /** Cached planet database from ``/api/planet-database`` (``backend/database/data.json``). */
 let planetDatabase = null;
@@ -35,31 +20,24 @@ const birthTime = document.getElementById("birth-time");
 
 /** True when UI is opened from localhost (Docker nginx on :9999 or file://). */
 function isLocalDevUi() {
+  if (CU && CU.isLocalDevUiHost) return CU.isLocalDevUiHost();
   const host = window.location.hostname;
-  return (
-    window.location.protocol === "file:" ||
-    host === "localhost" ||
-    host === "127.0.0.1"
-  );
+  return window.location.protocol === "file:" || host === "localhost" || host === "127.0.0.1";
 }
 
 /** Flask API: localhost:8081 in dev; Render URL in production. */
 function getFlaskApiOrigin() {
-  if (isLocalDevUi()) {
-    return `http://localhost:${C.FLASK_PORT}`;
-  }
-  return String(C.PRODUCTION_API_ORIGIN || "https://api.ranjanravi.com").replace(
-    /\/$/,
-    ""
-  );
+  if (CU && CU.getApiOrigin) return CU.getApiOrigin(C);
+  return isLocalDevUi() ? `http://localhost:${C.FLASK_PORT}` : String(C.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
 }
 
 /** Show loading or error text under the birth form; hide when empty. */
 function showStatusMessage(message, isError, isLimitError) {
-  if (!statusEl) return;
-  if (globalThis.SaptarishiLoading) {
-    globalThis.SaptarishiLoading.stop(statusEl);
+  if (CU && CU.setStatusMessage) {
+    CU.setStatusMessage(statusEl, message, isError, isLimitError);
+    return;
   }
+  if (!statusEl) return;
   const text = message || "";
   statusEl.textContent = text;
   statusEl.hidden = !text;
@@ -67,33 +45,35 @@ function showStatusMessage(message, isError, isLimitError) {
   statusEl.classList.toggle("status--limit", Boolean(isLimitError));
 }
 
-function showLoadingStatus() {
-  if (!statusEl) return;
-  if (globalThis.SaptarishiLoading) {
-    globalThis.SaptarishiLoading.start(statusEl);
+function showKundaliLoadingStatus() {
+  if (CU && CU.startStatusLoading) {
+    CU.startStatusLoading(statusEl, showStatusMessage);
     return;
   }
   showStatusMessage("Loading…");
 }
 
-function stripPerIpWording(message) {
+function removePerIpTextFromMessage(message) {
+  if (CU && CU.removePerIpText) return CU.removePerIpText(message);
   return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
 }
 
-function formatKundaliLoadError(err) {
-  const msg = stripPerIpWording(err?.message || "Request failed");
-  const limitReached =
-    Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
-  return {
-    text: limitReached
-      ? msg || "Free kundali limit reached."
-      : `Failed to load kundali: ${msg}`,
-    limitReached
-  };
+function formatKundaliApiError(err) {
+  if (CU && CU.formatApiLoadError) {
+    return CU.formatApiLoadError(err, {
+      failurePrefix: "Failed to load kundali",
+      limitReachedFallback: "Free kundali limit reached."
+    });
+  }
+  const msg = removePerIpTextFromMessage(err?.message || "Request failed");
+  return { text: `Failed to load kundali: ${msg}`, limitReached: false };
 }
 
 /** Read place string from preset dropdown or custom text field. */
-function getBirthPlaceFromForm() {
+function getBirthPlaceFromKundaliForm() {
+  if (CU && CU.getPlaceFromPresetOrCustom) {
+    return CU.getPlaceFromPresetOrCustom(placePreset, placeCustom, C.PLACE_CUSTOM_VALUE);
+  }
   if (!placePreset) return "";
   if (placePreset.value === C.PLACE_CUSTOM_VALUE) return (placeCustom && placeCustom.value.trim()) || "";
   return placePreset.value.trim();
@@ -383,7 +363,7 @@ function strengthMaxFromPayload(kundaliPayload) {
 /** Fetch and cache full planet database JSON from API. */
 async function ensurePlanetDatabase() {
   if (planetDatabase) return planetDatabase;
-  const path = C.API_PLANET_DATABASE_PATH || "/api/planet-database";
+  const path = C.API_PLANET_DATABASE_PATH;
   try {
     const payload =
       typeof SaptarishiAuth !== "undefined"
@@ -1284,6 +1264,10 @@ function validateBirthForm(place) {
 
 /** Show/hide custom place input when preset is "Other". */
 function syncCustomPlaceFieldVisibility() {
+  if (CU && CU.syncCustomPlaceVisibility) {
+    CU.syncCustomPlaceVisibility(placePreset, customWrap, placeCustom, C.PLACE_CUSTOM_VALUE);
+    return;
+  }
   const isCustom = placePreset.value === C.PLACE_CUSTOM_VALUE;
   if (customWrap) customWrap.hidden = !isCustom;
   if (!isCustom && placeCustom) placeCustom.value = "";
@@ -1292,14 +1276,14 @@ function syncCustomPlaceFieldVisibility() {
 /** Form submit: fetch kundali JSON and render all tables. */
 async function handleBirthFormSubmit(event) {
   event.preventDefault();
-  const place = getBirthPlaceFromForm();
+  const place = getBirthPlaceFromKundaliForm();
   const validationError = validateBirthForm(place);
   if (validationError) {
     showStatusMessage(validationError, true);
     return;
   }
 
-  showLoadingStatus();
+  showKundaliLoadingStatus();
   if (resultsEl) resultsEl.hidden = true;
   const lordSection = document.getElementById("lord-comparison-section");
   if (lordSection) lordSection.hidden = true;
@@ -1315,7 +1299,7 @@ async function handleBirthFormSubmit(event) {
     );
     renderKundaliResponseIntoPage(kundaliPayload);
   } catch (err) {
-    const formatted = formatKundaliLoadError(err);
+    const formatted = formatKundaliApiError(err);
     if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
       SaptarishiAuth.clearSession();
     }
@@ -1378,10 +1362,10 @@ window.SaptarishiKundaliPage = {
     return {
       date: birthDate?.value?.trim() || "",
       time: birthTime?.value?.trim() || "",
-      place: getBirthPlaceFromForm()
+      place: getBirthPlaceFromKundaliForm()
     };
   },
   validateMainBirthForm() {
-    return validateBirthForm(getBirthPlaceFromForm());
+    return validateBirthForm(getBirthPlaceFromKundaliForm());
   }
 };

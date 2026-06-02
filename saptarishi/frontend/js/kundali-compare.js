@@ -1,20 +1,11 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 /** Kundali page: compare 2–5 births (lord strength table). */
 (function kundaliComparePage() {
+  const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  const CU = window.SaptarishiCommonUtils || null;
+  if (!C) return;
   const panel = document.getElementById("kundali-compare-panel");
   if (!panel) return;
-
-  const C =
-    typeof SAPTARISHI_CONSTANTS !== "undefined"
-      ? SAPTARISHI_CONSTANTS
-      : {
-          FLASK_PORT: 8081,
-          PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
-          DEFAULT_HOUSE_SYSTEM: "W",
-          API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
-          PLACE_CUSTOM_VALUE: "__custom__",
-          MAX_PLACE_QUERY_LENGTH: 240
-        };
 
   const COMPARE_MIN_BIRTHS = 2;
   const COMPARE_MAX_BIRTHS = 5;
@@ -58,18 +49,18 @@
 
   function getApiOrigin() {
     if (typeof page.getApiOrigin === "function") return page.getApiOrigin();
-    return "https://api.ranjanravi.com";
+    if (CU && CU.getApiOrigin) return CU.getApiOrigin(C);
+    return String(C.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
   async function parseApiJsonResponse(response) {
-    const text = await response.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error(
-        `API returned HTML (HTTP ${response.status}). Restart Flask on port ${C.FLASK_PORT}.`
-      );
+    if (CU && CU.parseApiJsonResponse) {
+      return CU.parseApiJsonResponse(response, {
+        restartHint: `Restart Flask on port ${C.FLASK_PORT}.`
+      });
     }
+    const text = await response.text();
+    return JSON.parse(text);
   }
 
   function normalizeCompareTime(timeS) {
@@ -99,17 +90,21 @@
   function getPlaceFromCompareRow(rowEl) {
     const preset = rowEl.querySelector(".compare-place-preset");
     const custom = rowEl.querySelector(".compare-place-custom");
-    if (!preset) return "";
-    if (preset.value === C.PLACE_CUSTOM_VALUE) {
-      return (custom && custom.value.trim()) || "";
+    if (CU && CU.getPlaceFromPresetOrCustom) {
+      return CU.getPlaceFromPresetOrCustom(preset, custom, C.PLACE_CUSTOM_VALUE);
     }
-    return preset.value.trim();
+    if (!preset) return "";
+    return preset.value === C.PLACE_CUSTOM_VALUE ? (custom && custom.value.trim()) || "" : preset.value.trim();
   }
 
   function syncCompareCustomPlace(rowEl) {
     const preset = rowEl.querySelector(".compare-place-preset");
     const wrap = rowEl.querySelector(".compare-custom-place-wrap");
     const custom = rowEl.querySelector(".compare-place-custom");
+    if (CU && CU.syncCustomPlaceVisibility) {
+      CU.syncCustomPlaceVisibility(preset, wrap, custom, C.PLACE_CUSTOM_VALUE);
+      return;
+    }
     const isCustom = preset && preset.value === C.PLACE_CUSTOM_VALUE;
     if (wrap) wrap.hidden = !isCustom;
     if (!isCustom && custom) custom.value = "";

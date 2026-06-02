@@ -1,15 +1,9 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 /** Auspicious page (loaded after kundali.js on auspicious.html). */
 (function auspiciousPage() {
-  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
-    FLASK_PORT: 8081,
-    PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
-    DEFAULT_HOUSE_SYSTEM: "W",
-    API_AUSPICIOUS_PATH: "/api/auspicious",
-    PLACE_CUSTOM_VALUE: "__custom__",
-    MAX_PLACE_QUERY_LENGTH: 240,
-    AUSPICIOUS_READY_STATUS_MESSAGE: "Top auspicious date and time slots are ready"
-  };
+  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  const CU = window.SaptarishiCommonUtils || null;
+  if (!AC) return;
 
   const auspiciousForm = document.getElementById("auspicious-form");
   const auspiciousStatusEl = document.getElementById("status");
@@ -28,7 +22,7 @@
     return `${y}-${m}-${d}`;
   }
 
-  function addMonths(date, months) {
+  function addMonthsToDate(date, months) {
     const result = new Date(date.getTime());
     result.setMonth(result.getMonth() + months);
     return result;
@@ -41,34 +35,21 @@
       dateFrom.value = formatDateInputValue(today);
     }
     if (dateTo && !dateTo.value) {
-      dateTo.value = formatDateInputValue(addMonths(today, 1));
+      dateTo.value = formatDateInputValue(addMonthsToDate(today, 1));
     }
-  }
-
-  function isLocalDevUi() {
-    const host = window.location.hostname;
-    return (
-      window.location.protocol === "file:" ||
-      host === "localhost" ||
-      host === "127.0.0.1"
-    );
   }
 
   function getFlaskApiOrigin() {
-    if (isLocalDevUi()) {
-      return `http://localhost:${AC.FLASK_PORT}`;
-    }
-    return String(AC.PRODUCTION_API_ORIGIN || "https://api.ranjanravi.com").replace(
-      /\/$/,
-      ""
-    );
+    if (CU && CU.getApiOrigin) return CU.getApiOrigin(AC);
+    return String(AC.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
   function showAuspiciousStatus(message, isError, isLimitError) {
-    if (!auspiciousStatusEl) return;
-    if (globalThis.SaptarishiLoading) {
-      globalThis.SaptarishiLoading.stop(auspiciousStatusEl);
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(auspiciousStatusEl, message, isError, isLimitError);
+      return;
     }
+    if (!auspiciousStatusEl) return;
     const text = message || "";
     auspiciousStatusEl.textContent = text;
     auspiciousStatusEl.hidden = !text;
@@ -77,31 +58,37 @@
   }
 
   function showAuspiciousLoading() {
-    if (!auspiciousStatusEl) return;
-    if (globalThis.SaptarishiLoading) {
-      globalThis.SaptarishiLoading.start(auspiciousStatusEl);
+    if (CU && CU.startStatusLoading) {
+      CU.startStatusLoading(auspiciousStatusEl, showAuspiciousStatus);
       return;
     }
     showAuspiciousStatus("Loading…");
   }
 
   function stripPerIpWording(message) {
+    if (CU && CU.removePerIpText) return CU.removePerIpText(message);
     return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
   }
 
   function formatAuspiciousLoadError(err) {
+    if (CU && CU.formatApiLoadError) {
+      return CU.formatApiLoadError(err, {
+        failurePrefix: "Failed to load auspicious times",
+        limitReachedFallback: "Free auspicious limit reached."
+      });
+    }
     const msg = stripPerIpWording(err?.message || "Request failed");
-    const limitReached =
-      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
-    return {
-      text: limitReached
-        ? msg || "Free auspicious limit reached."
-        : `Failed to load auspicious times: ${msg}`,
-      limitReached
-    };
+    return { text: `Failed to load auspicious times: ${msg}`, limitReached: false };
   }
 
   function getPlaceFromForm() {
+    if (CU && CU.getPlaceFromPresetOrCustom) {
+      return CU.getPlaceFromPresetOrCustom(
+        auspiciousPlacePreset,
+        auspiciousPlaceCustom,
+        AC.PLACE_CUSTOM_VALUE
+      );
+    }
     if (!auspiciousPlacePreset) return "";
     if (auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE) {
       return (auspiciousPlaceCustom && auspiciousPlaceCustom.value.trim()) || "";
@@ -121,7 +108,7 @@
     }
   }
 
-  function validateForm(place) {
+  function validateAuspiciousFormInput(place) {
     if (!auspiciousPlacePreset.value) return "Select a place.";
     if (auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE && !place) {
       return "Enter a custom place.";
@@ -132,6 +119,15 @@
   }
 
   function syncCustomPlaceFieldVisibility() {
+    if (CU && CU.syncCustomPlaceVisibility) {
+      CU.syncCustomPlaceVisibility(
+        auspiciousPlacePreset,
+        auspiciousCustomWrap,
+        auspiciousPlaceCustom,
+        AC.PLACE_CUSTOM_VALUE
+      );
+      return;
+    }
     const isCustom = auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE;
     if (auspiciousCustomWrap) auspiciousCustomWrap.hidden = !isCustom;
     if (!isCustom && auspiciousPlaceCustom) auspiciousPlaceCustom.value = "";
@@ -185,7 +181,7 @@
   async function handleAuspiciousFormSubmit(event) {
     event.preventDefault();
     const place = getPlaceFromForm();
-    const validationError = validateForm(place);
+    const validationError = validateAuspiciousFormInput(place);
     if (validationError) {
       showAuspiciousStatus(validationError, true);
       return;

@@ -16,7 +16,7 @@
 
   function showStatus(message, isError) {
     if (!statusEl) return;
-    if (LOADING) LOADING.stop(statusEl);
+    if (LOADING) LOADING.stopStatusLoadingIndicator(statusEl);
     statusEl.textContent = message || "";
     statusEl.hidden = !message;
     statusEl.classList.remove("status--loading");
@@ -34,7 +34,7 @@
     });
   }
 
-  function fillSummary(profile, usage) {
+  function renderProfileSummary(profile, usage) {
     if (!summaryEl) return;
     summaryEl.hidden = false;
 
@@ -81,7 +81,7 @@
     }
   }
 
-  function fillForm(profile) {
+  function populateProfileForm(profile) {
     if (!form) return;
     document.getElementById("profile-name").value = profile.name || "";
     document.getElementById("profile-mobile").value = profile.mobile || "";
@@ -97,12 +97,12 @@
     return Boolean(AUTH.getToken());
   }
 
-  async function loadProfile() {
+  async function loadProfileData() {
     showStatus("Loading profile…", false);
     try {
       const payload = await AUTH.fetchProfile();
-      fillSummary(payload.profile || {}, payload.usage || payload.user || {});
-      fillForm(payload.profile || {});
+      renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
+      populateProfileForm(payload.profile || {});
       showStatus("");
     } catch (err) {
       if (err.status === 401) {
@@ -114,13 +114,13 @@
     }
   }
 
-  async function init() {
+  async function initializeProfilePage() {
     const authed = await ensureLoggedIn();
     if (!authed) {
       window.location.href = "/kundali?auth=login";
       return;
     }
-    await loadProfile();
+    await loadProfileData();
   }
 
   if (form) {
@@ -130,7 +130,7 @@
         el.disabled = true;
       });
       if (LOADING) {
-        LOADING.start(statusEl);
+        LOADING.startStatusLoadingIndicator(statusEl);
       } else {
         showStatus("Saving…", false);
       }
@@ -141,7 +141,7 @@
           document.getElementById("profile-mobile").value,
           document.getElementById("profile-email").value
         );
-        fillSummary(payload.profile || {}, payload.usage || payload.user || {});
+        renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
         showStatus(payload.message || "Profile updated.", false);
       } catch (err) {
         showStatus(err.message || "Could not update profile", true);
@@ -154,8 +154,8 @@
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => init());
+    document.addEventListener("DOMContentLoaded", () => initializeProfilePage());
   } else {
-    init();
+    initializeProfilePage();
   }
 })(window);

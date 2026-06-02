@@ -2,13 +2,9 @@
 /** Remedy page: birth details → auspicious nava-tara buttons → detail below each button. */
 
 (function remedyPage() {
-  const C =
-    typeof SAPTARISHI_CONSTANTS !== "undefined"
-      ? SAPTARISHI_CONSTANTS
-      : {
-          PLACE_CUSTOM_VALUE: "__custom__",
-          API_PLANET_DATABASE_PATH: "/api/planet-database"
-        };
+  const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  const CU = window.SaptarishiCommonUtils || null;
+  if (!C) return;
 
   const REMEDY_TABLE_HEADERS = [
     "Nakshatra",
@@ -57,11 +53,12 @@
     return String(value ?? "").trim();
   }
 
-  function showStatus(message, isError, isLimitError) {
-    if (!statusEl) return;
-    if (globalThis.SaptarishiLoading) {
-      globalThis.SaptarishiLoading.stop(statusEl);
+  function showRemedyStatus(message, isError, isLimitError) {
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(statusEl, message, isError, isLimitError);
+      return;
     }
+    if (!statusEl) return;
     const text = message || "";
     statusEl.textContent = text;
     statusEl.hidden = !text;
@@ -69,16 +66,18 @@
     statusEl.classList.toggle("status--limit", Boolean(isLimitError));
   }
 
-  function showLoadingStatus() {
-    if (!statusEl) return;
-    if (globalThis.SaptarishiLoading) {
-      globalThis.SaptarishiLoading.start(statusEl);
+  function showRemedyLoadingStatus() {
+    if (CU && CU.startStatusLoading) {
+      CU.startStatusLoading(statusEl, showRemedyStatus);
       return;
     }
-    showStatus("Loading…");
+    showRemedyStatus("Loading…");
   }
 
-  function getBirthPlaceFromForm() {
+  function getBirthPlaceFromRemedyForm() {
+    if (CU && CU.getPlaceFromPresetOrCustom) {
+      return CU.getPlaceFromPresetOrCustom(placePreset, placeCustom, C.PLACE_CUSTOM_VALUE);
+    }
     if (!placePreset) return "";
     if (placePreset.value === C.PLACE_CUSTOM_VALUE) {
       return (placeCustom && placeCustom.value.trim()) || "";
@@ -87,12 +86,16 @@
   }
 
   function syncCustomPlaceFieldVisibility() {
+    if (CU && CU.syncCustomPlaceVisibility) {
+      CU.syncCustomPlaceVisibility(placePreset, customWrap, placeCustom, C.PLACE_CUSTOM_VALUE);
+      return;
+    }
     const isCustom = placePreset && placePreset.value === C.PLACE_CUSTOM_VALUE;
     if (customWrap) customWrap.hidden = !isCustom;
     if (!isCustom && placeCustom) placeCustom.value = "";
   }
 
-  function validateBirthForm(place) {
+  function validateRemedyBirthForm(place) {
     if (!placePreset.value) return "Select a place.";
     if (placePreset.value === C.PLACE_CUSTOM_VALUE && !place) return "Enter a custom place.";
     if (!birthDate.value || !birthTime.value) return "Date and time are required.";
@@ -108,8 +111,8 @@
     const origin =
       typeof SaptarishiAuth !== "undefined"
         ? SaptarishiAuth.apiOrigin()
-        : `http://localhost:${C.FLASK_PORT || 8081}`;
-    const response = await fetch(`${origin}${C.API_PLANET_DATABASE_PATH || "/api/planet-database"}`);
+        : `http://localhost:${C.FLASK_PORT}`;
+    const response = await fetch(`${origin}${C.API_PLANET_DATABASE_PATH}`);
     const db = await response.json();
     return (db.nava_tara && db.nava_tara.navatara) || [];
   }
@@ -172,7 +175,7 @@
     if (selectedNavataraKey === navataraKey && panel && !panel.hidden) {
       closeAllNavataraPanels();
       selectedNavataraKey = "";
-      showStatus("");
+      showRemedyStatus("");
       return;
     }
 
@@ -180,7 +183,7 @@
     selectedNavataraKey = navataraKey;
 
     if (!rows.length) {
-      showStatus(
+      showRemedyStatus(
         `No auspicious nakshatra row found for ${formatNavataraName(def.name)} on this chart.`,
         true
       );
@@ -199,7 +202,7 @@
       KV.renderNakshatraTableWithColors(tbody, rows);
     }
 
-    showStatus("");
+    showRemedyStatus("");
     if (panel) {
       panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
@@ -246,34 +249,36 @@
   }
 
   function stripPerIpWording(message) {
+    if (CU && CU.removePerIpText) return CU.removePerIpText(message);
     return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
   }
 
   function formatLoadError(err) {
+    if (CU && CU.formatApiLoadError) {
+      return CU.formatApiLoadError(err, {
+        failurePrefix: "Failed to load remedy",
+        limitReachedFallback: "Free kundali limit reached."
+      });
+    }
     const msg = stripPerIpWording(err?.message || "Request failed");
-    const limitReached =
-      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
-    return {
-      text: limitReached ? msg || "Free kundali limit reached." : `Failed to load remedy: ${msg}`,
-      limitReached
-    };
+    return { text: `Failed to load remedy: ${msg}`, limitReached: false };
   }
 
   async function handleRemedyFormSubmit(event) {
     event.preventDefault();
-    const place = getBirthPlaceFromForm();
-    const validationError = validateBirthForm(place);
+    const place = getBirthPlaceFromRemedyForm();
+    const validationError = validateRemedyBirthForm(place);
     if (validationError) {
-      showStatus(validationError, true);
+      showRemedyStatus(validationError, true);
       return;
     }
 
     if (!KV || !KV.fetchJson) {
-      showStatus("Kundali helpers failed to load.", true);
+      showRemedyStatus("Kundali helpers failed to load.", true);
       return;
     }
 
-    showLoadingStatus();
+    showRemedyLoadingStatus();
     if (resultsEl) resultsEl.hidden = true;
 
     try {
@@ -286,13 +291,13 @@
       renderNavataraButtons(definitions);
 
       if (resultsEl) resultsEl.hidden = false;
-      showStatus("nava-tara generated successfully.");
+      showRemedyStatus("nava-tara generated successfully.");
     } catch (err) {
       const formatted = formatLoadError(err);
       if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
         SaptarishiAuth.clearSession();
       }
-      showStatus(formatted.text, true, formatted.limitReached);
+      showRemedyStatus(formatted.text, true, formatted.limitReached);
       if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
         await SaptarishiAuth.handlePremiumRequired(err);
       }

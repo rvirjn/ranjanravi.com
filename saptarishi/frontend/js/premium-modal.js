@@ -5,33 +5,24 @@
   const AUTH = global.SaptarishiAuth;
   if (!AUTH) return;
 
-  const AC =
-    typeof SAPTARISHI_CONSTANTS !== "undefined"
-      ? SAPTARISHI_CONSTANTS
-      : {
-          PREMIUM_PACK_AMOUNT_INR: 299,
-          PREMIUM_PACK_QUERY_LIMIT: 50,
-          PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
-          PREMIUM_CONTACT_PHONE: "8184046618",
-          PREMIUM_SCANNER_IMAGE: "../images/RaviRanjanScanner.png",
-          API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
-          API_PREMIUM_INFO_PATH: "/api/premium/info"
-        };
+  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  if (!AC) return;
 
   const DEFAULT_PLANS = [
     {
       id: "pack_50",
-      amount_inr: AC.PREMIUM_PACK_AMOUNT_INR || 299,
-      query_limit: AC.PREMIUM_PACK_QUERY_LIMIT || 50
+      amount_inr: AC.PREMIUM_PACK_AMOUNT_INR,
+      query_limit: AC.PREMIUM_PACK_QUERY_LIMIT
     },
     {
       id: "unlimited",
-      amount_inr: AC.PREMIUM_UNLIMITED_AMOUNT_INR || 1899,
+      amount_inr: AC.PREMIUM_UNLIMITED_AMOUNT_INR,
       query_limit: null
     }
   ];
 
   const LOADING = global.SaptarishiLoading;
+  const CU = global.SaptarishiCommonUtils || null;
 
   let overlay = null;
   let resolvePending = null;
@@ -49,7 +40,7 @@
   let selectedPlanId = "pack_50";
 
   function scannerImageUrl() {
-    const rel = AC.PREMIUM_SCANNER_IMAGE || "/frontend/images/RaviRanjanScanner.png";
+    const rel = AC.PREMIUM_SCANNER_IMAGE;
     if (/^https?:\/\//i.test(rel) || rel.startsWith("/")) return rel;
     return `/frontend/html/${rel.replace(/^\.\//, "")}`;
   }
@@ -68,7 +59,7 @@
   function planDescription(plan) {
     if (!plan) return "";
     if (plan.id === "unlimited") {
-      const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS || 1;
+      const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS;
       return `Unlimited kundali and auspicious scans for ${months} month(s).`;
     }
     const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 50;
@@ -114,7 +105,7 @@
     }
   }
 
-  function ensureMounted() {
+  function ensurePremiumModalMounted() {
     if (overlay) return;
 
     overlay = document.createElement("div");
@@ -140,14 +131,14 @@
             />
           </div>
           <p class="premium-modal__amount">
-            Amount: <strong id="premium-modal-amount">₹${AC.PREMIUM_PACK_AMOUNT_INR || 299}</strong>
+            Amount: <strong id="premium-modal-amount">₹${AC.PREMIUM_PACK_AMOUNT_INR}</strong>
           </p>
           <p id="premium-modal-plan-summary" class="premium-modal__plan-summary"></p>
           <ol class="premium-modal__steps">
             <li>Select a plan, scan the QR code, and complete payment in PhonePe or any UPI app.</li>
             <li>
               You will get a coupon code on your email and phone from
-              <strong id="premium-modal-phone">${AC.PREMIUM_CONTACT_PHONE || "8184046618"}</strong>
+              <strong id="premium-modal-phone">${AC.PREMIUM_CONTACT_PHONE}</strong>
               enter that below.
             </li>
           </ol>
@@ -212,14 +203,14 @@
 
       const coupon = overlay.querySelector("#premium-modal-coupon").value.trim();
       setBusy(true);
-      startLoading();
+      startPremiumVerificationLoading();
       try {
         const payload = await AUTH.activatePremium(coupon);
-        stopLoading();
+        stopPremiumVerificationLoading();
         setBusy(false);
-        showSuccess(payload.message);
+        showPremiumActivationSuccess(payload.message);
       } catch (err) {
-        stopLoading();
+        stopPremiumVerificationLoading();
         setBusy(false);
         showStatus(err.message || "Could not verify coupon code.", true);
       }
@@ -230,7 +221,7 @@
 
   async function loadPremiumInfo() {
     try {
-      const payload = await AUTH.apiFetch(AC.API_PREMIUM_INFO_PATH || "/api/premium/info");
+      const payload = await AUTH.apiFetch(AC.API_PREMIUM_INFO_PATH);
       if (Array.isArray(payload.plans) && payload.plans.length) {
         plans = payload.plans.map((plan) => ({
           id: plan.id,
@@ -266,9 +257,13 @@
     if (closeBtn) closeBtn.disabled = value;
   }
 
-  function startLoading() {
+  function startPremiumVerificationLoading() {
+    if (CU && CU.startStatusLoading) {
+      CU.startStatusLoading(statusEl, () => showStatus("Verifying coupon…"));
+      return;
+    }
     if (LOADING && statusEl) {
-      LOADING.start(statusEl);
+      LOADING.startStatusLoadingIndicator(statusEl);
       return;
     }
     if (statusEl) {
@@ -278,22 +273,26 @@
     }
   }
 
-  function stopLoading() {
+  function stopPremiumVerificationLoading() {
     if (LOADING && statusEl) {
-      LOADING.stop(statusEl);
+      LOADING.stopStatusLoadingIndicator(statusEl);
     }
   }
 
   function showStatus(message, isError) {
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(statusEl, message, isError, false);
+      return;
+    }
     if (!statusEl) return;
-    if (LOADING) LOADING.stop(statusEl);
+    if (LOADING) LOADING.stopStatusLoadingIndicator(statusEl);
     statusEl.textContent = message || "";
     statusEl.hidden = !message;
     statusEl.classList.remove("status--loading");
     statusEl.classList.toggle("error", Boolean(isError));
   }
 
-  function showSuccess(message) {
+  function showPremiumActivationSuccess(message) {
     if (paymentPanel) paymentPanel.hidden = true;
     if (successPanel) {
       successPanel.hidden = false;
@@ -319,24 +318,24 @@
     showStatus("");
   }
 
-  function hide() {
+  function hidePremiumModal() {
     if (!overlay) return;
-    stopLoading();
+    stopPremiumVerificationLoading();
     setBusy(false);
     overlay.hidden = true;
     document.body.classList.remove("premium-modal-open");
   }
 
   function close(success) {
-    hide();
+    hidePremiumModal();
     if (resolvePending) {
       resolvePending(Boolean(success));
       resolvePending = null;
     }
   }
 
-  function open(options = {}) {
-    ensureMounted();
+  function openPremiumModal(options = {}) {
+    ensurePremiumModalMounted();
     resetPanels();
 
     if (options.selectedPlanId && plans.some((plan) => plan.id === options.selectedPlanId)) {
@@ -357,7 +356,7 @@
     }
 
     if (usage?.is_premium && usage.premium_tier !== "pack_50") {
-      showSuccess("Unlimited plan is already active on your account.");
+      showPremiumActivationSuccess("Unlimited plan is already active on your account.");
     }
 
     overlay.hidden = false;
@@ -374,5 +373,17 @@
     });
   }
 
-  global.SaptarishiPremiumModal = { open, close, hide };
+  // Backward-compatible aliases for existing callers.
+  const open = openPremiumModal;
+  const hide = hidePremiumModal;
+  const startLoading = startPremiumVerificationLoading;
+  const stopLoading = stopPremiumVerificationLoading;
+  const showSuccess = showPremiumActivationSuccess;
+  global.SaptarishiPremiumModal = {
+    openPremiumModal,
+    close,
+    hidePremiumModal,
+    open,
+    hide
+  };
 })(window);

@@ -13,6 +13,7 @@
     "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 50 queries or ₹1899 for unlimited).";
 
   const LOADING = global.SaptarishiLoading;
+  const CU = global.SaptarishiCommonUtils || null;
 
   let overlay = null;
   let resolvePending = null;
@@ -22,7 +23,7 @@
   let leadEl = null;
   let authBusy = false;
 
-  function ensureMounted() {
+  function ensureAuthModalMounted() {
     if (overlay) return;
 
     overlay = document.createElement("div");
@@ -117,7 +118,7 @@
           overlay.querySelector("#auth-modal-login-password").value
         );
         stopAuthLoading();
-        finishSuccess();
+        completeAuthSuccessFlow();
       } catch (err) {
         stopAuthLoading();
         showStatus(err.message || "Login failed", true);
@@ -142,7 +143,7 @@
           confirmPassword
         );
         stopAuthLoading();
-        finishSuccess();
+        completeAuthSuccessFlow();
       } catch (err) {
         stopAuthLoading();
         showStatus(err.message || "Registration failed", true);
@@ -169,7 +170,7 @@
   function startAuthLoading() {
     setAuthBusy(true);
     if (LOADING && statusEl) {
-      LOADING.start(statusEl);
+      LOADING.startStatusLoadingIndicator(statusEl);
       return;
     }
     if (statusEl) {
@@ -182,13 +183,17 @@
   function stopAuthLoading() {
     setAuthBusy(false);
     if (LOADING && statusEl) {
-      LOADING.stop(statusEl);
+      LOADING.stopStatusLoadingIndicator(statusEl);
     }
   }
 
   function showStatus(message, isError) {
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(statusEl, message, isError, false);
+      return;
+    }
     if (!statusEl) return;
-    if (LOADING) LOADING.stop(statusEl);
+    if (LOADING) LOADING.stopStatusLoadingIndicator(statusEl);
     statusEl.textContent = message || "";
     statusEl.hidden = !message;
     statusEl.classList.remove("status--loading");
@@ -217,8 +222,8 @@
     showStatus("");
   }
 
-  function finishSuccess() {
-    hide();
+  function completeAuthSuccessFlow() {
+    hideAuthModal();
     global.dispatchEvent(
       new CustomEvent("saptarishi-auth-changed", {
         detail: { user: AUTH.getUser(), usage: AUTH.getUsage() }
@@ -230,7 +235,7 @@
     }
   }
 
-  function hide() {
+  function hideAuthModal() {
     if (!overlay) return;
     stopAuthLoading();
     overlay.hidden = true;
@@ -240,15 +245,15 @@
 
   function close(success) {
     if (overlay && overlay.dataset.required === "true" && !success) return;
-    hide();
+    hideAuthModal();
     if (resolvePending) {
       resolvePending(Boolean(success));
       resolvePending = null;
     }
   }
 
-  function open(options = {}) {
-    ensureMounted();
+  function openAuthModal(options = {}) {
+    ensureAuthModalMounted();
     const tab = options.tab === "register" ? "register" : "login";
     const required = Boolean(options.required);
     const isPremium = options.reason === "premium";
@@ -275,5 +280,15 @@
     });
   }
 
-  global.SaptarishiAuthModal = { open, close, hide, setActiveTab };
+  // Backward-compatible aliases for existing callers.
+  const open = openAuthModal;
+  const hide = hideAuthModal;
+  global.SaptarishiAuthModal = {
+    openAuthModal,
+    close,
+    hideAuthModal,
+    setActiveTab,
+    open,
+    hide
+  };
 })(window);

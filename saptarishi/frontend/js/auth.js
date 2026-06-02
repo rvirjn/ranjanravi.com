@@ -12,35 +12,15 @@
   const STORAGE_VIEW_RECORDED = "saptarishi_view_recorded_session";
   const SCAN_CACHE_MAX_ENTRIES = 5;
 
-  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {
-    FLASK_PORT: 8081,
-    PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
-    API_AUTH_LOGIN_PATH: "/api/auth/login",
-    API_AUTH_REGISTER_PATH: "/api/auth/register",
-    API_AUTH_PROFILE_PATH: "/api/auth/profile",
-    API_AUTH_PROFILE_UPDATE_PATH: "/api/auth/profile/update",
-    API_AUTH_LOGOUT_PATH: "/api/auth/logout",
-    API_AUTH_ME_PATH: "/api/auth/me",
-    API_USAGE_PATH: "/api/usage",
-    API_PREMIUM_INFO_PATH: "/api/premium/info",
-    API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
-    PREMIUM_PACK_AMOUNT_INR: 299,
-    PREMIUM_PACK_QUERY_LIMIT: 50,
-    PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
-    PREMIUM_AMOUNT_INR: 1899,
-    PREMIUM_CONTACT_PHONE: "8184046618",
-    API_SITE_VIEW_PATH: "/api/site/view",
-    GUEST_ID_HEADER: "X-Guest-Id",
-    MAX_FREE_QUERIES_PER_USER: 5,
-    MAX_FREE_QUERIES_PER_GUEST: 5
-  };
+  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  if (!AC) return;
 
   function normalizeUsage(usage) {
     if (!usage || typeof usage !== "object") return usage;
     if (usage.is_premium) {
       const tier = usage.premium_tier || "unlimited";
       if (tier === "pack_50") {
-        const limit = Number(usage.query_limit) || AC.PREMIUM_PACK_QUERY_LIMIT || 50;
+        const limit = Number(usage.query_limit) || AC.PREMIUM_PACK_QUERY_LIMIT;
         const used = Number(usage.queries_used) || 0;
         const remaining = Math.max(
           0,
@@ -75,8 +55,8 @@
     }
     const isGuest = Boolean(usage.is_guest);
     const limit = isGuest
-      ? (AC.MAX_FREE_QUERIES_PER_GUEST ?? 5)
-      : (AC.MAX_FREE_QUERIES_PER_USER ?? 5);
+      ? AC.MAX_FREE_QUERIES_PER_GUEST
+      : AC.MAX_FREE_QUERIES_PER_USER;
     const kUsed = Number(usage.kundali_used) || 0;
     const aUsed = Number(usage.auspicious_used) || 0;
     const totalUsed =
@@ -112,10 +92,7 @@
     if (isLocalDevUi()) {
       return `http://localhost:${AC.FLASK_PORT}`;
     }
-    return String(AC.PRODUCTION_API_ORIGIN || "https://api.ranjanravi.com").replace(
-      /\/$/,
-      ""
-    );
+    return String(AC.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
   function getGuestId() {
@@ -197,7 +174,7 @@
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     } else {
-      headers[AC.GUEST_ID_HEADER || "X-Guest-Id"] = getGuestId();
+      headers[AC.GUEST_ID_HEADER] = getGuestId();
     }
     if (options.body && !headers["Content-Type"]) {
       headers["Content-Type"] = "application/json";
@@ -276,7 +253,7 @@
       }
     }
     try {
-      const payload = await apiFetch(AC.API_USAGE_PATH || "/api/usage");
+      const payload = await apiFetch(AC.API_USAGE_PATH);
       if (payload.usage) setUsage(payload.usage);
       return payload;
     } catch {
@@ -311,11 +288,11 @@
   }
 
   async function fetchProfile() {
-    return apiFetch(AC.API_AUTH_PROFILE_PATH || "/api/auth/profile");
+    return apiFetch(AC.API_AUTH_PROFILE_PATH);
   }
 
   async function updateProfile(name, mobile, email) {
-    const payload = await apiFetch(AC.API_AUTH_PROFILE_UPDATE_PATH || "/api/auth/profile/update", {
+    const payload = await apiFetch(AC.API_AUTH_PROFILE_UPDATE_PATH, {
       method: "POST",
       body: JSON.stringify({ name, mobile, email })
     });
@@ -366,7 +343,7 @@
     if (sessionStorage.getItem(STORAGE_VIEW_RECORDED)) {
       return { view_count: getCachedViewCount() };
     }
-    const path = AC.API_SITE_VIEW_PATH || "/api/site/view";
+    const path = AC.API_SITE_VIEW_PATH;
     const url = `${apiOrigin()}${path}`;
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     const timer =
@@ -511,7 +488,7 @@
   }
 
   async function activatePremium(couponCode) {
-    const payload = await apiFetch(AC.API_PREMIUM_ACTIVATE_PATH || "/api/premium/activate", {
+    const payload = await apiFetch(AC.API_PREMIUM_ACTIVATE_PATH, {
       method: "POST",
       body: JSON.stringify({ coupon_code: couponCode })
     });
@@ -606,7 +583,7 @@
       birthTime,
       placeCustomValue
     } = elements || {};
-    const customVal = placeCustomValue || "__custom__";
+    const customVal = placeCustomValue || AC.PLACE_CUSTOM_VALUE;
     let applied = false;
 
     if (birthDate && defaultBirth.date) {

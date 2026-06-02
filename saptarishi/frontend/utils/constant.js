@@ -7,12 +7,16 @@ const _DEPLOY_PREFIX =
     : "";
 
 const SAPTARISHI_CONSTANTS = {
-  FLASK_PORT: 8081,
+  // --- Runtime / deploy ---
   /** Empty on subdomain/Docker; "/saptarishi" on GitHub Pages subdirectory deploy. */
   DEPLOY_PREFIX: _DEPLOY_PREFIX,
+  FLASK_PORT: 8081,
   /** Document base for relative assets when the browser shows /kundali, /auspicious, etc. */
   HTML_BASE: _DEPLOY_PREFIX + "/frontend/html/",
-  /** Clean URL paths (sync with frontend/nginx.conf for local Docker). */
+  /** Production API (Render). Local UI uses localhost:8081 instead. */
+  PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
+
+  // --- Frontend routes ---
   PAGE_FILE_TO_PATH: {
     "kundali.html": _DEPLOY_PREFIX + "/kundali",
     "auspicious.html": _DEPLOY_PREFIX + "/auspicious",
@@ -20,8 +24,8 @@ const SAPTARISHI_CONSTANTS = {
     "profile.html": _DEPLOY_PREFIX + "/profile",
     "login.html": _DEPLOY_PREFIX + "/login"
   },
-  /** Production API (Render). Local UI uses localhost:8081 instead. */
-  PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
+
+  // --- API endpoints ---
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
   API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
@@ -37,6 +41,15 @@ const SAPTARISHI_CONSTANTS = {
   API_USAGE_PATH: "/api/usage",
   API_PREMIUM_INFO_PATH: "/api/premium/info",
   API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
+
+  // --- Usage / auth headers ---
+  GUEST_ID_HEADER: "X-Guest-Id",
+  MAX_FREE_QUERIES_PER_USER: 5,
+  MAX_FREE_QUERIES_PER_GUEST: 5,
+  PLACE_CUSTOM_VALUE: "__custom__",
+  MAX_PLACE_QUERY_LENGTH: 240,
+
+  // --- Premium / support ---
   PREMIUM_PACK_AMOUNT_INR: 299,
   PREMIUM_PACK_QUERY_LIMIT: 50,
   PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
@@ -48,17 +61,16 @@ const SAPTARISHI_CONSTANTS = {
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
   PREMIUM_SCANNER_IMAGE: _DEPLOY_PREFIX + "/frontend/images/RaviRanjanScanner.png",
-  GUEST_ID_HEADER: "X-Guest-Id",
-  MAX_FREE_QUERIES_PER_USER: 5,
-  MAX_FREE_QUERIES_PER_GUEST: 5,
+
+  // --- UI messages / display ---
   KUNDALI_READY_STATUS_MESSAGE:
     "Kundali Chart prepared and planet/nakshtra table is also ready",
   AUSPICIOUS_READY_STATUS_MESSAGE:
     "Top auspicious date and time slots are ready",
-  PLACE_CUSTOM_VALUE: "__custom__",
-  MAX_PLACE_QUERY_LENGTH: 240,
   /** Fixed shade for Status In Rashi / Nakshatra cells (not tied to planet strength %). */
   PLANET_STATUS_COLOR_INTENSITY: 0.72,
+
+  // --- Astrology reference data ---
   /** Sign order for number 1–12 (sync with backend/utils/constant.py RASHI_IN_ENG). */
   RASHI_IN_EN: [
     "aries",
@@ -143,8 +155,22 @@ const SAPTARISHI_CONSTANTS = {
     "jupiter",
     "saturn",
     "mercury"
-  ]
+  ],
+
+  // --- Navatara rendering ---
+  NAVATARA_INTENSITY: {
+    "ati-maitri": 1,
+    janma: 1,
+    sadhaka: 0.85,
+    sampat: 0.75,
+    kshema: 0.7,
+    maitri: 0.5,
+    vipat: 0.75,
+    pratyari: 0.65,
+    vadha: 1
+  }
 };
 
 /** Expose for scripts that read from window (e.g. common.js nav links). */
 window.SAPTARISHI_CONSTANTS = SAPTARISHI_CONSTANTS;
+

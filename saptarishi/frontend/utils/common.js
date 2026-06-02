@@ -4,6 +4,8 @@
  */
 
 (function common(global) {
+  const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+  if (!AC) return;
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
   const PREMIUM = global.SaptarishiPremiumModal;
@@ -13,16 +15,94 @@
     /login\.html$/i.test(window.location.pathname);
   const logoutTimers = new WeakMap();
 
+  function isLocalDevUiHost() {
+    const host = window.location.hostname;
+    return (
+      window.location.protocol === "file:" ||
+      host === "localhost" ||
+      host === "127.0.0.1"
+    );
+  }
+
+  function getApiOrigin(constants) {
+    const cfg = constants || AC;
+    if (isLocalDevUiHost()) {
+      return `http://localhost:${cfg.FLASK_PORT}`;
+    }
+    return String(cfg.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
+  }
+
+  function setStatusMessage(statusEl, message, isError, isLimitError) {
+    if (!statusEl) return;
+    if (globalThis.SaptarishiLoading) {
+      globalThis.SaptarishiLoading.stopStatusLoadingIndicator(statusEl);
+    }
+    const text = message || "";
+    statusEl.textContent = text;
+    statusEl.hidden = !text;
+    statusEl.classList.toggle("error", Boolean(isError));
+    statusEl.classList.toggle("status--limit", Boolean(isLimitError));
+  }
+
+  function startStatusLoading(statusEl, fallbackSetter) {
+    if (!statusEl) return;
+    if (globalThis.SaptarishiLoading) {
+      globalThis.SaptarishiLoading.startStatusLoadingIndicator(statusEl);
+      return;
+    }
+    if (typeof fallbackSetter === "function") {
+      fallbackSetter("Loading…");
+    }
+  }
+
+  function removePerIpText(message) {
+    return String(message || "").replace(/\s*\(\d+\s+per\s+IP\s+address\)/gi, "");
+  }
+
+  function formatApiLoadError(err, options = {}) {
+    const msg = removePerIpText(err?.message || "Request failed");
+    const limitReached =
+      Boolean(err?.premiumRequired) || /limit reached/i.test(msg);
+    return {
+      text: limitReached
+        ? msg || options.limitReachedFallback || "Free limit reached."
+        : `${options.failurePrefix || "Request failed"}: ${msg}`,
+      limitReached
+    };
+  }
+
+  async function parseApiJsonResponse(response, options = {}) {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      const restartHint = options.restartHint || "Restart Flask after code updates.";
+      throw new Error(
+        `API returned HTML (HTTP ${response.status}). ${restartHint}`
+      );
+    }
+  }
+
+  function getPlaceFromPresetOrCustom(placePresetEl, placeCustomEl, customValue) {
+    if (!placePresetEl) return "";
+    if (placePresetEl.value === customValue) {
+      return (placeCustomEl && placeCustomEl.value.trim()) || "";
+    }
+    return placePresetEl.value.trim();
+  }
+
+  function syncCustomPlaceVisibility(placePresetEl, customWrapEl, placeCustomEl, customValue) {
+    const isCustom = placePresetEl && placePresetEl.value === customValue;
+    if (customWrapEl) customWrapEl.hidden = !isCustom;
+    if (!isCustom && placeCustomEl) placeCustomEl.value = "";
+  }
+
   function pageHref(file) {
-    const C =
-      typeof SAPTARISHI_CONSTANTS !== "undefined"
-        ? SAPTARISHI_CONSTANTS
-        : global.SAPTARISHI_CONSTANTS;
-    const prefix = (C && C.DEPLOY_PREFIX) || "";
+    const prefix = AC.DEPLOY_PREFIX;
     if (/\/frontend\/html\//i.test(window.location.pathname)) {
       return `${prefix}/frontend/html/${file}`;
     }
-    const map = C && C.PAGE_FILE_TO_PATH;
+    const map = AC.PAGE_FILE_TO_PATH;
     if (map && map[file]) return map[file];
     return `${prefix}/frontend/html/${file}`;
   }
@@ -47,7 +127,7 @@
     });
   }
 
-  function usageText(usage) {
+  function formatUsageBadgeText(usage) {
     if (!usage || !AUTH) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
@@ -150,7 +230,7 @@
     }
 
     if (usageEl) {
-      const text = usageText(displayUsage);
+      const text = formatUsageBadgeText(displayUsage);
       if (text) {
         usageEl.textContent = text;
         usageEl.hidden = false;
@@ -235,20 +315,18 @@
   }
 
   function buildFooter() {
-    const AC =
-      typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : {};
-    const phone = String(AC.PREMIUM_CONTACT_PHONE || "8184046618").replace(/\D/g, "");
-    const email = String(AC.SUPPORT_EMAIL || "raviranjan.amu@gmail.com").trim();
+    const phone = String(AC.PREMIUM_CONTACT_PHONE).replace(/\D/g, "");
+    const email = String(AC.SUPPORT_EMAIL).trim();
     const phoneIntl = phone.startsWith("91") ? phone : `91${phone}`;
     const phoneDisplay = phone.length === 10 ? phone : phone.replace(/^91/, "");
     const waMessage = encodeURIComponent(
-      String(AC.SUPPORT_WHATSAPP_MESSAGE || "Hi, I need support with Saptarishi.")
+      String(AC.SUPPORT_WHATSAPP_MESSAGE)
     );
     const mailSubject = encodeURIComponent(
-      String(AC.SUPPORT_EMAIL_SUBJECT || "Saptarishi support")
+      String(AC.SUPPORT_EMAIL_SUBJECT)
     );
     const mailBody = encodeURIComponent(
-      String(AC.SUPPORT_EMAIL_BODY || "Hi,\n\nI need help with Saptarishi.\n\n")
+      String(AC.SUPPORT_EMAIL_BODY)
     );
     const mailHref = `mailto:${encodeURIComponent(email)}?subject=${mailSubject}&body=${mailBody}`;
     const waHref = `https://wa.me/${phoneIntl}?text=${waMessage}`;
@@ -317,7 +395,7 @@
     }
   }
 
-  function authQueryTab() {
+  function extractAuthTabFromQuery() {
     const params = new URLSearchParams(window.location.search);
     if (!params.has("auth")) return null;
     const tab = params.get("auth") === "register" ? "register" : "login";
@@ -386,7 +464,7 @@
     updateHeaderAuth(document.querySelector(".site-header"), user, usage);
   }
 
-  function init() {
+  function initializeCommonLayout() {
     if (isLoginPage) {
       window.location.replace(`${navHref("kundali.html")}?auth=login`);
       return;
@@ -405,7 +483,7 @@
       );
     });
 
-    const authTab = authQueryTab();
+    const authTab = extractAuthTabFromQuery();
     if (authTab && MODAL) {
       MODAL.open({ tab: authTab, required: false });
     }
@@ -416,8 +494,21 @@
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => init());
+    document.addEventListener("DOMContentLoaded", () => initializeCommonLayout());
   } else {
-    init();
+    initializeCommonLayout();
   }
+
+  global.SaptarishiCommonUtils = {
+    isLocalDevUiHost,
+    getApiOrigin,
+    setStatusMessage,
+    startStatusLoading,
+    removePerIpText,
+    formatApiLoadError,
+    parseApiJsonResponse,
+    getPlaceFromPresetOrCustom,
+    syncCustomPlaceVisibility
+  };
 })(window);
+

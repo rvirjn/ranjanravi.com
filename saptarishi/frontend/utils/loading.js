@@ -4,9 +4,9 @@
 (function loadingModule(global) {
   const timers = new WeakMap();
 
-  function start(statusEl) {
+  function startStatusLoadingIndicator(statusEl) {
     if (!statusEl) return;
-    stop(statusEl);
+    stopStatusLoadingIndicator(statusEl);
 
     const startedAt = Date.now();
     statusEl.hidden = false;
@@ -31,7 +31,7 @@
     timers.set(statusEl, timerId);
   }
 
-  function stop(statusEl) {
+  function stopStatusLoadingIndicator(statusEl) {
     if (!statusEl) return;
     const timerId = timers.get(statusEl);
     if (timerId != null) {
@@ -41,5 +41,14 @@
     statusEl.classList.remove("status--loading");
   }
 
-  global.SaptarishiLoading = { start, stop };
+  // Backward-compatible aliases for existing callers.
+  const start = startStatusLoadingIndicator;
+  const stop = stopStatusLoadingIndicator;
+  global.SaptarishiLoading = {
+    startStatusLoadingIndicator,
+    stopStatusLoadingIndicator,
+    start,
+    stop
+  };
 })(window);
+
