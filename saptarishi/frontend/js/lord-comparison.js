@@ -5,7 +5,7 @@
     top: {
       heading: "Lord strength differences across top slots",
       lead:
-        "Details of the dates and times above. Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
+        "Top slots by house strength (ranked <strong>1</strong>, <strong>2</strong>, <strong>3</strong>… in each column). Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
     },
     compare: {
       heading: "Lord strength differences across compared births",
@@ -196,7 +196,7 @@
     const headerRow = document.createElement("tr");
     headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Planet" }));
 
-    columns.forEach((column) => {
+    columns.forEach((column, colIndex) => {
       const th = document.createElement("th");
       th.className = "auspicious-lord-col";
 
@@ -206,10 +206,13 @@
 
       const total = document.createElement("span");
       total.className = "auspicious-lord-col__total";
-      total.textContent =
-        typeof column.houses_strength_total === "number"
-          ? `Total ${column.houses_strength_total}`
-          : "";
+      if (typeof column.houses_strength_total === "number") {
+        const rank = column.rank ?? colIndex + 1;
+        const rankEl = document.createElement("strong");
+        rankEl.className = "auspicious-lord-col__rank";
+        rankEl.textContent = `${rank}. `;
+        total.append(rankEl, document.createTextNode(`Total ${column.houses_strength_total}`));
+      }
 
       const chartHost = document.createElement("div");
       chartHost.className = "auspicious-lord-col__chart kundali-chart-host";
@@ -222,11 +225,10 @@
 
     for (const rowData of rows) {
       const tr = document.createElement("tr");
-      tr.appendChild(
-        Object.assign(document.createElement("td"), {
-          textContent: formatPlanetDisplayName(rowData.planet)
-        })
-      );
+      const planetTd = document.createElement("td");
+      planetTd.className = "planets-td-planet";
+      planetTd.textContent = formatPlanetDisplayName(rowData.planet);
+      tr.appendChild(planetTd);
 
       (rowData.cells || []).forEach((cell) => {
         const td = document.createElement("td");

@@ -45,13 +45,6 @@
     }
   }
 
-  const TOP_TABLE_COLUMNS = [
-    { key: "rank", className: "" },
-    { key: "date", className: "" },
-    { key: "time", className: "" },
-    { key: "houses_strength_total", className: "planets-td-strength" }
-  ];
-
   function isLocalDevUi() {
     const host = window.location.hostname;
     return (
@@ -116,38 +109,6 @@
     return auspiciousPlacePreset.value.trim();
   }
 
-  function applyTopTableCellStyle(td, colorKind) {
-    if (!colorKind) return;
-    const extra = td.className ? `${td.className} ` : "";
-    td.className = `${extra}planets-td-status planet-cell planet-cell--${colorKind}`.trim();
-  }
-
-  function topTableCellText(key, rowData) {
-    const value = rowData[key];
-    if (value == null || value === "") return "—";
-    return String(value);
-  }
-
-  function renderTopTableFromApiRows(tbody, rows) {
-    if (!tbody) return;
-    tbody.replaceChildren();
-
-    for (const rowData of rows || []) {
-      const tr = document.createElement("tr");
-
-      const cellStyles = rowData.cell_styles || {};
-      for (const col of TOP_TABLE_COLUMNS) {
-        const td = document.createElement("td");
-        if (col.className) td.className = col.className;
-        td.textContent = topTableCellText(col.key, rowData);
-        applyTopTableCellStyle(td, cellStyles[col.key] || "");
-        tr.appendChild(td);
-      }
-
-      tbody.appendChild(tr);
-    }
-  }
-
   async function parseApiJsonResponse(response) {
     const text = await response.text();
     try {
@@ -205,23 +166,11 @@
     return payload;
   }
 
-  function topTableHeadingText(payload) {
-    const topCount = Number(payload.top_count) || 5;
-    return `Top ${topCount} unique highest house strength totals`;
-  }
-
   function renderAuspiciousResponseIntoPage(payload) {
-    const topBody = document.querySelector("#top-table tbody");
-    const topHeading = document.getElementById("top-table-heading");
-
-    if (topHeading) {
-      topHeading.textContent = topTableHeadingText(payload);
-    }
     const summaryRenderer = window.SaptarishiKundaliView?.renderSummaryTable;
     if (summaryRenderer) {
       summaryRenderer(document.querySelector("#summary-table tbody"), payload.summary_table);
     }
-    renderTopTableFromApiRows(topBody, payload.top_table || []);
     if (auspiciousScanResultsEl) auspiciousScanResultsEl.hidden = false;
     const lord = window.SaptarishiLordComparison;
     if (lord) {

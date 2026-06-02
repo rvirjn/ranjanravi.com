@@ -290,6 +290,21 @@ function planetsTableCellText(key, rowData) {
   if (key === "house_lord") {
     return rowData.house_lord ?? rowData[key] ?? "";
   }
+  if (key === "house_rashi") {
+    const flat = rowData.house_rashi ?? rowData.rashi;
+    if (flat != null && String(flat).trim()) {
+      return String(flat).trim();
+    }
+    const hr = rowData.house?.rashi;
+    if (hr && typeof hr === "object") {
+      return formatRashiDisplayFromHouseMeta({
+        rashi_index: hr.index,
+        rashi_english: hr.english,
+        rashi_sanskrit: hr.sanskrit
+      });
+    }
+    return "";
+  }
   return rowData[key];
 }
 
@@ -325,6 +340,7 @@ function formatTableCellForDisplay(key, cell) {
   if (
     key === "strength" ||
     key === "house_lord" ||
+    key === "house_rashi" ||
     key === "degree" ||
     key === "nakshatra" ||
     key === "navatara" ||
@@ -639,44 +655,50 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
 }
 
+/** Planets table columns (keep in sync with kundali.html thead). */
+const KUNDALI_PLANETS_TABLE_COLUMNS = [
+  { key: "planet", header: "Planet" },
+  { key: "strength", header: "Planet Strength" },
+  { key: "dasha_age", header: "Age-Active" },
+  { type: "house", header: "In House" },
+  { type: "aspected_by", header: "Aspected By" },
+  { key: "house_rashi", header: "House Rashi" },
+  { key: "house_lord", header: "House Lord" },
+  { key: "planet_status_in_rashi", header: "Rashi Status" },
+  { key: "is_planet_lagna_lord_enemy", header: "Lagna Lord Enemy" },
+  { key: "nakshatra", header: "Nakshatra" },
+  { key: "planet_status_in_nakshatra", header: "Nakshatra Status" },
+  { key: "karakwaqt", header: "Karakwaqt" },
+  { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12" },
+  { key: "navatara", header: "Nakshatra navatara" },
+  { key: "degree", header: "Degree" },
+  { key: "is_planet_at_death_degree", header: "Death Degree" }
+];
+
+const KUNDALI_PLANETS_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS.map((col) => col.header);
+
 /** Planets table: values and ``cell_styles`` come from API (kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
   tbody.innerHTML = "";
   const sortedRows = Array.isArray(rows) ? rows : [];
-  const columnKeys = [
-    "planet",
-    "aspected_by",
-    "strength",
-    "house_lord",
-    "is_planet_in_6_8_12_house",
-    "is_planet_lagna_lord_enemy",
-    "is_planet_at_death_degree",
-    "planet_status_in_rashi",
-    "rashi",
-    "nakshatra",
-    "karakwaqt",
-    "planet_status_in_nakshatra",
-    "navatara",
-    "degree"
-  ];
   for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
     const cellStyles = rowData.cell_styles || {};
-    for (const key of ["dasha_age"]) {
-      const td = document.createElement("td");
-      const displayValue = planetsTableCellText(key, rowData);
-      td.textContent = formatTableCellForDisplay(key, displayValue);
-      applyPlanetTableCellStyle(td, cellStyles[key] || "", key);
-      tr.appendChild(td);
-    }
-    appendPlanetsHouseCell(tr, rowData);
-    for (const key of columnKeys) {
-      if (key === "aspected_by") {
+    for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
+      if (col.type === "house") {
+        appendPlanetsHouseCell(tr, rowData);
+        continue;
+      }
+      if (col.type === "aspected_by") {
         appendPlanetsAspectedByCell(tr, rowData);
         continue;
       }
+      const key = col.key;
       const td = document.createElement("td");
+      if (key === "planet") {
+        td.className = "planets-td-planet";
+      }
       const displayValue = planetsTableCellText(key, rowData);
       td.textContent = formatTableCellForDisplay(key, displayValue);
       applyPlanetTableCellStyle(td, cellStyles[key] || "", key);
@@ -1091,26 +1113,6 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
   host.appendChild(svg);
 }
 
-/** Planets table column headers (keep in sync with kundali.html). */
-const KUNDALI_PLANETS_TABLE_HEADERS = [
-  "Your Age",
-  "House",
-  "Planet",
-  "Aspected By",
-  "Planet Strength",
-  "House Lord",
-  "Malefic 6/8/12",
-  "Lagna Lord Enemy",
-  "Death Degree",
-  "Rashi Status",
-  "Rashi",
-  "Nakshatra",
-  "Karakwaqt",
-  "Nakshatra Status",
-  "Nakshatra navatara",
-  "Degree"
-];
-
 function kundaliElementId(idPrefix, base) {
   return idPrefix ? `${idPrefix}-${base}` : base;
 }
@@ -1355,5 +1357,15 @@ window.SaptarishiKundaliPage = {
   showStatus: showStatusMessage,
   showLoading: showLoadingStatus,
   formatError: formatKundaliLoadError,
-  getApiOrigin: getFlaskApiOrigin
+  getApiOrigin: getFlaskApiOrigin,
+  getMainBirthInput() {
+    return {
+      date: birthDate?.value?.trim() || "",
+      time: birthTime?.value?.trim() || "",
+      place: getBirthPlaceFromForm()
+    };
+  },
+  validateMainBirthForm() {
+    return validateBirthForm(getBirthPlaceFromForm());
+  }
 };

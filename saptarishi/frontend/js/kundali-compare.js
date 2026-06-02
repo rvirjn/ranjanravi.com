@@ -18,6 +18,9 @@
 
   const COMPARE_MIN_BIRTHS = 2;
   const COMPARE_MAX_BIRTHS = 5;
+  /** Extra birth rows in the compare panel (birth 1 is always the main form above). */
+  const COMPARE_MIN_EXTRA_ROWS = 1;
+  const COMPARE_MAX_EXTRA_ROWS = COMPARE_MAX_BIRTHS - 1;
   const COMPARE_PLACE_OPTIONS = [
     { value: "", label: "Select place…" },
     { value: "New Delhi, India", label: "New Delhi, India" },
@@ -161,8 +164,8 @@
     removeBtn.className = "btn-secondary";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
-      if (compareBirthsHost.querySelectorAll(".kundali-compare-birth").length <= COMPARE_MIN_BIRTHS) {
-        showStatus(`At least ${COMPARE_MIN_BIRTHS} births are required for compare.`, true);
+      if (compareBirthsHost.querySelectorAll(".kundali-compare-birth").length <= COMPARE_MIN_EXTRA_ROWS) {
+        showStatus(`At least ${COMPARE_MIN_EXTRA_ROWS} more birth is required for compare.`, true);
         return;
       }
       row.remove();
@@ -180,7 +183,7 @@
 
   function updateCompareRemoveButtons() {
     const rows = compareBirthsHost.querySelectorAll(".kundali-compare-birth");
-    const showRemove = rows.length > COMPARE_MIN_BIRTHS;
+    const showRemove = rows.length > COMPARE_MIN_EXTRA_ROWS;
     rows.forEach((row) => {
       const wrap = row.querySelector(".kundali-compare-birth__remove-wrap");
       if (wrap) wrap.hidden = !showRemove;
@@ -195,19 +198,32 @@
 
   function updateCompareAddButton() {
     const count = compareBirthsHost.querySelectorAll(".kundali-compare-birth").length;
-    compareAddBtn.disabled = count >= COMPARE_MAX_BIRTHS;
+    compareAddBtn.disabled = count >= COMPARE_MAX_EXTRA_ROWS;
     compareAddBtn.textContent =
-      count >= COMPARE_MAX_BIRTHS
-        ? `+ Add More (max ${COMPARE_MAX_BIRTHS})`
+      count >= COMPARE_MAX_EXTRA_ROWS
+        ? `+ Add More (max ${COMPARE_MAX_BIRTHS} births)`
         : "+ Add More";
   }
 
   function initCompareBirthRows() {
     compareBirthsHost.replaceChildren();
     compareBirthsHost.appendChild(createCompareBirthRow(1));
-    compareBirthsHost.appendChild(createCompareBirthRow(2));
     updateCompareAddButton();
     updateCompareRemoveButtons();
+  }
+
+  function getMainBirthInput() {
+    if (typeof page.getMainBirthInput === "function") {
+      return page.getMainBirthInput();
+    }
+    return { date: "", time: "", place: "" };
+  }
+
+  function validateMainBirthForm() {
+    if (typeof page.validateMainBirthForm === "function") {
+      return page.validateMainBirthForm();
+    }
+    return "Enter birth details in the form above.";
   }
 
   function validateCompareBirthRow(rowEl, index) {
@@ -224,10 +240,14 @@
   }
 
   function collectCompareInputs() {
+    const mainErr = validateMainBirthForm();
+    if (mainErr) {
+      return { error: `Birth 1 (form above): ${mainErr}`, inputs: [] };
+    }
+    const inputs = [getMainBirthInput()];
     const rows = [...compareBirthsHost.querySelectorAll(".kundali-compare-birth")];
-    const inputs = [];
     for (let i = 0; i < rows.length; i += 1) {
-      const err = validateCompareBirthRow(rows[i], i + 1);
+      const err = validateCompareBirthRow(rows[i], i + 2);
       if (err) return { error: err, inputs: [] };
       inputs.push({
         date: rows[i].querySelector(".compare-birth-date").value.trim(),
@@ -237,7 +257,7 @@
     }
     if (inputs.length < COMPARE_MIN_BIRTHS) {
       return {
-        error: `Add at least ${COMPARE_MIN_BIRTHS} births to compare.`,
+        error: `Add at least ${COMPARE_MIN_EXTRA_ROWS} more birth below to compare.`,
         inputs: []
       };
     }
@@ -331,7 +351,7 @@
   if (compareAddBtn) {
     compareAddBtn.addEventListener("click", () => {
       const count = compareBirthsHost.querySelectorAll(".kundali-compare-birth").length;
-      if (count >= COMPARE_MAX_BIRTHS) return;
+      if (count >= COMPARE_MAX_EXTRA_ROWS) return;
       compareBirthsHost.appendChild(createCompareBirthRow(count + 1));
       renumberCompareBirths();
       updateCompareAddButton();
@@ -346,5 +366,4 @@
     });
   }
 
-  initCompareBirthRows();
 })();

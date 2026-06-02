@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=103">
+  <link rel="stylesheet" href="../style/styles.css?v=106">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -51,7 +51,7 @@
 
     <section id="kundali-compare-panel" class="kundali-compare-panel" hidden>
       <h2 class="result-heading">Kundali Compare</h2>
-      <p class="lead">Enter 2–5 birth details, then <strong>Show</strong>.</p>
+      <p class="lead">Birth 1 uses the details in the form above. Add at least one more birth below (up to 4), then <strong>Show</strong>.</p>
       <form id="kundali-compare-form" class="kundali-compare-form" autocomplete="off">
         <div id="compare-births" class="kundali-compare-births"></div>
         <div class="search-form kundali-form kundali-compare-actions">
@@ -85,22 +85,22 @@
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
-              <th>Your Age</th>
-              <th>House</th>
               <th>Planet</th>
-              <th>Aspected By</th>
               <th>Planet Strength</th>
+              <th>Age-Active</th>
+              <th>In House</th>
+              <th>Aspected By</th>
+              <th>House Rashi</th>
               <th>House Lord</th>
-              <th>Malefic 6/8/12</th>
-              <th>Lagna Lord Enemy</th>
-              <th>Death Degree</th>
               <th>Rashi Status</th>
-              <th>Rashi</th>
+              <th>Lagna Lord Enemy</th>
               <th>Nakshatra</th>
-              <th>Karakwaqt</th>
               <th>Nakshatra Status</th>
+              <th>Karakwaqt</th>
+              <th>Malefic 6/8/12</th>
               <th>Nakshatra navatara</th>
               <th>Degree</th>
+              <th>Death Degree</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -129,8 +129,8 @@
   <script src="../js/auth-modal.js?v=8"></script>
   <script src="../js/premium-modal.js?v=3"></script>
   <script src="../js/common.js?v=27"></script>
-  <script src="../js/kundali.js?v=130"></script>
-  <script src="../js/lord-comparison.js?v=1"></script>
-  <script src="../js/kundali-compare.js?v=1"></script>
+  <script src="../js/kundali.js?v=135"></script>
+  <script src="../js/lord-comparison.js?v=2"></script>
+  <script src="../js/kundali-compare.js?v=3"></script>
 </body>
 </html>
