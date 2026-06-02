@@ -560,6 +560,97 @@
     return false;
   }
 
+  function getDefaultBirth(usage) {
+    const u = usage || getUsage() || getUser();
+    if (!u || typeof u !== "object") return null;
+    const views = u.birth_views;
+    const latestFromViews =
+      Array.isArray(views) && views.length ? parseBirthViewLabel(views[0]) : null;
+    const direct = u.default_birth;
+    if (direct && direct.date) {
+      return {
+        date: String(direct.date || "").trim(),
+        time: String(direct.time || "").trim() || String(latestFromViews?.time || "").trim(),
+        place:
+          String(direct.place || "").trim() || String(latestFromViews?.place || "").trim()
+      };
+    }
+    return latestFromViews;
+  }
+
+  function parseBirthViewLabel(label) {
+    const text = String(label || "").trim();
+    if (!text) return null;
+    let place = "";
+    let dtPart = text;
+    const pipe = text.lastIndexOf(" | ");
+    if (pipe >= 0) {
+      dtPart = text.slice(0, pipe).trim();
+      place = text.slice(pipe + 3).trim();
+    }
+    const chunks = dtPart.split(/\s+/);
+    if (!chunks.length) return null;
+    const date = chunks[0];
+    const time = chunks.length > 1 ? chunks.slice(1).join(" ") : "";
+    return { date, time, place };
+  }
+
+  /** Prefill birth form from latest saved birth (logged-in users). */
+  function applyDefaultBirthToForm(elements, defaultBirth) {
+    if (!defaultBirth || !defaultBirth.date) return false;
+    const {
+      placePreset,
+      placeCustom,
+      customWrap,
+      birthDate,
+      birthTime,
+      placeCustomValue
+    } = elements || {};
+    const customVal = placeCustomValue || "__custom__";
+    let applied = false;
+
+    if (birthDate && defaultBirth.date) {
+      birthDate.value = defaultBirth.date;
+      applied = true;
+    }
+    if (birthTime && defaultBirth.time) {
+      birthTime.value = defaultBirth.time;
+      applied = true;
+    }
+    if (placePreset && defaultBirth.place) {
+      const place = String(defaultBirth.place).trim();
+      let matched = false;
+      for (const opt of placePreset.options) {
+        if (opt.value && opt.value === place) {
+          placePreset.value = place;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        placePreset.value = customVal;
+        if (placeCustom) placeCustom.value = place;
+      }
+      if (customWrap) {
+        customWrap.hidden = placePreset.value !== customVal;
+      }
+      applied = true;
+    }
+    return applied;
+  }
+
+  async function refreshDefaultBirthForm(elements) {
+    if (!getToken() || !elements) return null;
+    try {
+      await refreshMe();
+    } catch {
+      /* use cached session */
+    }
+    const def = getDefaultBirth(getUsage());
+    if (def) applyDefaultBirthToForm(elements, def);
+    return def;
+  }
+
   async function handlePremiumRequired(err, options = {}) {
     if (!err || (!err.premiumRequired && err.status !== 403)) return false;
     await openPremiumFlow({
@@ -605,6 +696,10 @@
     activatePremium,
     openPremiumFlow,
     handlePremiumRequired,
+    getDefaultBirth,
+    parseBirthViewLabel,
+    applyDefaultBirthToForm,
+    refreshDefaultBirthForm,
     loginPagePath,
     isLocalDevUi
   };

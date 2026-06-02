@@ -299,8 +299,24 @@
     }
   }
 
+  function initDefaultBirthFromUser() {
+    if (typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.getToken()) return;
+    SaptarishiAuth.refreshDefaultBirthForm({
+      placePreset,
+      placeCustom,
+      customWrap,
+      birthDate,
+      birthTime,
+      placeCustomValue: C.PLACE_CUSTOM_VALUE
+    }).catch(() => {});
+  }
+
   if (placePreset) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
   }
   form.addEventListener("submit", handleRemedyFormSubmit);
+  initDefaultBirthFromUser();
+  globalThis.addEventListener("saptarishi-auth-changed", () => {
+    initDefaultBirthFromUser();
+  });
 })();

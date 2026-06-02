@@ -1326,6 +1326,18 @@ async function handleBirthFormSubmit(event) {
   }
 }
 
+function initDefaultBirthFromUser() {
+  if (typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.getToken()) return;
+  SaptarishiAuth.refreshDefaultBirthForm({
+    placePreset,
+    placeCustom,
+    customWrap,
+    birthDate,
+    birthTime,
+    placeCustomValue: C.PLACE_CUSTOM_VALUE
+  }).catch(() => {});
+}
+
 if (document.getElementById("birth-form")) {
   if (placePreset) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
@@ -1334,6 +1346,10 @@ if (document.getElementById("birth-form")) {
     form.addEventListener("submit", handleBirthFormSubmit);
     ensurePlanetDatabase().catch(() => {});
   }
+  initDefaultBirthFromUser();
+  globalThis.addEventListener("saptarishi-auth-changed", () => {
+    initDefaultBirthFromUser();
+  });
 }
 
 /** Shared kundali view helpers (auspicious page row drill-down). */
