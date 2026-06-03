@@ -27,6 +27,7 @@
   const compareForm = document.getElementById("kundali-compare-form");
   const compareBirthsHost = document.getElementById("compare-births");
   const compareAddBtn = document.getElementById("compare-add-btn");
+  const compareShowBtn = document.getElementById("compare-show-btn");
   const resultsEl = document.getElementById("results");
   const singleResultsEl = document.getElementById("kundali-single-results");
   const page = window.SaptarishiKundaliPage || {};
@@ -149,7 +150,6 @@
     timeInput.type = "time";
     timeInput.step = "1";
     timeInput.className = "compare-birth-time";
-    timeInput.required = true;
     timeField.appendChild(timeInput);
 
     const removeField = document.createElement("div");
@@ -192,6 +192,7 @@
   }
 
   function updateCompareAddButton() {
+    if (!compareAddBtn) return;
     const count = compareBirthsHost.querySelectorAll(".kundali-compare-birth").length;
     compareAddBtn.disabled = count >= COMPARE_MAX_EXTRA_ROWS;
     compareAddBtn.textContent =
@@ -307,10 +308,11 @@
       }
       const payload = await fetchKundaliCompareReport(collected.inputs);
       const comparison = payload.lord_comparison_table || {};
+      const lordRef = window.SaptarishiLordComparison;
       setResultsView("compare");
-      if (lord) {
-        lord.setChrome("compare");
-        lord.renderTable(comparison);
+      if (lordRef) {
+        lordRef.setChrome("compare");
+        lordRef.renderTable(comparison);
       }
       if (!comparison.rows?.length) {
         if (resultsEl) resultsEl.hidden = true;
@@ -351,6 +353,13 @@
       renumberCompareBirths();
       updateCompareAddButton();
       updateCompareRemoveButtons();
+    });
+  }
+
+  if (compareShowBtn) {
+    compareShowBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      handleCompareShow();
     });
   }
 

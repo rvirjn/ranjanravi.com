@@ -1355,8 +1355,8 @@ window.SaptarishiKundaliView = {
 
 window.SaptarishiKundaliPage = {
   showStatus: showStatusMessage,
-  showLoading: showLoadingStatus,
-  formatError: formatKundaliLoadError,
+  showLoading: showKundaliLoadingStatus,
+  formatError: formatKundaliApiError,
   getApiOrigin: getFlaskApiOrigin,
   getMainBirthInput() {
     return {
