@@ -170,11 +170,10 @@
 
   async function apiFetch(path, options = {}) {
     const headers = { ...(options.headers || {}) };
+    headers[AC.GUEST_ID_HEADER] = getGuestId();
     const token = getToken();
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-    } else {
-      headers[AC.GUEST_ID_HEADER] = getGuestId();
     }
     if (options.body && !headers["Content-Type"]) {
       headers["Content-Type"] = "application/json";
