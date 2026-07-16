@@ -265,10 +265,10 @@ const STRENGTH_RULE_PRIMARY_FOR_STATUS_COLUMN = {
 };
 
 const STRENGTH_RULE_FALLBACK_LABELS = {
-  moon_under_gandmool_nakshatra: "Gand Mool",
+  moon_under_gandmool_nakshatra: "gandmool",
   moon_under_precious_nakshatra: "Precious Nakshatra",
   dusthana_house: "Dusthana House",
-  mangal_dosha: "Mangal Dosha",
+  mangal_dosha: "mangaldosh",
   trikona_house: "Trikona House",
   retrograde: "Retrograde",
   combustion: "Combustion",
@@ -317,10 +317,7 @@ function appendPlanetsTableCellWithStrengthRules(td, rowData, columnKey, mainTex
   }
 
   td.appendChild(mainEl);
-  if (rules.length === 1) {
-    appendStrengthPercentChangeLabel(mainEl, rules[0].value);
-    return;
-  }
+  // Always show named rules on their own line, e.g. gandmool (-400), mangaldosh (-300).
   for (const rule of rules) {
     const line = document.createElement("div");
     line.className = "planets-strength-rule-line";
@@ -767,19 +764,19 @@ function appendPlanetsPlanetCell(tr, rowData, cellStyles) {
   const nameEl = document.createElement("div");
   nameEl.className = "planets-planet-name";
   nameEl.textContent = formatTableCellForDisplay("planet", rowData.planet);
+  const base = getPlanetStrengthBase(rowData);
+  if (base != null) appendStrengthPercentChangeLabel(nameEl, base);
   td.appendChild(nameEl);
   applyPlanetTableCellStyle(td, cellStyles?.planet || "", "planet");
   tr.appendChild(td);
 }
 
-/** Degree column: degree text + degree_in_sign_bands base + retrograde/combustion. */
+/** Degree column: degree text + retrograde / combustion only (base stays on Planet). */
 function appendPlanetsDegreeCell(tr, rowData, cellStyles) {
   const td = document.createElement("td");
   const mainEl = document.createElement("div");
   mainEl.className = "planets-strength-main";
   mainEl.textContent = formatTableCellForDisplay("degree", rowData.degree) || "—";
-  const base = getPlanetStrengthBase(rowData);
-  if (base != null) appendStrengthPercentChangeLabel(mainEl, base);
   td.appendChild(mainEl);
   for (const rule of getStrengthRulesForTableColumn(rowData, "degree")) {
     const line = document.createElement("div");
