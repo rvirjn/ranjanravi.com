@@ -822,6 +822,8 @@ tbody tr:last-child td {
 #lord-comparison-section .table-wrap {
   overflow: visible;
   max-width: 100%;
+  /* Avoid clipping sticky thead against rounded corners while page scrolls. */
+  border-radius: 0;
 }
 
 #results .nakshatra-table-wrap {
@@ -834,6 +836,9 @@ tbody tr:last-child td {
   min-width: 0;
   max-width: 100%;
   table-layout: fixed;
+  /* separate borders so sticky thead works in Chromium */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 #results table.kundali-table th,
@@ -855,6 +860,17 @@ tbody tr:last-child td {
   font-weight: 600;
   white-space: normal;
   line-height: 1.2;
+}
+
+/* Keep column names visible while scrolling long planets / lord tables. */
+#results table.kundali-table thead th,
+#lord-comparison-section table.kundali-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff8e7;
+  background-clip: padding-box;
+  box-shadow: inset 0 -1px 0 var(--color-surface-border);
 }
 
 #summary-table.kundali-table {

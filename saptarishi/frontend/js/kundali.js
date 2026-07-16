@@ -210,13 +210,6 @@ function getPlanetStrengthBase(rowData) {
   return typeof base === "number" && Number.isFinite(base) ? base : null;
 }
 
-/** Extra strength rules shown on the planet name (retrograde, combustion, clamp). */
-function getPlanetColumnStrengthRuleChanges(rowData) {
-  const items = rowData?.strength_adjustments?.by_column?.planet;
-  if (!Array.isArray(items)) return [];
-  return items.filter((item) => typeof item?.value === "number" && item.value !== 0);
-}
-
 /** Tooltip listing every rule line: ``100 (base) +50 (friend) ... = -190``. */
 function formatPlanetStrengthVerificationTitle(rowData) {
   const adj = rowData?.strength_adjustments;
@@ -229,7 +222,8 @@ function formatPlanetStrengthVerificationTitle(rowData) {
         ? rowData.strength_percent
         : null;
   if (base == null || total == null) return "";
-  const lines = [`${base} (base)`];
+  const baseLabel = adj.base_rule === "degree_in_sign_bands" ? "Degree Phase" : "base";
+  const lines = [`${base} (${baseLabel})`];
   for (const items of Object.values(adj.by_column || {})) {
     if (!Array.isArray(items)) continue;
     for (const item of items) {
@@ -237,6 +231,11 @@ function formatPlanetStrengthVerificationTitle(rowData) {
       const sign = item.value > 0 ? "+" : "";
       lines.push(`${sign}${item.value} (${formatStrengthRuleDisplayLabel(item)})`);
     }
+  }
+  const limit = adj.limit_clamp;
+  if (limit && typeof limit.value === "number" && limit.value !== 0) {
+    const sign = limit.value > 0 ? "+" : "";
+    lines.push(`${sign}${limit.value} (${limit.label || "Strength Limit"})`);
   }
   lines.push(`= ${total}`);
   return lines.join("\n");
@@ -274,7 +273,7 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   retrograde: "Retrograde",
   combustion: "Combustion",
   death_degree: "Death Degree",
-  strength_clamp: "Strength Clamp",
+  degree_in_sign_bands: "Degree Phase",
   incoming_aspect: "Aspect",
   good_karakwaqt: "Good Karakwaqt",
   bad_karakwaqt: "Bad Karakwaqt"
@@ -768,12 +767,28 @@ function appendPlanetsPlanetCell(tr, rowData, cellStyles) {
   const nameEl = document.createElement("div");
   nameEl.className = "planets-planet-name";
   nameEl.textContent = formatTableCellForDisplay("planet", rowData.planet);
-  appendStrengthPercentChangeLabel(nameEl, getPlanetStrengthBase(rowData));
-  for (const item of getPlanetColumnStrengthRuleChanges(rowData)) {
-    appendStrengthPercentChangeLabel(nameEl, item.value);
-  }
   td.appendChild(nameEl);
   applyPlanetTableCellStyle(td, cellStyles?.planet || "", "planet");
+  tr.appendChild(td);
+}
+
+/** Degree column: degree text + degree_in_sign_bands base + retrograde/combustion. */
+function appendPlanetsDegreeCell(tr, rowData, cellStyles) {
+  const td = document.createElement("td");
+  const mainEl = document.createElement("div");
+  mainEl.className = "planets-strength-main";
+  mainEl.textContent = formatTableCellForDisplay("degree", rowData.degree) || "—";
+  const base = getPlanetStrengthBase(rowData);
+  if (base != null) appendStrengthPercentChangeLabel(mainEl, base);
+  td.appendChild(mainEl);
+  for (const rule of getStrengthRulesForTableColumn(rowData, "degree")) {
+    const line = document.createElement("div");
+    line.className = "planets-strength-rule-line";
+    line.textContent = formatStrengthRuleDisplayLabel(rule);
+    appendStrengthPercentChangeLabel(line, rule.value);
+    td.appendChild(line);
+  }
+  applyPlanetTableCellStyle(td, cellStyles?.degree || "", "degree");
   tr.appendChild(td);
 }
 
@@ -852,6 +867,10 @@ function renderPlanetsTableWithColors(tbody, rows) {
     for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
       if (col.key === "planet") {
         appendPlanetsPlanetCell(tr, rowData, cellStyles);
+        continue;
+      }
+      if (col.key === "degree") {
+        appendPlanetsDegreeCell(tr, rowData, cellStyles);
         continue;
       }
       if (col.type === "house") {
