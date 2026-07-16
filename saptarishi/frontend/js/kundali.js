@@ -204,6 +204,152 @@ function formatDashaAgeDisplay(ageOrText) {
   return `${start}-${end >= start ? end : start}`;
 }
 
+/** Degree-phase / default starting strength for one planet row. */
+function getPlanetStrengthBase(rowData) {
+  const base = rowData?.strength_adjustments?.base;
+  return typeof base === "number" && Number.isFinite(base) ? base : null;
+}
+
+/** Extra strength rules shown on the planet name (retrograde, combustion, clamp). */
+function getPlanetColumnStrengthRuleChanges(rowData) {
+  const items = rowData?.strength_adjustments?.by_column?.planet;
+  if (!Array.isArray(items)) return [];
+  return items.filter((item) => typeof item?.value === "number" && item.value !== 0);
+}
+
+/** Tooltip listing every rule line: ``100 (base) +50 (friend) ... = -190``. */
+function formatPlanetStrengthVerificationTitle(rowData) {
+  const adj = rowData?.strength_adjustments;
+  if (!adj) return "";
+  const base = typeof adj.base === "number" ? adj.base : null;
+  const total =
+    typeof adj.total === "number"
+      ? adj.total
+      : typeof rowData.strength_percent === "number"
+        ? rowData.strength_percent
+        : null;
+  if (base == null || total == null) return "";
+  const lines = [`${base} (base)`];
+  for (const items of Object.values(adj.by_column || {})) {
+    if (!Array.isArray(items)) continue;
+    for (const item of items) {
+      if (typeof item?.value !== "number" || item.value === 0) continue;
+      const sign = item.value > 0 ? "+" : "";
+      lines.push(`${sign}${item.value} (${formatStrengthRuleDisplayLabel(item)})`);
+    }
+  }
+  lines.push(`= ${total}`);
+  return lines.join("\n");
+}
+
+/** Format a strength % change for display in brackets, e.g. ``(+100)`` or ``(-50)``. */
+function formatStrengthPercentChangeInBrackets(value) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value === 0) return "";
+  if (value > 0) return ` (+${value})`;
+  return ` (${value})`;
+}
+
+/** Rules whose +/- is shown on the status text (Friend, Enemy, Own, etc.). */
+const STRENGTH_RULE_PRIMARY_FOR_STATUS_COLUMN = {
+  planet_status_in_rashi: new Set([
+    "exalted",
+    "debilitated",
+    "own_rashi",
+    "friend_rashi",
+    "enemy_rashi"
+  ]),
+  planet_status_in_nakshatra: new Set([
+    "own_nakshatra",
+    "friend_nakshatra",
+    "enemy_nakshatra"
+  ])
+};
+
+const STRENGTH_RULE_FALLBACK_LABELS = {
+  moon_under_gandmool_nakshatra: "Gand Mool",
+  moon_under_precious_nakshatra: "Precious Nakshatra",
+  dusthana_house: "Dusthana House",
+  mangal_dosha: "Mangal Dosha",
+  trikona_house: "Trikona House",
+  retrograde: "Retrograde",
+  combustion: "Combustion",
+  death_degree: "Death Degree",
+  strength_clamp: "Strength Clamp",
+  incoming_aspect: "Aspect",
+  good_karakwaqt: "Good Karakwaqt",
+  bad_karakwaqt: "Bad Karakwaqt"
+};
+
+/** All non-zero strength rules for one planets-table column. */
+function getStrengthRulesForTableColumn(rowData, columnKey) {
+  const items = rowData?.strength_adjustments?.by_column?.[columnKey];
+  if (!Array.isArray(items)) return [];
+  return items.filter((item) => typeof item?.value === "number" && item.value !== 0);
+}
+
+function formatStrengthRuleDisplayLabel(rule) {
+  if (rule?.label) return String(rule.label);
+  const ruleId = String(rule?.rule || "");
+  if (STRENGTH_RULE_FALLBACK_LABELS[ruleId]) return STRENGTH_RULE_FALLBACK_LABELS[ruleId];
+  return toTitleCaseWords(ruleId.replace(/_/g, " "));
+}
+
+/** Render cell text plus one bracket per rule (never sum unlike rules into one bracket). */
+function appendPlanetsTableCellWithStrengthRules(td, rowData, columnKey, mainText) {
+  const rules = getStrengthRulesForTableColumn(rowData, columnKey);
+  const primarySet = STRENGTH_RULE_PRIMARY_FOR_STATUS_COLUMN[columnKey];
+  const mainEl = document.createElement("div");
+  mainEl.className = "planets-strength-main";
+  mainEl.textContent = mainText;
+
+  if (primarySet) {
+    const primary = rules.find((rule) => primarySet.has(rule.rule));
+    if (primary) appendStrengthPercentChangeLabel(mainEl, primary.value);
+    td.appendChild(mainEl);
+    for (const rule of rules) {
+      if (primary && rule.rule === primary.rule) continue;
+      const line = document.createElement("div");
+      line.className = "planets-strength-rule-line";
+      line.textContent = formatStrengthRuleDisplayLabel(rule);
+      appendStrengthPercentChangeLabel(line, rule.value);
+      td.appendChild(line);
+    }
+    return;
+  }
+
+  td.appendChild(mainEl);
+  if (rules.length === 1) {
+    appendStrengthPercentChangeLabel(mainEl, rules[0].value);
+    return;
+  }
+  for (const rule of rules) {
+    const line = document.createElement("div");
+    line.className = "planets-strength-rule-line";
+    line.textContent = formatStrengthRuleDisplayLabel(rule);
+    appendStrengthPercentChangeLabel(line, rule.value);
+    td.appendChild(line);
+  }
+}
+
+/** Strength % change from one incoming aspect (e.g. Mars aspect on this planet). */
+function getIncomingAspectStrengthChangeForPlanet(rowData, planetKey) {
+  const items = rowData?.strength_adjustments?.by_column?.aspected_by;
+  if (!Array.isArray(items)) return null;
+  const key = normalizeText(planetKey);
+  const row = items.find((item) => normalizeText(item?.planet) === key);
+  const value = Number(row?.value);
+  return Number.isFinite(value) && value !== 0 ? value : null;
+}
+
+/** Append a bracketed strength % change label next to existing cell text. */
+function appendStrengthPercentChangeLabel(el, delta) {
+  if (typeof delta !== "number" || !Number.isFinite(delta) || delta === 0) return;
+  const span = document.createElement("span");
+  span.className = "planets-strength-delta";
+  span.textContent = formatStrengthPercentChangeInBrackets(delta);
+  el.appendChild(span);
+}
+
 function formatKarakwaqtPlainText(cell) {
   const parts = String(cell ?? "")
     .split(" | ")
@@ -494,8 +640,18 @@ function applyPlanetTableCellStyle(td, colorKind, columnKey) {
 function appendPlanetsAspectedByCell(tr, rowData) {
   const td = document.createElement("td");
   td.className = "planets-td-aspected-by";
-  const text = formatAspectedByPlanets(rowData);
-  td.textContent = text || "—";
+  const names = collectAspectedByPlanetKeys(rowData);
+  if (!names.length) {
+    td.textContent = "—";
+    tr.appendChild(td);
+    return;
+  }
+  const parts = names.map((name) => {
+    const label = toTitleCaseWords(name);
+    const delta = getIncomingAspectStrengthChangeForPlanet(rowData, name);
+    return `${label}${formatStrengthPercentChangeInBrackets(delta)}`;
+  });
+  td.textContent = parts.join(", ");
   tr.appendChild(td);
 }
 
@@ -606,6 +762,21 @@ function houseFromTableRow(rowData) {
   return { number: rowData?.house, for: rowData?.house_for };
 }
 
+function appendPlanetsPlanetCell(tr, rowData, cellStyles) {
+  const td = document.createElement("td");
+  td.className = "planets-td-planet";
+  const nameEl = document.createElement("div");
+  nameEl.className = "planets-planet-name";
+  nameEl.textContent = formatTableCellForDisplay("planet", rowData.planet);
+  appendStrengthPercentChangeLabel(nameEl, getPlanetStrengthBase(rowData));
+  for (const item of getPlanetColumnStrengthRuleChanges(rowData)) {
+    appendStrengthPercentChangeLabel(nameEl, item.value);
+  }
+  td.appendChild(nameEl);
+  applyPlanetTableCellStyle(td, cellStyles?.planet || "", "planet");
+  tr.appendChild(td);
+}
+
 function appendPlanetsHouseCell(tr, rowData) {
   const td = document.createElement("td");
   td.className = "planets-td-house";
@@ -615,6 +786,8 @@ function appendPlanetsHouseCell(tr, rowData) {
     const numEl = document.createElement("div");
     numEl.className = "planets-house-num";
     numEl.textContent = String(num);
+    const houseRule = getStrengthRulesForTableColumn(rowData, "house")[0];
+    if (houseRule) appendStrengthPercentChangeLabel(numEl, houseRule.value);
     td.appendChild(numEl);
   }
   if (forText) {
@@ -634,6 +807,17 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   if (!enTitle) return "—";
   return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
 }
+
+/** Planets-table columns that show rule +/- (excluding base on Planet and total on Planet Strength). */
+const KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN = {
+  planet_status_in_rashi: "planet_status_in_rashi",
+  is_planet_lagna_lord_enemy: null,
+  nakshatra: "nakshatra",
+  planet_status_in_nakshatra: "planet_status_in_nakshatra",
+  karakwaqt: "karakwaqt",
+  is_planet_in_6_8_12_house: "is_planet_in_6_8_12_house",
+  is_planet_at_death_degree: "is_planet_at_death_degree"
+};
 
 /** Planets table columns (keep in sync with kundali.html thead). */
 const KUNDALI_PLANETS_TABLE_COLUMNS = [
@@ -666,6 +850,10 @@ function renderPlanetsTableWithColors(tbody, rows) {
     const tr = document.createElement("tr");
     const cellStyles = rowData.cell_styles || {};
     for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
+      if (col.key === "planet") {
+        appendPlanetsPlanetCell(tr, rowData, cellStyles);
+        continue;
+      }
       if (col.type === "house") {
         appendPlanetsHouseCell(tr, rowData);
         continue;
@@ -676,11 +864,18 @@ function renderPlanetsTableWithColors(tbody, rows) {
       }
       const key = col.key;
       const td = document.createElement("td");
-      if (key === "planet") {
-        td.className = "planets-td-planet";
-      }
       const displayValue = planetsTableCellText(key, rowData);
-      td.textContent = formatTableCellForDisplay(key, displayValue);
+      const deltaKey = KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN[key];
+      const formatted = formatTableCellForDisplay(key, displayValue);
+      if (deltaKey) {
+        appendPlanetsTableCellWithStrengthRules(td, rowData, deltaKey, formatted);
+      } else {
+        td.textContent = formatted;
+      }
+      if (key === "strength") {
+        const verifyTitle = formatPlanetStrengthVerificationTitle(rowData);
+        if (verifyTitle) td.title = verifyTitle;
+      }
       applyPlanetTableCellStyle(td, cellStyles[key] || "", key);
       tr.appendChild(td);
     }

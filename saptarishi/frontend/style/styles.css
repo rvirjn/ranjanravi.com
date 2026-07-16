@@ -939,11 +939,32 @@ tbody tr:last-child td {
   vertical-align: top;
 }
 
+#planets-table .planets-planet-name {
+  font-weight: 700;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
 #planets-table .planets-house-num {
   font-weight: 700;
   font-size: 0.68rem;
   line-height: 1.15;
   margin-bottom: 0.1rem;
+}
+
+#planets-table .planets-strength-rule-line {
+  font-size: 0.58rem;
+  line-height: 1.2;
+  color: var(--color-text-muted);
+  margin-top: 0.12rem;
+}
+
+#planets-table .planets-strength-delta,
+#slot-planets-table .planets-strength-delta {
+  font-weight: 600;
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 #planets-table .planets-house-for {
