@@ -132,7 +132,7 @@
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
       if (u.premium_tier === "pack_50") {
-        const limit = u.query_limit ?? 50;
+        const limit = u.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
         const used = u.queries_used ?? 0;
         return `Premium · ${used}/${limit} queries`;
       }
@@ -145,7 +145,7 @@
       u.queries_used != null
         ? Number(u.queries_used)
         : (Number(u.kundali_used) || 0) + (Number(u.auspicious_used) || 0);
-    const limit = u.query_limit ?? 5;
+    const limit = u.query_limit ?? AC.MAX_FREE_QUERIES_PER_GUEST ?? 2;
     const remaining =
       u.queries_remaining != null ? Number(u.queries_remaining) : Math.max(0, limit - used);
     const displayUsed = Math.min(used, limit);
@@ -335,7 +335,7 @@
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
-      <p class="site-footer__note">Paid plans: ₹299 for 50 queries or ₹1899 for unlimited access for 1 month.</p>
+      <p class="site-footer__note">Paid plans: ₹299 for 6 queries or ₹1899 for unlimited access for 1 month.</p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>

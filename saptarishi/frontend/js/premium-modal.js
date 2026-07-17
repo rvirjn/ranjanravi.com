@@ -52,7 +52,7 @@
   function planLabel(plan) {
     if (!plan) return "";
     if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
-    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 50;
+    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
     return `${limit} queries · ₹${plan.amount_inr}`;
   }
 
@@ -62,7 +62,7 @@
       const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS;
       return `Unlimited kundali and auspicious scans for ${months} month(s).`;
     }
-    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 50;
+    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
     return `${limit} kundali or auspicious queries combined.`;
   }
 
@@ -137,9 +137,9 @@
           <ol class="premium-modal__steps">
             <li>Select a plan, scan the QR code, and complete payment in PhonePe or any UPI app.</li>
             <li>
-              You will get a coupon code on your email and phone from
-              <strong id="premium-modal-phone">${AC.PREMIUM_CONTACT_PHONE}</strong>
-              enter that below.
+              Within 2 hours you will get a coupon code on your email or phone.
+              To get it ASAP, call
+              <strong id="premium-modal-phone">+91-${AC.PREMIUM_CONTACT_PHONE}</strong>.
             </li>
           </ol>
           <form id="premium-modal-form" class="premium-modal__form" autocomplete="off">
@@ -235,7 +235,8 @@
         renderPlanPicker();
       }
       if (contactPhoneEl && payload.contact_phone) {
-        contactPhoneEl.textContent = payload.contact_phone;
+        const digits = String(payload.contact_phone).replace(/\D/g, "");
+        contactPhoneEl.textContent = digits ? `+91-${digits.replace(/^91/, "")}` : payload.contact_phone;
       }
     } catch {
       renderPlanPicker();
@@ -352,7 +353,7 @@
           ? "Upgrade to Unlimited, or verify a coupon for your selected plan."
           : user && usage?.is_premium
             ? "Your paid plan is already active."
-            : "Choose ₹299 for 50 queries or ₹1899 for unlimited scans for 1 month.");
+            : "Choose ₹299 for 6 queries or ₹1899 for unlimited scans for 1 month.");
     }
 
     if (usage?.is_premium && usage.premium_tier !== "pack_50") {

@@ -6,11 +6,11 @@
   if (!AUTH) return;
 
   const DEFAULT_LEAD =
-    "Try 5 free queries per device without login (kundali or auspicious). " +
+    "Try 2 free queries per device without login (kundali or auspicious). " +
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 50 queries or ₹1899 for unlimited).";
+    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 6 queries or ₹1899 for unlimited).";
 
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;

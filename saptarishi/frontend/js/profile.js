@@ -42,9 +42,9 @@
       const tier = profile.premium_tier || usage?.premium_tier;
       const isPaid = profile.is_premium || usage?.is_premium;
       if (isPaid && tier === "pack_50") {
-        const limit = usage?.query_limit ?? 50;
+        const limit = usage?.query_limit ?? C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
         const used = usage?.queries_used ?? 0;
-        planEl.textContent = `Plan: 50 queries · ${used}/${limit} used`;
+        planEl.textContent = `Plan: ${limit} queries · ${used}/${limit} used`;
       } else if (isPaid) {
         const until = usage?.premium_expires_at
           ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
@@ -67,7 +67,8 @@
         usage.queries_used != null
           ? Number(usage.queries_used)
           : (Number(usage.kundali_used) || 0) + (Number(usage.auspicious_used) || 0);
-      const limit = usage.query_limit ?? 5;
+      const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+      const limit = usage.query_limit ?? C?.MAX_FREE_QUERIES_PER_GUEST ?? 2;
       usageEl.textContent = `Usage: ${used}/${limit} queries`;
       usageEl.hidden = false;
     } else if (usageEl) {

@@ -435,7 +435,8 @@
   }
 
   function createLimitError() {
-    const message = "Free query limit reached (5 queries per device).";
+    const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
+    const message = `Free query limit reached (${limit} queries per device).`;
     const err = new Error(message);
     err.premiumRequired = true;
     err.status = 403;
@@ -635,7 +636,7 @@
       message:
         err.message ||
         options.message ||
-        "Your scan limit is used. Choose ₹299 for 50 queries or ₹1899 for unlimited access."
+        "Your scan limit is used. Choose ₹299 for 6 queries or ₹1899 for unlimited access."
     });
     return true;
   }
