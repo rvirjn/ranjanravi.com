@@ -1230,35 +1230,19 @@ input.dark[type="submit"],input.dark[type="button"], a.button.dark {
 /* Home page project links */
 .project-links {
   font-size: 200%;
-  text-decoration: underline;
 }
 
 .project-links .row {
   margin-bottom: 0.5em;
 }
 
-.project-links .btn {
-  display: block;
-  width: 100%;
-  padding: 0.5em 1em;
-  text-align: center;
-  text-decoration: none;
-  border-radius: 4px;
-  box-sizing: border-box;
+.project-links a {
+  display: inline-block;
+  text-decoration: underline;
+  color: #4d4d4d;
+  font-weight: bold;
 }
 
-.project-links .btn-primary {
-  color: #fff;
-  background-color: #337ab7;
-  border: 1px solid #2e6da4;
-}
-
-.project-links .btn-primary:hover {
-  background-color: #286090;
-  border-color: #204d74;
-}
-
-.project-links .form-control {
-  display: block;
-  width: 100%;
+.project-links a:hover {
+  color: #404040;
 }
