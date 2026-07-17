@@ -1,29 +1,13 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-/** Remedy page: birth details → auspicious nava-tara buttons → detail below each button. */
+/** Remedy page: birth details → debilitated planet remedies + auspicious nava-tara. */
 
 (function remedyPage() {
   const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   const CU = window.SaptarishiCommonUtils || null;
   if (!C) return;
 
-  const REMEDY_TABLE_HEADERS = [
-    "Nakshatra",
-    "Navatara",
-    "Symbol",
-    "Ruling Planet",
-    "Deity",
-    "Tree",
-    "Directions",
-    "Lunar Month",
-    "Tithi",
-    "Remedy",
-    "Mantra",
-    "Animal",
-    "Colors",
-    "Number",
-    "Day",
-    "Time"
-  ];
+  const PLANET_REMEDY_COLUMNS = C.PLANET_REMEDY_COLUMNS || [];
+  const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
 
   const form = document.getElementById("remedy-form");
   if (!form) return;
@@ -31,6 +15,8 @@
   const statusEl = document.getElementById("status");
   const resultsEl = document.getElementById("results");
   const buttonsHost = document.getElementById("navatara-buttons");
+  const planetRemedyBody = document.querySelector("#planet-remedy-table tbody");
+  const planetRemedyEmpty = document.getElementById("planet-remedy-empty");
   const placePreset = document.getElementById("place-preset");
   const customWrap = document.getElementById("custom-place-wrap");
   const placeCustom = document.getElementById("place-custom");
@@ -40,12 +26,22 @@
   const KV = window.SaptarishiKundaliView;
   let cachedNakshatraRows = [];
   let selectedNavataraKey = "";
+  let planetRemedyByName = {};
 
   function normalizeText(value) {
     if (KV && KV.normalizeText) return KV.normalizeText(value);
     return String(value ?? "")
       .trim()
       .toLowerCase();
+  }
+
+  function toTitleCaseWords(value) {
+    if (KV && KV.toTitleCaseWords) return KV.toTitleCaseWords(value);
+    return String(value ?? "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
   }
 
   function formatNavataraName(value) {
@@ -102,19 +98,87 @@
     return null;
   }
 
-  async function loadNavataraDefinitions() {
+  async function loadPlanetDatabase() {
     if (KV && KV.ensurePlanetDatabase) {
-      const db = await KV.ensurePlanetDatabase();
-      const list = db && db.nava_tara && db.nava_tara.navatara;
-      if (Array.isArray(list) && list.length) return list;
+      return (await KV.ensurePlanetDatabase()) || {};
     }
     const origin =
       typeof SaptarishiAuth !== "undefined"
         ? SaptarishiAuth.apiOrigin()
         : `http://localhost:${C.FLASK_PORT}`;
     const response = await fetch(`${origin}${C.API_PLANET_DATABASE_PATH}`);
-    const db = await response.json();
-    return (db.nava_tara && db.nava_tara.navatara) || [];
+    return response.json();
+  }
+
+  function buildPlanetRemedyLookup(db) {
+    const out = {};
+    for (const planet of db?.planets || []) {
+      const name = normalizeText(planet?.name);
+      if (!name || name === "ascendant") continue;
+      if (planet?.remedy && typeof planet.remedy === "object") {
+        out[name] = planet.remedy;
+      }
+    }
+    return out;
+  }
+
+  /** Debilitated grahas from kundali JSON (planets_table status.rashi = low, or planet_dignity). */
+  function debilitatedPlanetNamesFromKundali(kundaliPayload) {
+    const names = [];
+    const add = (raw) => {
+      const key = normalizeText(raw);
+      if (!key || key === "ascendant" || names.includes(key)) return;
+      names.push(key);
+    };
+    for (const row of kundaliPayload?.planets_table || []) {
+      const status = normalizeText(row?.status?.rashi || row?.planet_status_in_rashi);
+      if (status === "low") add(row?.planet);
+    }
+    for (const planet of kundaliPayload?.planets || []) {
+      if (normalizeText(planet?.planet_dignity) === "debilitated") {
+        add(planet?.name);
+      }
+    }
+    for (const row of kundaliPayload?.summary_table || []) {
+      if (normalizeText(row?.label) !== "debilitated planet") continue;
+      const value = String(row?.value || "").trim();
+      if (!value || /^none$/i.test(value)) continue;
+      value.split(",").forEach((part) => add(part));
+    }
+    const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
+    names.sort((a, b) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+    });
+    return names;
+  }
+
+  function renderPlanetRemedyTable(kundaliPayload) {
+    if (!planetRemedyBody) return;
+    planetRemedyBody.innerHTML = "";
+    const debilitated = debilitatedPlanetNamesFromKundali(kundaliPayload);
+    if (!debilitated.length) {
+      if (planetRemedyEmpty) planetRemedyEmpty.hidden = false;
+      return;
+    }
+    if (planetRemedyEmpty) planetRemedyEmpty.hidden = true;
+    for (const planetKey of debilitated) {
+      const remedy = planetRemedyByName[planetKey] || {};
+      const tr = document.createElement("tr");
+      for (const col of PLANET_REMEDY_COLUMNS) {
+        const td = document.createElement("td");
+        if (col.key === "planet") {
+          td.className = "planets-td-planet";
+          td.textContent = toTitleCaseWords(planetKey);
+        } else {
+          const text = String(remedy[col.key] || "").trim();
+          td.textContent = text || "—";
+        }
+        tr.appendChild(td);
+      }
+      planetRemedyBody.appendChild(tr);
+    }
   }
 
   function navataraResultLabel(def) {
@@ -282,16 +346,18 @@
     if (resultsEl) resultsEl.hidden = true;
 
     try {
-      const [kundaliPayload, definitions] = await Promise.all([
+      const [kundaliPayload, db] = await Promise.all([
         KV.fetchJson(birthDate.value, birthTime.value, place),
-        loadNavataraDefinitions()
+        loadPlanetDatabase()
       ]);
 
+      planetRemedyByName = buildPlanetRemedyLookup(db);
       cachedNakshatraRows = kundaliPayload.nakshatras || [];
-      renderNavataraButtons(definitions);
+      renderPlanetRemedyTable(kundaliPayload);
+      renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
 
       if (resultsEl) resultsEl.hidden = false;
-      showRemedyStatus("nava-tara generated successfully.");
+      showRemedyStatus("Remedy generated successfully.");
     } catch (err) {
       const formatted = formatLoadError(err);
       if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {

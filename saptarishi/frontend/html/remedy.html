@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Remedy by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=97">
+  <link rel="stylesheet" href="../style/styles.css?v=112">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -48,19 +48,40 @@
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
 
     <div id="results" hidden>
+      <h2 class="result-heading">Planet Remedy</h2>
+      <p class="lead remedy-planet-hint">Remedies for debilitated planets in this birth chart.</p>
+      <div class="table-wrap">
+        <table id="planet-remedy-table" class="navatara-data-table kundali-table remedy-table">
+          <thead>
+            <tr>
+              <th>Planet</th>
+              <th>Whom to worship</th>
+              <th>Day to fast</th>
+              <th>Mantra to chant</th>
+              <th>Things to donate</th>
+              <th>Whom to respect most</th>
+              <th>What to wear in finger</th>
+              <th>Feed to animal</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="planet-remedy-empty" class="lead" hidden>No debilitated planet found for this birth chart.</p>
+
       <h2 class="result-heading">Remedy for</h2>
       <p class="remedy-navatara-hint">Tap a row to see remedy details.</p>
       <div id="navatara-buttons" class="remedy-navatara-buttons" role="group" aria-label="Auspicious nava-tara"></div>
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=45"></script>
+  <script src="../utils/constant.js?v=46"></script>
   <script src="../js/auth.js?v=17"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=9"></script>
   <script src="../js/premium-modal.js?v=4"></script>
   <script src="../utils/common.js?v=30"></script>
-  <script src="../js/kundali.js?v=127"></script>
-  <script src="../js/remedy.js?v=5"></script>
+  <script src="../js/kundali.js?v=146"></script>
+  <script src="../js/remedy.js?v=7"></script>
 </body>
 </html>

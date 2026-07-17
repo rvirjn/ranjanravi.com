@@ -157,6 +157,38 @@ const SAPTARISHI_CONSTANTS = {
     "mercury"
   ],
 
+  // --- Remedy page tables ---
+  /** Planet Remedy table columns (sync with data.json planets[].remedy keys). */
+  PLANET_REMEDY_COLUMNS: [
+    { key: "planet", header: "Planet" },
+    { key: "whom_to_worship", header: "Whom to worship" },
+    { key: "day_to_fast", header: "Day to fast" },
+    { key: "mantra_to_chant", header: "Mantra to chant" },
+    { key: "things_to_donate", header: "things to donate" },
+    { key: "whom_to_respect_most", header: "Whom to respect most" },
+    { key: "what_to_wear_in_finger", header: "what to wear in finger" },
+    { key: "feed_to_animal", header: "feed to animal" }
+  ],
+  /** Nakshatra remedy detail table headers (nava-tara panel). */
+  REMEDY_NAKSHATRA_TABLE_HEADERS: [
+    "Nakshatra",
+    "Navatara",
+    "Symbol",
+    "Ruling Planet",
+    "Deity",
+    "Tree",
+    "Directions",
+    "Lunar Month",
+    "Tithi",
+    "Remedy",
+    "Mantra",
+    "Animal",
+    "Colors",
+    "Number",
+    "Day",
+    "Time"
+  ],
+
   // --- Navatara rendering ---
   NAVATARA_INTENSITY: {
     "ati-maitri": 1,

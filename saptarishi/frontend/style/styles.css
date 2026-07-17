@@ -864,7 +864,8 @@ tbody tr:last-child td {
 
 /* Keep column names visible while scrolling long planets / lord tables. */
 #results table.kundali-table thead th,
-#lord-comparison-section table.kundali-table thead th {
+#lord-comparison-section table.kundali-table thead th,
+#planet-remedy-table.kundali-table thead th {
   position: sticky;
   top: 0;
   z-index: 3;
@@ -2245,6 +2246,12 @@ body.premium-modal-open {
 
 .premium-modal__done:hover {
   background: #fff;
+}
+
+.remedy-planet-hint {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
 .remedy-navatara-hint {
