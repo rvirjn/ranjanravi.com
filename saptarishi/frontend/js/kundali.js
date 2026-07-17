@@ -517,10 +517,51 @@ async function ensurePlanetDatabase() {
             return data;
           })();
     planetDatabase = payload;
+    applyPlanetColorCodesFromDatabase(payload);
     return planetDatabase;
   } catch (err) {
     console.warn("planet-database unavailable:", err.message);
     return null;
+  }
+}
+
+/** Parse ``#RRGGBB`` / ``#RGB`` into ``r, g, b`` for CSS ``rgba(var(--x), a)``. */
+function hexColorToRgbChannels(hex) {
+  const raw = String(hex || "").trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(raw)) {
+    const r = parseInt(raw[0] + raw[0], 16);
+    const g = parseInt(raw[1] + raw[1], 16);
+    const b = parseInt(raw[2] + raw[2], 16);
+    return `${r}, ${g}, ${b}`;
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(raw)) {
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
+    return `${r}, ${g}, ${b}`;
+  }
+  return "";
+}
+
+/**
+ * Apply ``planet_rules.color_codes`` from data.json as CSS variables
+ * (``--planet-color-<id>`` hex, ``--planet-color-<id>-rgb`` channels).
+ */
+function applyPlanetColorCodesFromDatabase(db) {
+  const rows = db?.planet_rules?.color_codes;
+  if (!Array.isArray(rows) || !rows.length || typeof document === "undefined") return;
+  const root = document.documentElement;
+  for (const row of rows) {
+    const id = String(row?.id || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
+    const code = String(row?.color_code || "").trim();
+    const apply = String(row?.apply_rule || "yes").trim().toLowerCase();
+    if (!id || !code || apply === "no") continue;
+    root.style.setProperty(`--planet-color-${id}`, code);
+    const rgb = hexColorToRgbChannels(code);
+    if (rgb) root.style.setProperty(`--planet-color-${id}-rgb`, rgb);
   }
 }
 
