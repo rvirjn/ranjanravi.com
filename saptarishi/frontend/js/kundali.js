@@ -8,6 +8,8 @@ if (!C) {
 
 /** Cached planet database from ``/api/planet-database`` (``backend/database/data.json``). */
 let planetDatabase = null;
+/** ``column_key`` → ``{ color_id: hex }`` from ``planet_rules.color_codes.column_name``. */
+let planetColorCodesByColumnKey = null;
 
 const form = document.getElementById("birth-form");
 const statusEl = document.getElementById("status");
@@ -545,24 +547,85 @@ function hexColorToRgbChannels(hex) {
 
 /**
  * Apply ``planet_rules.color_codes`` from data.json as CSS variables
- * (``--planet-color-<id>`` hex, ``--planet-color-<id>-rgb`` channels).
+ * (``--planet-color-<color>`` hex from palette ``color`` field)
+ * and index by ``column_name`` for per-column gating.
  */
 function applyPlanetColorCodesFromDatabase(db) {
   const rows = db?.planet_rules?.color_codes;
-  if (!Array.isArray(rows) || !rows.length || typeof document === "undefined") return;
+  if (!Array.isArray(rows) || !rows.length || typeof document === "undefined") {
+    planetColorCodesByColumnKey = null;
+    return;
+  }
   const root = document.documentElement;
+  const byColumn = {};
   for (const row of rows) {
-    const id = String(row?.id || "")
+    const palette = String(row?.color || "")
       .trim()
       .toLowerCase()
       .replace(/\s+/g, "_");
     const code = String(row?.color_code || "").trim();
     const apply = String(row?.apply_rule || "yes").trim().toLowerCase();
-    if (!id || !code || apply === "no") continue;
-    root.style.setProperty(`--planet-color-${id}`, code);
+    if (!palette || !code || apply === "no") continue;
+    root.style.setProperty(`--planet-color-${palette}`, code);
     const rgb = hexColorToRgbChannels(code);
-    if (rgb) root.style.setProperty(`--planet-color-${id}-rgb`, rgb);
+    if (rgb) root.style.setProperty(`--planet-color-${palette}-rgb`, rgb);
+
+    const columnName = String(row?.column_name || "").trim().toLowerCase();
+    if (!columnName) continue;
+    const columnKey = C.COLOR_CODE_COLUMN_NAME_TO_KEY[columnName];
+    if (!columnKey) continue;
+    if (!byColumn[columnKey]) byColumn[columnKey] = {};
+    byColumn[columnKey][palette] = code;
   }
+  planetColorCodesByColumnKey = byColumn;
+}
+
+/** Map CSS cell kind → palette ``color`` (green / red / neutral). */
+function cellKindToColorCodeId(kind) {
+  const k = String(kind || "")
+    .trim()
+    .toLowerCase();
+  if (k === "high" || k === "own" || k === "friend") return "green";
+  if (k === "low" || k === "enemy") return "red";
+  if (k === "neutral") return "neutral";
+  return "";
+}
+
+/**
+ * True when ``color_codes.column_name`` allows this palette for the column.
+ * If color_codes not loaded yet, allow (Python ``cell_styles`` already gated).
+ */
+function isPlanetCellColorAllowedForColumn(columnKey, colorKind) {
+  if (!colorKind) return false;
+  if (!planetColorCodesByColumnKey) return true;
+  const allowed = planetColorCodesByColumnKey[columnKey];
+  if (!allowed || !Object.keys(allowed).length) return false;
+  const palette = cellKindToColorCodeId(colorKind);
+  if (!palette) return false;
+  if (allowed[palette]) return true;
+  if (palette === "green" && allowed.green_text) return true;
+  if (palette === "red" && allowed.red_text) return true;
+  if (palette === "neutral" && allowed.lord_neutral) return true;
+  return false;
+}
+
+/** Whether helpful/harmful navatara row tint is allowed for Nakshatra navatara column. */
+function isNavataraRowColorAllowed(helpful) {
+  return isPlanetCellColorAllowedForColumn("navatara", helpful ? "friend" : "enemy");
+}
+
+/** Lord Comparison tones gated by color_codes column_name ``Lord Comparison``. */
+function isLordComparisonToneAllowed(tone) {
+  if (!planetColorCodesByColumnKey) return true;
+  const allowed = planetColorCodesByColumnKey.lord_comparison;
+  if (!allowed || !Object.keys(allowed).length) return false;
+  const t = String(tone || "")
+    .trim()
+    .toLowerCase();
+  if (t === "plus") return Boolean(allowed.lord_plus || allowed.green);
+  if (t === "minus") return Boolean(allowed.lord_minus || allowed.red);
+  if (t === "neutral") return Boolean(allowed.lord_neutral || allowed.neutral);
+  return true;
 }
 
 /** Parse API JSON; surface HTML error pages as a clear message. */
@@ -658,9 +721,10 @@ function planetStatusKind(status) {
   return "";
 }
 
-/** Apply ``cell_styles`` color from API (kundali.py). */
+/** Apply ``cell_styles`` color from API (kundali.py), gated by ``color_codes.column_name``. */
 function applyPlanetTableCellStyle(td, colorKind, columnKey) {
   if (!colorKind) return;
+  if (!isPlanetCellColorAllowedForColumn(columnKey, colorKind)) return;
   const yesNoCol =
     columnKey === "is_planet_in_6_8_12_house" ||
     columnKey === "is_planet_lagna_lord_enemy" ||
@@ -694,9 +758,14 @@ function appendPlanetsAspectedByCell(tr, rowData) {
 
 /** Chart planet color class from API ``planet_status_color`` or status text. */
 function planetChartStatusClass(planet) {
-  const kind = planet?.planet_status_color || planetStatusKind(
-    planet?.planet_status_in_rashi || planet?.planet_relation_with_rashi_lord
-  );
+  const kind =
+    planet?.planet_status_color ||
+    planetStatusKind(
+      planet?.planet_status_in_rashi || planet?.planet_relation_with_rashi_lord
+    );
+  if (!isPlanetCellColorAllowedForColumn("planet_symbol_in_birth_chart", kind || "neutral")) {
+    return "kundali-chart-planet--neutral";
+  }
   if (kind === "high") return "kundali-chart-planet--high";
   if (kind === "low") return "kundali-chart-planet--low";
   if (kind === "own") return "kundali-chart-planet--own";
@@ -876,7 +945,7 @@ const KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN = {
 const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { key: "planet", header: "Planet" },
   { key: "strength", header: "Planet Strength" },
-  { key: "dasha_age", header: "Age-Active" },
+  { key: "dasha_age", header: "Mahadasha on Age" },
   { type: "house", header: "In House" },
   { type: "aspected_by", header: "Aspected By" },
   { key: "house_rashi", header: "House Rashi" },
@@ -989,6 +1058,7 @@ function nakshatraCellValue(rowData, col) {
 
 function applyNakshatraRowColors(tr, rowData) {
   const helpful = normalizeText(rowData.auspicious) === "yes";
+  if (!isNavataraRowColorAllowed(helpful)) return;
   tr.classList.add(helpful ? "navatara-row--helpful" : "navatara-row--harmful");
   const navataraKey = normalizeText(rowData.navatara);
   tr.style.setProperty("--navatara-intensity", String(navataraIntensity(rowData.navatara, helpful)));
@@ -1602,7 +1672,9 @@ window.SaptarishiKundaliView = {
   SLOT_TARGETS: buildKundaliViewTargets({ idPrefix: "slot", skipShellUpdates: true }),
   renderNakshatraTableWithColors,
   formatNavataraName,
-  normalizeText
+  normalizeText,
+  isLordComparisonToneAllowed,
+  isPlanetCellColorAllowedForColumn
 };
 
 window.SaptarishiKundaliPage = {

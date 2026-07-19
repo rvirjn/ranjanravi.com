@@ -71,10 +71,15 @@
     const tone = String(factor?.tone || "").toLowerCase();
     const part = document.createElement("span");
     part.className = "auspicious-lord-cell__part";
+    const toneAllowed =
+      typeof window.SaptarishiKundaliView?.isLordComparisonToneAllowed === "function"
+        ? window.SaptarishiKundaliView.isLordComparisonToneAllowed(tone)
+        : true;
     if (tone === "sign") part.classList.add("auspicious-lord-cell__rashi");
-    else if (tone === "plus") part.classList.add("auspicious-lord-adj--plus");
-    else if (tone === "minus") part.classList.add("auspicious-lord-adj--minus");
-    else if (tone === "neutral") part.classList.add("auspicious-lord-relation--neutral");
+    else if (toneAllowed && tone === "plus") part.classList.add("auspicious-lord-adj--plus");
+    else if (toneAllowed && tone === "minus") part.classList.add("auspicious-lord-adj--minus");
+    else if (toneAllowed && tone === "neutral")
+      part.classList.add("auspicious-lord-relation--neutral");
     else if (tone === "total") part.classList.add("auspicious-lord-cell__total");
     part.textContent = String(factor?.text || "");
     parent.appendChild(part);
@@ -123,8 +128,12 @@
         const part = document.createElement("span");
         part.className = "auspicious-lord-cell__part";
         const tone = String(factor?.tone || "").toLowerCase();
-        if (tone === "plus") part.classList.add("auspicious-lord-adj--plus");
-        else if (tone === "minus") part.classList.add("auspicious-lord-adj--minus");
+        const toneAllowed =
+          typeof window.SaptarishiKundaliView?.isLordComparisonToneAllowed === "function"
+            ? window.SaptarishiKundaliView.isLordComparisonToneAllowed(tone)
+            : true;
+        if (toneAllowed && tone === "plus") part.classList.add("auspicious-lord-adj--plus");
+        else if (toneAllowed && tone === "minus") part.classList.add("auspicious-lord-adj--minus");
         part.textContent = bracket;
         wrap.appendChild(part);
       });

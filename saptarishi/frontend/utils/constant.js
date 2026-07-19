@@ -70,6 +70,24 @@ const SAPTARISHI_CONSTANTS = {
   /** Fixed shade for Status In Rashi / Nakshatra cells (not tied to planet strength %). */
   PLANET_STATUS_COLOR_INTENSITY: 0.72,
 
+  /**
+   * ``color_codes.column_name`` (display) → planets-table / UI key.
+   * Keep in sync with backend/utils/constant.py COLOR_CODE_COLUMN_NAME_TO_KEY.
+   */
+  COLOR_CODE_COLUMN_NAME_TO_KEY: {
+    planet_symbol_in_birth_chart: "planet_symbol_in_birth_chart",
+    "planet strength": "strength",
+    "mahadasha on age": "dasha_age",
+    "rashi status": "planet_status_in_rashi",
+    "nakshatra status": "planet_status_in_nakshatra",
+    "nakshatra navatara": "navatara",
+    karakwaqt: "karakwaqt",
+    "malefic 6/8/12": "is_planet_in_6_8_12_house",
+    "lagna lord enemy": "is_planet_lagna_lord_enemy",
+    "death degree": "is_planet_at_death_degree",
+    "lord comparison": "lord_comparison"
+  },
+
   // --- Astrology reference data ---
   /** Sign order for number 1–12 (sync with backend/utils/constant.py RASHI_IN_ENG). */
   RASHI_IN_EN: [

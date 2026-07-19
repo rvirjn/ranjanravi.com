@@ -20,12 +20,9 @@
     if (usage.is_premium) {
       const tier = usage.premium_tier || "unlimited";
       if (tier === "pack_50") {
-        const limit = Number(usage.query_limit) || AC.PREMIUM_PACK_QUERY_LIMIT;
+        const limit = Number(AC.PREMIUM_PACK_QUERY_LIMIT) || 6;
         const used = Number(usage.queries_used) || 0;
-        const remaining = Math.max(
-          0,
-          usage.queries_remaining != null ? Number(usage.queries_remaining) : limit - used
-        );
+        const remaining = Math.max(0, limit - used);
         return {
           ...usage,
           is_premium: true,

@@ -132,7 +132,7 @@
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
       if (u.premium_tier === "pack_50") {
-        const limit = u.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
+        const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? u.query_limit ?? 6;
         const used = u.queries_used ?? 0;
         return `Premium · ${used}/${limit} queries`;
       }

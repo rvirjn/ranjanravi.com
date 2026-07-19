@@ -52,7 +52,7 @@
   function planLabel(plan) {
     if (!plan) return "";
     if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
-    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
+    const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
     return `${limit} queries · ₹${plan.amount_inr}`;
   }
 
@@ -62,7 +62,7 @@
       const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS;
       return `Unlimited kundali and auspicious scans for ${months} month(s).`;
     }
-    const limit = plan.query_limit ?? AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
+    const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
     return `${limit} kundali or auspicious queries combined.`;
   }
 
@@ -226,7 +226,10 @@
         plans = payload.plans.map((plan) => ({
           id: plan.id,
           amount_inr: plan.amount_inr,
-          query_limit: plan.query_limit,
+          query_limit:
+            plan.id === "pack_50"
+              ? AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6
+              : plan.query_limit,
           duration_months: plan.duration_months
         }));
         if (!plans.some((plan) => plan.id === selectedPlanId)) {
