@@ -19,14 +19,14 @@
     if (!usage || typeof usage !== "object") return usage;
     if (usage.is_premium) {
       const tier = usage.premium_tier || "unlimited";
-      if (tier === "pack_50") {
+      if (tier === "pack_299") {
         const limit = Number(AC.PREMIUM_PACK_QUERY_LIMIT) || 6;
         const used = Number(usage.queries_used) || 0;
         const remaining = Math.max(0, limit - used);
         return {
           ...usage,
           is_premium: true,
-          premium_tier: "pack_50",
+          premium_tier: "pack_299",
           query_limit: limit,
           queries_used: used,
           queries_remaining: remaining,
@@ -365,7 +365,7 @@
 
   function hasUnlimitedPremium() {
     const usage = normalizeUsage(getUsage());
-    if (!usage?.is_premium || usage.premium_tier === "pack_50") return false;
+    if (!usage?.is_premium || usage.premium_tier === "pack_299") return false;
     if (usage.premium_expires_at) {
       const expires = new Date(usage.premium_expires_at);
       if (!Number.isNaN(expires.getTime()) && expires.getTime() <= Date.now()) {
@@ -378,7 +378,7 @@
   function isPremiumActive() {
     const usage = normalizeUsage(getUsage());
     if (!usage?.is_premium) return false;
-    if (usage.premium_tier === "pack_50") {
+    if (usage.premium_tier === "pack_299") {
       return (Number(usage.queries_remaining) || 0) > 0;
     }
     return hasUnlimitedPremium();
@@ -387,7 +387,7 @@
   function isGuestScanLimitReached(scanType) {
     const usage = normalizeUsage(getUsage());
     if (usage?.is_premium) {
-      if (usage.premium_tier === "pack_50") {
+      if (usage.premium_tier === "pack_299") {
         return (Number(usage.queries_remaining) || 0) <= 0;
       }
       return false;
@@ -522,12 +522,12 @@
     if (global.SaptarishiPremiumModal) {
       const usage = normalizeUsage(getUsage());
       const upgradeMessage =
-        usage?.premium_tier === "pack_50"
+        usage?.premium_tier === "pack_299"
           ? "Upgrade to Unlimited (₹1899 for 1 month) for unlimited kundali and auspicious scans."
           : options.message;
       await global.SaptarishiPremiumModal.open({
         message: upgradeMessage,
-        selectedPlanId: usage?.premium_tier === "pack_50" ? "unlimited" : options.selectedPlanId
+        selectedPlanId: usage?.premium_tier === "pack_299" ? "unlimited" : options.selectedPlanId
       });
       return hasUnlimitedPremium() || isPremiumActive();
     }

@@ -131,7 +131,7 @@
     if (!usage || !AUTH) return "";
     const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
     if (u.is_premium) {
-      if (u.premium_tier === "pack_50") {
+      if (u.premium_tier === "pack_299") {
         const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? u.query_limit ?? 6;
         const used = u.queries_used ?? 0;
         return `Premium · ${used}/${limit} queries`;
@@ -204,12 +204,12 @@
     const isUnlimited = Boolean(
       displayUsage &&
       displayUsage.is_premium &&
-      displayUsage.premium_tier !== "pack_50"
+      displayUsage.premium_tier !== "pack_299"
     );
     if (premiumBtn) {
       premiumBtn.hidden = isUnlimited;
       premiumBtn.textContent =
-        displayUsage?.premium_tier === "pack_50" ? "Upgrade" : "Buy Premium";
+        displayUsage?.premium_tier === "pack_299" ? "Upgrade" : "Buy Premium";
     }
 
     if (resolvedUser) {

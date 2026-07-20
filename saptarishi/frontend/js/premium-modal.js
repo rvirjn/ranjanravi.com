@@ -10,7 +10,7 @@
 
   const DEFAULT_PLANS = [
     {
-      id: "pack_50",
+      id: "pack_299",
       amount_inr: AC.PREMIUM_PACK_AMOUNT_INR,
       query_limit: AC.PREMIUM_PACK_QUERY_LIMIT
     },
@@ -37,7 +37,7 @@
   let planPickerEl = null;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
-  let selectedPlanId = "pack_50";
+  let selectedPlanId = "pack_299";
 
   function scannerImageUrl() {
     const rel = AC.PREMIUM_SCANNER_IMAGE;
@@ -227,7 +227,7 @@
           id: plan.id,
           amount_inr: plan.amount_inr,
           query_limit:
-            plan.id === "pack_50"
+            plan.id === "pack_299"
               ? AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6
               : plan.query_limit,
           duration_months: plan.duration_months
@@ -352,14 +352,14 @@
     if (leadEl) {
       leadEl.textContent =
         options.message ||
-        (usage?.premium_tier === "pack_50"
+        (usage?.premium_tier === "pack_299"
           ? "Upgrade to Unlimited, or verify a coupon for your selected plan."
           : user && usage?.is_premium
             ? "Your paid plan is already active."
             : "Choose ₹299 for 6 queries or ₹1899 for unlimited scans for 1 month.");
     }
 
-    if (usage?.is_premium && usage.premium_tier !== "pack_50") {
+    if (usage?.is_premium && usage.premium_tier !== "pack_299") {
       showPremiumActivationSuccess("Unlimited plan is already active on your account.");
     }
 
@@ -368,7 +368,7 @@
     loadPremiumInfo();
 
     const couponInput = overlay.querySelector("#premium-modal-coupon");
-    if (couponInput && !(usage?.is_premium && usage.premium_tier !== "pack_50")) {
+    if (couponInput && !(usage?.is_premium && usage.premium_tier !== "pack_299")) {
       window.requestAnimationFrame(() => couponInput.focus());
     }
 

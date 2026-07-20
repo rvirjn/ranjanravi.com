@@ -41,7 +41,7 @@
     if (planEl) {
       const tier = profile.premium_tier || usage?.premium_tier;
       const isPaid = profile.is_premium || usage?.is_premium;
-      if (isPaid && tier === "pack_50") {
+      if (isPaid && tier === "pack_299") {
         const limit = usage?.query_limit ?? C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
         const used = usage?.queries_used ?? 0;
         planEl.textContent = `Plan: ${limit} queries · ${used}/${limit} used`;
