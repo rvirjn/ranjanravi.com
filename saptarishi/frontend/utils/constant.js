@@ -30,7 +30,7 @@ const SAPTARISHI_CONSTANTS = {
   API_KUNDALI_PATH: "/api/kundali",
   API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
   API_AUSPICIOUS_PATH: "/api/auspicious",
-  API_PLANET_DATABASE_PATH: "/api/planet-database",
+  API_PLANET_DATABASE_PATH: "/api/planet-database?v=2",
   API_AUTH_REGISTER_PATH: "/api/auth/register",
   API_AUTH_LOGIN_PATH: "/api/auth/login",
   API_AUTH_PROFILE_PATH: "/api/auth/profile",

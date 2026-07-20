@@ -122,8 +122,8 @@
     return out;
   }
 
-  /** Debilitated grahas from kundali JSON (planets_table status.rashi = low, or planet_dignity). */
-  function debilitatedPlanetNamesFromKundali(kundaliPayload) {
+  /** Planets needing remedy: debilitated or placed in 6/8/12 houses. */
+  function remedyPlanetNamesFromKundali(kundaliPayload) {
     const names = [];
     const add = (raw) => {
       const key = normalizeText(raw);
@@ -136,6 +136,9 @@
     }
     for (const planet of kundaliPayload?.planets || []) {
       if (normalizeText(planet?.planet_dignity) === "debilitated") {
+        add(planet?.name);
+      }
+      if (normalizeText(planet?.is_planet_in_6_8_12_house) === "yes") {
         add(planet?.name);
       }
     }
@@ -157,13 +160,13 @@
   function renderPlanetRemedyTable(kundaliPayload) {
     if (!planetRemedyBody) return;
     planetRemedyBody.innerHTML = "";
-    const debilitated = debilitatedPlanetNamesFromKundali(kundaliPayload);
-    if (!debilitated.length) {
+    const remedyPlanets = remedyPlanetNamesFromKundali(kundaliPayload);
+    if (!remedyPlanets.length) {
       if (planetRemedyEmpty) planetRemedyEmpty.hidden = false;
       return;
     }
     if (planetRemedyEmpty) planetRemedyEmpty.hidden = true;
-    for (const planetKey of debilitated) {
+    for (const planetKey of remedyPlanets) {
       const remedy = planetRemedyByName[planetKey] || {};
       const tr = document.createElement("tr");
       for (const col of PLANET_REMEDY_COLUMNS) {
@@ -190,6 +193,18 @@
   function auspiciousNavataraDefinitions(definitions) {
     return (definitions || []).filter(
       (def) => normalizeText(def.auspicious) === "yes" && String(def.name || "").trim()
+    );
+  }
+
+  function navataraDefinitionsForTiles(definitions, nakshatraRows) {
+    const helpfulNavataraKeys = new Set(
+      (nakshatraRows || [])
+        .filter((row) => normalizeText(row.auspicious) === "yes")
+        .map((row) => normalizeText(row.navatara))
+        .filter(Boolean)
+    );
+    return auspiciousNavataraDefinitions(definitions).filter((def) =>
+      helpfulNavataraKeys.has(normalizeText(def.name))
     );
   }
 
@@ -277,7 +292,7 @@
     buttonsHost.innerHTML = "";
     selectedNavataraKey = "";
 
-    const auspicious = auspiciousNavataraDefinitions(definitions);
+    const auspicious = navataraDefinitionsForTiles(definitions, cachedNakshatraRows);
     if (!auspicious.length) {
       buttonsHost.textContent = "No auspicious nava-tara definitions found.";
       return;
