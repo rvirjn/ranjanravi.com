@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=113">
+  <link rel="stylesheet" href="../style/styles.css?v=126">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -69,13 +69,15 @@
 
     <div id="results" hidden>
       <div id="kundali-single-results">
-      <h2 class="result-heading">Summary</h2>
       <div class="summary-chart-row">
         <div class="summary-chart-row__summary table-wrap">
-          <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+          <h3 class="result-heading kundali-chart-heading">Summary</h3>
+          <div class="summary-chart-row__summary-body">
+            <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+          </div>
         </div>
         <div class="summary-chart-row__chart">
-          <h3 class="result-heading kundali-chart-heading">Birth Chart</h3>
+          <h3 id="kundali-chart-heading" class="result-heading kundali-chart-heading">Birth Chart</h3>
           <div id="kundali-chart" class="kundali-chart-host"></div>
         </div>
       </div>
@@ -129,7 +131,7 @@
   <script src="../js/auth-modal.js?v=11"></script>
   <script src="../js/premium-modal.js?v=7"></script>
   <script src="../utils/common.js?v=33"></script>
-  <script src="../js/kundali.js?v=152"></script>
+  <script src="../js/kundali.js?v=181"></script>
   <script src="../js/lord-comparison.js?v=3"></script>
   <script src="../js/kundali-compare.js?v=6"></script>
 </body>

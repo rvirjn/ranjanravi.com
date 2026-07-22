@@ -581,7 +581,8 @@ tbody tr:last-child td {
   margin-top: 0;
 }
 
-#summary-table th[scope="row"] {
+#summary-table th[scope="row"],
+[id$="-summary-table"] th[scope="row"] {
   width: 12rem;
   text-align: left;
   font-weight: 600;
@@ -589,9 +590,20 @@ tbody tr:last-child td {
   vertical-align: middle;
 }
 
-#summary-table td {
+#summary-table td,
+[id$="-summary-table"] td {
   vertical-align: middle;
   min-width: 14rem;
+}
+
+.summary-chart-row #summary-table th[scope="row"],
+.summary-chart-row [id$="-summary-table"] th[scope="row"] {
+  width: 38%;
+}
+
+.summary-chart-row #summary-table td,
+.summary-chart-row [id$="-summary-table"] td {
+  min-width: 0;
 }
 
 .kundali-hint {
@@ -667,73 +679,142 @@ tbody tr:last-child td {
   border-color: var(--color-primary);
 }
 
-/* ---------- Kundali page: summary + chart side by side ---------- */
+/* ---------- Kundali page: equal summary + chart squares ---------- */
 
 .summary-chart-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
-  align-items: center;
-  justify-content: flex-start;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: var(--space-md);
 }
 
-.summary-chart-row__summary.table-wrap {
-  flex: 1 1 28rem;
-  min-width: 26rem;
-  max-width: 42rem;
-  margin-bottom: 0;
-  overflow: visible;
-}
-
-#summary-table {
+.summary-chart-row__summary.table-wrap,
+.summary-chart-row__chart {
   width: 100%;
-  min-width: 26rem;
-  max-width: 42rem;
+  min-width: 0;
+  max-width: none;
+  margin-bottom: 0;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  max-height: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.35rem 0.45rem 0.5rem;
 }
 
-#summary-table th,
-#summary-table td {
-  padding: 0.85rem 1.15rem;
+.summary-chart-row__chart {
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.kundali-chart-heading {
+  margin: 0 0 var(--space-xs);
+  text-align: center;
+  width: 100%;
+  flex: 0 0 auto;
   font-size: 0.95rem;
-  line-height: 1.55;
-}
-
-#summary-table td {
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
-#summary-table td.summary-value--green {
+.summary-chart-row__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  width: 100%;
+}
+
+.summary-chart-row #summary-table,
+.summary-chart-row [id$="-summary-table"] {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+  table-layout: fixed;
+}
+
+.summary-chart-row #summary-table tbody,
+.summary-chart-row [id$="-summary-table"] tbody {
+  height: 100%;
+}
+
+.summary-chart-row #summary-table th,
+.summary-chart-row #summary-table td,
+.summary-chart-row [id$="-summary-table"] th,
+.summary-chart-row [id$="-summary-table"] td {
+  padding: 0.32rem 0.45rem;
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.summary-chart-row #summary-table th[scope="row"],
+.summary-chart-row [id$="-summary-table"] th[scope="row"] {
+  width: 38%;
+  white-space: nowrap;
+}
+
+.summary-chart-row #summary-table td {
+  overflow-wrap: anywhere;
+}
+
+#summary-table td.summary-value--green,
+.summary-chart-row [id$="-summary-table"] td.summary-value--green {
   color: var(--planet-color-green, #2e7d32);
   font-weight: 600;
 }
 
-#summary-table td.summary-value--red {
+#summary-table td.summary-value--red,
+.summary-chart-row [id$="-summary-table"] td.summary-value--red {
   color: var(--planet-color-red, #b71c1c);
   font-weight: 600;
 }
 
-#summary-table tr:last-child th,
-#summary-table tr:last-child td {
+.summary-chart-row #summary-table tr:last-child th,
+.summary-chart-row #summary-table tr:last-child td,
+.summary-chart-row [id$="-summary-table"] tr:last-child th,
+.summary-chart-row [id$="-summary-table"] tr:last-child td {
   border-bottom: none;
 }
 
-.summary-chart-row__chart {
-  flex: 0 0 auto;
+.kundali-chart-host,
+#kundali-chart,
+[id$="-kundali-chart"] {
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 0;
 }
 
-.kundali-chart-heading {
-  margin: 0 0 var(--space-sm);
-  text-align: center;
+.kundali-chart-host .kundali-chart-svg,
+#kundali-chart .kundali-chart-svg,
+[id$="-kundali-chart"] .kundali-chart-svg {
   width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
 }
 
-#kundali-chart {
-  max-width: 22rem;
+@media (max-width: 720px) {
+  .summary-chart-row {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-chart-row__summary.table-wrap,
+  .summary-chart-row__chart {
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+  }
 }
 
 .kundali-chart-svg {
@@ -764,25 +845,67 @@ tbody tr:last-child td {
   text-decoration: none;
   paint-order: stroke fill;
   stroke: var(--color-surface);
-  stroke-width: 2.5px;
+  stroke-width: 1.1px;
   stroke-linejoin: round;
 }
 
 .kundali-chart-label-planets {
-  font-size: 5px;
+  font-size: 3.4px;
   font-weight: 700;
   fill: var(--color-primary);
 }
 
 .kundali-chart-label-planets--dense {
-  font-size: 4.2px;
+  font-size: 3px;
 }
 
 .kundali-chart-planet {
-  font-size: 5px;
+  font-size: 3.4px;
   font-weight: 700;
   stroke: none;
   paint-order: fill;
+}
+
+.kundali-chart-aspect-eye__brow {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 0.5;
+  stroke-linecap: round;
+}
+
+.kundali-chart-aspect-eye__outline {
+  fill: color-mix(in srgb, var(--color-surface) 94%, var(--color-primary) 6%);
+  stroke: var(--color-primary);
+  stroke-width: 0.4;
+}
+
+.kundali-chart-aspect-eye__iris {
+  fill: color-mix(in srgb, var(--color-surface) 70%, var(--color-primary) 30%);
+  stroke: var(--color-primary);
+  stroke-width: 0.2;
+  opacity: 0.28;
+}
+
+.kundali-chart-aspect-eye__pupil {
+  fill: var(--color-primary);
+  opacity: 0.16;
+}
+
+.kundali-chart-aspect-eye__label {
+  font-size: 3.15px;
+  font-weight: 700;
+  stroke: var(--color-surface);
+  stroke-width: 0.55px;
+  paint-order: stroke fill;
+  pointer-events: none;
+}
+
+.kundali-chart-aspect-eye__comma {
+  font-size: 3.15px;
+  font-weight: 600;
+  fill: var(--color-primary);
+  stroke: none;
+  pointer-events: none;
 }
 
 /* Exalted / debilitated: full green or full red (from data.json color_codes) */
@@ -817,9 +940,10 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-label-rashi {
-  font-size: 6px;
-  font-weight: 700;
+  font-size: 3.5px;
+  font-weight: 600;
   fill: var(--color-heading);
+  stroke-width: 0.9px;
 }
 
 .kundali-chart-house--lagna .kundali-chart-label-rashi {
