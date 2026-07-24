@@ -3,12 +3,12 @@
 (function lordComparisonModule() {
   const CHROME = {
     top: {
-      heading: "Lord strength differences across top slots",
+      heading: "Lord strength across top slots",
       lead:
         "Top slots by house strength (ranked <strong>1</strong>, <strong>2</strong>, <strong>3</strong>… in each column). Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
     },
     compare: {
-      heading: "Lord strength differences across compared births",
+      heading: "Lord strength across compared births",
       lead:
         "Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
     }

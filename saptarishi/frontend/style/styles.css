@@ -1428,6 +1428,14 @@ tbody tr:last-child td {
 #lord-comparison-table th.auspicious-lord-col,
 #lord-comparison-table td.auspicious-lord-col {
   vertical-align: top;
+  min-width: 0;
+  width: auto;
+}
+
+#lord-comparison-table thead th:first-child,
+#lord-comparison-table tbody td:first-child {
+  width: 4.25rem;
+  max-width: 4.5rem;
 }
 
 #lord-comparison-table td.auspicious-lord-col {
@@ -1439,18 +1447,19 @@ tbody tr:last-child td {
 
 #lord-comparison-table th.auspicious-lord-col {
   vertical-align: bottom;
-  min-width: 9rem;
 }
 
 .auspicious-lord-col__label {
   display: block;
   font-weight: 600;
+  font-size: 0.72rem;
+  line-height: 1.2;
 }
 
 .auspicious-lord-col__total {
   display: block;
   margin-top: 0.15rem;
-  font-size: 0.82em;
+  font-size: 0.72em;
   font-weight: 400;
   opacity: 0.78;
 }
@@ -1464,18 +1473,21 @@ tbody tr:last-child td {
 }
 
 .auspicious-lord-col__chart {
-  margin-top: 0.45rem;
-  max-width: 8.5rem;
+  margin-top: 0.35rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .auspicious-lord-col__chart .kundali-chart-svg {
   width: 100%;
   height: auto;
+  aspect-ratio: 1;
+  display: block;
 }
 
 .auspicious-lord-cell {
   line-height: 1.45;
-  max-width: 14rem;
+  max-width: 100%;
 }
 
 .auspicious-lord-cell__part {

@@ -108,6 +108,13 @@
     }
   }
 
+  function inclusiveDaySpan(fromIso, toIso) {
+    const from = new Date(`${fromIso}T00:00:00`);
+    const to = new Date(`${toIso}T00:00:00`);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return null;
+    return Math.floor((to - from) / 86400000) + 1;
+  }
+
   function validateAuspiciousFormInput(place) {
     if (!auspiciousPlacePreset.value) return "Select a place.";
     if (auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE && !place) {
@@ -115,6 +122,11 @@
     }
     if (!dateFrom.value || !dateTo.value) return "From and to dates are required.";
     if (dateTo.value < dateFrom.value) return "To date must be on or after from date.";
+    const maxDays = Number(AC.AUSPICIOUS_MAX_RANGE_DAYS) || 365 * 2;
+    const span = inclusiveDaySpan(dateFrom.value, dateTo.value);
+    if (span != null && span > maxDays) {
+      return `Date range is limited to 2 years (max ${maxDays} days). Shorten From/To and try again.`;
+    }
     return null;
   }
 

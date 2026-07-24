@@ -8,12 +8,12 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Auspicious baby birth times by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=126">
+  <link rel="stylesheet" href="../style/styles.css?v=129">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
     <h1>Auspicious baby birth times by Saptarishi</h1>
-    <p class="lead">Find the strongest slots in a date range</p>
+    <p class="lead">Find the strongest slots in a date range (max 2 years)</p>
 
     <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
       <div class="form-field">
@@ -58,7 +58,7 @@
       </div>
 
       <div id="lord-comparison-section" hidden>
-        <h2 id="lord-comparison-heading" class="result-heading">Lord strength differences across top slots</h2>
+        <h2 id="lord-comparison-heading" class="result-heading">Lord strength across top slots</h2>
         <p class="lead auspicious-lord-comparison-lead">
           Top slots by house strength (ranked <strong>1</strong>, <strong>2</strong>, <strong>3</strong>… in each column). Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header.
         </p>
@@ -72,14 +72,14 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=53"></script>
+  <script src="../utils/constant.js?v=54"></script>
   <script src="../js/auth.js?v=21"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
   <script src="../js/premium-modal.js?v=7"></script>
   <script src="../utils/common.js?v=33"></script>
-  <script src="../js/kundali.js?v=181"></script>
-  <script src="../js/lord-comparison.js?v=3"></script>
-  <script src="../js/auspicious.js?v=39"></script>
+  <script src="../js/kundali.js?v=183"></script>
+  <script src="../js/lord-comparison.js?v=5"></script>
+  <script src="../js/auspicious.js?v=40"></script>
 </body>
 </html>

@@ -67,6 +67,8 @@ const SAPTARISHI_CONSTANTS = {
     "Kundali Chart prepared and planet/nakshtra table is also ready",
   AUSPICIOUS_READY_STATUS_MESSAGE:
     "Top auspicious date and time slots are ready",
+  /** Inclusive max span for From→To on auspicious scan (keep in sync with backend). */
+  AUSPICIOUS_MAX_RANGE_DAYS: 365 * 2,
   /** Fixed shade for Status In Rashi / Nakshatra cells (not tied to planet strength %). */
   PLANET_STATUS_COLOR_INTENSITY: 0.72,
 

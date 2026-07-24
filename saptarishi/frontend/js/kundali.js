@@ -2005,7 +2005,8 @@ window.SaptarishiKundaliView = {
   formatNavataraName,
   normalizeText,
   isLordComparisonToneAllowed,
-  isPlanetCellColorAllowedForColumn
+  isPlanetCellColorAllowedForColumn,
+  formatBirthChartHeading
 };
 
 window.SaptarishiKundaliPage = {
