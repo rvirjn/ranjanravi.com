@@ -15,10 +15,10 @@
   function formatPlanetDisplayName(planetKey) {
     const key = String(planetKey || "").trim();
     if (!key) return "—";
+    if (key === "Yoga count") return key;
     const upper = key.toUpperCase();
     if (/^D(1|9|10|30|60)$/i.test(key)) return upper;
-    const lower = key.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
+    return key;
   }
 
   function formatRashiTitle(rashiEnglish) {
@@ -203,6 +203,23 @@
     tr.appendChild(td);
   }
 
+  function appendYogaCompareCell(tr, cell, rowKind) {
+    const td = document.createElement("td");
+    td.className = "auspicious-lord-col auspicious-lord-col--yoga";
+    if (rowKind === "yoga_count") {
+      td.classList.add("auspicious-lord-col--yoga-count");
+      td.textContent =
+        cell?.count != null ? String(cell.count) : String(cell?.text || "0");
+    } else if (cell?.present) {
+      td.classList.add("auspicious-lord-col--yoga-yes");
+      td.textContent = String(cell.text || "Yes");
+    } else {
+      td.classList.add("auspicious-lord-col--yoga-no");
+      td.textContent = "—";
+    }
+    tr.appendChild(td);
+  }
+
   function setChrome(mode) {
     const heading = document.getElementById("lord-comparison-heading");
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
@@ -275,7 +292,13 @@
     for (const rowData of rows) {
       const tr = document.createElement("tr");
       const isDivisional = rowData.row_kind === "divisional_chart";
+      const isYoga =
+        rowData.row_kind === "yoga_diff" || rowData.row_kind === "yoga_count";
       if (isDivisional) tr.classList.add("lord-comparison-row--divisional");
+      if (isYoga) tr.classList.add("lord-comparison-row--yoga");
+      if (rowData.row_kind === "yoga_count") {
+        tr.classList.add("lord-comparison-row--yoga-count");
+      }
 
       const planetTd = document.createElement("td");
       planetTd.className = "planets-td-planet";
@@ -284,6 +307,10 @@
 
       if (isDivisional) {
         (rowData.cells || []).forEach((cell) => appendDivisionalChartCell(tr, cell));
+      } else if (isYoga) {
+        (rowData.cells || []).forEach((cell) =>
+          appendYogaCompareCell(tr, cell, rowData.row_kind)
+        );
       } else {
         (rowData.cells || []).forEach((cell) => {
           const td = document.createElement("td");

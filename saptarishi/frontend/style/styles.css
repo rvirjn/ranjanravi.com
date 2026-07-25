@@ -902,6 +902,86 @@ tbody tr:last-child td {
   }
 }
 
+/* ---------- Kundali yogas ---------- */
+
+.kundali-yog-section {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-surface-border);
+}
+
+.kundali-yog-summary {
+  margin: 0 0 var(--space-md);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--color-heading, #1e3a5f);
+  font-weight: 600;
+}
+
+.kundali-yog-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.kundali-yog-item {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm, 6px);
+  background: #fff;
+}
+
+.kundali-yog-item--present {
+  border-color: color-mix(in srgb, #2e7d32 45%, var(--color-surface-border));
+  background: rgba(46, 125, 50, 0.05);
+}
+
+.kundali-yog-item--absent {
+  opacity: 0.78;
+}
+
+.kundali-yog-item__title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.kundali-yog-item__badge {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.kundali-yog-item--present .kundali-yog-item__badge {
+  background: rgba(46, 125, 50, 0.14);
+  color: #1b5e20;
+}
+
+.kundali-yog-item--absent .kundali-yog-item__badge {
+  background: rgba(90, 106, 122, 0.12);
+  color: #5a6a7a;
+}
+
+.kundali-yog-item__summary {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.kundali-yog-item__detail {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--color-muted, #5a6a7a);
+}
+
 .kundali-chart-svg {
   width: 100%;
   height: auto;
@@ -1599,6 +1679,26 @@ tbody tr:last-child td {
   height: auto;
   aspect-ratio: 1;
   display: block;
+}
+
+#lord-comparison-table tbody tr.lord-comparison-row--yoga-count td {
+  font-weight: 700;
+  background: rgba(30, 58, 95, 0.04);
+}
+
+#lord-comparison-table td.auspicious-lord-col--yoga-yes {
+  color: #1b5e20;
+  font-weight: 700;
+}
+
+#lord-comparison-table td.auspicious-lord-col--yoga-no {
+  color: var(--color-muted, #5a6a7a);
+}
+
+#lord-comparison-table td.auspicious-lord-col--yoga-count {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-heading, #1e3a5f);
 }
 
 .auspicious-lord-cell {

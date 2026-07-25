@@ -1873,6 +1873,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
 
   if (!viewTargets.skipShellUpdates) {
     renderDivisionalChartsFromPayload(kundaliPayload);
+    renderKundaliYogasFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
   }
@@ -2069,6 +2070,60 @@ function renderDivisionalChartsFromPayload(payload) {
   }
 }
 
+/** Render yoga list from ``kundali_yog`` (after divisional charts). Only present yogas. */
+function renderKundaliYogasFromPayload(payload) {
+  const section = document.getElementById("kundali-yog-section");
+  const summaryEl = document.getElementById("kundali-yog-summary");
+  const listEl = document.getElementById("kundali-yog-list");
+  if (!section || !listEl) return;
+
+  const block = payload?.kundali_yog;
+  const yogas = (Array.isArray(block?.yogas) ? block.yogas : []).filter((y) => y && y.present);
+  listEl.innerHTML = "";
+
+  if (!yogas.length) {
+    section.hidden = true;
+    if (summaryEl) {
+      summaryEl.textContent = "";
+      summaryEl.hidden = true;
+    }
+    return;
+  }
+
+  section.hidden = false;
+  if (summaryEl) {
+    summaryEl.textContent = "";
+    summaryEl.hidden = true;
+  }
+
+  for (const yoga of yogas) {
+    const item = document.createElement("article");
+    item.className = "kundali-yog-item kundali-yog-item--present";
+    item.dataset.yogaKey = String(yoga.key || "");
+
+    const title = document.createElement("h3");
+    title.className = "kundali-yog-item__title";
+    title.textContent = String(yoga.name || yoga.key || "Yoga");
+    item.appendChild(title);
+
+    if (yoga.summary) {
+      const summary = document.createElement("p");
+      summary.className = "kundali-yog-item__summary";
+      summary.textContent = String(yoga.summary);
+      item.appendChild(summary);
+    }
+
+    if (yoga.detail) {
+      const detail = document.createElement("p");
+      detail.className = "kundali-yog-item__detail";
+      detail.textContent = String(yoga.detail);
+      item.appendChild(detail);
+    }
+
+    listEl.appendChild(item);
+  }
+}
+
 /** Toggle expand/collapse for the divisional charts block. */
 function toggleDivisionalChartsPanel() {
   const panel = document.getElementById("divisional-charts-panel");
@@ -2209,6 +2264,7 @@ window.SaptarishiKundaliView = {
   buildNorthIndianChartFromPayload,
   renderKundaliChart,
   renderDivisionalChartsFromPayload,
+  renderKundaliYogasFromPayload,
   bindKundaliChartZoom,
   openKundaliChartZoom,
   closeKundaliChartZoom,
