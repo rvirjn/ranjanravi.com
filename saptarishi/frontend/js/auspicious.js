@@ -187,7 +187,7 @@
     }
 
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = false;
-    showAuspiciousStatus(payload.ui_status_message || AC.AUSPICIOUS_READY_STATUS_MESSAGE);
+    showAuspiciousStatus("");
   }
 
   async function handleAuspiciousFormSubmit(event) {

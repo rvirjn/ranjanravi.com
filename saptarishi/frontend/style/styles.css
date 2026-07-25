@@ -817,6 +817,91 @@ tbody tr:last-child td {
   }
 }
 
+/* ---------- Divisional charts (D1 / D9 / D10 / D30 / D60) ---------- */
+
+.divisional-charts-section {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-surface-border);
+}
+
+.divisional-charts-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  background: #fff;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgba(30, 58, 95, 0.06);
+}
+
+.divisional-charts-toggle::after {
+  content: "▾";
+  font-size: 0.75rem;
+  opacity: 0.75;
+  transition: transform 0.15s ease;
+}
+
+.divisional-charts-toggle[aria-expanded="true"]::after {
+  transform: rotate(-180deg);
+}
+
+.divisional-charts-toggle:hover {
+  border-color: color-mix(in srgb, var(--color-heading) 35%, var(--color-surface-border));
+}
+
+.divisional-charts-panel {
+  margin-top: var(--space-md);
+}
+
+.divisional-charts-lead {
+  margin: 0 0 var(--space-md);
+  max-width: 42rem;
+}
+
+.divisional-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-md);
+}
+
+.divisional-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.divisional-chart-card__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.divisional-chart-card__focus {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--color-muted, #5a6a7a);
+}
+
+.divisional-chart-card__host {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  .divisional-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kundali-chart-svg {
   width: 100%;
   height: auto;
@@ -1449,6 +1534,10 @@ tbody tr:last-child td {
   vertical-align: bottom;
 }
 
+#lord-comparison-table thead th.auspicious-lord-col:has(.auspicious-lord-col__label):not(:has(.auspicious-lord-col__chart)) {
+  vertical-align: middle;
+}
+
 .auspicious-lord-col__label {
   display: block;
   font-weight: 600;
@@ -1458,10 +1547,12 @@ tbody tr:last-child td {
 
 .auspicious-lord-col__total {
   display: block;
-  margin-top: 0.15rem;
-  font-size: 0.72em;
-  font-weight: 400;
-  opacity: 0.78;
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  opacity: 1;
+  color: var(--color-heading, #1e3a5f);
 }
 
 .auspicious-lord-col__rank {
@@ -1474,11 +1565,36 @@ tbody tr:last-child td {
 
 .auspicious-lord-col__chart {
   margin-top: 0.35rem;
-  width: 100%;
+  width: min(100%, 9.5rem);
   max-width: 100%;
+  margin-inline: auto;
 }
 
 .auspicious-lord-col__chart .kundali-chart-svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block;
+}
+
+#lord-comparison-table tbody tr.lord-comparison-row--divisional td.planets-td-planet {
+  vertical-align: middle;
+  font-weight: 800;
+}
+
+#lord-comparison-table td.auspicious-lord-col--divisional-chart {
+  vertical-align: middle;
+  padding: 0.45rem;
+}
+
+.auspicious-lord-col__chart--divisional {
+  margin-top: 0;
+  width: min(100%, 9.5rem);
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.auspicious-lord-col__chart--divisional .kundali-chart-svg {
   width: 100%;
   height: auto;
   aspect-ratio: 1;
@@ -2461,3 +2577,97 @@ body.premium-modal-open {
 .remedy-navatara-panel__table {
   margin-top: 0;
 }
+
+/* ---------- Chart click-to-zoom lightbox ---------- */
+
+.kundali-chart-host--zoomable {
+  cursor: zoom-in;
+}
+
+.kundali-chart-host--zoomable:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-heading) 55%, transparent);
+  outline-offset: 2px;
+}
+
+body.kundali-chart-zoom-open {
+  overflow: hidden;
+}
+
+.kundali-chart-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(18, 28, 40, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.kundali-chart-zoom-overlay[hidden] {
+  display: none;
+}
+
+.kundali-chart-zoom {
+  position: relative;
+  width: min(100%, 52rem);
+  max-height: min(96vh, 56rem);
+  overflow: auto;
+  padding: 1rem 1.1rem 1.2rem;
+  border-radius: var(--radius-sm, 6px);
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(18, 28, 40, 0.28);
+}
+
+.kundali-chart-zoom__close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.55rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-heading, #1e3a5f);
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.kundali-chart-zoom__close:hover {
+  background: rgba(30, 58, 95, 0.08);
+}
+
+.kundali-chart-zoom__title {
+  margin: 0 2rem 0.25rem 0;
+  font-size: 1.05rem;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.kundali-chart-zoom__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: var(--color-muted, #5a6a7a);
+}
+
+.kundali-chart-zoom__frame {
+  --kundali-chart-zoom-size: 22rem;
+  width: min(100%, var(--kundali-chart-zoom-size), 92vmin);
+  margin-inline: auto;
+  transition: width 0.18s ease;
+}
+
+.kundali-chart-zoom__host {
+  width: 100%;
+  aspect-ratio: 1;
+  cursor: zoom-in;
+}
+
+.kundali-chart-zoom__host .kundali-chart-svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block;
+}
+

@@ -1872,8 +1872,213 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   }
 
   if (!viewTargets.skipShellUpdates) {
+    renderDivisionalChartsFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
+  }
+}
+
+/** Collapse divisional charts expand panel (keeps last-rendered SVGs). */
+function collapseDivisionalChartsPanel() {
+  const panel = document.getElementById("divisional-charts-panel");
+  const toggle = document.getElementById("divisional-charts-toggle");
+  if (panel) panel.hidden = true;
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
+}
+
+/** Progressive zoom sizes for the chart lightbox (CSS rem). */
+const KUNDALI_CHART_ZOOM_SIZES = [22, 32, 44];
+
+let kundaliChartZoomState = {
+  overlay: null,
+  step: 0,
+  payload: null,
+  title: "",
+  onKeyDown: null
+};
+
+function ensureKundaliChartZoomOverlay() {
+  if (kundaliChartZoomState.overlay) return kundaliChartZoomState.overlay;
+
+  const overlay = document.createElement("div");
+  overlay.id = "kundali-chart-zoom-overlay";
+  overlay.className = "kundali-chart-zoom-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML =
+    '<div class="kundali-chart-zoom" role="dialog" aria-modal="true" aria-labelledby="kundali-chart-zoom-title">' +
+    '<button type="button" class="kundali-chart-zoom__close" aria-label="Close enlarged chart">×</button>' +
+    '<h3 id="kundali-chart-zoom-title" class="kundali-chart-zoom__title"></h3>' +
+    '<p class="kundali-chart-zoom__hint">Click the chart to enlarge · Esc to close</p>' +
+    '<div class="kundali-chart-zoom__frame">' +
+    '<div class="kundali-chart-zoom__host kundali-chart-host"></div>' +
+    "</div></div>";
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeKundaliChartZoom();
+  });
+  overlay.querySelector(".kundali-chart-zoom__close")?.addEventListener("click", closeKundaliChartZoom);
+  overlay.querySelector(".kundali-chart-zoom__host")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    bumpKundaliChartZoomSize();
+  });
+
+  kundaliChartZoomState.overlay = overlay;
+  return overlay;
+}
+
+function applyKundaliChartZoomSize() {
+  const overlay = kundaliChartZoomState.overlay;
+  if (!overlay) return;
+  const frame = overlay.querySelector(".kundali-chart-zoom__frame");
+  const hint = overlay.querySelector(".kundali-chart-zoom__hint");
+  if (!frame) return;
+  const step = kundaliChartZoomState.step % KUNDALI_CHART_ZOOM_SIZES.length;
+  const sizeRem = KUNDALI_CHART_ZOOM_SIZES[step];
+  frame.style.setProperty("--kundali-chart-zoom-size", `${sizeRem}rem`);
+  frame.dataset.zoomStep = String(step);
+  if (hint) {
+    const next = step + 1 < KUNDALI_CHART_ZOOM_SIZES.length;
+    hint.textContent = next
+      ? "Click the chart to enlarge further · Esc to close"
+      : "Largest size · click again to reset · Esc to close";
+  }
+}
+
+function bumpKundaliChartZoomSize() {
+  kundaliChartZoomState.step =
+    (kundaliChartZoomState.step + 1) % KUNDALI_CHART_ZOOM_SIZES.length;
+  applyKundaliChartZoomSize();
+}
+
+function closeKundaliChartZoom() {
+  const overlay = kundaliChartZoomState.overlay;
+  if (!overlay || overlay.hidden) return;
+  overlay.hidden = true;
+  document.body.classList.remove("kundali-chart-zoom-open");
+  if (kundaliChartZoomState.onKeyDown) {
+    document.removeEventListener("keydown", kundaliChartZoomState.onKeyDown);
+    kundaliChartZoomState.onKeyDown = null;
+  }
+  const host = overlay.querySelector(".kundali-chart-zoom__host");
+  if (host) host.innerHTML = "";
+  kundaliChartZoomState.payload = null;
+  kundaliChartZoomState.title = "";
+  kundaliChartZoomState.step = 0;
+}
+
+/** Open a readable lightbox for a chart; click chart again to step size up. */
+function openKundaliChartZoom(chartPayload, title) {
+  if (!chartPayload || !Array.isArray(chartPayload.planets)) return;
+  const overlay = ensureKundaliChartZoomOverlay();
+  const host = overlay.querySelector(".kundali-chart-zoom__host");
+  const titleEl = overlay.querySelector("#kundali-chart-zoom-title");
+  if (!host) return;
+
+  kundaliChartZoomState.payload = chartPayload;
+  kundaliChartZoomState.title = title || "Chart";
+  kundaliChartZoomState.step = 0;
+  if (titleEl) titleEl.textContent = kundaliChartZoomState.title;
+
+  renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
+  applyKundaliChartZoomSize();
+  overlay.hidden = false;
+  document.body.classList.add("kundali-chart-zoom-open");
+
+  if (kundaliChartZoomState.onKeyDown) {
+    document.removeEventListener("keydown", kundaliChartZoomState.onKeyDown);
+  }
+  kundaliChartZoomState.onKeyDown = (event) => {
+    if (event.key === "Escape") closeKundaliChartZoom();
+  };
+  document.addEventListener("keydown", kundaliChartZoomState.onKeyDown);
+  overlay.querySelector(".kundali-chart-zoom__close")?.focus();
+}
+
+/** Make a rendered chart host open the zoom lightbox on click. */
+function bindKundaliChartZoom(host, chartPayload, title) {
+  if (!host || !chartPayload || !Array.isArray(chartPayload.planets)) return;
+  host.classList.add("kundali-chart-host--zoomable");
+  host.tabIndex = 0;
+  host.setAttribute("role", "button");
+  host.setAttribute("aria-label", `Enlarge ${title || "chart"}`);
+  host.title = "Click to enlarge";
+  const open = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openKundaliChartZoom(chartPayload, title);
+  };
+  host.addEventListener("click", open);
+  host.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") open(event);
+  });
+}
+
+/** Render D1/D9/D10/D30/D60 North Indian charts from ``divisional_charts`` JSON. */
+function renderDivisionalChartsFromPayload(payload) {
+  const grid = document.getElementById("divisional-charts-grid");
+  const section = document.getElementById("divisional-charts-section");
+  if (!grid) return;
+
+  collapseDivisionalChartsPanel();
+  grid.innerHTML = "";
+
+  const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
+  if (section) section.hidden = charts.length === 0;
+  if (!charts.length) return;
+
+  const strengthMax =
+    typeof payload?.strength_max === "number"
+      ? payload.strength_max
+      : strengthMaxFromPayload(payload);
+
+  for (const chart of charts) {
+    if (!chart || !Array.isArray(chart.planets)) continue;
+    const key = String(chart.key || "Dx").toLowerCase();
+    const hostId = `divisional-chart-${key}`;
+
+    const card = document.createElement("article");
+    card.className = "divisional-chart-card";
+    card.dataset.chartKey = chart.key || "";
+
+    const heading = document.createElement("h3");
+    heading.className = "result-heading kundali-chart-heading divisional-chart-card__title";
+    heading.textContent = chart.title || chart.key || "Chart";
+    card.appendChild(heading);
+
+    if (chart.focus) {
+      const focus = document.createElement("p");
+      focus.className = "divisional-chart-card__focus";
+      focus.textContent = chart.focus;
+      card.appendChild(focus);
+    }
+
+    const host = document.createElement("div");
+    host.id = hostId;
+    host.className = "kundali-chart-host divisional-chart-card__host";
+    card.appendChild(host);
+
+    grid.appendChild(card);
+
+    const chartPayload = {
+      planets: chart.planets,
+      strength_max: typeof chart.strength_max === "number" ? chart.strength_max : strengthMax
+    };
+    renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
+    bindKundaliChartZoom(host, chartPayload, chart.title || chart.key || "Chart");
+  }
+}
+
+/** Toggle expand/collapse for the divisional charts block. */
+function toggleDivisionalChartsPanel() {
+  const panel = document.getElementById("divisional-charts-panel");
+  const toggle = document.getElementById("divisional-charts-toggle");
+  if (!panel || !toggle) return;
+  const show = panel.hidden;
+  panel.hidden = !show;
+  toggle.setAttribute("aria-expanded", show ? "true" : "false");
+  if (show) {
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 }
 
@@ -1983,6 +2188,10 @@ if (document.getElementById("birth-form")) {
     form.addEventListener("submit", handleBirthFormSubmit);
     ensurePlanetDatabase().catch(() => {});
   }
+  const divisionalToggle = document.getElementById("divisional-charts-toggle");
+  if (divisionalToggle) {
+    divisionalToggle.addEventListener("click", toggleDivisionalChartsPanel);
+  }
   initDefaultBirthFromUser();
   globalThis.addEventListener("saptarishi-auth-changed", () => {
     initDefaultBirthFromUser();
@@ -1999,6 +2208,10 @@ window.SaptarishiKundaliView = {
   createStandardPanel: createStandardKundaliPanelElement,
   buildNorthIndianChartFromPayload,
   renderKundaliChart,
+  renderDivisionalChartsFromPayload,
+  bindKundaliChartZoom,
+  openKundaliChartZoom,
+  closeKundaliChartZoom,
   MAIN_TARGETS: buildKundaliViewTargets(),
   SLOT_TARGETS: buildKundaliViewTargets({ idPrefix: "slot", skipShellUpdates: true }),
   renderNakshatraTableWithColors,

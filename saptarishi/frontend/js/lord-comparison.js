@@ -4,20 +4,21 @@
   const CHROME = {
     top: {
       heading: "Lord strength across top slots",
-      lead:
-        "Top slots by house strength (ranked <strong>1</strong>, <strong>2</strong>, <strong>3</strong>… in each column). Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
+      lead: ""
     },
     compare: {
       heading: "Lord strength across compared births",
-      lead:
-        "Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header."
+      lead: ""
     }
   };
 
   function formatPlanetDisplayName(planetKey) {
-    const key = String(planetKey || "").trim().toLowerCase();
+    const key = String(planetKey || "").trim();
     if (!key) return "—";
-    return key.charAt(0).toUpperCase() + key.slice(1);
+    const upper = key.toUpperCase();
+    if (/^D(1|9|10|30|60)$/i.test(key)) return upper;
+    const lower = key.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
 
   function formatRashiTitle(rashiEnglish) {
@@ -163,7 +164,7 @@
     return wrap;
   }
 
-  function renderInlineColumnChart(column, chartHost) {
+  function renderInlineColumnChart(column, chartHost, zoomTitle) {
     const view = window.SaptarishiKundaliView;
     if (!view || !column?.kundali_chart || !chartHost) return;
     const build = view.buildNorthIndianChartFromPayload;
@@ -171,6 +172,35 @@
     if (typeof build !== "function" || typeof render !== "function") return;
     const chartData = build(column.kundali_chart);
     render(chartData, chartHost);
+    if (typeof view.bindKundaliChartZoom === "function") {
+      view.bindKundaliChartZoom(
+        chartHost,
+        column.kundali_chart,
+        zoomTitle || column.label || "Chart"
+      );
+    }
+  }
+
+  function appendDivisionalChartCell(tr, cell) {
+    const td = document.createElement("td");
+    td.className = "auspicious-lord-col auspicious-lord-col--divisional-chart";
+    if (cell?.title) td.title = String(cell.title);
+
+    const host = document.createElement("div");
+    host.className = "auspicious-lord-col__chart auspicious-lord-col__chart--divisional kundali-chart-host";
+    td.appendChild(host);
+
+    const chartPayload = cell?.kundali_chart;
+    if (chartPayload && Array.isArray(chartPayload.planets) && chartPayload.planets.length) {
+      renderInlineColumnChart(
+        { kundali_chart: chartPayload },
+        host,
+        cell.title || cell.chart_key || "Chart"
+      );
+    } else {
+      host.textContent = "—";
+    }
+    tr.appendChild(td);
   }
 
   function setChrome(mode) {
@@ -178,7 +208,11 @@
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
     const cfg = CHROME[mode] || CHROME.top;
     if (heading) heading.textContent = cfg.heading;
-    if (lead) lead.innerHTML = cfg.lead;
+    if (lead) {
+      const text = String(cfg.lead || "").trim();
+      lead.innerHTML = text;
+      lead.hidden = !text;
+    }
   }
 
   function renderTable(comparison) {
@@ -202,6 +236,8 @@
     const tbody = table.querySelector("tbody");
     if (!thead || !tbody) return;
 
+    const hasDivisionalRows = rows.some((row) => row?.row_kind === "divisional_chart");
+
     const headerRow = document.createElement("tr");
     headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Planet" }));
 
@@ -223,10 +259,14 @@
         total.append(rankEl, document.createTextNode(`Total ${column.houses_strength_total}`));
       }
 
-      const chartHost = document.createElement("div");
-      chartHost.className = "auspicious-lord-col__chart kundali-chart-host";
-      th.append(label, total, chartHost);
-      renderInlineColumnChart(column, chartHost);
+      th.append(label, total);
+      // Kundali compare: charts live in D1/D9/… rows. Auspicious still shows header chart.
+      if (!hasDivisionalRows) {
+        const chartHost = document.createElement("div");
+        chartHost.className = "auspicious-lord-col__chart kundali-chart-host";
+        th.appendChild(chartHost);
+        renderInlineColumnChart(column, chartHost);
+      }
       headerRow.appendChild(th);
     });
     thead.replaceChildren(headerRow);
@@ -234,18 +274,25 @@
 
     for (const rowData of rows) {
       const tr = document.createElement("tr");
+      const isDivisional = rowData.row_kind === "divisional_chart";
+      if (isDivisional) tr.classList.add("lord-comparison-row--divisional");
+
       const planetTd = document.createElement("td");
       planetTd.className = "planets-td-planet";
       planetTd.textContent = formatPlanetDisplayName(rowData.planet);
       tr.appendChild(planetTd);
 
-      (rowData.cells || []).forEach((cell) => {
-        const td = document.createElement("td");
-        td.className = "auspicious-lord-col";
-        td.title = lordComparisonCellTitle(cell);
-        td.appendChild(buildLordComparisonCellElement(cell));
-        tr.appendChild(td);
-      });
+      if (isDivisional) {
+        (rowData.cells || []).forEach((cell) => appendDivisionalChartCell(tr, cell));
+      } else {
+        (rowData.cells || []).forEach((cell) => {
+          const td = document.createElement("td");
+          td.className = "auspicious-lord-col";
+          td.title = lordComparisonCellTitle(cell);
+          td.appendChild(buildLordComparisonCellElement(cell));
+          tr.appendChild(td);
+        });
+      }
       tbody.appendChild(tr);
     }
   }

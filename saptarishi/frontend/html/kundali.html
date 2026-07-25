@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=129">
+  <link rel="stylesheet" href="../style/styles.css?v=137">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -108,13 +108,25 @@
           <tbody></tbody>
         </table>
       </div>
+
+      <section id="divisional-charts-section" class="divisional-charts-section">
+        <button
+          type="button"
+          id="divisional-charts-toggle"
+          class="divisional-charts-toggle"
+          aria-expanded="false"
+          aria-controls="divisional-charts-panel"
+        >
+          Divisional charts (D1, D9, D10, D30, D60)
+        </button>
+        <div id="divisional-charts-panel" class="divisional-charts-panel" hidden>
+          <div id="divisional-charts-grid" class="divisional-charts-grid"></div>
+        </div>
+      </section>
       </div>
 
       <div id="lord-comparison-section" hidden>
         <h2 id="lord-comparison-heading" class="result-heading">Lord strength across compared births</h2>
-        <p class="lead auspicious-lord-comparison-lead">
-          Each lord starts at <strong>100</strong> strength; +/- adjustments increase or decrease its power. Birth charts appear in each column header.
-        </p>
         <div class="table-wrap">
           <table id="lord-comparison-table" class="navatara-data-table kundali-table">
             <thead></thead>
@@ -131,8 +143,8 @@
   <script src="../js/auth-modal.js?v=11"></script>
   <script src="../js/premium-modal.js?v=7"></script>
   <script src="../utils/common.js?v=33"></script>
-  <script src="../js/kundali.js?v=183"></script>
-  <script src="../js/lord-comparison.js?v=5"></script>
+  <script src="../js/kundali.js?v=186"></script>
+  <script src="../js/lord-comparison.js?v=11"></script>
   <script src="../js/kundali-compare.js?v=8"></script>
 </body>
 </html>

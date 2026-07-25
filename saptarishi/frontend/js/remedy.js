@@ -372,7 +372,7 @@
       renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
 
       if (resultsEl) resultsEl.hidden = false;
-      showRemedyStatus("Remedy generated successfully.");
+      showRemedyStatus("");
     } catch (err) {
       const formatted = formatLoadError(err);
       if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
