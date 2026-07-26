@@ -2070,9 +2070,10 @@ function renderDivisionalChartsFromPayload(payload) {
   }
 }
 
-/** Render yoga list from ``kundali_yog`` (after divisional charts). Only present yogas. */
+/** Render yoga tiles from ``kundali_yog`` (same click-to-expand pattern as Remedy navatara). */
 function renderKundaliYogasFromPayload(payload) {
   const section = document.getElementById("kundali-yog-section");
+  const headingEl = document.getElementById("kundali-yog-heading");
   const summaryEl = document.getElementById("kundali-yog-summary");
   const listEl = document.getElementById("kundali-yog-list");
   if (!section || !listEl) return;
@@ -2083,6 +2084,7 @@ function renderKundaliYogasFromPayload(payload) {
 
   if (!yogas.length) {
     section.hidden = true;
+    if (headingEl) headingEl.textContent = "Yogas";
     if (summaryEl) {
       summaryEl.textContent = "";
       summaryEl.hidden = true;
@@ -2091,35 +2093,106 @@ function renderKundaliYogasFromPayload(payload) {
   }
 
   section.hidden = false;
+  if (headingEl) headingEl.textContent = `Yogas(${yogas.length})`;
   if (summaryEl) {
     summaryEl.textContent = "";
     summaryEl.hidden = true;
   }
 
-  for (const yoga of yogas) {
-    const item = document.createElement("article");
-    item.className = "kundali-yog-item kundali-yog-item--present";
-    item.dataset.yogaKey = String(yoga.key || "");
+  let selectedKey = "";
 
-    const title = document.createElement("h3");
-    title.className = "kundali-yog-item__title";
-    title.textContent = String(yoga.name || yoga.key || "Yoga");
-    item.appendChild(title);
+  const closeAllYogaPanels = () => {
+    listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    listEl.querySelectorAll(".remedy-navatara-btn").forEach((btn) => {
+      btn.classList.remove("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+    });
+  };
+
+  const showYogaDetail = (yoga, itemEl) => {
+    const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
+    const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
+    const yogaKey = String(yoga.key || yoga.name || "").trim();
+
+    if (selectedKey === yogaKey && panel && !panel.hidden) {
+      closeAllYogaPanels();
+      selectedKey = "";
+      return;
+    }
+
+    closeAllYogaPanels();
+    selectedKey = yogaKey;
+
+    if (btn) {
+      btn.classList.add("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-expanded", "true");
+    }
+    if (panel) {
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
+
+  for (const yoga of yogas) {
+    const item = document.createElement("div");
+    item.className = "remedy-navatara-item";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "remedy-navatara-btn";
+    btn.dataset.yogaKey = String(yoga.key || "");
+    btn.textContent = String(yoga.name || yoga.key || "Yoga");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
+
+    const panel = document.createElement("div");
+    panel.className = "remedy-navatara-panel kundali-yog-panel";
+    panel.hidden = true;
+
+    const planetParts = Array.isArray(yoga.planets)
+      ? yoga.planets.map((p) => String(p || "").trim()).filter(Boolean)
+      : [];
+    const houseParts = Array.isArray(yoga.houses)
+      ? yoga.houses.map((h) => String(h)).filter(Boolean)
+      : [];
+    if (planetParts.length || houseParts.length) {
+      const meta = document.createElement("p");
+      meta.className = "kundali-yog-panel__meta";
+      const bits = [];
+      if (planetParts.length) bits.push(planetParts.join(", "));
+      if (houseParts.length) bits.push(`House ${houseParts.join(", ")}`);
+      meta.textContent = bits.join(" · ");
+      panel.appendChild(meta);
+    }
 
     if (yoga.summary) {
       const summary = document.createElement("p");
-      summary.className = "kundali-yog-item__summary";
+      summary.className = "kundali-yog-panel__summary";
       summary.textContent = String(yoga.summary);
-      item.appendChild(summary);
+      panel.appendChild(summary);
     }
 
     if (yoga.detail) {
       const detail = document.createElement("p");
-      detail.className = "kundali-yog-item__detail";
+      detail.className = "kundali-yog-panel__detail";
       detail.textContent = String(yoga.detail);
-      item.appendChild(detail);
+      panel.appendChild(detail);
     }
 
+    if (!panel.childNodes.length) {
+      const empty = document.createElement("p");
+      empty.className = "kundali-yog-panel__detail";
+      empty.textContent = "No extra detail for this yoga.";
+      panel.appendChild(empty);
+    }
+
+    btn.addEventListener("click", () => showYogaDetail(yoga, item));
+    item.appendChild(btn);
+    item.appendChild(panel);
     listEl.appendChild(item);
   }
 }
