@@ -104,13 +104,39 @@
     return id;
   }
 
+  /** Persist login like a native app (survives app restart / WebView recycle). */
+  function migrateLegacySessionStorage() {
+    try {
+      const token = sessionStorage.getItem(STORAGE_TOKEN);
+      if (token && !localStorage.getItem(STORAGE_TOKEN)) {
+        localStorage.setItem(STORAGE_TOKEN, token);
+      }
+      const user = sessionStorage.getItem(STORAGE_USER);
+      if (user && !localStorage.getItem(STORAGE_USER)) {
+        localStorage.setItem(STORAGE_USER, user);
+      }
+      const usage = sessionStorage.getItem(STORAGE_USAGE);
+      if (usage && !localStorage.getItem(STORAGE_USAGE)) {
+        localStorage.setItem(STORAGE_USAGE, usage);
+      }
+      sessionStorage.removeItem(STORAGE_TOKEN);
+      sessionStorage.removeItem(STORAGE_USER);
+      sessionStorage.removeItem(STORAGE_USAGE);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }
+
+  migrateLegacySessionStorage();
+
   function getToken() {
-    return sessionStorage.getItem(STORAGE_TOKEN) || "";
+    return localStorage.getItem(STORAGE_TOKEN) || sessionStorage.getItem(STORAGE_TOKEN) || "";
   }
 
   function getUser() {
     try {
-      const raw = sessionStorage.getItem(STORAGE_USER);
+      const raw =
+        localStorage.getItem(STORAGE_USER) || sessionStorage.getItem(STORAGE_USER);
       return raw ? normalizeUsage(JSON.parse(raw)) : null;
     } catch {
       return null;
@@ -121,7 +147,8 @@
     const user = getUser();
     if (user) return user;
     try {
-      const raw = sessionStorage.getItem(STORAGE_USAGE);
+      const raw =
+        localStorage.getItem(STORAGE_USAGE) || sessionStorage.getItem(STORAGE_USAGE);
       return raw ? normalizeUsage(JSON.parse(raw)) : null;
     } catch {
       return null;
@@ -132,21 +159,33 @@
     if (!usage) return;
     const normalized = normalizeUsage(usage);
     if (normalized.is_guest) {
-      sessionStorage.setItem(STORAGE_USAGE, JSON.stringify(normalized));
+      localStorage.setItem(STORAGE_USAGE, JSON.stringify(normalized));
+      sessionStorage.removeItem(STORAGE_USAGE);
     } else {
+      localStorage.removeItem(STORAGE_USAGE);
       sessionStorage.removeItem(STORAGE_USAGE);
       setSession(getToken(), normalized);
     }
   }
 
   function setSession(token, user) {
-    if (token) sessionStorage.setItem(STORAGE_TOKEN, token);
-    if (user) sessionStorage.setItem(STORAGE_USER, JSON.stringify(normalizeUsage(user)));
+    if (token) {
+      localStorage.setItem(STORAGE_TOKEN, token);
+      sessionStorage.removeItem(STORAGE_TOKEN);
+    }
+    if (user) {
+      localStorage.setItem(STORAGE_USER, JSON.stringify(normalizeUsage(user)));
+      sessionStorage.removeItem(STORAGE_USER);
+    }
   }
 
   function clearSession() {
+    localStorage.removeItem(STORAGE_TOKEN);
+    localStorage.removeItem(STORAGE_USER);
+    localStorage.removeItem(STORAGE_USAGE);
     sessionStorage.removeItem(STORAGE_TOKEN);
     sessionStorage.removeItem(STORAGE_USER);
+    sessionStorage.removeItem(STORAGE_USAGE);
   }
 
   async function parseJsonResponse(response) {

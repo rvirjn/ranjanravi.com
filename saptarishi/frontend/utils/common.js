@@ -466,6 +466,53 @@
     updateHeaderAuth(document.querySelector(".site-header"), user, usage);
   }
 
+  function keepAppLinksInWebView() {
+    if (document.documentElement.dataset.saptarishiLinkGuard === "1") return;
+    document.documentElement.dataset.saptarishiLinkGuard = "1";
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        const anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+        if (!anchor || event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const href = anchor.getAttribute("href") || "";
+        if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
+
+        let url;
+        try {
+          url = new URL(href, window.location.href);
+        } catch {
+          return;
+        }
+
+        const scheme = (url.protocol || "").replace(":", "").toLowerCase();
+        if (scheme === "tel" || scheme === "mailto" || scheme === "sms") return;
+
+        const host = (url.hostname || "").toLowerCase();
+        const isWhatsApp =
+          host === "wa.me" ||
+          host.endsWith(".wa.me") ||
+          host === "whatsapp.com" ||
+          host.endsWith(".whatsapp.com") ||
+          host === "api.whatsapp.com";
+        if (isWhatsApp) return;
+
+        const isOurs =
+          host === "ranjanravi.com" ||
+          host.endsWith(".ranjanravi.com") ||
+          host === window.location.hostname;
+
+        if (isOurs && anchor.target === "_blank") {
+          event.preventDefault();
+          window.location.assign(url.toString());
+        }
+      },
+      true
+    );
+  }
+
   function initializeCommonLayout() {
     if (isLoginPage) {
       window.location.replace(`${navHref("kundali.html")}?auth=login`);
@@ -474,6 +521,7 @@
 
     mountLayout(AUTH ? AUTH.getUser() : null, null, AUTH ? AUTH.getUsage() : null);
     recordPageView();
+    keepAppLinksInWebView();
 
     global.addEventListener("saptarishi-auth-changed", (event) => {
       if (!AUTH) return;
