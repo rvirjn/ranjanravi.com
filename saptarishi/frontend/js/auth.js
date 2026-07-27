@@ -373,10 +373,35 @@
     }
   }
 
-  /** Count once per browser session; GET uses cached count only. */
+  /** Fetch current total from API (GET). */
+  async function fetchSiteViewCount() {
+    const path = AC.API_SITE_VIEW_PATH;
+    const url = `${apiOrigin()}${path}`;
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer =
+      controller && window.setTimeout(() => controller.abort(), 25000);
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        signal: controller ? controller.signal : undefined
+      });
+      const payload = await parseJsonResponse(response);
+      if (response.ok && payload.view_count != null) {
+        cacheViewCount(payload.view_count);
+        return payload;
+      }
+    } catch {
+      /* fall through */
+    } finally {
+      if (timer) window.clearTimeout(timer);
+    }
+    return { view_count: getCachedViewCount() };
+  }
+
+  /** Count once per browser session; always refresh display from GET. */
   async function recordSiteView() {
     if (sessionStorage.getItem(STORAGE_VIEW_RECORDED)) {
-      return { view_count: getCachedViewCount() };
+      return fetchSiteViewCount();
     }
     const path = AC.API_SITE_VIEW_PATH;
     const url = `${apiOrigin()}${path}`;
@@ -395,11 +420,11 @@
         return payload;
       }
     } catch {
-      /* fall through to cache */
+      /* fall through to GET */
     } finally {
       if (timer) window.clearTimeout(timer);
     }
-    return { view_count: getCachedViewCount() };
+    return fetchSiteViewCount();
   }
 
   function hasUnlimitedPremium() {
