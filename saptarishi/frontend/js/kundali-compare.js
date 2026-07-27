@@ -28,6 +28,7 @@
   const compareBirthsHost = document.getElementById("compare-births");
   const compareAddBtn = document.getElementById("compare-add-btn");
   const compareShowBtn = document.getElementById("compare-show-btn");
+  const mainLeadEl = document.querySelector("#saptarishi.main-shell > p.lead");
   const resultsEl = document.getElementById("results");
   const singleResultsEl = document.getElementById("kundali-single-results");
   const page = window.SaptarishiKundaliPage || {};
@@ -341,6 +342,7 @@
       const show = panel.hidden;
       panel.hidden = !show;
       compareToggleBtn.setAttribute("aria-expanded", show ? "true" : "false");
+      if (mainLeadEl) mainLeadEl.hidden = show;
       if (show && !compareBirthsHost.childElementCount) initCompareBirthRows();
     });
   }
