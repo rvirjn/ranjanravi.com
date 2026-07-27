@@ -22,7 +22,8 @@ const SAPTARISHI_CONSTANTS = {
     "auspicious.html": _DEPLOY_PREFIX + "/auspicious",
     "remedy.html": _DEPLOY_PREFIX + "/remedy",
     "profile.html": _DEPLOY_PREFIX + "/profile",
-    "login.html": _DEPLOY_PREFIX + "/login"
+    "login.html": _DEPLOY_PREFIX + "/login",
+    "privacy.html": _DEPLOY_PREFIX + "/privacy"
   },
 
   // --- API endpoints ---

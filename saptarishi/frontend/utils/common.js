@@ -340,6 +340,8 @@
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
         <button type="button" class="site-footer__contact-toggle" id="site-contact-toggle" aria-expanded="false" aria-controls="site-contact">Contact us</button>
+        <span class="site-footer__meta-sep" aria-hidden="true">·</span>
+        <a class="site-footer__privacy-link" href="${navHref("privacy.html")}">Privacy Policy</a>
       </div>
       <div id="site-contact" class="site-footer__support" hidden>
         <a class="site-footer__support-link" href="${mailHref}">Email</a>

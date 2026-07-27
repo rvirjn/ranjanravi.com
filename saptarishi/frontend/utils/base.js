@@ -9,7 +9,7 @@
   var marker = "/frontend/html/";
   var idx = path.indexOf(marker);
   var prefix = idx >= 0 ? path.slice(0, idx) : "";
-  if (idx < 0 && !/^\/(kundali|auspicious|remedy|profile|login)?\/?$/.test(path)) {
+  if (idx < 0 && !/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(path)) {
     return;
   }
   globalThis.SAPTARISHI_DEPLOY_PREFIX = prefix;

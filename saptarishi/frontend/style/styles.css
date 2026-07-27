@@ -1988,6 +1988,38 @@ tbody tr:last-child td {
   font-size: 0.8rem;
 }
 
+.site-footer__privacy-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.site-footer__privacy-link:hover {
+  text-decoration: underline;
+}
+
+.legal-page ul {
+  margin: 0 0 var(--space-md);
+  padding-left: 1.25rem;
+  color: var(--color-text);
+  line-height: 1.55;
+}
+
+.legal-page li {
+  margin-bottom: 0.4rem;
+}
+
+.legal-page a {
+  color: var(--color-primary);
+}
+
 .site-footer__meta {
   display: flex;
   flex-wrap: wrap;
