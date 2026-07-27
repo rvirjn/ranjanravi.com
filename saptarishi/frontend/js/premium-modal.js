@@ -24,6 +24,12 @@
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
+  function formatContactPhoneDisplay(raw) {
+    if (CU && CU.formatIndiaPhoneDisplay) return CU.formatIndiaPhoneDisplay(raw);
+    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    return digits ? `+91-${digits}` : String(raw || "");
+  }
+
   let overlay = null;
   let resolvePending = null;
   let statusEl = null;
@@ -139,7 +145,7 @@
             <li>
               Within 2 hours you will get a coupon code on your email or phone.
               To get it ASAP, call
-              <strong id="premium-modal-phone">+91-${AC.PREMIUM_CONTACT_PHONE}</strong>.
+              <strong id="premium-modal-phone">${formatContactPhoneDisplay(AC.PREMIUM_CONTACT_PHONE)}</strong>.
             </li>
           </ol>
           <form id="premium-modal-form" class="premium-modal__form" autocomplete="off">
@@ -238,8 +244,7 @@
         renderPlanPicker();
       }
       if (contactPhoneEl && payload.contact_phone) {
-        const digits = String(payload.contact_phone).replace(/\D/g, "");
-        contactPhoneEl.textContent = digits ? `+91-${digits.replace(/^91/, "")}` : payload.contact_phone;
+        contactPhoneEl.textContent = formatContactPhoneDisplay(payload.contact_phone);
       }
     } catch {
       renderPlanPicker();

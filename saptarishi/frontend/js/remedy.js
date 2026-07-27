@@ -122,58 +122,95 @@
     return out;
   }
 
-  /** Planets needing remedy: debilitated or placed in 6/8/12 houses. */
-  function remedyPlanetNamesFromKundali(kundaliPayload) {
-    const names = [];
-    const add = (raw) => {
+  /** Planets needing remedy: debilitated or in 6/8/12; else combust when none of those. */
+  const REMEDY_REASON_ORDER = ["debilitated", "in 6/8/12", "combust"];
+
+  function remedyPlanetEntriesFromKundali(kundaliPayload) {
+    const reasonsByKey = new Map();
+
+    const addReason = (raw, reason) => {
       const key = normalizeText(raw);
-      if (!key || key === "ascendant" || names.includes(key)) return;
-      names.push(key);
+      if (!key || key === "ascendant") return;
+      if (!reasonsByKey.has(key)) reasonsByKey.set(key, new Set());
+      reasonsByKey.get(key).add(reason);
     };
+
+    const addFromSummaryList = (label, reason) => {
+      for (const row of kundaliPayload?.summary_table || []) {
+        if (normalizeText(row?.label) !== label) continue;
+        const value = String(row?.value || "").trim();
+        if (!value || /^none$/i.test(value)) continue;
+        value.split(",").forEach((part) => addReason(part, reason));
+      }
+    };
+
     for (const row of kundaliPayload?.planets_table || []) {
       const status = normalizeText(row?.status?.rashi || row?.planet_status_in_rashi);
-      if (status === "low") add(row?.planet);
+      if (status === "low") addReason(row?.planet, "debilitated");
+      if (normalizeText(row?.flags?.malefic_6_8_12) === "yes") {
+        addReason(row?.planet, "in 6/8/12");
+      }
     }
     for (const planet of kundaliPayload?.planets || []) {
       if (normalizeText(planet?.planet_dignity) === "debilitated") {
-        add(planet?.name);
+        addReason(planet?.name, "debilitated");
       }
       if (normalizeText(planet?.is_planet_in_6_8_12_house) === "yes") {
-        add(planet?.name);
+        addReason(planet?.name, "in 6/8/12");
       }
     }
-    for (const row of kundaliPayload?.summary_table || []) {
-      if (normalizeText(row?.label) !== "debilitated planet") continue;
-      const value = String(row?.value || "").trim();
-      if (!value || /^none$/i.test(value)) continue;
-      value.split(",").forEach((part) => add(part));
+    addFromSummaryList("debilitated planet", "debilitated");
+
+    if (!reasonsByKey.size) {
+      addFromSummaryList("combust planet", "combust");
+      for (const row of kundaliPayload?.planets_table || []) {
+        const degreeRules = row?.strength_adjustments?.by_column?.degree;
+        if (!Array.isArray(degreeRules)) continue;
+        const combust = degreeRules.some(
+          (item) => item && normalizeText(item.rule) === "combustion"
+        );
+        if (combust) addReason(row?.planet, "combust");
+      }
     }
+
     const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
-    names.sort((a, b) => {
-      const ai = order.indexOf(a);
-      const bi = order.indexOf(b);
-      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
-    });
-    return names;
+    return [...reasonsByKey.entries()]
+      .map(([key, reasonSet]) => ({
+        key,
+        reasons: REMEDY_REASON_ORDER.filter((r) => reasonSet.has(r))
+      }))
+      .sort((a, b) => {
+        const ai = order.indexOf(a.key);
+        const bi = order.indexOf(b.key);
+        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+      });
+  }
+
+  function formatPlanetRemedyCellLabel(planetKey, reasons) {
+    const name = toTitleCaseWords(planetKey);
+    const parts = Array.isArray(reasons) ? reasons.filter(Boolean) : [];
+    if (!parts.length) return name;
+    return `${name} (${parts.join(", ")})`;
   }
 
   function renderPlanetRemedyTable(kundaliPayload) {
     if (!planetRemedyBody) return;
     planetRemedyBody.innerHTML = "";
-    const remedyPlanets = remedyPlanetNamesFromKundali(kundaliPayload);
+    const remedyPlanets = remedyPlanetEntriesFromKundali(kundaliPayload);
     if (!remedyPlanets.length) {
       if (planetRemedyEmpty) planetRemedyEmpty.hidden = false;
       return;
     }
     if (planetRemedyEmpty) planetRemedyEmpty.hidden = true;
-    for (const planetKey of remedyPlanets) {
+    for (const entry of remedyPlanets) {
+      const planetKey = entry.key;
       const remedy = planetRemedyByName[planetKey] || {};
       const tr = document.createElement("tr");
       for (const col of PLANET_REMEDY_COLUMNS) {
         const td = document.createElement("td");
         if (col.key === "planet") {
           td.className = "planets-td-planet";
-          td.textContent = toTitleCaseWords(planetKey);
+          td.textContent = formatPlanetRemedyCellLabel(planetKey, entry.reasons);
         } else {
           const text = String(remedy[col.key] || "").trim();
           td.textContent = text || "—";

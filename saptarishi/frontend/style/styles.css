@@ -1589,16 +1589,39 @@ tbody tr:last-child td {
 
 .auspicious-lord-col__total {
   display: block;
-  margin-top: 0.2rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.25;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
   opacity: 1;
   color: var(--color-heading, #1e3a5f);
 }
 
 .auspicious-lord-col__rank {
   font-weight: 700;
+}
+
+.auspicious-lord-col__exalted,
+.auspicious-lord-col__debilitated {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.auspicious-lord-col__exalted {
+  color: #1b5e20;
+}
+
+.auspicious-lord-col__debilitated {
+  color: #a12424;
+}
+
+.auspicious-lord-col__total--divisional {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  text-align: center;
 }
 
 #lord-comparison-table tbody td.planets-td-planet {

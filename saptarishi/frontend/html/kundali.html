@@ -8,11 +8,10 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=143">
+  <link rel="stylesheet" href="../style/styles.css?v=146">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
-    <h1>Kundali by Saptarishi</h1>
     <p class="lead">Enter birth details</p>
 
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
@@ -109,6 +108,12 @@
         </table>
       </div>
 
+      <section id="kundali-yog-section" class="kundali-yog-section" hidden>
+        <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
+        <p id="kundali-yog-summary" class="kundali-yog-summary"></p>
+        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
+      </section>
+
       <section id="divisional-charts-section" class="divisional-charts-section">
         <button
           type="button"
@@ -122,12 +127,6 @@
         <div id="divisional-charts-panel" class="divisional-charts-panel" hidden>
           <div id="divisional-charts-grid" class="divisional-charts-grid"></div>
         </div>
-      </section>
-
-      <section id="kundali-yog-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
-        <p id="kundali-yog-summary" class="kundali-yog-summary"></p>
-        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
       </section>
       </div>
 
@@ -147,10 +146,10 @@
   <script src="../js/auth.js?v=22"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
-  <script src="../js/premium-modal.js?v=7"></script>
-  <script src="../utils/common.js?v=36"></script>
+  <script src="../js/premium-modal.js?v=8"></script>
+  <script src="../utils/common.js?v=37"></script>
   <script src="../js/kundali.js?v=193"></script>
-  <script src="../js/lord-comparison.js?v=12"></script>
+  <script src="../js/lord-comparison.js?v=15"></script>
   <script src="../js/kundali-compare.js?v=8"></script>
 </body>
 </html>

@@ -32,6 +32,17 @@
     return String(cfg.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
+  /** Display India mobile as ``+91-XXXXXXXXXX`` (tel/wa links still use digits only). */
+  function formatIndiaPhoneDisplay(raw) {
+    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    return digits ? `+91-${digits}` : "";
+  }
+
+  function indiaPhoneDigits(raw) {
+    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    return digits.length === 10 ? `91${digits}` : digits;
+  }
+
   function setStatusMessage(statusEl, message, isError, isLimitError) {
     if (!statusEl) return;
     if (globalThis.SaptarishiLoading) {
@@ -315,10 +326,9 @@
   }
 
   function buildFooter() {
-    const phone = String(AC.PREMIUM_CONTACT_PHONE).replace(/\D/g, "");
+    const phoneIntl = indiaPhoneDigits(AC.PREMIUM_CONTACT_PHONE);
+    const phoneDisplay = formatIndiaPhoneDisplay(AC.PREMIUM_CONTACT_PHONE);
     const email = String(AC.SUPPORT_EMAIL).trim();
-    const phoneIntl = phone.startsWith("91") ? phone : `91${phone}`;
-    const phoneDisplay = phone.length === 10 ? phone : phone.replace(/^91/, "");
     const waMessage = encodeURIComponent(
       String(AC.SUPPORT_WHATSAPP_MESSAGE)
     );
@@ -552,6 +562,8 @@
   global.SaptarishiCommonUtils = {
     isLocalDevUiHost,
     getApiOrigin,
+    formatIndiaPhoneDisplay,
+    indiaPhoneDigits,
     setStatusMessage,
     startStatusLoading,
     removePerIpText,

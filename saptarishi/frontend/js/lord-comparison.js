@@ -186,6 +186,13 @@
     td.className = "auspicious-lord-col auspicious-lord-col--divisional-chart";
     if (cell?.title) td.title = String(cell.title);
 
+    if (typeof cell?.houses_strength_total === "number") {
+      const total = document.createElement("span");
+      total.className = "auspicious-lord-col__total auspicious-lord-col__total--divisional";
+      total.textContent = `Strength ${cell.houses_strength_total}`;
+      td.appendChild(total);
+    }
+
     const host = document.createElement("div");
     host.className = "auspicious-lord-col__chart auspicious-lord-col__chart--divisional kundali-chart-host";
     td.appendChild(host);
@@ -269,14 +276,38 @@
       const total = document.createElement("span");
       total.className = "auspicious-lord-col__total";
       if (typeof column.houses_strength_total === "number") {
-        const rank = column.rank ?? colIndex + 1;
-        const rankEl = document.createElement("strong");
-        rankEl.className = "auspicious-lord-col__rank";
-        rankEl.textContent = `${rank}. `;
-        total.append(rankEl, document.createTextNode(`Total ${column.houses_strength_total}`));
+        total.textContent = `Strength ${column.houses_strength_total}`;
       }
 
       th.append(label, total);
+
+      const shortMap =
+        (typeof SAPTARISHI_CONSTANTS !== "undefined" && SAPTARISHI_CONSTANTS?.PLANET_SHORT) ||
+        {};
+      const planetSymbols = (keys) =>
+        (Array.isArray(keys) ? keys : [])
+          .map((key) => {
+            const k = String(key || "").trim().toLowerCase();
+            return shortMap[k] || k;
+          })
+          .filter(Boolean);
+
+      const exaltedSymbols = planetSymbols(column.exalted_planets);
+      if (exaltedSymbols.length) {
+        const exalted = document.createElement("span");
+        exalted.className = "auspicious-lord-col__exalted";
+        exalted.textContent = `Exalted: ${exaltedSymbols.join(", ")}`;
+        th.appendChild(exalted);
+      }
+
+      const debilitatedSymbols = planetSymbols(column.debilitated_planets);
+      if (debilitatedSymbols.length) {
+        const debilitated = document.createElement("span");
+        debilitated.className = "auspicious-lord-col__debilitated";
+        debilitated.textContent = `Debilitated: ${debilitatedSymbols.join(", ")}`;
+        th.appendChild(debilitated);
+      }
+
       // Kundali compare: charts live in D1/D9/… rows. Auspicious still shows header chart.
       if (!hasDivisionalRows) {
         const chartHost = document.createElement("div");
