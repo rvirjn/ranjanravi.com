@@ -1354,9 +1354,9 @@ function aspectClusterOriginForHouse(cell, sittingCount, aspectCount) {
       y = crowded ? cy + 8.2 + (sitRows - 1) * 1.3 : cy + 4.5;
       break;
     case 6:
-      // Sitting below sign; park eye above toward center.
-      x = crowded ? cx + 1 : cx - 2;
-      y = crowded ? cy - 6.5 : cy + 4;
+      // Bottom-left: keep eye left of the 6–7 dividing line (toward chart center).
+      x = crowded ? cx - 5.5 : cx - 4.5;
+      y = crowded ? cy - 6.5 : cy + 3;
       break;
     case 8:
       // Shift right so a multi-planet eye clears the chart line.
