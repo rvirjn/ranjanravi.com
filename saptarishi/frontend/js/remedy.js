@@ -254,7 +254,7 @@
 
   function createRemedyTableElement() {
     const table = document.createElement("table");
-    table.className = "navatara-data-table kundali-table remedy-table";
+    table.className = "navatara-data-table kundali-table remedy-table nakshatra-remedy-table";
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
     for (const label of REMEDY_TABLE_HEADERS) {
@@ -352,7 +352,8 @@
       panel.hidden = true;
 
       const tableWrap = document.createElement("div");
-      tableWrap.className = "table-wrap nakshatra-table-wrap remedy-navatara-panel__table";
+      tableWrap.className =
+        "table-wrap table-wrap--wide nakshatra-table-wrap remedy-navatara-panel__table";
       tableWrap.appendChild(createRemedyTableElement());
       panel.appendChild(tableWrap);
 

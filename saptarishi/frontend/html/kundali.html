@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=146">
+  <link rel="stylesheet" href="../style/styles.css?v=153">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -81,7 +81,7 @@
       </div>
 
       <h2 class="result-heading">Planets</h2>
-      <div class="table-wrap">
+      <div class="table-wrap table-wrap--wide">
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
@@ -131,7 +131,7 @@
 
       <div id="lord-comparison-section" hidden>
         <h2 id="lord-comparison-heading" class="result-heading">Lord strength across compared births</h2>
-        <div class="table-wrap">
+        <div class="table-wrap table-wrap--wide">
           <table id="lord-comparison-table" class="navatara-data-table kundali-table">
             <thead></thead>
             <tbody></tbody>

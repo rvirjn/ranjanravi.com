@@ -4,6 +4,10 @@
  */
 
 (function common(global) {
+  if (/SaptarishiNativeApp/i.test(navigator.userAgent || "")) {
+    document.documentElement.classList.add("saptarishi-native-app");
+  }
+
   const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   if (!AC) return;
   const AUTH = global.SaptarishiAuth;

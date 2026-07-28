@@ -1079,35 +1079,81 @@ tbody tr:last-child td {
 
 /* ---------- Kundali page: compact tables (no horizontal scroll) ---------- */
 
-#results .table-wrap,
-#results .navatara-table-wrap,
-#results .nakshatra-table-wrap,
-#lord-comparison-section .table-wrap {
+#results .table-wrap:not(.table-wrap--wide),
+#results .navatara-table-wrap:not(.table-wrap--wide),
+#results .nakshatra-table-wrap:not(.table-wrap--wide),
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) {
   overflow: visible;
   max-width: 100%;
   /* Avoid clipping sticky thead against rounded corners while page scrolls. */
   border-radius: 0;
 }
 
-#results .nakshatra-table-wrap {
+/* Wide result tables: always horizontal scroll (Planets, remedies, navatara tile detail). */
+#results .table-wrap--wide,
+#lord-comparison-section .table-wrap--wide,
+#navatara-buttons .remedy-navatara-panel .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
+  border-radius: 0;
 }
 
-#results table.kundali-table,
-#lord-comparison-section table.kundali-table {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  table-layout: fixed;
-  /* separate borders so sticky thead works in Chromium */
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table,
+#results .table-wrap--wide > #planet-remedy-table.kundali-table,
+#lord-comparison-section .table-wrap--wide > #lord-comparison-table.kundali-table,
+#navatara-buttons .remedy-navatara-panel table.kundali-table {
+  width: max-content;
+  min-width: 62rem;
+  max-width: none;
+  table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-#results table.kundali-table th,
-#results table.kundali-table td,
-#lord-comparison-section table.kundali-table th,
-#lord-comparison-section table.kundali-table td {
+#results .table-wrap--wide > #planet-remedy-table.kundali-table {
+  min-width: 40rem;
+}
+
+#navatara-buttons .remedy-navatara-panel table.kundali-table {
+  min-width: 68rem;
+}
+
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table thead th,
+#results .table-wrap--wide > #planet-remedy-table.kundali-table thead th,
+#lord-comparison-section .table-wrap--wide > #lord-comparison-table.kundali-table thead th,
+#navatara-buttons .remedy-navatara-panel table.kundali-table thead th {
+  width: auto;
+  min-width: 3.25rem;
+}
+
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table thead th:nth-child(4),
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table thead th:nth-child(5),
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table tbody td:nth-child(4),
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table tbody td:nth-child(5) {
+  min-width: 5.5rem;
+}
+
+#results .table-wrap:not(.table-wrap--wide) table.kundali-table:not(#summary-table),
+.summary-chart-row .table-wrap table.kundali-table,
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) table.kundali-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) #lord-comparison-table.kundali-table {
+  table-layout: auto;
+}
+
+#results .table-wrap:not(.table-wrap--wide) table.kundali-table:not(#summary-table):not(#lord-comparison-table) th,
+#results .table-wrap:not(.table-wrap--wide) table.kundali-table:not(#summary-table):not(#lord-comparison-table) td,
+.summary-chart-row .table-wrap table.kundali-table th,
+.summary-chart-row .table-wrap table.kundali-table td {
   padding: 0.2rem 0.15rem;
   font-size: 0.65rem;
   line-height: 1.15;
@@ -1117,18 +1163,62 @@ tbody tr:last-child td {
   vertical-align: top;
 }
 
-#results table.kundali-table th,
-#lord-comparison-section table.kundali-table th {
+#results .table-wrap:not(.table-wrap--wide) #summary-table.kundali-table th,
+#results .table-wrap:not(.table-wrap--wide) #summary-table.kundali-table td {
+  padding: 0.35rem 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+  vertical-align: top;
+}
+
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) #lord-comparison-table.kundali-table th,
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) #lord-comparison-table.kundali-table td {
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+  vertical-align: top;
+}
+
+#results .table-wrap--wide table.kundali-table th,
+#results .table-wrap--wide table.kundali-table td,
+#lord-comparison-section .table-wrap--wide table.kundali-table th,
+#lord-comparison-section .table-wrap--wide table.kundali-table td,
+#navatara-buttons .remedy-navatara-panel table.kundali-table th,
+#navatara-buttons .remedy-navatara-panel table.kundali-table td {
+  padding: 0.35rem 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+  vertical-align: top;
+}
+
+#results .table-wrap:not(.table-wrap--wide) table.kundali-table:not(#summary-table):not(#lord-comparison-table) th,
+#lord-comparison-section .table-wrap:not(.table-wrap--wide) table.kundali-table th {
   font-size: 0.6rem;
   font-weight: 600;
   white-space: normal;
   line-height: 1.2;
 }
 
-/* Keep column names visible while scrolling long planets / lord tables. */
-#results table.kundali-table thead th,
-#lord-comparison-section table.kundali-table thead th,
-#planet-remedy-table.kundali-table thead th {
+#results .table-wrap--wide table.kundali-table th,
+#lord-comparison-section .table-wrap--wide table.kundali-table th,
+#navatara-buttons .remedy-navatara-panel table.kundali-table th {
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Keep column names visible while scrolling long tables. */
+#results .table-wrap--wide table.kundali-table thead th,
+#lord-comparison-section .table-wrap--wide table.kundali-table thead th,
+#planet-remedy-table.kundali-table thead th,
+#navatara-buttons .remedy-navatara-panel table.kundali-table thead th {
   position: sticky;
   top: 0;
   z-index: 3;
@@ -1138,6 +1228,7 @@ tbody tr:last-child td {
 }
 
 #summary-table.kundali-table {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
@@ -1182,6 +1273,12 @@ tbody tr:last-child td {
 #slot-planets-table.kundali-table thead th:nth-child(15) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(16),
 #slot-planets-table.kundali-table thead th:nth-child(16) { width: 6%; }
+
+/* Wide wrap wins over % column widths so the table can scroll sideways. */
+#results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table thead th {
+  width: auto;
+  min-width: 3.25rem;
+}
 
 :is(#planets-table, #slot-planets-table) tbody td.planets-td-planet {
   font-weight: 700;
@@ -1472,7 +1569,7 @@ tbody tr:last-child td {
 
 /* ---------- Nakshatra table (27 rows, full data) ---------- */
 
-:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) {
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table:not(.planet-remedy-table):not(.nakshatra-remedy-table)) {
   width: 100%;
   min-width: 68rem;
   max-width: none;
@@ -2786,5 +2883,95 @@ body.kundali-chart-zoom-open {
   height: auto;
   aspect-ratio: 1;
   display: block;
+}
+
+/* ---------- Capacitor / Android app shell (also injected from native-shell.css) ---------- */
+
+html.saptarishi-native-app #saptarishi.main-shell #summary-table.kundali-table,
+html.saptarishi-native-app #saptarishi.main-shell #lord-comparison-section .table-wrap:not(.table-wrap--wide) #lord-comparison-table.kundali-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: auto;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #results .table-wrap--wide,
+html.saptarishi-native-app #saptarishi.main-shell #navatara-buttons .remedy-navatara-panel .table-wrap,
+html.saptarishi-native-app #saptarishi.main-shell #lord-comparison-section .table-wrap--wide {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table,
+html.saptarishi-native-app #saptarishi.main-shell #results .table-wrap--wide > #planet-remedy-table.kundali-table,
+html.saptarishi-native-app #saptarishi.main-shell #lord-comparison-section .table-wrap--wide > #lord-comparison-table.kundali-table {
+  width: max-content;
+  min-width: 62rem;
+  max-width: none;
+  table-layout: auto;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #results .table-wrap--wide > #planet-remedy-table.kundali-table {
+  min-width: 40rem;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #results .table-wrap--wide > :is(#planets-table, #slot-planets-table).kundali-table thead th {
+  width: auto;
+  min-width: 3.25rem;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #navatara-buttons .remedy-navatara-panel table.kundali-table {
+  width: max-content;
+  min-width: 68rem;
+  max-width: none;
+  table-layout: auto;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell #navatara-buttons .remedy-navatara-panel table.kundali-table th,
+html.saptarishi-native-app #saptarishi.main-shell #navatara-buttons .remedy-navatara-panel table.kundali-table td {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
+  min-width: 640px;
+}
+
+@media (max-width: 900px) {
+  html.saptarishi-native-app .site-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  html.saptarishi-native-app .site-header__nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html.saptarishi-native-app .search-form.kundali-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  html.saptarishi-native-app .search-form.kundali-form select,
+  html.saptarishi-native-app .search-form.kundali-form input {
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  html.saptarishi-native-app .form-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  html.saptarishi-native-app .form-actions button {
+    width: 100%;
+  }
 }
 
