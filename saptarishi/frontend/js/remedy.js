@@ -353,7 +353,7 @@
 
       const tableWrap = document.createElement("div");
       tableWrap.className =
-        "table-wrap table-wrap--wide nakshatra-table-wrap remedy-navatara-panel__table";
+        "table-wrap nakshatra-table-wrap remedy-navatara-panel__table";
       tableWrap.appendChild(createRemedyTableElement());
       panel.appendChild(tableWrap);
 
