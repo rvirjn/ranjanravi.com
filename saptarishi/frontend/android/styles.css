@@ -480,6 +480,15 @@ h1 {
   gap: 0.8rem;
 }
 
+.app-topbar--nav {
+  align-items: flex-start;
+}
+
+.app-topbar__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .app-topbar h2 {
   margin: 0;
   font-size: 1.35rem;
@@ -510,6 +519,64 @@ h1 {
 .avatar--large {
   width: 3rem;
   height: 3rem;
+}
+
+.hamburger-menu {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(104, 76, 8, 0.16);
+  border-radius: 50%;
+  box-shadow: 0 8px 16px rgba(70, 48, 5, 0.08);
+}
+
+.hamburger-menu span {
+  display: block;
+  width: 1.02rem;
+  height: 0.12rem;
+  margin: 0.08rem 0;
+  background: var(--primary-strong);
+  border-radius: 999px;
+}
+
+.hamburger-menu--active {
+  background: var(--primary);
+}
+
+.hamburger-menu--active span {
+  background: #fff;
+}
+
+.app-menu-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.55rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(104, 76, 8, 0.12);
+  border-radius: 1rem;
+}
+
+.app-menu-preview span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.75rem;
+  padding: 0.28rem 0.35rem;
+  color: var(--primary-strong);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-align: center;
+  background: rgba(139, 105, 20, 0.08);
+  border-radius: 999px;
+}
+
+.app-menu-preview--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hero-card,
@@ -819,6 +886,17 @@ h1 {
 .menu-list--muted span {
   color: var(--muted);
   border: 1px dashed rgba(104, 76, 8, 0.22);
+}
+
+.menu-list--tools {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.menu-list--tools span {
+  min-height: 1.82rem;
+  padding: 0.48rem 0.52rem;
+  font-size: 0.68rem;
 }
 
 .plan-card {

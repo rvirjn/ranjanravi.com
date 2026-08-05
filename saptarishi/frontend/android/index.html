@@ -47,12 +47,23 @@
           <span>5G 100%</span>
         </div>
         <div class="app-screen app-screen--home">
-          <div class="app-topbar">
-            <div>
+          <div class="app-topbar app-topbar--nav">
+            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__title">
               <span class="tiny-label">Namaste Ravi</span>
               <h2>Plan your day with Saptarishi</h2>
             </div>
-            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <button class="hamburger-menu" type="button" aria-label="Open app menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </div>
+          <div class="app-menu-preview app-menu-preview--compact" aria-label="Menu shortcut preview">
+            <span>Reports</span>
+            <span>Panchang</span>
+            <span>Horoscope</span>
+            <span>Matching</span>
           </div>
           <div class="hero-card">
             <span class="chip">2 free queries</span>
@@ -175,7 +186,7 @@
             <li>Buy Premium and coupon verify</li>
             <li>Support: WhatsApp, phone, email</li>
             <li>Privacy</li>
-            <li>Future modules and settings</li>
+            <li>Reports, Panchang, Horoscope, Kundali Matching, Marriage, Career, Child, Past Life, Pooja</li>
           </ul>
         </div>
       </div>
@@ -192,7 +203,7 @@
         <div class="placement-list">
           <div>
             <strong>Top area</strong>
-            <span>Greeting, profile avatar, usage or premium status.</span>
+            <span>Profile icon on the left, greeting and usage in the middle, three-line menu on the right.</span>
           </div>
           <div>
             <strong>Main card</strong>
@@ -212,12 +223,28 @@
       <div class="phone" aria-label="Home page mobile mockup">
         <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
         <div class="app-screen app-screen--home">
-          <div class="app-topbar">
-            <div>
+          <div class="app-topbar app-topbar--nav">
+            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__title">
               <span class="tiny-label">Free plan: 2 free queries</span>
               <h2>Home</h2>
             </div>
-            <button class="avatar" type="button">RR</button>
+            <button class="hamburger-menu" type="button" aria-label="Open app menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </div>
+          <div class="app-menu-preview" aria-label="Top menu options">
+            <span>Reports</span>
+            <span>Panchang</span>
+            <span>Horoscope</span>
+            <span>Matching</span>
+            <span>Marriage</span>
+            <span>Career</span>
+            <span>Child</span>
+            <span>Past Life</span>
+            <span>Pooja</span>
           </div>
           <div class="hero-card hero-card--gold">
             <span class="chip">Primary action</span>
@@ -262,7 +289,7 @@
             <li>Saved work: Saved Kundalis, Reports, PDF export.</li>
             <li>Account: Profile, Login, Logout, Premium.</li>
             <li>Support: WhatsApp, call, email, privacy policy.</li>
-            <li>Future: Daily Panchang, Muhurat, Matchmaking, Transit alerts, Learn.</li>
+            <li>Right menu: Reports, Panchang, Horoscope, Kundali Matching, Marriage, Career, Child, Past Life, Pooja.</li>
           </ol>
         </div>
       </div>
@@ -270,12 +297,17 @@
       <div class="phone" aria-label="Menu page mobile mockup">
         <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
         <div class="app-screen app-screen--menu">
-          <div class="app-topbar">
-            <div>
+          <div class="app-topbar app-topbar--nav">
+            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__title">
               <span class="tiny-label">All options</span>
               <h2>Menu</h2>
             </div>
-            <button class="avatar" type="button">RR</button>
+            <button class="hamburger-menu hamburger-menu--active" type="button" aria-label="Close app menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
           </div>
           <div class="profile-strip">
             <div class="avatar avatar--large">RR</div>
@@ -303,12 +335,17 @@
             </div>
           </div>
           <div class="menu-section">
-            <h4>Coming soon</h4>
-            <div class="menu-list menu-list--muted">
-              <span>Daily Panchang</span>
-              <span>Matchmaking</span>
-              <span>Transit alerts</span>
-              <span>PDF reports</span>
+            <h4>Right menu options</h4>
+            <div class="menu-list menu-list--muted menu-list--tools">
+              <span>Reports</span>
+              <span>Panchang</span>
+              <span>Horoscope</span>
+              <span>Kundali Matching</span>
+              <span>Marriage</span>
+              <span>Career</span>
+              <span>Child</span>
+              <span>Past Life</span>
+              <span>Pooja</span>
             </div>
           </div>
           <div class="bottom-nav">
@@ -531,32 +568,40 @@
           <p>Save birth profiles, edit details, and reopen reports from Home.</p>
         </article>
         <article>
-          <h3>PDF reports</h3>
+          <h3>Reports</h3>
           <p>Export Kundali, remedies, divisional charts, and comparison summaries.</p>
         </article>
         <article>
-          <h3>Daily Panchang</h3>
+          <h3>Panchang</h3>
           <p>Daily tithi, nakshatra, rahu kaal, and suggested actions on Home.</p>
         </article>
         <article>
-          <h3>Muhurat calendar</h3>
-          <p>Grow Auspicious into event-specific muhurat search and saved dates.</p>
+          <h3>Horoscope</h3>
+          <p>Daily, weekly, and monthly horoscope cards tied to saved birth profiles.</p>
         </article>
         <article>
-          <h3>Matchmaking</h3>
-          <p>Use compare patterns for compatibility reports and family sharing.</p>
+          <h3>Kundali Matching</h3>
+          <p>Use compare patterns for compatibility, family sharing, and score summaries.</p>
         </article>
         <article>
-          <h3>Transit alerts</h3>
-          <p>Push notifications for important planetary movements and personal reminders.</p>
+          <h3>Marriage</h3>
+          <p>Marriage timing, muhurat guidance, and relationship-focused remedies.</p>
         </article>
         <article>
-          <h3>Learning library</h3>
-          <p>Short lessons explaining houses, rashis, nakshatras, yogas, and remedies.</p>
+          <h3>Career</h3>
+          <p>Career strengths, favorable periods, and work-related planetary guidance.</p>
         </article>
         <article>
-          <h3>Language and settings</h3>
-          <p>Hindi/English labels, notification preferences, theme, privacy, and data export.</p>
+          <h3>Child</h3>
+          <p>Child-related guidance, auspicious birth planning, and family report sections.</p>
+        </article>
+        <article>
+          <h3>Past Life</h3>
+          <p>Dedicated exploratory report area for past-life themes and karmic indicators.</p>
+        </article>
+        <article>
+          <h3>Pooja</h3>
+          <p>Pooja suggestions, remedy rituals, mantras, and related support options.</p>
         </article>
       </div>
     </section>
@@ -574,7 +619,7 @@
         <label><input type="checkbox" checked disabled> Remedy flow with planet remedies and nava-tara cards.</label>
         <label><input type="checkbox" checked disabled> Calendar area for Auspicious baby birth-time scan.</label>
         <label><input type="checkbox" checked disabled> Profile, login/register, logout, premium QR, coupon verification.</label>
-        <label><input type="checkbox" checked disabled> Support, privacy, and future menu placeholders.</label>
+        <label><input type="checkbox" checked disabled> Support, privacy, and right-menu placeholders for reports, panchang, horoscope, matching, marriage, career, child, past life, and pooja.</label>
       </div>
     </section>
   </main>
