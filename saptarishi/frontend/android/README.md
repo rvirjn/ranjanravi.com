@@ -6,6 +6,7 @@ This folder contains a static presentation for the proposed Saptarishi Android/m
 
 - `index.html` - presentation deck with mobile screen mockups and feature placement.
 - `styles.css` - visual design system for the deck.
+- `previews/` - PNG screenshots of key presentation sections.
 
 ## How to open
 
@@ -16,6 +17,13 @@ xdg-open saptarishi/frontend/android/index.html
 ```
 
 The deck can also be printed or saved as PDF from the browser print dialog.
+
+## Preview images
+
+- `previews/mobile-presentation-hero.png` - opening slide and hero phone mockup.
+- `previews/mobile-presentation-home.png` - home dashboard placement.
+- `previews/mobile-presentation-menu.png` - grouped menu placement.
+- `previews/mobile-presentation-screens.png` - Kundali, result, and compare screen gallery.
 
 ## What the presentation covers
 
