@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2018-2026 ranjanravi.com. All rights reserved. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saptarishi Mobile App Presentation</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="deck-header">
+    <a class="deck-header__brand" href="#top" aria-label="Saptarishi mobile app presentation home">
+      <span class="deck-header__mark">S</span>
+      <span>
+        <strong>Saptarishi</strong>
+        <small>Mobile app presentation</small>
+      </span>
+    </a>
+    <nav class="deck-header__nav" aria-label="Presentation sections">
+      <a href="#strategy">Strategy</a>
+      <a href="#home">Home</a>
+      <a href="#menu">Menu</a>
+      <a href="#screens">Screens</a>
+      <a href="#future">Future</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Mobile app concept</p>
+        <h1>Saptarishi app design direction</h1>
+        <p class="hero__lead">
+          A modern Android-first presentation showing what appears on the home page,
+          bottom navigation, menu page, Kundali flow, Remedy, Auspicious birth times,
+          account, premium, support, and future feature space.
+        </p>
+        <div class="hero__actions" aria-label="Presentation quick links">
+          <a class="btn btn--primary" href="#home">View home screen</a>
+          <a class="btn btn--ghost" href="#menu">View full menu</a>
+        </div>
+      </div>
+
+      <div class="phone phone--hero" aria-label="Mobile app home screen mockup">
+        <div class="phone__status">
+          <span>9:41</span>
+          <span>5G 100%</span>
+        </div>
+        <div class="app-screen app-screen--home">
+          <div class="app-topbar">
+            <div>
+              <span class="tiny-label">Namaste Ravi</span>
+              <h2>Plan your day with Saptarishi</h2>
+            </div>
+            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+          </div>
+          <div class="hero-card">
+            <span class="chip">2 free queries</span>
+            <h3>Create Kundali</h3>
+            <p>Enter birth place, date, and time to view chart, planets, yogas, and divisional charts.</p>
+            <button class="mobile-button" type="button">Start Kundali</button>
+          </div>
+          <div class="quick-grid" aria-label="Quick actions">
+            <div class="quick-card">
+              <strong>Kundali</strong>
+              <span>Chart and planets</span>
+            </div>
+            <div class="quick-card">
+              <strong>Compare</strong>
+              <span>Multiple births</span>
+            </div>
+            <div class="quick-card">
+              <strong>Remedy</strong>
+              <span>Planet and nava-tara</span>
+            </div>
+            <div class="quick-card">
+              <strong>Auspicious</strong>
+              <span>Baby birth slots</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span class="bottom-nav__item bottom-nav__item--active">Home</span>
+            <span class="bottom-nav__item">Kundali</span>
+            <span class="bottom-nav__item">Remedy</span>
+            <span class="bottom-nav__item">Menu</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="strategy" class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">1. Product structure</p>
+        <h2>Keep current website features visible, add space for future growth</h2>
+        <p>
+          The app should not hide existing tools behind desktop-style tables. It should
+          give one-tap access to current tools and reserve menu positions for upcoming
+          modules without forcing another navigation redesign later.
+        </p>
+      </div>
+
+      <div class="strategy-grid">
+        <article class="strategy-card">
+          <span class="strategy-card__number">01</span>
+          <h3>Bottom navigation</h3>
+          <p>Home, Kundali, Remedy, Calendar, and Menu remain reachable from every main screen.</p>
+        </article>
+        <article class="strategy-card">
+          <span class="strategy-card__number">02</span>
+          <h3>Home as dashboard</h3>
+          <p>Show free query usage, premium status, continue cards, and primary astrology actions.</p>
+        </article>
+        <article class="strategy-card">
+          <span class="strategy-card__number">03</span>
+          <h3>Menu as all-options hub</h3>
+          <p>Current pages, account, support, privacy, and future features live in a grouped menu.</p>
+        </article>
+        <article class="strategy-card">
+          <span class="strategy-card__number">04</span>
+          <h3>Results become cards</h3>
+          <p>Large website tables are converted into tabs, cards, sticky summary, and detail sheets.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">2. App information architecture</p>
+        <h2>Where each feature will live</h2>
+      </div>
+
+      <div class="ia-board" aria-label="Information architecture board">
+        <div class="ia-column">
+          <h3>Home</h3>
+          <ul>
+            <li>Welcome and profile shortcut</li>
+            <li>Free query or premium badge</li>
+            <li>Create Kundali primary card</li>
+            <li>Quick actions for all current tools</li>
+            <li>Recent or saved charts placeholder</li>
+          </ul>
+        </div>
+        <div class="ia-column">
+          <h3>Kundali</h3>
+          <ul>
+            <li>Birth place preset and custom place</li>
+            <li>Date and time inputs</li>
+            <li>Show chart</li>
+            <li>Kundali compare</li>
+            <li>Results tabs: Summary, Chart, Planets, Yogas, Divisional</li>
+          </ul>
+        </div>
+        <div class="ia-column">
+          <h3>Remedy</h3>
+          <ul>
+            <li>Birth details</li>
+            <li>Planet remedies</li>
+            <li>Nakshatra and nava-tara remedies</li>
+            <li>Expandable detail cards</li>
+          </ul>
+        </div>
+        <div class="ia-column">
+          <h3>Calendar</h3>
+          <ul>
+            <li>Auspicious baby birth times</li>
+            <li>From date and to date</li>
+            <li>Top slots and lord comparison</li>
+            <li>Future muhurat calendar</li>
+          </ul>
+        </div>
+        <div class="ia-column">
+          <h3>Menu</h3>
+          <ul>
+            <li>Profile, login, logout</li>
+            <li>Buy Premium and coupon verify</li>
+            <li>Support: WhatsApp, phone, email</li>
+            <li>Privacy</li>
+            <li>Future modules and settings</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="home" class="slide slide--two-col">
+      <div class="slide__heading">
+        <p class="eyebrow">3. Home page</p>
+        <h2>Dashboard screen</h2>
+        <p>
+          The home page is the launch point. It should answer: who is logged in,
+          how many queries are left, what can I do now, and what did I last open?
+        </p>
+        <div class="placement-list">
+          <div>
+            <strong>Top area</strong>
+            <span>Greeting, profile avatar, usage or premium status.</span>
+          </div>
+          <div>
+            <strong>Main card</strong>
+            <span>Start Kundali because it is the current primary website flow.</span>
+          </div>
+          <div>
+            <strong>Quick actions</strong>
+            <span>Kundali, Compare, Remedy, Auspicious.</span>
+          </div>
+          <div>
+            <strong>Below fold</strong>
+            <span>Recent charts, saved reports, education, and announcements.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone" aria-label="Home page mobile mockup">
+        <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
+        <div class="app-screen app-screen--home">
+          <div class="app-topbar">
+            <div>
+              <span class="tiny-label">Free plan: 2 free queries</span>
+              <h2>Home</h2>
+            </div>
+            <button class="avatar" type="button">RR</button>
+          </div>
+          <div class="hero-card hero-card--gold">
+            <span class="chip">Primary action</span>
+            <h3>Create Kundali</h3>
+            <p>Birth chart, planets, mahadasha age, yogas, and divisional charts.</p>
+            <button class="mobile-button" type="button">Enter birth details</button>
+          </div>
+          <h4 class="section-title">Quick actions</h4>
+          <div class="quick-grid">
+            <div class="quick-card"><strong>Compare</strong><span>2 or more births</span></div>
+            <div class="quick-card"><strong>Remedy</strong><span>Planet support</span></div>
+            <div class="quick-card"><strong>Auspicious</strong><span>Best birth time</span></div>
+            <div class="quick-card quick-card--future"><strong>Saved</strong><span>Coming soon</span></div>
+          </div>
+          <h4 class="section-title">Continue</h4>
+          <div class="mini-list">
+            <div><strong>Last chart</strong><span>New Delhi - D1 ready</span></div>
+            <div><strong>Premium</strong><span>Buy or upgrade plan</span></div>
+          </div>
+          <div class="bottom-nav">
+            <span class="bottom-nav__item bottom-nav__item--active">Home</span>
+            <span class="bottom-nav__item">Kundali</span>
+            <span class="bottom-nav__item">Remedy</span>
+            <span class="bottom-nav__item">Menu</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="menu" class="slide slide--two-col">
+      <div class="slide__heading">
+        <p class="eyebrow">4. Menu page</p>
+        <h2>All options in one grouped menu</h2>
+        <p>
+          The menu keeps all current website pages and planned app modules. Disabled
+          future items can be shown as "Coming soon" so users know more features are planned.
+        </p>
+        <div class="menu-map">
+          <h3>Menu groups</h3>
+          <ol>
+            <li>Astrology tools: Kundali, Compare, Remedy, Auspicious.</li>
+            <li>Saved work: Saved Kundalis, Reports, PDF export.</li>
+            <li>Account: Profile, Login, Logout, Premium.</li>
+            <li>Support: WhatsApp, call, email, privacy policy.</li>
+            <li>Future: Daily Panchang, Muhurat, Matchmaking, Transit alerts, Learn.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="phone" aria-label="Menu page mobile mockup">
+        <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
+        <div class="app-screen app-screen--menu">
+          <div class="app-topbar">
+            <div>
+              <span class="tiny-label">All options</span>
+              <h2>Menu</h2>
+            </div>
+            <button class="avatar" type="button">RR</button>
+          </div>
+          <div class="profile-strip">
+            <div class="avatar avatar--large">RR</div>
+            <div>
+              <strong>Ravi Ranjan</strong>
+              <span>Premium: 0/6 used</span>
+            </div>
+          </div>
+          <div class="menu-section">
+            <h4>Astrology tools</h4>
+            <div class="menu-grid">
+              <div>Kundali</div>
+              <div>Compare</div>
+              <div>Remedy</div>
+              <div>Auspicious</div>
+            </div>
+          </div>
+          <div class="menu-section">
+            <h4>Account and billing</h4>
+            <div class="menu-list">
+              <span>Profile</span>
+              <span>Buy Premium</span>
+              <span>Verify coupon</span>
+              <span>Login or Logout</span>
+            </div>
+          </div>
+          <div class="menu-section">
+            <h4>Coming soon</h4>
+            <div class="menu-list menu-list--muted">
+              <span>Daily Panchang</span>
+              <span>Matchmaking</span>
+              <span>Transit alerts</span>
+              <span>PDF reports</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <span class="bottom-nav__item">Home</span>
+            <span class="bottom-nav__item">Kundali</span>
+            <span class="bottom-nav__item">Remedy</span>
+            <span class="bottom-nav__item bottom-nav__item--active">Menu</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screens" class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">5. Main app screens</p>
+        <h2>Current website features translated to mobile</h2>
+        <p>
+          Each mockup shows the primary content placement. Data-heavy tables should use
+          horizontal detail pages, compact cards, filters, and sticky tabs.
+        </p>
+      </div>
+
+      <div class="screen-gallery">
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Kundali birth form mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Kundali</span>
+                <strong>Birth details</strong>
+              </div>
+              <label class="field-preview">Place <span>New Delhi, India</span></label>
+              <label class="field-preview">Date <span>05 Aug 2026</span></label>
+              <label class="field-preview">Time <span>09:30:00</span></label>
+              <button class="mobile-button" type="button">Show chart</button>
+              <button class="mobile-button mobile-button--soft" type="button">Kundali compare</button>
+              <div class="bottom-nav bottom-nav--compact">
+                <span>Home</span><span class="active">Kundali</span><span>Menu</span>
+              </div>
+            </div>
+          </div>
+          <h3>Kundali input</h3>
+          <p>Place preset, custom place, date, and time stay simple and thumb-friendly.</p>
+        </article>
+
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Kundali result mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Kundali ready</span>
+                <strong>Birth Chart</strong>
+              </div>
+              <div class="tab-row">
+                <span class="tab-row__active">Chart</span>
+                <span>Planets</span>
+                <span>Yogas</span>
+              </div>
+              <div class="chart-preview">
+                <span>D1</span>
+                <span>Su Mo</span>
+                <span>Ra</span>
+                <span>Sa</span>
+              </div>
+              <div class="summary-row"><strong>Lagna</strong><span>Mesha</span></div>
+              <div class="summary-row"><strong>Moon type</strong><span>Shukla paksha</span></div>
+              <div class="bottom-nav bottom-nav--compact">
+                <span>Home</span><span class="active">Kundali</span><span>Menu</span>
+              </div>
+            </div>
+          </div>
+          <h3>Kundali result</h3>
+          <p>Summary, chart, planets, yogas, D1/D9/D10/D30/D60 appear as swipeable tabs.</p>
+        </article>
+
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Compare screen mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Compare</span>
+                <strong>Multiple births</strong>
+              </div>
+              <div class="compare-person"><strong>Person 1</strong><span>New Delhi - 1990</span></div>
+              <div class="compare-person"><strong>Person 2</strong><span>Mumbai - 1992</span></div>
+              <button class="mobile-button mobile-button--soft" type="button">+ Add more</button>
+              <button class="mobile-button" type="button">Show comparison</button>
+              <div class="mini-list">
+                <div><strong>Lord strength</strong><span>Side by side result table</span></div>
+              </div>
+            </div>
+          </div>
+          <h3>Kundali compare</h3>
+          <p>The web compare panel becomes a dedicated stepper with add-more and results summary.</p>
+        </article>
+
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Remedy screen mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Remedy</span>
+                <strong>Planet guidance</strong>
+              </div>
+              <div class="remedy-card"><strong>Saturn</strong><span>Day to fast, mantra, donation, animal feed.</span></div>
+              <div class="remedy-card"><strong>Mars</strong><span>Worship, respect, wear, donate.</span></div>
+              <h4 class="section-title">Nava-tara</h4>
+              <div class="chip-row"><span>Sampat</span><span>Kshema</span><span>Maitri</span></div>
+              <div class="bottom-nav bottom-nav--compact">
+                <span>Home</span><span class="active">Remedy</span><span>Menu</span>
+              </div>
+            </div>
+          </div>
+          <h3>Remedy</h3>
+          <p>Planet remedies and nakshatra/nava-tara data become expandable cards.</p>
+        </article>
+
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Auspicious screen mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Calendar</span>
+                <strong>Auspicious birth times</strong>
+              </div>
+              <label class="field-preview">Place <span>Patna, India</span></label>
+              <label class="field-preview">From <span>05 Aug 2026</span></label>
+              <label class="field-preview">To <span>05 Sep 2026</span></label>
+              <button class="mobile-button" type="button">Find best slots</button>
+              <div class="result-pill"><strong>Top slot</strong><span>08:12 AM - high lord strength</span></div>
+              <div class="bottom-nav bottom-nav--compact">
+                <span>Home</span><span class="active">Calendar</span><span>Menu</span>
+              </div>
+            </div>
+          </div>
+          <h3>Auspicious</h3>
+          <p>Current baby birth-time scan sits under Calendar and can grow into Muhurat later.</p>
+        </article>
+
+        <article class="screen-card">
+          <div class="phone phone--small" aria-label="Profile and premium screen mockup">
+            <div class="phone__status"><span>9:41</span><span>5G</span></div>
+            <div class="app-screen">
+              <div class="app-title">
+                <span>Account</span>
+                <strong>Profile and Premium</strong>
+              </div>
+              <div class="profile-strip">
+                <div class="avatar avatar--large">RR</div>
+                <div><strong>Ravi Ranjan</strong><span>+91 mobile and email</span></div>
+              </div>
+              <div class="plan-card">
+                <strong>Premium pack</strong>
+                <span>6 queries - INR 299</span>
+                <button class="mobile-button" type="button">Buy or upgrade</button>
+              </div>
+              <div class="menu-list">
+                <span>Verify coupon</span>
+                <span>Support</span>
+                <span>Privacy policy</span>
+              </div>
+            </div>
+          </div>
+          <h3>Profile and Premium</h3>
+          <p>Login/register, usage, premium QR payment, coupon verification, and support live in Account/Menu.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">6. Results pattern</p>
+        <h2>How large website tables become mobile-friendly</h2>
+      </div>
+
+      <div class="results-pattern">
+        <article>
+          <h3>Website table</h3>
+          <p>Planet Strength, Mahadasha Age, House, Aspected By, Rashi Status, Nakshatra, Karakwaqt, Malefic 6/8/12, Death Degree.</p>
+        </article>
+        <article>
+          <h3>Mobile tabs</h3>
+          <p>Summary, Chart, Planets, Yogas, Divisional. Each tab shows card lists with tap-to-open detail sheets.</p>
+        </article>
+        <article>
+          <h3>Detail sheet</h3>
+          <p>One selected planet or yoga gets all columns, verification notes, color meaning, and remedy link.</p>
+        </article>
+      </div>
+
+      <div class="table-to-card">
+        <div class="desktop-table-preview">
+          <div class="table-head">Planets table</div>
+          <div>Planet | Strength | Dasha | House | Rashi | Nakshatra | Karakwaqt</div>
+          <div>Sun | 72 | 20-26 | 10 | High | Krittika | Atmakarak</div>
+          <div>Mars | 44 | 34-41 | 6 | Low | Mrigashira | Marak</div>
+        </div>
+        <div class="mobile-card-preview">
+          <span class="chip">Planets</span>
+          <strong>Sun - strength 72</strong>
+          <span>House 10 - Krittika - Atmakarak</span>
+          <button class="mobile-button mobile-button--soft" type="button">Open details</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="future" class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">7. Future menu and app expansion</p>
+        <h2>Keep upcoming ideas discoverable without blocking the first release</h2>
+        <p>
+          The first app can ship with the current website functionality, while menu rows
+          and empty states already reserve positions for future modules.
+        </p>
+      </div>
+
+      <div class="future-grid">
+        <article>
+          <h3>Saved Kundalis</h3>
+          <p>Save birth profiles, edit details, and reopen reports from Home.</p>
+        </article>
+        <article>
+          <h3>PDF reports</h3>
+          <p>Export Kundali, remedies, divisional charts, and comparison summaries.</p>
+        </article>
+        <article>
+          <h3>Daily Panchang</h3>
+          <p>Daily tithi, nakshatra, rahu kaal, and suggested actions on Home.</p>
+        </article>
+        <article>
+          <h3>Muhurat calendar</h3>
+          <p>Grow Auspicious into event-specific muhurat search and saved dates.</p>
+        </article>
+        <article>
+          <h3>Matchmaking</h3>
+          <p>Use compare patterns for compatibility reports and family sharing.</p>
+        </article>
+        <article>
+          <h3>Transit alerts</h3>
+          <p>Push notifications for important planetary movements and personal reminders.</p>
+        </article>
+        <article>
+          <h3>Learning library</h3>
+          <p>Short lessons explaining houses, rashis, nakshatras, yogas, and remedies.</p>
+        </article>
+        <article>
+          <h3>Language and settings</h3>
+          <p>Hindi/English labels, notification preferences, theme, privacy, and data export.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="slide__heading">
+        <p class="eyebrow">8. Suggested first mobile release</p>
+        <h2>Release scope and navigation checklist</h2>
+      </div>
+
+      <div class="checklist">
+        <label><input type="checkbox" checked disabled> Home dashboard with usage, premium, and quick actions.</label>
+        <label><input type="checkbox" checked disabled> Kundali birth form and results tabs.</label>
+        <label><input type="checkbox" checked disabled> Kundali compare with add-more flow and lord strength result.</label>
+        <label><input type="checkbox" checked disabled> Remedy flow with planet remedies and nava-tara cards.</label>
+        <label><input type="checkbox" checked disabled> Calendar area for Auspicious baby birth-time scan.</label>
+        <label><input type="checkbox" checked disabled> Profile, login/register, logout, premium QR, coupon verification.</label>
+        <label><input type="checkbox" checked disabled> Support, privacy, and future menu placeholders.</label>
+      </div>
+    </section>
+  </main>
+
+  <footer class="deck-footer">
+    <p>Prepared for Saptarishi mobile app planning. Files live in <code>saptarishi/frontend/android/</code>.</p>
+  </footer>
+</body>
+</html>
