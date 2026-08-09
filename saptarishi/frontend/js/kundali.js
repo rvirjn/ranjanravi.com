@@ -2178,27 +2178,25 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     panel.className = "remedy-navatara-panel kundali-yog-panel";
     panel.hidden = true;
 
-    const planetParts = Array.isArray(item.planets)
-      ? item.planets.map((p) => String(p || "").trim()).filter(Boolean)
-      : [];
-    const houseParts = Array.isArray(item.houses)
-      ? item.houses.map((h) => String(h)).filter(Boolean)
-      : [];
-    if (planetParts.length || houseParts.length) {
-      const meta = document.createElement("p");
-      meta.className = "kundali-yog-panel__meta";
-      const bits = [];
-      if (planetParts.length) bits.push(planetParts.join(", "));
-      if (houseParts.length) bits.push(`House ${houseParts.join(", ")}`);
-      meta.textContent = bits.join(" · ");
-      panel.appendChild(meta);
+    if (item.desc || item.summary) {
+      const desc = document.createElement("p");
+      desc.className = "kundali-yog-panel__summary";
+      desc.textContent = String(item.desc || item.summary);
+      panel.appendChild(desc);
     }
 
-    if (item.summary) {
-      const summary = document.createElement("p");
-      summary.className = "kundali-yog-panel__summary";
-      summary.textContent = String(item.summary);
-      panel.appendChild(summary);
+    if (item.rule) {
+      const rule = document.createElement("p");
+      rule.className = "kundali-yog-panel__summary";
+      rule.textContent = String(item.rule);
+      panel.appendChild(rule);
+    }
+
+    if (item.chart) {
+      const chart = document.createElement("p");
+      chart.className = "kundali-yog-panel__meta";
+      chart.textContent = String(item.chart);
+      panel.appendChild(chart);
     }
 
     if (item.detail) {
