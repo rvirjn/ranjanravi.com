@@ -1,5 +1,5 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-/** Remedy page: birth details → debilitated planet remedies + auspicious nava-tara. */
+/** Remedy page: dusthana / debilitated / dosh remedies + auspicious nava-tara. */
 
 (function remedyPage() {
   const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
@@ -7,6 +7,10 @@
   if (!C) return;
 
   const PLANET_REMEDY_COLUMNS = C.PLANET_REMEDY_COLUMNS || [];
+  const DOSH_REMEDY_COLUMNS = [
+    { key: "dosh", header: "Dosha" },
+    ...PLANET_REMEDY_COLUMNS.filter((col) => col && col.key !== "planet")
+  ];
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
 
   const form = document.getElementById("remedy-form");
@@ -15,15 +19,32 @@
   const statusEl = document.getElementById("status");
   const resultsEl = document.getElementById("results");
   const buttonsHost = document.getElementById("navatara-buttons");
-  const planetRemedyBody = document.querySelector("#planet-remedy-table tbody");
-  const planetRemedyEmpty = document.getElementById("planet-remedy-empty");
+  const dusthanaRemedyHeading = document.getElementById("dusthana-remedy-heading");
+  const dusthanaRemedyBody = document.querySelector("#dusthana-remedy-table tbody");
+  const dusthanaRemedyEmpty = document.getElementById("dusthana-remedy-empty");
+  const dusthanaRemedyTheadRow = document.getElementById("dusthana-remedy-thead-row");
+  const debilitatedRemedyHeading = document.getElementById("debilitated-remedy-heading");
+  const debilitatedRemedyBody = document.querySelector("#debilitated-remedy-table tbody");
+  const debilitatedRemedyEmpty = document.getElementById("debilitated-remedy-empty");
+  const debilitatedRemedyTheadRow = document.getElementById("debilitated-remedy-thead-row");
+  const doshRemedyHeading = document.getElementById("dosh-remedy-heading");
+  const doshRemedyBody = document.querySelector("#dosh-remedy-table tbody");
+  const doshRemedyEmpty = document.getElementById("dosh-remedy-empty");
+  const doshRemedyTheadRow = document.getElementById("dosh-remedy-thead-row");
   const placePreset = document.getElementById("place-preset");
   const customWrap = document.getElementById("custom-place-wrap");
   const placeCustom = document.getElementById("place-custom");
   const birthDate = document.getElementById("birth-date");
   const birthTime = document.getElementById("birth-time");
+  const birthName = document.getElementById("birth-name");
+  const birthNameWrap = document.getElementById("birth-name-wrap");
+  const openBirthWrap = document.getElementById("open-birth-wrap");
+  const savedBirthSelect = document.getElementById("saved-birth-select");
+  const tabOpenBirth = document.getElementById("tab-open-birth");
+  const tabNewBirth = document.getElementById("tab-new-birth");
 
   const KV = window.SaptarishiKundaliView;
+  let birthMode = "new";
   let cachedNakshatraRows = [];
   let selectedNavataraKey = "";
   let planetRemedyByName = {};
@@ -92,10 +113,89 @@
   }
 
   function validateRemedyBirthForm(place) {
+    if (birthMode === "new" && birthName && !String(birthName.value || "").trim()) {
+      return "Enter a name to save these birth details.";
+    }
+    if (birthMode === "open" && savedBirthSelect && !savedBirthSelect.value) {
+      return "Select saved birth details.";
+    }
     if (!placePreset.value) return "Select a place.";
     if (placePreset.value === C.PLACE_CUSTOM_VALUE && !place) return "Enter a custom place.";
     if (!birthDate.value || !birthTime.value) return "Date and time are required.";
     return null;
+  }
+
+  function birthViewOptionLabel(view) {
+    if (!view) return "";
+    if (view.name) return view.name;
+    const when = [view.date, view.time].filter(Boolean).join(" ");
+    return when || view.place || "Saved birth details";
+  }
+
+  function refreshSavedBirthDropdown() {
+    if (!savedBirthSelect || typeof SaptarishiAuth === "undefined") return;
+    const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+    const previous = savedBirthSelect.value;
+    savedBirthSelect.replaceChildren();
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
+    savedBirthSelect.appendChild(placeholder);
+    views.forEach((view, index) => {
+      const opt = document.createElement("option");
+      opt.value = String(index);
+      const detail = [view.date, view.place].filter(Boolean).join(" · ");
+      opt.textContent = detail
+        ? `${birthViewOptionLabel(view)} (${detail})`
+        : birthViewOptionLabel(view);
+      savedBirthSelect.appendChild(opt);
+    });
+    if (previous && [...savedBirthSelect.options].some((o) => o.value === previous)) {
+      savedBirthSelect.value = previous;
+    }
+  }
+
+  function applySavedBirthSelection() {
+    if (!savedBirthSelect || typeof SaptarishiAuth === "undefined") return;
+    const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+    const index = Number(savedBirthSelect.value);
+    if (!Number.isInteger(index) || index < 0 || index >= views.length) return;
+    SaptarishiAuth.applyDefaultBirthToForm(
+      {
+        placePreset,
+        placeCustom,
+        customWrap,
+        birthDate,
+        birthTime,
+        birthName,
+        placeCustomValue: C.PLACE_CUSTOM_VALUE
+      },
+      views[index]
+    );
+  }
+
+  function setBirthMode(mode) {
+    birthMode = mode === "open" ? "open" : "new";
+    const isOpen = birthMode === "open";
+    if (tabOpenBirth) {
+      tabOpenBirth.classList.toggle("kundali-tabs__item--active", isOpen);
+      tabOpenBirth.setAttribute("aria-selected", isOpen ? "true" : "false");
+    }
+    if (tabNewBirth) {
+      tabNewBirth.classList.toggle("kundali-tabs__item--active", !isOpen);
+      tabNewBirth.setAttribute("aria-selected", !isOpen ? "true" : "false");
+    }
+    if (openBirthWrap) openBirthWrap.hidden = !isOpen;
+    if (birthNameWrap) birthNameWrap.hidden = isOpen;
+    if (isOpen) {
+      refreshSavedBirthDropdown();
+      applySavedBirthSelection();
+    }
+  }
+
+  function refreshRemedySavedViews() {
+    refreshSavedBirthDropdown();
+    if (birthMode === "open") applySavedBirthSelection();
   }
 
   async function loadPlanetDatabase() {
@@ -122,102 +222,175 @@
     return out;
   }
 
-  /** Planets needing remedy: debilitated or in 6/8/12; else combust when none of those. */
-  const REMEDY_REASON_ORDER = ["debilitated", "in 6/8/12", "combust"];
+  /** Collect planet keys by affliction reason (debilitated / dusthana 6-8-12). */
+  function remedyPlanetKeysByReason(kundaliPayload) {
+    const debilitated = new Set();
+    const dusthana = new Set();
 
-  function remedyPlanetEntriesFromKundali(kundaliPayload) {
-    const reasonsByKey = new Map();
-
-    const addReason = (raw, reason) => {
+    const addTo = (set, raw) => {
       const key = normalizeText(raw);
       if (!key || key === "ascendant") return;
-      if (!reasonsByKey.has(key)) reasonsByKey.set(key, new Set());
-      reasonsByKey.get(key).add(reason);
+      set.add(key);
     };
 
-    const addFromSummaryList = (label, reason) => {
+    const addFromSummaryList = (label, set) => {
       for (const row of kundaliPayload?.summary_table || []) {
         if (normalizeText(row?.label) !== label) continue;
         const value = String(row?.value || "").trim();
         if (!value || /^none$/i.test(value)) continue;
-        value.split(",").forEach((part) => addReason(part, reason));
+        value.split(",").forEach((part) => addTo(set, part));
       }
     };
 
     for (const row of kundaliPayload?.planets_table || []) {
       const status = normalizeText(row?.status?.rashi || row?.planet_status_in_rashi);
-      if (status === "low") addReason(row?.planet, "debilitated");
+      if (status === "low") addTo(debilitated, row?.planet);
       if (normalizeText(row?.flags?.malefic_6_8_12) === "yes") {
-        addReason(row?.planet, "in 6/8/12");
+        addTo(dusthana, row?.planet);
       }
     }
     for (const planet of kundaliPayload?.planets || []) {
       if (normalizeText(planet?.planet_dignity) === "debilitated") {
-        addReason(planet?.name, "debilitated");
+        addTo(debilitated, planet?.name);
       }
       if (normalizeText(planet?.is_planet_in_6_8_12_house) === "yes") {
-        addReason(planet?.name, "in 6/8/12");
+        addTo(dusthana, planet?.name);
       }
     }
-    addFromSummaryList("debilitated planet", "debilitated");
-
-    if (!reasonsByKey.size) {
-      addFromSummaryList("combust planet", "combust");
-      for (const row of kundaliPayload?.planets_table || []) {
-        const degreeRules = row?.strength_adjustments?.by_column?.degree;
-        if (!Array.isArray(degreeRules)) continue;
-        const combust = degreeRules.some(
-          (item) => item && normalizeText(item.rule) === "combustion"
-        );
-        if (combust) addReason(row?.planet, "combust");
-      }
-    }
+    addFromSummaryList("debilitated planet", debilitated);
 
     const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
-    return [...reasonsByKey.entries()]
-      .map(([key, reasonSet]) => ({
-        key,
-        reasons: REMEDY_REASON_ORDER.filter((r) => reasonSet.has(r))
-      }))
-      .sort((a, b) => {
-        const ai = order.indexOf(a.key);
-        const bi = order.indexOf(b.key);
+    const sortKeys = (keys) =>
+      [...keys].sort((a, b) => {
+        const ai = order.indexOf(a);
+        const bi = order.indexOf(b);
         return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
       });
+
+    return {
+      dusthana: sortKeys(dusthana),
+      debilitated: sortKeys(debilitated)
+    };
   }
 
-  function formatPlanetRemedyCellLabel(planetKey, reasons) {
-    const name = toTitleCaseWords(planetKey);
-    const parts = Array.isArray(reasons) ? reasons.filter(Boolean) : [];
-    if (!parts.length) return name;
-    return `${name} (${parts.join(", ")})`;
+  function fillRemedyTableHeader(rowEl, columns) {
+    if (!rowEl) return;
+    rowEl.replaceChildren();
+    for (const col of columns || []) {
+      const th = document.createElement("th");
+      th.textContent = String(col.header || col.key || "");
+      rowEl.appendChild(th);
+    }
   }
 
-  function renderPlanetRemedyTable(kundaliPayload) {
-    if (!planetRemedyBody) return;
-    planetRemedyBody.innerHTML = "";
-    const remedyPlanets = remedyPlanetEntriesFromKundali(kundaliPayload);
-    if (!remedyPlanets.length) {
-      if (planetRemedyEmpty) planetRemedyEmpty.hidden = false;
+  function formatRemedyCellValue(value) {
+    if (value == null) return "";
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+    return String(value).trim();
+  }
+
+  function presentDoshEntriesFromKundali(kundaliPayload) {
+    const block = kundaliPayload?.kundali_dosh;
+    const items = Array.isArray(block?.dosh) ? block.dosh : [];
+    return items.filter((item) => {
+      if (!item || item.present === false) return false;
+      const remedy = item.remedy;
+      return Boolean(remedy && typeof remedy === "object");
+    });
+  }
+
+  function renderPlanetKeysRemedyTable(options) {
+    const {
+      bodyEl,
+      theadRow,
+      emptyEl,
+      headingEl,
+      baseHeading,
+      planetKeys
+    } = options;
+    if (!bodyEl) return;
+    fillRemedyTableHeader(theadRow, PLANET_REMEDY_COLUMNS);
+    bodyEl.innerHTML = "";
+    const keys = Array.isArray(planetKeys) ? planetKeys : [];
+    if (headingEl) {
+      headingEl.textContent = keys.length ? `${baseHeading}(${keys.length})` : baseHeading;
+    }
+    if (!keys.length) {
+      if (emptyEl) emptyEl.hidden = false;
       return;
     }
-    if (planetRemedyEmpty) planetRemedyEmpty.hidden = true;
-    for (const entry of remedyPlanets) {
-      const planetKey = entry.key;
+    if (emptyEl) emptyEl.hidden = true;
+    for (const planetKey of keys) {
       const remedy = planetRemedyByName[planetKey] || {};
       const tr = document.createElement("tr");
       for (const col of PLANET_REMEDY_COLUMNS) {
         const td = document.createElement("td");
         if (col.key === "planet") {
           td.className = "planets-td-planet";
-          td.textContent = formatPlanetRemedyCellLabel(planetKey, entry.reasons);
+          td.textContent = toTitleCaseWords(planetKey);
         } else {
-          const text = String(remedy[col.key] || "").trim();
+          const text = formatRemedyCellValue(remedy[col.key]);
           td.textContent = text || "—";
         }
         tr.appendChild(td);
       }
-      planetRemedyBody.appendChild(tr);
+      bodyEl.appendChild(tr);
+    }
+  }
+
+  function renderPlanetRemedyTables(kundaliPayload) {
+    const groups = remedyPlanetKeysByReason(kundaliPayload);
+    renderPlanetKeysRemedyTable({
+      bodyEl: dusthanaRemedyBody,
+      theadRow: dusthanaRemedyTheadRow,
+      emptyEl: dusthanaRemedyEmpty,
+      headingEl: dusthanaRemedyHeading,
+      baseHeading: "Remedy for planet in Dusthana 6/8/12 houses",
+      planetKeys: groups.dusthana
+    });
+    renderPlanetKeysRemedyTable({
+      bodyEl: debilitatedRemedyBody,
+      theadRow: debilitatedRemedyTheadRow,
+      emptyEl: debilitatedRemedyEmpty,
+      headingEl: debilitatedRemedyHeading,
+      baseHeading: "Remedy for debilitated planet",
+      planetKeys: groups.debilitated
+    });
+  }
+
+  function renderDoshRemedyTable(kundaliPayload) {
+    if (!doshRemedyBody) return;
+    fillRemedyTableHeader(doshRemedyTheadRow, DOSH_REMEDY_COLUMNS);
+    doshRemedyBody.innerHTML = "";
+    const doshas = presentDoshEntriesFromKundali(kundaliPayload);
+    const baseHeading = "Remedy for kundali dosh";
+    if (doshRemedyHeading) {
+      doshRemedyHeading.textContent = doshas.length
+        ? `${baseHeading}(${doshas.length})`
+        : baseHeading;
+    }
+    if (!doshas.length) {
+      if (doshRemedyEmpty) doshRemedyEmpty.hidden = false;
+      return;
+    }
+    if (doshRemedyEmpty) doshRemedyEmpty.hidden = true;
+    for (const dosh of doshas) {
+      const remedy = dosh.remedy && typeof dosh.remedy === "object" ? dosh.remedy : {};
+      const tr = document.createElement("tr");
+      for (const col of DOSH_REMEDY_COLUMNS) {
+        const td = document.createElement("td");
+        if (col.key === "dosh") {
+          td.className = "planets-td-planet";
+          td.textContent = String(dosh.name || dosh.key || "Dosha");
+        } else {
+          const text = formatRemedyCellValue(remedy[col.key]);
+          td.textContent = text || "—";
+        }
+        tr.appendChild(td);
+      }
+      doshRemedyBody.appendChild(tr);
     }
   }
 
@@ -384,6 +557,7 @@
   async function handleRemedyFormSubmit(event) {
     event.preventDefault();
     const place = getBirthPlaceFromRemedyForm();
+    const name = birthName ? String(birthName.value || "").trim() : "";
     const validationError = validateRemedyBirthForm(place);
     if (validationError) {
       showRemedyStatus(validationError, true);
@@ -400,14 +574,16 @@
 
     try {
       const [kundaliPayload, db] = await Promise.all([
-        KV.fetchJson(birthDate.value, birthTime.value, place),
+        KV.fetchJson(birthDate.value, birthTime.value, place, name),
         loadPlanetDatabase()
       ]);
 
       planetRemedyByName = buildPlanetRemedyLookup(db);
       cachedNakshatraRows = kundaliPayload.nakshatras || [];
-      renderPlanetRemedyTable(kundaliPayload);
+      renderPlanetRemedyTables(kundaliPayload);
+      renderDoshRemedyTable(kundaliPayload);
       renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
+      refreshSavedBirthDropdown();
 
       if (resultsEl) resultsEl.hidden = false;
       showRemedyStatus("");
@@ -423,24 +599,20 @@
     }
   }
 
-  function initDefaultBirthFromUser() {
-    if (typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.getToken()) return;
-    SaptarishiAuth.refreshDefaultBirthForm({
-      placePreset,
-      placeCustom,
-      customWrap,
-      birthDate,
-      birthTime,
-      placeCustomValue: C.PLACE_CUSTOM_VALUE
-    }).catch(() => {});
-  }
-
   if (placePreset) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
   }
+  if (tabOpenBirth) {
+    tabOpenBirth.addEventListener("click", () => setBirthMode("open"));
+  }
+  if (tabNewBirth) {
+    tabNewBirth.addEventListener("click", () => setBirthMode("new"));
+  }
+  if (savedBirthSelect) {
+    savedBirthSelect.addEventListener("change", applySavedBirthSelection);
+  }
   form.addEventListener("submit", handleRemedyFormSubmit);
-  initDefaultBirthFromUser();
-  globalThis.addEventListener("saptarishi-auth-changed", () => {
-    initDefaultBirthFromUser();
-  });
+  setBirthMode("new");
+  refreshRemedySavedViews();
+  globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);
 })();

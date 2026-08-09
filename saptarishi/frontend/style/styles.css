@@ -91,6 +91,7 @@ body.saptarishi-page {
 
 /* Main shell: centered column (page gutters from body padding) */
 #saptarishi.main-shell {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   max-width: var(--content-max-width);
@@ -191,6 +192,91 @@ body.saptarishi-page {
 /* Birth / kundali forms: label above each control; align submit with input baselines */
 .search-form.kundali-form {
   align-items: flex-end;
+}
+
+.kundali-tabs {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid rgba(139, 105, 60, 0.25);
+}
+
+.kundali-tabs__item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.4rem 0.1rem 0.55rem;
+  color: #a07a45;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.kundali-tabs__item--active {
+  color: #4a2f14;
+  box-shadow: inset 0 -3px 0 #c9a227;
+}
+
+.kundali-connect-astrologer {
+  display: none;
+}
+
+.kundali-connect-btn {
+  display: none;
+}
+
+.kundali-contact-footer {
+  margin: 0.85rem 0 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(139, 105, 60, 0.2);
+}
+
+.kundali-contact-footer__rate {
+  margin: 0 0 0.65rem;
+  color: #6b5235;
+  font-size: 0.95rem;
+}
+
+.kundali-contact-footer__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.kundali-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0.65rem;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kundali-contact-btn--call {
+  background: #2e9b4f;
+}
+
+.kundali-contact-btn--ask {
+  background: #2f6fed;
+}
+
+.kundali-contact-btn:hover {
+  filter: brightness(1.05);
+}
+
+.profile-summary__wallet {
+  margin: 0.35rem 0 0;
+  font-weight: 700;
+  color: #5c3d1e;
+}
+
+.profile-summary__actions {
+  margin-top: 0.85rem;
 }
 
 .search-form.kundali-form .form-field--submit {
@@ -1552,6 +1638,163 @@ tbody tr:last-child td {
   border-top: 1px solid rgba(30, 58, 95, 0.06);
 }
 
+/* Auspicious page: option picker → range details */
+.auspicious-view[hidden] {
+  display: none !important;
+}
+
+.auspicious-heading {
+  margin: 0 0 var(--space-md);
+}
+
+.auspicious-heading__label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+#saptarishi.main-shell .auspicious-heading h1 {
+  margin-bottom: 0.35rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+#saptarishi.main-shell .auspicious-heading .lead {
+  margin-bottom: 0;
+}
+
+.auspicious-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 var(--space-sm);
+  padding: 0.2rem 0;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.auspicious-back:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.auspicious-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  max-width: 42rem;
+  overflow: hidden;
+  background: rgba(255, 254, 245, 0.95);
+  border: 1px solid rgba(104, 76, 8, 0.14);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 22px rgba(70, 48, 5, 0.07);
+}
+
+.feature-tile {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  align-content: center;
+  min-height: 6.25rem;
+  padding: 1rem 0.5rem 0.9rem;
+  color: var(--color-text);
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-right: 1px solid rgba(104, 76, 8, 0.1);
+  border-bottom: 1px solid rgba(104, 76, 8, 0.1);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.feature-tile:nth-child(3n) {
+  border-right: none;
+}
+
+.auspicious-grid .feature-tile:nth-last-child(-n + 3) {
+  border-bottom: none;
+}
+
+.feature-tile:hover:not(.feature-tile--active) {
+  background: rgba(201, 162, 39, 0.1);
+}
+
+.feature-tile:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.feature-tile__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  color: #c47a1a;
+}
+
+.feature-tile__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.feature-tile strong {
+  max-width: 7rem;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.feature-tile--active {
+  color: #fff;
+  background: linear-gradient(
+    160deg,
+    rgba(139, 105, 20, 0.98),
+    rgba(31, 24, 6, 0.96)
+  );
+}
+
+.feature-tile--active .feature-tile__icon {
+  color: #f3d27a;
+}
+
+@media (max-width: 520px) {
+  .auspicious-grid {
+    max-width: none;
+  }
+
+  .feature-tile {
+    min-height: 5.4rem;
+    padding: 0.85rem 0.35rem 0.75rem;
+  }
+
+  .feature-tile strong {
+    font-size: 0.75rem;
+  }
+
+  .feature-tile__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+}
+
 /* Auspicious page: lord comparison table */
 .auspicious-lord-comparison-lead {
   margin-top: -0.35rem;
@@ -1898,6 +2141,106 @@ tbody tr:last-child td {
   color: var(--color-text-muted);
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+/* Inside main content card: top-right corner (same table as Enter birth details) */
+.site-connect-bar {
+  position: absolute;
+  top: 0.65rem;
+  right: var(--page-margin-inline, 1rem);
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+#saptarishi.main-shell > p.lead:first-of-type,
+#saptarishi.main-shell > .lead:first-child {
+  padding-right: 8.5rem;
+}
+
+.site-connect-bar__inner {
+  position: relative;
+}
+
+.site-connect-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(139, 105, 60, 0.4);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #f3e2b8 0%, #e4c77a 100%);
+  color: #4a2f14;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.site-connect-bar__btn:hover {
+  filter: brightness(1.03);
+}
+
+.site-connect-bar__btn[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 1px rgba(74, 47, 20, 0.2);
+}
+
+.site-connect-bar__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 50;
+  min-width: 11.5rem;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface, #fff8ea);
+  box-shadow: 0 8px 20px rgba(74, 47, 20, 0.18);
+}
+
+.site-connect-bar__rate {
+  margin: 0 0 0.5rem;
+  color: #6b5235;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.site-connect-bar__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.site-connect-bar__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  padding: 0.25rem 0.4rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.site-connect-bar__action--call {
+  background: #2e9b4f;
+}
+
+.site-connect-bar__action--ask {
+  background: #2f6fed;
+}
+
+.site-connect-bar__action:hover {
+  filter: brightness(1.05);
 }
 
 .site-header__meta .site-header__profile {
@@ -2457,6 +2800,21 @@ body.auth-modal-open {
   background: #fff3cc;
 }
 
+.site-header__wallet {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #c4a574;
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #5c3d1e;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.site-header__wallet:hover {
+  background: #fff3e0;
+}
+
 body.premium-modal-open {
   overflow: hidden;
 }
@@ -2604,6 +2962,34 @@ body.premium-modal-open {
 
 .premium-modal__form button[type="submit"]:hover {
   filter: brightness(1.05);
+}
+
+.premium-modal__wallet-pay {
+  margin-top: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: 1px solid #8a6a3a;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: #5c3d1e;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.premium-modal__wallet-pay:hover {
+  background: #fff8ee;
+}
+
+.premium-modal__wallet-pay--primary {
+  margin-top: 0;
+  border-color: transparent;
+  background: linear-gradient(180deg, #c9a227 0%, #a07a20 100%);
+  color: #fff;
+}
+
+.premium-modal__wallet-pay--primary:hover {
+  filter: brightness(1.05);
+  background: linear-gradient(180deg, #c9a227 0%, #a07a20 100%);
 }
 
 .premium-modal__status {

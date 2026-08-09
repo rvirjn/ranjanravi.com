@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>My profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=143">
+  <link rel="stylesheet" href="../style/styles.css?v=162">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -17,8 +17,12 @@
 
     <div id="profile-summary" class="profile-summary" hidden>
       <p id="profile-plan" class="profile-summary__plan"></p>
+      <p id="profile-wallet" class="profile-summary__wallet"></p>
       <p id="profile-usage" class="profile-summary__usage"></p>
       <p id="profile-member-since" class="profile-summary__meta"></p>
+      <div class="profile-summary__actions">
+        <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
+      </div>
     </div>
 
     <form id="profile-form" class="auth-form profile-form" autocomplete="on" hidden>
@@ -42,12 +46,13 @@
     <p id="profile-status" class="status" role="status" aria-live="polite" hidden></p>
   </div>
 
-  <script src="../utils/constant.js?v=56"></script>
-  <script src="../js/auth.js?v=23"></script>
+  <script src="../utils/constant.js?v=59"></script>
+  <script src="../js/auth.js?v=26"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
-  <script src="../js/premium-modal.js?v=8"></script>
-  <script src="../js/profile.js?v=4"></script>
-  <script src="../utils/common.js?v=37"></script>
+  <script src="../js/premium-modal.js?v=10"></script>
+  <script src="../js/wallet-modal.js?v=3"></script>
+  <script src="../js/profile.js?v=5"></script>
+  <script src="../utils/common.js?v=41"></script>
 </body>
 </html>

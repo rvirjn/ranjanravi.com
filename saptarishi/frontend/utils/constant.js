@@ -42,6 +42,7 @@ const SAPTARISHI_CONSTANTS = {
   API_USAGE_PATH: "/api/usage",
   API_PREMIUM_INFO_PATH: "/api/premium/info",
   API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
+  API_WALLET_PATH: "/api/wallet",
 
   // --- Usage / auth headers ---
   GUEST_ID_HEADER: "X-Guest-Id",
@@ -62,6 +63,17 @@ const SAPTARISHI_CONSTANTS = {
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
   PREMIUM_SCANNER_IMAGE: _DEPLOY_PREFIX + "/frontend/images/RaviRanjanScanner.png",
+
+  // --- Wallet / astrologer (defaults; live values from data.json via GET /api/wallet) ---
+  ASTROLOGER_NAME: "Ravi Ranjan",
+  ASTROLOGER_CALL_RATE_INR_PER_MIN: 21,
+  ASTROLOGER_ASK_RATE_INR_PER_MIN: 21,
+  ASTROLOGER_MIN_BALANCE_INR: 21,
+  WALLET_TOPUP_DEFAULTS: [
+    { id: "wallet_299", amount_inr: 299, credit_inr: 299 },
+    { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
+    { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
+  ],
 
   // --- UI messages / display ---
   KUNDALI_READY_STATUS_MESSAGE:
@@ -184,6 +196,8 @@ const SAPTARISHI_CONSTANTS = {
     { key: "whom_to_worship", header: "Whom to worship" },
     { key: "day_to_fast", header: "Day to fast" },
     { key: "mantra_to_chant", header: "Mantra to chant" },
+    { key: "number_of_count_to_chant", header: "Chant count" },
+    { key: "how_to_do_mantra_chant", header: "How to chant" },
     { key: "things_to_donate", header: "things to donate" },
     { key: "whom_to_respect_most", header: "Whom to respect most" },
     { key: "what_to_wear_in_finger", header: "what to wear in finger" },

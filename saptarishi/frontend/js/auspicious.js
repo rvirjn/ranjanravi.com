@@ -5,6 +5,11 @@
   const CU = window.SaptarishiCommonUtils || null;
   if (!AC) return;
 
+  const optionsView = document.getElementById("auspicious-options-view");
+  const rangeView = document.getElementById("auspicious-range-view");
+  const optionsGrid = optionsView && optionsView.querySelector(".auspicious-grid");
+  const backBtn = document.getElementById("auspicious-back-btn");
+  const selectedTitleEl = document.getElementById("auspicious-selected-title");
   const auspiciousForm = document.getElementById("auspicious-form");
   const auspiciousStatusEl = document.getElementById("status");
   const auspiciousResultsEl = document.getElementById("results");
@@ -14,6 +19,7 @@
   const auspiciousPlaceCustom = document.getElementById("place-custom");
   const dateFrom = document.getElementById("date-from");
   const dateTo = document.getElementById("date-to");
+  let selectedOption = "";
 
   function formatDateInputValue(date) {
     const y = date.getFullYear();
@@ -192,6 +198,19 @@
 
   async function handleAuspiciousFormSubmit(event) {
     event.preventDefault();
+    const currentOption =
+      selectedOption ||
+      (auspiciousForm && auspiciousForm.dataset.option) ||
+      (selectedTitleEl && selectedTitleEl.textContent) ||
+      "";
+    if (String(currentOption).trim() !== "Baby Birth") {
+      if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
+      const lordSection = document.getElementById("lord-comparison-section");
+      if (lordSection) lordSection.hidden = true;
+      showAuspiciousStatus("Feature not implemented. Coming soon…");
+      return;
+    }
+
     const place = getPlaceFromForm();
     const validationError = validateAuspiciousFormInput(place);
     if (validationError) {
@@ -217,6 +236,63 @@
         await SaptarishiAuth.handlePremiumRequired(err);
       }
     }
+  }
+
+  function clearAuspiciousResults() {
+    showAuspiciousStatus("");
+    if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
+    const lordSection = document.getElementById("lord-comparison-section");
+    if (lordSection) lordSection.hidden = true;
+  }
+
+  function showOptionsView() {
+    selectedOption = "";
+    if (auspiciousForm) delete auspiciousForm.dataset.option;
+    if (optionsView) optionsView.hidden = false;
+    if (rangeView) rangeView.hidden = true;
+    if (optionsGrid) {
+      optionsGrid.querySelectorAll(".feature-tile").forEach((tile) => {
+        tile.classList.remove("feature-tile--active");
+        tile.setAttribute("aria-pressed", "false");
+      });
+    }
+    clearAuspiciousResults();
+  }
+
+  function showRangeView(optionLabel) {
+    selectedOption = optionLabel || "";
+    if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Auspicious";
+    if (auspiciousForm) auspiciousForm.dataset.option = selectedOption;
+    if (optionsView) optionsView.hidden = true;
+    if (rangeView) rangeView.hidden = false;
+    clearAuspiciousResults();
+    setDefaultAuspiciousDateRange();
+    if (auspiciousPlacePreset) auspiciousPlacePreset.focus();
+  }
+
+  function handleOptionTileClick(event) {
+    const tile = event.target.closest(".feature-tile");
+    if (!tile || !optionsGrid || !optionsGrid.contains(tile)) return;
+    const label = (tile.getAttribute("data-option") || tile.textContent || "").trim();
+    if (!label) return;
+
+    optionsGrid.querySelectorAll(".feature-tile").forEach((btn) => {
+      const active = btn === tile;
+      btn.classList.toggle("feature-tile--active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    showRangeView(label);
+  }
+
+  if (optionsGrid) {
+    optionsGrid.querySelectorAll(".feature-tile").forEach((tile) => {
+      tile.setAttribute("aria-pressed", "false");
+    });
+    optionsGrid.addEventListener("click", handleOptionTileClick);
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener("click", showOptionsView);
   }
 
   if (auspiciousPlacePreset) {

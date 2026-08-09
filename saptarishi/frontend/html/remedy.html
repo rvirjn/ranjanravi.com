@@ -8,13 +8,46 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Remedy by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=156">
+  <link rel="stylesheet" href="../style/styles.css?v=162">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
     <p class="lead">Enter birth details</p>
 
+    <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
+      <button
+        type="button"
+        class="kundali-tabs__item"
+        id="tab-open-birth"
+        role="tab"
+        aria-selected="false"
+        data-birth-mode="open"
+      >
+        Open birth details
+      </button>
+      <button
+        type="button"
+        class="kundali-tabs__item kundali-tabs__item--active"
+        id="tab-new-birth"
+        role="tab"
+        aria-selected="true"
+        data-birth-mode="new"
+      >
+        New birth details
+      </button>
+    </div>
+
     <form id="remedy-form" class="search-form kundali-form" autocomplete="off">
+      <div class="form-field" id="open-birth-wrap" hidden>
+        <label for="saved-birth-select">Saved birth details</label>
+        <select id="saved-birth-select">
+          <option value="">Select saved name…</option>
+        </select>
+      </div>
+      <div class="form-field" id="birth-name-wrap">
+        <label for="birth-name">Name</label>
+        <input type="text" id="birth-name" maxlength="120" placeholder="Enter name" />
+      </div>
       <div class="form-field">
         <label for="place-preset">Place</label>
         <select id="place-preset">
@@ -47,38 +80,58 @@
     <p id="status" class="status" role="status" aria-live="polite" hidden></p>
 
     <div id="results" hidden>
-      <h2 class="result-heading">Remedy for overall good (Based on Planet)</h2>
-      <div class="table-wrap">
-        <table id="planet-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
-          <thead>
-            <tr>
-              <th>Planet</th>
-              <th>Whom to worship</th>
-              <th>Day to fast</th>
-              <th>Mantra to chant</th>
-              <th>Things to donate</th>
-              <th>Whom to respect most</th>
-              <th>What to wear in finger</th>
-              <th>Feed to animal</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p id="planet-remedy-empty" class="lead" hidden>No debilitated, afflicted (6/8/12), or combust planet found for this birth chart.</p>
+      <section id="dusthana-remedy-section">
+        <h2 id="dusthana-remedy-heading" class="result-heading">Remedy for planet in Dusthana 6/8/12 houses</h2>
+        <div class="table-wrap">
+          <table id="dusthana-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
+            <thead>
+              <tr id="dusthana-remedy-thead-row"></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="dusthana-remedy-empty" class="lead" hidden>No planet in Dusthana (6/8/12) houses for this birth chart.</p>
+      </section>
+
+      <section id="debilitated-remedy-section">
+        <h2 id="debilitated-remedy-heading" class="result-heading">Remedy for debilitated planet</h2>
+        <div class="table-wrap">
+          <table id="debilitated-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
+            <thead>
+              <tr id="debilitated-remedy-thead-row"></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="debilitated-remedy-empty" class="lead" hidden>No debilitated planet found for this birth chart.</p>
+      </section>
+
+      <section id="dosh-remedy-section">
+        <h2 id="dosh-remedy-heading" class="result-heading">Remedy for kundali dosh</h2>
+        <div class="table-wrap">
+          <table id="dosh-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
+            <thead>
+              <tr id="dosh-remedy-thead-row"></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="dosh-remedy-empty" class="lead" hidden>No kundali dosh with a remedy found for this birth chart.</p>
+      </section>
 
       <h2 class="result-heading">Remedy (Based on nakshtra/navatara)</h2>
       <div id="navatara-buttons" class="remedy-navatara-buttons" role="group" aria-label="Auspicious nava-tara"></div>
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=56"></script>
-  <script src="../js/auth.js?v=23"></script>
+  <script src="../utils/constant.js?v=59"></script>
+  <script src="../js/auth.js?v=26"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
-  <script src="../js/premium-modal.js?v=8"></script>
-  <script src="../utils/common.js?v=37"></script>
-  <script src="../js/kundali.js?v=194"></script>
-  <script src="../js/remedy.js?v=15"></script>
+  <script src="../js/premium-modal.js?v=10"></script>
+  <script src="../js/wallet-modal.js?v=3"></script>
+  <script src="../utils/common.js?v=41"></script>
+  <script src="../js/kundali.js?v=200"></script>
+  <script src="../js/remedy.js?v=18"></script>
 </body>
 </html>

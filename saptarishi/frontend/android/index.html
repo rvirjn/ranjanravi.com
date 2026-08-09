@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Saptarishi Mobile App Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -20,6 +23,7 @@
       <a href="#strategy">Strategy</a>
       <a href="#home">Home</a>
       <a href="#menu">Menu</a>
+      <a href="#kundali">Kundali</a>
       <a href="#screens">Screens</a>
       <a href="#future">Future</a>
     </nav>
@@ -36,8 +40,8 @@
           account, premium, support, and future feature space.
         </p>
         <div class="hero__actions" aria-label="Presentation quick links">
-          <a class="btn btn--primary" href="#home">View home screen</a>
-          <a class="btn btn--ghost" href="#menu">View full menu</a>
+          <a class="btn btn--primary" href="#kundali">View Kundali page</a>
+          <a class="btn btn--ghost" href="#home">View home screen</a>
         </div>
       </div>
 
@@ -48,52 +52,153 @@
         </div>
         <div class="app-screen app-screen--home">
           <div class="app-topbar app-topbar--nav">
-            <button class="hamburger-menu" type="button" aria-label="Open app menu">
+            <button class="hamburger-menu" type="button" aria-label="Open options menu">
               <span></span>
               <span></span>
               <span></span>
             </button>
-            <div class="app-topbar__title">
-              <span class="tiny-label">Namaste Ravi</span>
-              <h2>Plan your day with Saptarishi</h2>
+            <div class="app-topbar__brand">
+              <h2>Saptarishi</h2>
             </div>
-            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__actions">
+              <button class="wallet-chip" type="button" aria-label="Wallet balance for call and chat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg>
+                <strong>₹286</strong>
+              </button>
+              <button class="avatar" type="button" aria-label="Profile shortcut">PR</button>
+            </div>
           </div>
-          <div class="app-menu-preview app-menu-preview--compact" aria-label="Menu shortcut preview">
-            <span>Reports</span>
-            <span>Panchang</span>
-            <span>Horoscope</span>
-            <span>Matching</span>
+          <div class="home-flash" aria-label="Flash images">
+            <div class="home-flash__stage">
+              <article class="home-flash__slide home-flash__slide--1 home-flash__slide--active">
+                <span>Today</span>
+                <strong>Your daily horoscope</strong>
+                <p>Venus favors calm choices — finish one task and speak gently.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--2">
+                <span>Matching</span>
+                <strong>Kundali matching</strong>
+                <p>Check compatibility before the next big step together.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--3">
+                <span>Guidance</span>
+                <strong>Ask a Saptarishi guide</strong>
+                <p>Clear answers on career, family, and timing — on call.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--4">
+                <span>Timing</span>
+                <strong>Auspicious windows</strong>
+                <p>Find the best hours for travel, deals, and new starts.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--5">
+                <span>Balance</span>
+                <strong>Planet remedies</strong>
+                <p>Simple support for Saturn, Rahu, and Mercury stress.</p>
+              </article>
+            </div>
+            <div class="home-flash__dots" aria-label="Flash image indicators">
+              <button class="home-flash__dot home-flash__dot--active" type="button" aria-label="Image 1" aria-current="true"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 2"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 3"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 4"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 5"></button>
+            </div>
           </div>
-          <div class="hero-card">
-            <span class="chip">2 free queries</span>
-            <h3>Create Kundali</h3>
-            <p>Enter birth place, date, and time to view chart, planets, yogas, and divisional charts.</p>
-            <button class="mobile-button" type="button">Start Kundali</button>
-          </div>
-          <div class="quick-grid" aria-label="Quick actions">
-            <div class="quick-card">
+                              <section class="home-topics-block" aria-label="About">
+            <div class="home-astrologers__head">
+              <h4>About</h4>
+              <button class="home-astrologers__more" type="button" aria-label="See more about options">›</button>
+            </div>
+            <div class="home-topics">
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg></span>
+              <span>Health</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.2"/><path d="M12 8.4v7.2M9.4 10.2h5.2c1.1 0 2 .7 2 1.8s-.9 1.8-2 1.8H9.4"/></svg></span>
+              <span>Wealth</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8.2" cy="9" r="2.4"/><circle cx="15.8" cy="9" r="2.4"/><path d="M4.8 18.5c.9-2.6 2.5-3.9 3.4-3.9s2 .8 2.8 2.1c.8-1.3 1.9-2.1 2.8-2.1s2.5 1.3 3.4 3.9"/></svg></span>
+              <span>Relationship</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.2" r="2.4"/><path d="M8.2 19.5c.7-3 2.1-4.5 3.8-4.5s3.1 1.5 3.8 4.5"/><circle cx="6.8" cy="10.2" r="1.7"/><circle cx="17.2" cy="10.2" r="1.7"/></svg></span>
+              <span>Children</span>
+            </button>
+            </div>
+          </section>
+
+          <div class="home-actions" aria-label="Main actions">
+            <button class="home-action home-action--primary" type="button">
+              <span class="home-action__glyph" aria-hidden="true">✦</span>
               <strong>Kundali</strong>
-              <span>Chart and planets</span>
-            </div>
-            <div class="quick-card">
-              <strong>Compare</strong>
-              <span>Multiple births</span>
-            </div>
-            <div class="quick-card">
+              <span>Open birth chart</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">☯</span>
               <strong>Remedy</strong>
-              <span>Planet and nava-tara</span>
-            </div>
-            <div class="quick-card">
+              <span>Planet support</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">◷</span>
               <strong>Auspicious</strong>
-              <span>Baby birth slots</span>
-            </div>
+              <span>Best birth time</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">♡</span>
+              <strong>Kundali Matching</strong>
+              <span>Compatibility check</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">⇄</span>
+              <strong>Kundali Compare</strong>
+              <span>2 or more births</span>
+            </button>
           </div>
-          <div class="bottom-nav">
+                    <section class="home-astrologers" aria-label="Astrologers">
+            <div class="home-astrologers__head">
+              <h4>Astrologers</h4>
+              <button class="home-astrologers__more" type="button" aria-label="See all astrologers">›</button>
+            </div>
+            <div class="home-astrologers__row">
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--1" aria-hidden="true">DM</span>
+                <strong>Dr. Meera</strong>
+                <span>₹21/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--2" aria-hidden="true">RJ</span>
+                <strong>Ravi Joshi</strong>
+                <span>₹35/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--3" aria-hidden="true">AR</span>
+                <strong>Anita Rai</strong>
+                <span>₹18/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--4" aria-hidden="true">SN</span>
+                <strong>Suresh N</strong>
+                <span>₹29/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--5" aria-hidden="true">KS</span>
+                <strong>Kavita S</strong>
+                <span>₹24/min</span>
+              </button>
+            </div>
+          </section>
+
+<div class="contact-footer" aria-label="Call and chat">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+          </div>
+          <div class="bottom-nav bottom-nav--four">
             <span class="bottom-nav__item bottom-nav__item--active">Home</span>
-            <span class="bottom-nav__item">Kundali</span>
-            <span class="bottom-nav__item">Remedy</span>
-            <span class="bottom-nav__item">Menu</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
           </div>
         </div>
       </div>
@@ -144,36 +249,35 @@
         <div class="ia-column">
           <h3>Home</h3>
           <ul>
-            <li>Welcome and profile shortcut</li>
-            <li>Free query or premium badge</li>
-            <li>Create Kundali primary card</li>
-            <li>Quick actions for all current tools</li>
-            <li>Recent or saved charts placeholder</li>
+            <li>Option menu, Saptarishi brand, wallet, profile</li>
+            <li>Large Kundali, Remedy, Auspicious, Matching, Compare</li>
+            <li>Second footer: Call and Ask</li>
+            <li>Bottom: Home, Dasha, Horoscope, Do's &amp; Don't</li>
           </ul>
         </div>
         <div class="ia-column">
           <h3>Kundali</h3>
           <ul>
-            <li>Birth place preset and custom place</li>
-            <li>Date and time inputs</li>
-            <li>Show chart</li>
-            <li>Kundali compare</li>
-            <li>Results tabs: Summary, Chart, Planets, Yogas, Divisional</li>
+            <li>Person name for the chart</li>
+            <li>Birth place, date, and time</li>
+            <li>Open Kundali primary action</li>
+            <li>Symbol strip and feature previews</li>
+            <li>Kundali compare and result tabs</li>
           </ul>
         </div>
         <div class="ia-column">
           <h3>Remedy</h3>
           <ul>
-            <li>Birth details</li>
-            <li>Planet remedies</li>
-            <li>Nakshatra and nava-tara remedies</li>
+            <li>12 house tiles (same as menu)</li>
+            <li>Personality through Expenses</li>
+            <li>House-linked planet remedies</li>
             <li>Expandable detail cards</li>
           </ul>
         </div>
         <div class="ia-column">
           <h3>Calendar</h3>
           <ul>
-            <li>Auspicious baby birth times</li>
+            <li>Auspicious muhurat tiles: birth, marriage, home, vehicle, travel</li>
             <li>From date and to date</li>
             <li>Top slots and lord comparison</li>
             <li>Future muhurat calendar</li>
@@ -182,8 +286,7 @@
         <div class="ia-column">
           <h3>Menu</h3>
           <ul>
-            <li>Profile, login, logout</li>
-            <li>Buy Premium and coupon verify</li>
+            <li>Profile: edit details, wallet, buy premium, login/logout</li>
             <li>Support: WhatsApp, phone, email</li>
             <li>Privacy</li>
             <li>Reports, Panchang, Horoscope, Kundali Matching, Marriage, Career, Child, Past Life, Pooja</li>
@@ -195,27 +298,23 @@
     <section id="home" class="slide slide--two-col">
       <div class="slide__heading">
         <p class="eyebrow">3. Home page</p>
-        <h2>Dashboard screen</h2>
+        <h2>Simple launch screen</h2>
         <p>
-          The home page is the launch point. It should answer: who is logged in,
-          how many queries are left, what can I do now, and what did I last open?
+          Matches the paper wireframe: brand in the center, three primary tools,
+          Call/Chat support, and a short bottom bar.
         </p>
         <div class="placement-list">
           <div>
-            <strong>Top area</strong>
-            <span>Three-line menu on the left, greeting and usage in the middle, profile icon on the right.</span>
+            <strong>Top bar</strong>
+            <span>Left 3-line Option menu, center Saptarishi brand, right wallet and profile icon.</span>
           </div>
           <div>
-            <strong>Main card</strong>
-            <span>Start Kundali because it is the current primary website flow.</span>
+            <strong>Main actions</strong>
+            <span>Large Kundali, Remedy, Auspicious, Kundali Matching, and Kundali Compare buttons.</span>
           </div>
           <div>
-            <strong>Quick actions</strong>
-            <span>Kundali, Compare, Remedy, Auspicious.</span>
-          </div>
-          <div>
-            <strong>Below fold</strong>
-            <span>Recent charts, saved reports, education, and announcements.</span>
+            <strong>Bottom nav</strong>
+            <span>Call and Ask as a separate footer row; Home, Dasha, Horoscope, and Do's &amp; Don't below. Menu opens from the top 3-line icon.</span>
           </div>
         </div>
       </div>
@@ -224,51 +323,153 @@
         <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
         <div class="app-screen app-screen--home">
           <div class="app-topbar app-topbar--nav">
-            <button class="hamburger-menu" type="button" aria-label="Open app menu">
+            <button class="hamburger-menu" type="button" aria-label="Open options menu">
               <span></span>
               <span></span>
               <span></span>
             </button>
-            <div class="app-topbar__title">
-              <span class="tiny-label">Free plan: 2 free queries</span>
-              <h2>Home</h2>
+            <div class="app-topbar__brand">
+              <h2>Saptarishi</h2>
             </div>
-            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__actions">
+              <button class="wallet-chip" type="button" aria-label="Wallet balance for call and chat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg>
+                <strong>₹286</strong>
+              </button>
+              <button class="avatar" type="button" aria-label="Profile shortcut">PR</button>
+            </div>
           </div>
-          <div class="app-menu-preview" aria-label="Top menu options">
-            <span>Reports</span>
-            <span>Panchang</span>
-            <span>Horoscope</span>
-            <span>Matching</span>
-            <span>Marriage</span>
-            <span>Career</span>
-            <span>Child</span>
-            <span>Past Life</span>
-            <span>Pooja</span>
+          <div class="home-flash" aria-label="Flash images">
+            <div class="home-flash__stage">
+              <article class="home-flash__slide home-flash__slide--1 home-flash__slide--active">
+                <span>Today</span>
+                <strong>Your daily horoscope</strong>
+                <p>Venus favors calm choices — finish one task and speak gently.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--2">
+                <span>Matching</span>
+                <strong>Kundali matching</strong>
+                <p>Check compatibility before the next big step together.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--3">
+                <span>Guidance</span>
+                <strong>Ask a Saptarishi guide</strong>
+                <p>Clear answers on career, family, and timing — on call.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--4">
+                <span>Timing</span>
+                <strong>Auspicious windows</strong>
+                <p>Find the best hours for travel, deals, and new starts.</p>
+              </article>
+              <article class="home-flash__slide home-flash__slide--5">
+                <span>Balance</span>
+                <strong>Planet remedies</strong>
+                <p>Simple support for Saturn, Rahu, and Mercury stress.</p>
+              </article>
+            </div>
+            <div class="home-flash__dots" aria-label="Flash image indicators">
+              <button class="home-flash__dot home-flash__dot--active" type="button" aria-label="Image 1" aria-current="true"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 2"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 3"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 4"></button>
+              <button class="home-flash__dot" type="button" aria-label="Image 5"></button>
+            </div>
           </div>
-          <div class="hero-card hero-card--gold">
-            <span class="chip">Primary action</span>
-            <h3>Create Kundali</h3>
-            <p>Birth chart, planets, mahadasha age, yogas, and divisional charts.</p>
-            <button class="mobile-button" type="button">Enter birth details</button>
+                              <section class="home-topics-block" aria-label="About">
+            <div class="home-astrologers__head">
+              <h4>About</h4>
+              <button class="home-astrologers__more" type="button" aria-label="See more about options">›</button>
+            </div>
+            <div class="home-topics">
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg></span>
+              <span>Health</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.2"/><path d="M12 8.4v7.2M9.4 10.2h5.2c1.1 0 2 .7 2 1.8s-.9 1.8-2 1.8H9.4"/></svg></span>
+              <span>Wealth</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8.2" cy="9" r="2.4"/><circle cx="15.8" cy="9" r="2.4"/><path d="M4.8 18.5c.9-2.6 2.5-3.9 3.4-3.9s2 .8 2.8 2.1c.8-1.3 1.9-2.1 2.8-2.1s2.5 1.3 3.4 3.9"/></svg></span>
+              <span>Relationship</span>
+            </button>
+            <button class="home-topic" type="button">
+              <span class="home-topic__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.2" r="2.4"/><path d="M8.2 19.5c.7-3 2.1-4.5 3.8-4.5s3.1 1.5 3.8 4.5"/><circle cx="6.8" cy="10.2" r="1.7"/><circle cx="17.2" cy="10.2" r="1.7"/></svg></span>
+              <span>Children</span>
+            </button>
+            </div>
+          </section>
+
+          <div class="home-actions" aria-label="Main actions">
+            <button class="home-action home-action--primary" type="button">
+              <span class="home-action__glyph" aria-hidden="true">✦</span>
+              <strong>Kundali</strong>
+              <span>Open birth chart</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">☯</span>
+              <strong>Remedy</strong>
+              <span>Planet support</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">◷</span>
+              <strong>Auspicious</strong>
+              <span>Best birth time</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">♡</span>
+              <strong>Kundali Matching</strong>
+              <span>Compatibility check</span>
+            </button>
+            <button class="home-action" type="button">
+              <span class="home-action__glyph" aria-hidden="true">⇄</span>
+              <strong>Kundali Compare</strong>
+              <span>2 or more births</span>
+            </button>
           </div>
-          <h4 class="section-title">Quick actions</h4>
-          <div class="quick-grid">
-            <div class="quick-card"><strong>Compare</strong><span>2 or more births</span></div>
-            <div class="quick-card"><strong>Remedy</strong><span>Planet support</span></div>
-            <div class="quick-card"><strong>Auspicious</strong><span>Best birth time</span></div>
-            <div class="quick-card quick-card--future"><strong>Saved</strong><span>Coming soon</span></div>
+                    <section class="home-astrologers" aria-label="Astrologers">
+            <div class="home-astrologers__head">
+              <h4>Astrologers</h4>
+              <button class="home-astrologers__more" type="button" aria-label="See all astrologers">›</button>
+            </div>
+            <div class="home-astrologers__row">
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--1" aria-hidden="true">DM</span>
+                <strong>Dr. Meera</strong>
+                <span>₹21/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--2" aria-hidden="true">RJ</span>
+                <strong>Ravi Joshi</strong>
+                <span>₹35/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--3" aria-hidden="true">AR</span>
+                <strong>Anita Rai</strong>
+                <span>₹18/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--4" aria-hidden="true">SN</span>
+                <strong>Suresh N</strong>
+                <span>₹29/min</span>
+              </button>
+              <button class="home-astro" type="button">
+                <span class="home-astro__photo home-astro__photo--5" aria-hidden="true">KS</span>
+                <strong>Kavita S</strong>
+                <span>₹24/min</span>
+              </button>
+            </div>
+          </section>
+
+<div class="contact-footer" aria-label="Call and ask">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
           </div>
-          <h4 class="section-title">Continue</h4>
-          <div class="mini-list">
-            <div><strong>Last chart</strong><span>New Delhi - D1 ready</span></div>
-            <div><strong>Premium</strong><span>Buy or upgrade plan</span></div>
-          </div>
-          <div class="bottom-nav">
+          <div class="bottom-nav bottom-nav--four">
             <span class="bottom-nav__item bottom-nav__item--active">Home</span>
-            <span class="bottom-nav__item">Kundali</span>
-            <span class="bottom-nav__item">Remedy</span>
-            <span class="bottom-nav__item">Menu</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
           </div>
         </div>
       </div>
@@ -277,19 +478,26 @@
     <section id="menu" class="slide slide--two-col">
       <div class="slide__heading">
         <p class="eyebrow">4. Menu page</p>
-        <h2>All options in one grouped menu</h2>
+        <h2>12 house details from the left menu</h2>
         <p>
-          The menu keeps all current website pages and planned app modules. Disabled
-          future items can be shown as "Coming soon" so users know more features are planned.
+          The 3-line Option menu opens the 12 houses. Each item maps to house themes
+          from the chart data — Personality, Wealth, and the rest through Expenses.
         </p>
         <div class="menu-map">
-          <h3>Menu groups</h3>
+          <h3>12 Houses</h3>
           <ol>
-            <li>Astrology tools: Kundali, Compare, Remedy, Auspicious.</li>
-            <li>Saved work: Saved Kundalis, Reports, PDF export.</li>
-            <li>Account: Profile, Login, Logout, Premium.</li>
-            <li>Support: WhatsApp, call, email, privacy policy.</li>
-            <li>Right menu: Reports, Panchang, Horoscope, Kundali Matching, Marriage, Career, Child, Past Life, Pooja.</li>
+            <li>Personality — body, nature, lagna</li>
+            <li>Wealth — money, family, speech</li>
+            <li>Siblings — courage, younger siblings, travel</li>
+            <li>Home — mother, property, happiness</li>
+            <li>Children — study, intellect, progeny</li>
+            <li>Enemies — disease, debt, litigation</li>
+            <li>Marriage — spouse, partnership</li>
+            <li>Longevity — age, research, sudden change</li>
+            <li>Fortune — luck, dharma, guru</li>
+            <li>Career — work, reputation, authority</li>
+            <li>Gains — income, fulfillment, elder siblings</li>
+            <li>Expenses — losses, foreign lands, moksha</li>
           </ol>
         </div>
       </div>
@@ -298,61 +506,173 @@
         <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
         <div class="app-screen app-screen--menu">
           <div class="app-topbar app-topbar--nav">
-            <button class="hamburger-menu hamburger-menu--active" type="button" aria-label="Close app menu">
+            <button class="hamburger-menu hamburger-menu--active" type="button" aria-label="Close options menu">
               <span></span>
               <span></span>
               <span></span>
             </button>
-            <div class="app-topbar__title">
-              <span class="tiny-label">All options</span>
-              <h2>Menu</h2>
+            <div class="app-topbar__brand">
+              <h2>Saptarishi</h2>
             </div>
-            <button class="avatar" type="button" aria-label="Profile shortcut">RR</button>
+            <div class="app-topbar__actions">
+              <button class="wallet-chip" type="button" aria-label="Wallet balance for call and chat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg>
+                <strong>₹286</strong>
+              </button>
+              <button class="avatar" type="button" aria-label="Profile shortcut">PR</button>
+            </div>
           </div>
           <div class="profile-strip">
             <div class="avatar avatar--large">RR</div>
             <div>
               <strong>Ravi Ranjan</strong>
-              <span>Premium: 0/6 used</span>
+              <span>Active chart · explore houses</span>
             </div>
           </div>
-          <div class="menu-section">
-            <h4>Astrology tools</h4>
-            <div class="menu-grid">
-              <div>Kundali</div>
-              <div>Compare</div>
-              <div>Remedy</div>
-              <div>Auspicious</div>
+          <div class="menu-stack">
+            <div class="menu-section">
+              <h4>About your</h4>
+              <div class="menu-list menu-list--houses" aria-label="About your options">
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19.2c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/></svg></span><span class="menu-row__label">Personality</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.2"/><path d="M12 8.4v7.2M9.4 10.2h5.2"/></svg></span><span class="menu-row__label">Wealth</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.2 12 5l8 6.2"/><path d="M7 10.5V19h10v-8.5"/></svg></span><span class="menu-row__label">Home</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg></span><span class="menu-row__label">Marriage</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6.5" y="8" width="11" height="9.5" rx="1.2"/><path d="M9 8V6.8a3 3 0 0 1 6 0V8"/></svg></span><span class="menu-row__label">Career</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+              </div>
+            </div>
+            <div class="menu-section">
+              <h4>Profile</h4>
+              <div class="menu-list" aria-label="Profile options">
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19.2c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/></svg></span><span class="menu-row__label">Edit details</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg></span><span class="menu-row__label">Wallet</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4.8 13.2 9.2h4.4l-3.5 2.7 1.3 4.3L12 13.8 8.6 16.2l1.3-4.3-3.5-2.7h4.4z"/></svg></span><span class="menu-row__label">Buy Premium</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7V5.8A3.8 3.8 0 0 1 13.8 2h.4A3.8 3.8 0 0 1 18 5.8V7"/><path d="M5 10h10v10H5z"/><path d="M15 15h4.5L22 12.5 19.5 10H15"/></svg></span><span class="menu-row__label">Logout</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 5.5h10v13H7z"/><path d="M9.2 9h5.6M9.2 12h5.6"/></svg></span><span class="menu-row__label">Privacy</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 17.5v-8A2.5 2.5 0 0 1 8 7h8a2.5 2.5 0 0 1 2.5 2.5v5A2.5 2.5 0 0 1 16 17H9.2z"/><path d="M9.2 17 7 19.2V17"/></svg></span><span class="menu-row__label">Support</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+              </div>
+            </div>
+            <div class="menu-section">
+              <h4>App</h4>
+              <div class="menu-list" aria-label="App options">
+                <button class="menu-row" type="button"><span class="menu-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 5.2v1.6M12 17.2v1.6M5.2 12h1.6M17.2 12h1.6"/></svg></span><span class="menu-row__label">Settings</span><span class="menu-row__chev" aria-hidden="true">›</span></button>
+              </div>
+            </div>
+            <div class="menu-version">
+              <strong>Saptarishi</strong>
+              <span>Version 1.0.0</span>
             </div>
           </div>
-          <div class="menu-section">
-            <h4>Account and billing</h4>
-            <div class="menu-list">
-              <span>Profile</span>
-              <span>Buy Premium</span>
-              <span>Verify coupon</span>
-              <span>Login or Logout</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="kundali" class="slide slide--two-col">
+      <div class="slide__heading">
+        <p class="eyebrow">5. Kundali page</p>
+        <h2>Open Kundali and New Kundali</h2>
+        <p>
+          Same entry options as polished Kundli apps: Open / New tabs, name, date-time,
+          place, gender, save, settings, paste birth details, then Get Horoscope.
+          Only the top header stays Saptarishi-branded.
+        </p>
+        <div class="placement-list">
+          <div>
+            <strong>Header</strong>
+            <span>Saptarishi menu, Kundali title, and home shortcut.</span>
+          </div>
+          <div>
+            <strong>Next options</strong>
+            <span>OPEN KUNDALI and NEW KUNDALI tabs under the header.</span>
+          </div>
+          <div>
+            <strong>Birth form</strong>
+            <span>Name, date, time, place with coords, male/female, and save.</span>
+          </div>
+          <div>
+            <strong>Primary CTA</strong>
+            <span>SHOW opens the chart from the entered birth details.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone" aria-label="Kundali page mobile mockup">
+        <div class="phone__status"><span>9:41</span><span>5G 100%</span></div>
+        <div class="app-screen app-screen--kundali-form">
+          <div class="app-topbar app-topbar--nav">
+            <button class="hamburger-menu" type="button" aria-label="Open options menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="app-topbar__brand">
+              <h2>Saptarishi</h2>
+            </div>
+            <div class="app-topbar__actions">
+              <button class="wallet-chip" type="button" aria-label="Wallet balance for call and chat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg>
+                <strong>₹286</strong>
+              </button>
+              <button class="avatar" type="button" aria-label="Profile shortcut">PR</button>
             </div>
           </div>
-          <div class="menu-section">
-            <h4>Right menu options</h4>
-            <div class="menu-list menu-list--muted menu-list--tools">
-              <span>Reports</span>
-              <span>Panchang</span>
-              <span>Horoscope</span>
-              <span>Kundali Matching</span>
-              <span>Marriage</span>
-              <span>Career</span>
-              <span>Child</span>
-              <span>Past Life</span>
-              <span>Pooja</span>
-            </div>
+
+          <div class="kundali-tabs" role="tablist" aria-label="Kundali options">
+            <button class="kundali-tabs__item" type="button" role="tab">OPEN KUNDALI</button>
+            <button class="kundali-tabs__item kundali-tabs__item--active" type="button" role="tab" aria-selected="true">NEW KUNDALI</button>
           </div>
-          <div class="bottom-nav">
+
+          <div class="kundali-entry">
+            <div class="kundali-entry__row">
+              <span class="kundali-entry__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>
+              </span>
+              <div class="kundali-entry__name">Enter Name</div>
+            </div>
+            <div class="kundali-entry__row">
+              <span class="kundali-entry__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              </span>
+              <div class="kundali-entry__split">
+                <div class="kundali-entry__box">05 - AUG - 2026</div>
+                <div class="kundali-entry__box">07:27 AM</div>
+              </div>
+            </div>
+            <div class="kundali-entry__row">
+              <span class="kundali-entry__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              </span>
+              <div class="kundali-entry__box kundali-entry__box--place">
+                <strong>Agra</strong>
+                <span>( 027N09, 078E00 +5.5 )</span>
+              </div>
+            </div>
+            <div class="kundali-entry__row">
+              <span class="kundali-entry__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4v6M19 7h-6"/></svg>
+              </span>
+              <div class="gender-toggle" role="group" aria-label="Gender">
+                <button class="gender-toggle__item gender-toggle__item--active" type="button">Male</button>
+                <button class="gender-toggle__item" type="button">Female</button>
+              </div>
+            </div>
+            <div class="kundali-entry__meta">
+              <label class="kundali-save">
+                <span class="kundali-save__check" aria-hidden="true">✓</span>
+                Save
+              </label>
+            </div>
+            <button class="kundali-submit" type="button">SHOW</button>
+          </div>
+
+          <div class="contact-footer" aria-label="Call and chat">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+          </div>
+          <div class="bottom-nav bottom-nav--four">
             <span class="bottom-nav__item">Home</span>
-            <span class="bottom-nav__item">Kundali</span>
-            <span class="bottom-nav__item">Remedy</span>
-            <span class="bottom-nav__item bottom-nav__item--active">Menu</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
           </div>
         </div>
       </div>
@@ -360,7 +680,7 @@
 
     <section id="screens" class="slide">
       <div class="slide__heading">
-        <p class="eyebrow">5. Main app screens</p>
+        <p class="eyebrow">6. Main app screens</p>
         <h2>Current website features translated to mobile</h2>
         <p>
           Each mockup shows the primary content placement. Data-heavy tables should use
@@ -372,23 +692,38 @@
         <article class="screen-card">
           <div class="phone phone--small" aria-label="Kundali birth form mockup">
             <div class="phone__status"><span>9:41</span><span>5G</span></div>
-            <div class="app-screen">
+            <div class="app-screen app-screen--kundali">
               <div class="app-title">
                 <span>Kundali</span>
-                <strong>Birth details</strong>
+                <strong>Open chart</strong>
               </div>
+              <div class="symbol-strip symbol-strip--compact" aria-hidden="true">
+                <span class="symbol-strip__item">ॐ</span>
+                <span class="symbol-strip__item">♈</span>
+                <span class="symbol-strip__item">☉</span>
+                <span class="symbol-strip__item">☾</span>
+                <span class="symbol-strip__item">♂</span>
+              </div>
+              <label class="field-preview field-preview--name">Name <span>Ravi Ranjan</span></label>
               <label class="field-preview">Place <span>New Delhi, India</span></label>
-              <label class="field-preview">Date <span>05 Aug 2026</span></label>
+              <label class="field-preview">Date <span>15 Mar 1990</span></label>
               <label class="field-preview">Time <span>09:30:00</span></label>
-              <button class="mobile-button" type="button">Show chart</button>
-              <button class="mobile-button mobile-button--soft" type="button">Kundali compare</button>
-              <div class="bottom-nav bottom-nav--compact">
-                <span>Home</span><span class="active">Kundali</span><span>Menu</span>
-              </div>
+              <button class="mobile-button" type="button">Open Kundali</button>
+              <button class="mobile-button mobile-button--soft" type="button">Compare</button>
+              <div class="contact-footer" aria-label="Call and chat">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+          </div>
+          <div class="bottom-nav bottom-nav--four">
+            <span class="bottom-nav__item">Home</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
+          </div>
             </div>
           </div>
           <h3>Kundali input</h3>
-          <p>Place preset, custom place, date, and time stay simple and thumb-friendly.</p>
+          <p>Name, place, date, and time — then Open Kundali as the primary action.</p>
         </article>
 
         <article class="screen-card">
@@ -412,9 +747,16 @@
               </div>
               <div class="summary-row"><strong>Lagna</strong><span>Mesha</span></div>
               <div class="summary-row"><strong>Moon type</strong><span>Shukla paksha</span></div>
-              <div class="bottom-nav bottom-nav--compact">
-                <span>Home</span><span class="active">Kundali</span><span>Menu</span>
-              </div>
+              <div class="contact-footer" aria-label="Call and chat">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+          </div>
+          <div class="bottom-nav bottom-nav--four">
+            <span class="bottom-nav__item">Home</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
+          </div>
             </div>
           </div>
           <h3>Kundali result</h3>
@@ -445,79 +787,118 @@
         <article class="screen-card">
           <div class="phone phone--small" aria-label="Remedy screen mockup">
             <div class="phone__status"><span>9:41</span><span>5G</span></div>
-            <div class="app-screen">
+            <div class="app-screen app-screen--remedy">
               <div class="app-title">
-                <span>Remedy</span>
-                <strong>Planet guidance</strong>
+                <span>Support</span>
+                <strong>Remedy</strong>
               </div>
-              <div class="remedy-card"><strong>Saturn</strong><span>Day to fast, mantra, donation, animal feed.</span></div>
-              <div class="remedy-card"><strong>Mars</strong><span>Worship, respect, wear, donate.</span></div>
-              <h4 class="section-title">Nava-tara</h4>
-              <div class="chip-row"><span>Sampat</span><span>Kshema</span><span>Maitri</span></div>
-              <div class="bottom-nav bottom-nav--compact">
-                <span>Home</span><span class="active">Remedy</span><span>Menu</span>
+              <div class="remedy-grid">
+                <button class="feature-tile feature-tile--active" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19.2c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/></svg></span><strong>Personality</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="7" ry="4.5"/><path d="M8.2 10.2c1.1 1.4 2.4 2.1 3.8 2.1s2.7-.7 3.8-2.1"/></svg></span><strong>Wealth</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8.2" cy="9" r="2.4"/><circle cx="15.8" cy="9" r="2.4"/><path d="M4.8 18.5c.9-2.6 2.5-3.9 3.4-3.9s2 .8 2.8 2.1c.8-1.3 1.9-2.1 2.8-2.1s2.5 1.3 3.4 3.9"/></svg></span><strong>Siblings</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.2 12 5l8 6.2"/><path d="M7 10.5V19h10v-8.5"/></svg></span><strong>Home</strong></button>
               </div>
+              <div class="contact-footer" aria-label="Call and chat">
+            <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+            <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+          </div>
+          <div class="bottom-nav bottom-nav--four">
+            <span class="bottom-nav__item">Home</span>
+            <span class="bottom-nav__item">Dasha</span>
+            <span class="bottom-nav__item">Horoscope</span>
+            <span class="bottom-nav__item">Do's &amp; Don't</span>
+          </div>
             </div>
           </div>
           <h3>Remedy</h3>
-          <p>Planet remedies and nakshatra/nava-tara data become expandable cards.</p>
+          <p>Twelve house tiles match the menu — Personality, Career, and the rest.</p>
         </article>
 
         <article class="screen-card">
           <div class="phone phone--small" aria-label="Auspicious screen mockup">
             <div class="phone__status"><span>9:41</span><span>5G</span></div>
-            <div class="app-screen">
+            <div class="app-screen app-screen--auspicious">
               <div class="app-title">
-                <span>Calendar</span>
-                <strong>Auspicious birth times</strong>
+                <span>Muhurat</span>
+                <strong>Auspicious</strong>
               </div>
-              <label class="field-preview">Place <span>Patna, India</span></label>
-              <label class="field-preview">From <span>05 Aug 2026</span></label>
-              <label class="field-preview">To <span>05 Sep 2026</span></label>
-              <button class="mobile-button" type="button">Find best slots</button>
-              <div class="result-pill"><strong>Top slot</strong><span>08:12 AM - high lord strength</span></div>
-              <div class="bottom-nav bottom-nav--compact">
-                <span>Home</span><span class="active">Calendar</span><span>Menu</span>
+              <div class="auspicious-grid">
+                <button class="feature-tile feature-tile--active" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="2.6"/><path d="M7.5 19c.8-3.2 2.4-4.8 4.5-4.8s3.7 1.6 4.5 4.8"/></svg></span><strong>Baby Birth</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg></span><strong>Marriage</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.2 12 5l8 6.2"/><path d="M7 10.5V19h10v-8.5"/></svg></span><strong>Buy Home</strong></button>
+                <button class="feature-tile" type="button"><span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15.5h11.5l2.5-5.2H8.2z"/><circle cx="8.2" cy="17.5" r="1.5"/><circle cx="14.8" cy="17.5" r="1.5"/></svg></span><strong>Buy Vehicle</strong></button>
+              </div>
+              <div class="contact-footer" aria-label="Call and chat">
+                <button class="contact-footer__btn contact-footer__btn--call" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 4.8c.4-.4.9-.6 1.4-.5l2.1.4c.6.1 1 .6 1.1 1.2l.4 2.2c.1.5-.1 1-.5 1.3L9.2 11c1.1 2.1 2.7 3.7 4.8 4.8l1.6-1.5c.3-.4.8-.6 1.3-.5l2.2.4c.6.1 1.1.5 1.2 1.1l.4 2.1c.1.5-.1 1.1-.5 1.4-1.3.9-3 1.3-4.7 1.1-4.5-.5-8.3-4.3-8.8-8.8-.2-1.7.2-3.4 1.1-4.7z"/></svg>Call</button>
+                <button class="contact-footer__btn contact-footer__btn--chat" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.8A2.3 2.3 0 0 1 6.8 3.5h10.4A2.3 2.3 0 0 1 19.5 5.8v7.2a2.3 2.3 0 0 1-2.3 2.3h-5.4L7.2 19.4c-.5.4-1.2.1-1.2-.5v-3.6H6.8A2.3 2.3 0 0 1 4.5 13z"/></svg>Ask</button>
+              </div>
+              <div class="bottom-nav bottom-nav--four">
+                <span class="bottom-nav__item">Home</span>
+                <span class="bottom-nav__item">Dasha</span>
+                <span class="bottom-nav__item">Horoscope</span>
+                <span class="bottom-nav__item">Do's &amp; Don't</span>
               </div>
             </div>
           </div>
           <h3>Auspicious</h3>
-          <p>Current baby birth-time scan sits under Calendar and can grow into Muhurat later.</p>
+          <p>Muhurat tiles for baby birth, marriage, home, vehicle, travel, business, and more.</p>
         </article>
 
         <article class="screen-card">
-          <div class="phone phone--small" aria-label="Profile and premium screen mockup">
+          <div class="phone phone--small" aria-label="Your profiles sheet mockup">
             <div class="phone__status"><span>9:41</span><span>5G</span></div>
-            <div class="app-screen">
-              <div class="app-title">
-                <span>Account</span>
-                <strong>Profile and Premium</strong>
+            <div class="app-screen app-screen--home app-screen--profile">
+              <div class="app-topbar app-topbar--nav">
+                <button class="hamburger-menu" type="button" aria-label="Open options menu">
+                  <span></span><span></span><span></span>
+                </button>
+                <div class="app-topbar__brand"><h2>Saptarishi</h2></div>
+                <div class="app-topbar__actions">
+                  <button class="wallet-chip" type="button" aria-label="Wallet balance for call and chat">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 12h5v2.2a1.3 1.3 0 0 1-1.3 1.3H16a1.5 1.5 0 0 1 0-3z"/><path d="M3 9h18"/></svg>
+                    <strong>₹286</strong>
+                  </button>
+                  <button class="avatar avatar--active" type="button" aria-label="Open your profiles">PR</button>
+                </div>
               </div>
-              <div class="profile-strip">
-                <div class="avatar avatar--large">RR</div>
-                <div><strong>Ravi Ranjan</strong><span>+91 mobile and email</span></div>
-              </div>
-              <div class="plan-card">
-                <strong>Premium pack</strong>
-                <span>6 queries - INR 299</span>
-                <button class="mobile-button" type="button">Buy or upgrade</button>
-              </div>
-              <div class="menu-list">
-                <span>Verify coupon</span>
-                <span>Support</span>
-                <span>Privacy policy</span>
+              <div class="profile-sheet" role="dialog" aria-label="Your Profiles">
+                <div class="profile-sheet__grabber" aria-hidden="true"></div>
+                <div class="profile-sheet__header">
+                  <h3>Your Profiles</h3>
+                  <button class="profile-sheet__close" type="button" aria-label="Close">×</button>
+                </div>
+                <div class="chart-list">
+                  <div class="chart-row">
+                    <span class="chart-row__avatar chart-row__avatar--alt">A</span>
+                    <div class="chart-row__meta"><strong>Abhay</strong><span>1993-05-27</span></div>
+                    <button class="chart-row__edit" type="button" aria-label="Edit Abhay chart">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 0L7 19l-4 1 1-4Z"/></svg>
+                    </button>
+                    <span class="chart-row__check chart-row__check--empty" aria-hidden="true">✓</span>
+                  </div>
+                  <div class="chart-row chart-row--active">
+                    <span class="chart-row__avatar">RR</span>
+                    <div class="chart-row__meta"><strong>Ravi Ranjan</strong><span>1988-03-29</span></div>
+                    <button class="chart-row__edit" type="button" aria-label="Edit Ravi Ranjan chart">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 0L7 19l-4 1 1-4Z"/></svg>
+                    </button>
+                    <span class="chart-row__check" aria-label="Selected">✓</span>
+                  </div>
+                </div>
+                <p class="profile-sheet__hint">Long-press a chart to delete it</p>
+                <button class="mobile-button" type="button">+ Add New Chart</button>
               </div>
             </div>
           </div>
-          <h3>Profile and Premium</h3>
-          <p>Login/register, usage, premium QR payment, coupon verification, and support live in Account/Menu.</p>
+          <h3>Profile charts</h3>
+          <p>Top-right profile icon opens Your Profiles: switch chart, edit with pencil, or add new.</p>
         </article>
       </div>
     </section>
 
     <section class="slide">
       <div class="slide__heading">
-        <p class="eyebrow">6. Results pattern</p>
+        <p class="eyebrow">7. Results pattern</p>
         <h2>How large website tables become mobile-friendly</h2>
       </div>
 
@@ -554,7 +935,7 @@
 
     <section id="future" class="slide">
       <div class="slide__heading">
-        <p class="eyebrow">7. Future menu and app expansion</p>
+        <p class="eyebrow">8. Future menu and app expansion</p>
         <h2>Keep upcoming ideas discoverable without blocking the first release</h2>
         <p>
           The first app can ship with the current website functionality, while menu rows
@@ -608,16 +989,16 @@
 
     <section class="slide">
       <div class="slide__heading">
-        <p class="eyebrow">8. Suggested first mobile release</p>
+        <p class="eyebrow">9. Suggested first mobile release</p>
         <h2>Release scope and navigation checklist</h2>
       </div>
 
       <div class="checklist">
         <label><input type="checkbox" checked disabled> Home dashboard with usage, premium, and quick actions.</label>
-        <label><input type="checkbox" checked disabled> Kundali birth form and results tabs.</label>
+        <label><input type="checkbox" checked disabled> Kundali page with name, birth details, and Open Kundali.</label>
         <label><input type="checkbox" checked disabled> Kundali compare with add-more flow and lord strength result.</label>
-        <label><input type="checkbox" checked disabled> Remedy flow with planet remedies and nava-tara cards.</label>
-        <label><input type="checkbox" checked disabled> Calendar area for Auspicious baby birth-time scan.</label>
+        <label><input type="checkbox" checked disabled> Remedy flow with 12 house tiles matching the menu.</label>
+        <label><input type="checkbox" checked disabled> Auspicious menu with muhurat tiles people ask astrologers for.</label>
         <label><input type="checkbox" checked disabled> Profile, login/register, logout, premium QR, coupon verification.</label>
         <label><input type="checkbox" checked disabled> Support, privacy, and right-menu placeholders for reports, panchang, horoscope, matching, marriage, career, child, past life, and pooja.</label>
       </div>
@@ -627,5 +1008,34 @@
   <footer class="deck-footer">
     <p>Prepared for Saptarishi mobile app planning. Files live in <code>saptarishi/frontend/android/</code>.</p>
   </footer>
+  <script>
+    document.querySelectorAll(".home-flash").forEach((flash) => {
+      const slides = [...flash.querySelectorAll(".home-flash__slide")];
+      const dots = [...flash.querySelectorAll(".home-flash__dot")];
+      if (slides.length < 2) return;
+
+      let index = slides.findIndex((slide) => slide.classList.contains("home-flash__slide--active"));
+      if (index < 0) index = 0;
+
+      const show = (next) => {
+        index = (next + slides.length) % slides.length;
+        slides.forEach((slide, i) => {
+          slide.classList.toggle("home-flash__slide--active", i === index);
+        });
+        dots.forEach((dot, i) => {
+          const active = i === index;
+          dot.classList.toggle("home-flash__dot--active", active);
+          if (active) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+      };
+
+      dots.forEach((dot, i) => {
+        dot.addEventListener("click", () => show(i));
+      });
+
+      setInterval(() => show(index + 1), 3200);
+    });
+  </script>
 </body>
 </html>

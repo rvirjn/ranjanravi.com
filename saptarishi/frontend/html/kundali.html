@@ -8,13 +8,46 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=156">
+  <link rel="stylesheet" href="../style/styles.css?v=162">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
     <p class="lead">Enter birth details</p>
 
+    <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
+      <button
+        type="button"
+        class="kundali-tabs__item"
+        id="tab-open-kundali"
+        role="tab"
+        aria-selected="false"
+        data-kundali-mode="open"
+      >
+        Open birth details
+      </button>
+      <button
+        type="button"
+        class="kundali-tabs__item kundali-tabs__item--active"
+        id="tab-new-kundali"
+        role="tab"
+        aria-selected="true"
+        data-kundali-mode="new"
+      >
+        New birth details
+      </button>
+    </div>
+
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
+      <div class="form-field" id="open-kundali-wrap" hidden>
+        <label for="saved-kundali-select">Saved birth details</label>
+        <select id="saved-kundali-select">
+          <option value="">Select saved name…</option>
+        </select>
+      </div>
+      <div class="form-field" id="birth-name-wrap">
+        <label for="birth-name">Name</label>
+        <input type="text" id="birth-name" maxlength="120" placeholder="Enter name" />
+      </div>
       <div class="form-field">
         <label for="place-preset">Place</label>
         <select id="place-preset">
@@ -113,6 +146,12 @@
         <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
       </section>
 
+      <section id="kundali-dosh-section" class="kundali-yog-section" hidden>
+        <h2 id="kundali-dosh-heading" class="result-heading">Doshas</h2>
+        <p id="kundali-dosh-summary" class="kundali-yog-summary"></p>
+        <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
+      </section>
+
       <section id="divisional-charts-section" class="divisional-charts-section">
         <button
           type="button"
@@ -141,13 +180,14 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=56"></script>
-  <script src="../js/auth.js?v=23"></script>
+  <script src="../utils/constant.js?v=59"></script>
+  <script src="../js/auth.js?v=26"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
-  <script src="../js/premium-modal.js?v=8"></script>
-  <script src="../utils/common.js?v=37"></script>
-  <script src="../js/kundali.js?v=194"></script>
+  <script src="../js/premium-modal.js?v=10"></script>
+  <script src="../js/wallet-modal.js?v=3"></script>
+  <script src="../utils/common.js?v=41"></script>
+  <script src="../js/kundali.js?v=200"></script>
   <script src="../js/lord-comparison.js?v=15"></script>
   <script src="../js/kundali-compare.js?v=9"></script>
 </body>

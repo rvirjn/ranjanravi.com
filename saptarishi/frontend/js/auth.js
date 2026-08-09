@@ -496,16 +496,29 @@
   }
 
   function createLimitError() {
-    const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
-    const message = `Free query limit reached (${limit} queries per device).`;
+    const usage = normalizeUsage(getUsage());
+    let message;
+    if (usage?.is_premium && usage.premium_tier === "pack_299") {
+      const limit = Number(usage.query_limit) || Number(AC.PREMIUM_PACK_QUERY_LIMIT) || 6;
+      const used = Number(usage.queries_used);
+      const usedLabel = Number.isFinite(used) && used > 0 ? used : limit;
+      message =
+        `Paid query limit reached (${usedLabel} of ${limit} scans used). ` +
+        "Upgrade to Unlimited for unlimited kundali and auspicious scans.";
+    } else {
+      const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
+      message =
+        `Free query limit reached (${limit} queries per device). ` +
+        "Buy a plan: ₹299 for 6 queries or ₹1899 for unlimited scans.";
+    }
     const err = new Error(message);
     err.premiumRequired = true;
     err.status = 403;
     return err;
   }
 
-  async function fetchKundali(path, date, time, place) {
-    const cacheKey = buildScanCacheKey([date, time, place]);
+  async function fetchKundali(path, date, time, place, name) {
+    const cacheKey = buildScanCacheKey([date, time, place, name || ""]);
     if (isGuestScanLimitReached("kundali")) {
       const cached = getCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey);
       if (cached) return cached;
@@ -563,6 +576,63 @@
     return payload;
   }
 
+  async function fetchWalletInfo() {
+    return apiFetch(AC.API_WALLET_PATH);
+  }
+
+  async function activateWalletTopup(couponCode) {
+    const payload = await apiFetch(AC.API_WALLET_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "topup",
+        coupon_code: String(couponCode || "").trim()
+      })
+    });
+    updateUserFromApiPayload(payload);
+    return payload;
+  }
+
+  async function buyPremiumWithWallet(planId) {
+    const payload = await apiFetch(AC.API_WALLET_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "buy_premium",
+        plan_id: String(planId || "").trim()
+      })
+    });
+    updateUserFromApiPayload(payload);
+    return payload;
+  }
+
+  async function chargeWalletForService(service, minutes) {
+    const payload = await apiFetch(AC.API_WALLET_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "charge",
+        service: String(service || "").trim(),
+        minutes: minutes == null ? 1 : minutes
+      })
+    });
+    updateUserFromApiPayload(payload);
+    return payload;
+  }
+
+  async function openWalletFlow(options = {}) {
+    if (!getToken()) {
+      const ok = await ensureAuth({
+        tab: options.tab || "login",
+        required: true,
+        message: options.message || "Sign in to manage your wallet."
+      });
+      if (!ok) return false;
+    }
+    const modal = global.SaptarishiWalletModal;
+    if (!modal || !modal.open) {
+      throw new Error("Wallet modal is not available.");
+    }
+    return modal.open(options);
+  }
+
   async function openPremiumFlow(options = {}) {
     if (!getToken()) {
       const authed = await ensureAuth({
@@ -571,7 +641,7 @@
         reason: "premium",
         message:
           options.loginMessage ||
-          "Sign in or register, then scan the QR and enter your coupon code to unlock Premium."
+          "Sign in or register, then buy Premium from your wallet balance."
       });
       if (!authed) return false;
     }
@@ -587,7 +657,7 @@
       const usage = normalizeUsage(getUsage());
       const upgradeMessage =
         usage?.premium_tier === "pack_299"
-          ? "Upgrade to Unlimited (₹1899 for 1 month) for unlimited kundali and auspicious scans."
+          ? "Upgrade to Unlimited using your wallet balance."
           : options.message;
       await global.SaptarishiPremiumModal.open({
         message: upgradeMessage,
@@ -607,6 +677,8 @@
     const direct = u.default_birth;
     if (direct && direct.date) {
       return {
+        name:
+          String(direct.name || "").trim() || String(latestFromViews?.name || "").trim(),
         date: String(direct.date || "").trim(),
         time: String(direct.time || "").trim() || String(latestFromViews?.time || "").trim(),
         place:
@@ -616,21 +688,53 @@
     return latestFromViews;
   }
 
+  function getBirthViews(usage) {
+    const u = usage || getUsage() || getUser();
+    if (!u || typeof u !== "object" || !Array.isArray(u.birth_views)) return [];
+    return u.birth_views
+      .map((entry) => parseBirthViewLabel(entry))
+      .filter((entry) => entry && entry.date && entry.name);
+  }
+
+  function getWalletBalance(usage) {
+    const u = usage || getUsage() || getUser();
+    if (!u || typeof u !== "object") return 0;
+    const value = Number(u.wallet_balance_inr);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  }
+
   function parseBirthViewLabel(label) {
+    if (label && typeof label === "object" && !Array.isArray(label)) {
+      const date = String(label.date || "").trim();
+      if (!date) return null;
+      return {
+        name: String(label.name || "").trim(),
+        date,
+        time: String(label.time || "").trim(),
+        place: String(label.place || "").trim()
+      };
+    }
     const text = String(label || "").trim();
     if (!text) return null;
+    let name = "";
+    let rest = text;
+    const dot = text.indexOf(" · ");
+    if (dot >= 0) {
+      name = text.slice(0, dot).trim();
+      rest = text.slice(dot + 3).trim();
+    }
     let place = "";
-    let dtPart = text;
-    const pipe = text.lastIndexOf(" | ");
+    let dtPart = rest;
+    const pipe = rest.lastIndexOf(" | ");
     if (pipe >= 0) {
-      dtPart = text.slice(0, pipe).trim();
-      place = text.slice(pipe + 3).trim();
+      dtPart = rest.slice(0, pipe).trim();
+      place = rest.slice(pipe + 3).trim();
     }
     const chunks = dtPart.split(/\s+/);
     if (!chunks.length) return null;
     const date = chunks[0];
     const time = chunks.length > 1 ? chunks.slice(1).join(" ") : "";
-    return { date, time, place };
+    return { name, date, time, place };
   }
 
   /** Prefill birth form from latest saved birth (logged-in users). */
@@ -642,11 +746,16 @@
       customWrap,
       birthDate,
       birthTime,
+      birthName,
       placeCustomValue
     } = elements || {};
     const customVal = placeCustomValue || AC.PLACE_CUSTOM_VALUE;
     let applied = false;
 
+    if (birthName && defaultBirth.name != null) {
+      birthName.value = String(defaultBirth.name || "").trim();
+      applied = true;
+    }
     if (birthDate && defaultBirth.date) {
       birthDate.value = defaultBirth.date;
       applied = true;
@@ -697,7 +806,7 @@
       message:
         err.message ||
         options.message ||
-        "Your scan limit is used. Choose ₹299 for 6 queries or ₹1899 for unlimited access."
+        "Your scan limit is used. Add money to your wallet, then buy a Premium plan."
     });
     return true;
   }
@@ -732,9 +841,16 @@
     hasUnlimitedPremium,
     isPremiumActive,
     activatePremium,
+    fetchWalletInfo,
+    activateWalletTopup,
+    buyPremiumWithWallet,
+    chargeWalletForService,
+    openWalletFlow,
     openPremiumFlow,
     handlePremiumRequired,
     getDefaultBirth,
+    getBirthViews,
+    getWalletBalance,
     parseBirthViewLabel,
     applyDefaultBirthToForm,
     refreshDefaultBirthForm,

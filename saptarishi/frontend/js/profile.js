@@ -11,8 +11,10 @@
   const summaryEl = document.getElementById("profile-summary");
   const statusEl = document.getElementById("profile-status");
   const planEl = document.getElementById("profile-plan");
+  const walletEl = document.getElementById("profile-wallet");
   const usageEl = document.getElementById("profile-usage");
   const memberEl = document.getElementById("profile-member-since");
+  const addWalletBtn = document.getElementById("profile-add-wallet-btn");
 
   function showStatus(message, isError) {
     if (!statusEl) return;
@@ -42,6 +44,7 @@
       const tier = profile.premium_tier || usage?.premium_tier;
       const isPaid = profile.is_premium || usage?.is_premium;
       if (isPaid && tier === "pack_299") {
+        const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
         const limit = usage?.query_limit ?? C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
         const used = usage?.queries_used ?? 0;
         planEl.textContent = `Plan: ${limit} queries · ${used}/${limit} used`;
@@ -60,6 +63,15 @@
         planEl.textContent = "Plan: Free";
       }
       planEl.classList.toggle("profile-summary__plan--premium", Boolean(isPaid));
+    }
+
+    if (walletEl) {
+      const bal =
+        AUTH.getWalletBalance
+          ? AUTH.getWalletBalance(usage || profile)
+          : Number(profile.wallet_balance_inr || usage?.wallet_balance_inr) || 0;
+      walletEl.textContent = `Wallet: ₹${bal}`;
+      walletEl.hidden = false;
     }
 
     if (usageEl && usage && !usage.is_premium) {
@@ -153,6 +165,22 @@
       }
     });
   }
+
+  if (addWalletBtn) {
+    addWalletBtn.addEventListener("click", async () => {
+      if (AUTH.openWalletFlow) {
+        const ok = await AUTH.openWalletFlow({
+          message: "Scan the QR and enter your coupon code to add money to your wallet."
+        });
+        if (ok) await loadProfileData();
+      }
+    });
+  }
+
+  global.addEventListener("saptarishi-auth-changed", () => {
+    const user = AUTH.getUser();
+    if (user) renderProfileSummary(user, AUTH.getUsage() || user);
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => initializeProfilePage());

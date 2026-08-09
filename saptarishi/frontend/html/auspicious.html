@@ -7,75 +7,125 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
-  <title>Auspicious baby birth times by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=156">
+  <title>Auspicious times by Saptarishi</title>
+  <link rel="stylesheet" href="../style/styles.css?v=162">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
-    <p class="lead">Enter range details</p>
 
-    <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
-      <div class="form-field">
-        <label for="place-preset">Place</label>
-        <select id="place-preset">
-          <option value="">Select place…</option>
-          <option value="New Delhi, India">New Delhi, India</option>
-          <option value="Mumbai, India">Mumbai, India</option>
-          <option value="Kolkata, India">Kolkata, India</option>
-          <option value="Bengaluru, India">Bengaluru, India</option>
-          <option value="Patna, India">Patna, India</option>
-          <option value="Motihari, India">Motihari, India</option>
-          <option value="__custom__">Other…</option>
-        </select>
+    <section id="auspicious-options-view" class="auspicious-view" aria-label="Auspicious options">
+      <div class="auspicious-grid" role="list" aria-label="Muhurat categories">
+        <button class="feature-tile" type="button" data-option="Baby Birth" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="2.6"/><path d="M7.5 19c.8-3.2 2.4-4.8 4.5-4.8s3.7 1.6 4.5 4.8"/><path d="M16.8 7.2c1.7.4 2.9 1.7 2.9 3.4 0 2.4-2.4 4-4.2 5.1"/><path d="M7.2 7.2C5.5 7.6 4.3 8.9 4.3 10.6c0 2.4 2.4 4 4.2 5.1"/></svg></span>
+          <strong>Baby Birth</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Marriage" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg></span>
+          <strong>Marriage</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Buy Home" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.2 12 5l8 6.2"/><path d="M7 10.5V19h10v-8.5"/><path d="M10 19v-4.2h4V19"/></svg></span>
+          <strong>Buy Home</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Buy Vehicle" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15.5h11.5l2.5-5.2H8.2z"/><circle cx="8.2" cy="17.5" r="1.5"/><circle cx="14.8" cy="17.5" r="1.5"/><path d="M5 15.5V10.8h3.2"/></svg></span>
+          <strong>Buy Vehicle</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Travelling" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 4.5v2.2M12 17.3v2.2M4.5 12h2.2M17.3 12h2.2M6.6 6.6l1.6 1.6M15.8 15.8l1.6 1.6M17.4 6.6l-1.6 1.6M8.2 15.8l-1.6 1.6"/></svg></span>
+          <strong>Travelling</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Business Start" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.8 16.8 12 5.5l7.2 11.3z"/><path d="M9.2 16.8h5.6"/><path d="M12 11.2v3.2"/></svg></span>
+          <strong>Business Start</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Naming" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 18.5V7.2c0-1 .8-1.7 1.7-1.7h6.6c.9 0 1.7.7 1.7 1.7v11.3"/><path d="M9.2 10.2h5.6M9.2 13.2h5.6M9.2 16.2h3.4"/></svg></span>
+          <strong>Naming</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Job Joining" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><path d="M12 8.2v4.1l2.6 1.7"/><path d="M12 4.8v1.3M12 18v1.2"/></svg></span>
+          <strong>Job Joining</strong>
+        </button>
+        <button class="feature-tile" type="button" data-option="Mundan" role="listitem">
+          <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 14.5h10"/><path d="M9.2 14.5 11 8.2h2l1.8 6.3"/><path d="M8.2 17.2h7.6"/><path d="M10.5 8.2c0-1.4.8-2.4 1.5-2.4s1.5 1 1.5 2.4"/></svg></span>
+          <strong>Mundan</strong>
+        </button>
       </div>
-      <div class="form-field" id="custom-place-wrap" hidden>
-        <label for="place-custom">Custom Place</label>
-        <input type="text" id="place-custom" maxlength="240" placeholder="City, Country" />
-      </div>
-      <div class="form-field">
-        <label for="date-from">From date</label>
-        <input type="date" id="date-from" required />
-      </div>
-      <div class="form-field">
-        <label for="date-to">To date</label>
-        <input type="date" id="date-to" required />
-      </div>
-      <div class="form-field form-field--submit">
-        <button type="submit" id="submit-btn">Show</button>
-      </div>
-    </form>
+    </section>
 
-    <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+    <section id="auspicious-range-view" class="auspicious-view" hidden aria-label="Enter range details">
+      <button type="button" id="auspicious-back-btn" class="auspicious-back">← Auspicious</button>
 
-    <div id="results" hidden>
-      <div id="auspicious-scan-results">
-        <h2 class="result-heading">Summary</h2>
-        <div class="table-wrap">
-          <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+      <header class="auspicious-heading">
+        <span class="auspicious-heading__label">Selected option</span>
+        <h1 id="auspicious-selected-title">Baby Birth</h1>
+        <p class="lead">Enter place and date range to find strong auspicious slots.</p>
+      </header>
+
+      <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
+        <div class="form-field">
+          <label for="place-preset">Place</label>
+          <select id="place-preset">
+            <option value="">Select place…</option>
+            <option value="New Delhi, India">New Delhi, India</option>
+            <option value="Mumbai, India">Mumbai, India</option>
+            <option value="Kolkata, India">Kolkata, India</option>
+            <option value="Bengaluru, India">Bengaluru, India</option>
+            <option value="Patna, India">Patna, India</option>
+            <option value="Motihari, India">Motihari, India</option>
+            <option value="__custom__">Other…</option>
+          </select>
+        </div>
+        <div class="form-field" id="custom-place-wrap" hidden>
+          <label for="place-custom">Custom Place</label>
+          <input type="text" id="place-custom" maxlength="240" placeholder="City, Country" />
+        </div>
+        <div class="form-field">
+          <label for="date-from">From date</label>
+          <input type="date" id="date-from" required />
+        </div>
+        <div class="form-field">
+          <label for="date-to">To date</label>
+          <input type="date" id="date-to" required />
+        </div>
+        <div class="form-field form-field--submit">
+          <button type="submit" id="submit-btn">Find best slots</button>
+        </div>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+
+      <div id="results" hidden>
+        <div id="auspicious-scan-results">
+          <h2 class="result-heading">Summary</h2>
+          <div class="table-wrap">
+            <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
+          </div>
         </div>
 
-      </div>
-
-      <div id="lord-comparison-section" hidden>
-        <h2 id="lord-comparison-heading" class="result-heading">Lord strength across top slots</h2>
-        <div class="table-wrap">
-          <table id="lord-comparison-table" class="navatara-data-table kundali-table">
-            <thead></thead>
-            <tbody></tbody>
-          </table>
+        <div id="lord-comparison-section" hidden>
+          <h2 id="lord-comparison-heading" class="result-heading">Lord strength across top slots</h2>
+          <div class="table-wrap">
+            <table id="lord-comparison-table" class="navatara-data-table kundali-table">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 
-  <script src="../utils/constant.js?v=56"></script>
-  <script src="../js/auth.js?v=23"></script>
+  <script src="../utils/constant.js?v=59"></script>
+  <script src="../js/auth.js?v=26"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=11"></script>
-  <script src="../js/premium-modal.js?v=8"></script>
-  <script src="../utils/common.js?v=37"></script>
-  <script src="../js/kundali.js?v=194"></script>
+  <script src="../js/premium-modal.js?v=10"></script>
+  <script src="../js/wallet-modal.js?v=3"></script>
+  <script src="../utils/common.js?v=41"></script>
+  <script src="../js/kundali.js?v=200"></script>
   <script src="../js/lord-comparison.js?v=15"></script>
-  <script src="../js/auspicious.js?v=41"></script>
+  <script src="../js/auspicious.js?v=44"></script>
 </body>
 </html>

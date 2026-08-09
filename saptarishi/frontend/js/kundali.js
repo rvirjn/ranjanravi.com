@@ -19,6 +19,14 @@ const customWrap = document.getElementById("custom-place-wrap");
 const placeCustom = document.getElementById("place-custom");
 const birthDate = document.getElementById("birth-date");
 const birthTime = document.getElementById("birth-time");
+const birthName = document.getElementById("birth-name");
+const birthNameWrap = document.getElementById("birth-name-wrap");
+const openKundaliWrap = document.getElementById("open-kundali-wrap");
+const savedKundaliSelect = document.getElementById("saved-kundali-select");
+const tabOpenKundali = document.getElementById("tab-open-kundali");
+const tabNewKundali = document.getElementById("tab-new-kundali");
+
+let kundaliMode = "new";
 
 /** True when UI is opened from localhost (Docker nginx on :9999 or file://). */
 function isLocalDevUi() {
@@ -1874,6 +1882,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   if (!viewTargets.skipShellUpdates) {
     renderDivisionalChartsFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
+    renderKundaliDoshasFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
   }
@@ -2070,21 +2079,37 @@ function renderDivisionalChartsFromPayload(payload) {
   }
 }
 
-/** Render yoga tiles from ``kundali_yog`` (same click-to-expand pattern as Remedy navatara). */
-function renderKundaliYogasFromPayload(payload) {
-  const section = document.getElementById("kundali-yog-section");
-  const headingEl = document.getElementById("kundali-yog-heading");
-  const summaryEl = document.getElementById("kundali-yog-summary");
-  const listEl = document.getElementById("kundali-yog-list");
+/**
+ * Render yoga/dosha tiles from a kundali match block
+ * (same click-to-expand pattern as Remedy navatara).
+ */
+function renderKundaliMatchTilesFromPayload(payload, options) {
+  const {
+    sectionId,
+    headingId,
+    summaryId,
+    listId,
+    blockKey,
+    itemsKey,
+    headingLabel,
+    emptyDetail,
+    ariaItemKind
+  } = options;
+  const section = document.getElementById(sectionId);
+  const headingEl = document.getElementById(headingId);
+  const summaryEl = document.getElementById(summaryId);
+  const listEl = document.getElementById(listId);
   if (!section || !listEl) return;
 
-  const block = payload?.kundali_yog;
-  const yogas = (Array.isArray(block?.yogas) ? block.yogas : []).filter((y) => y && y.present);
+  const block = payload?.[blockKey];
+  const items = (Array.isArray(block?.[itemsKey]) ? block[itemsKey] : []).filter(
+    (item) => item && item.present
+  );
   listEl.innerHTML = "";
 
-  if (!yogas.length) {
+  if (!items.length) {
     section.hidden = true;
-    if (headingEl) headingEl.textContent = "Yogas";
+    if (headingEl) headingEl.textContent = headingLabel;
     if (summaryEl) {
       summaryEl.textContent = "";
       summaryEl.hidden = true;
@@ -2093,7 +2118,7 @@ function renderKundaliYogasFromPayload(payload) {
   }
 
   section.hidden = false;
-  if (headingEl) headingEl.textContent = `Yogas(${yogas.length})`;
+  if (headingEl) headingEl.textContent = `${headingLabel}(${items.length})`;
   if (summaryEl) {
     summaryEl.textContent = "";
     summaryEl.hidden = true;
@@ -2101,7 +2126,7 @@ function renderKundaliYogasFromPayload(payload) {
 
   let selectedKey = "";
 
-  const closeAllYogaPanels = () => {
+  const closeAllPanels = () => {
     listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
       panel.hidden = true;
     });
@@ -2112,19 +2137,19 @@ function renderKundaliYogasFromPayload(payload) {
     });
   };
 
-  const showYogaDetail = (yoga, itemEl) => {
+  const showItemDetail = (item, itemEl) => {
     const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
     const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
-    const yogaKey = String(yoga.key || yoga.name || "").trim();
+    const itemKey = String(item.key || item.name || "").trim();
 
-    if (selectedKey === yogaKey && panel && !panel.hidden) {
-      closeAllYogaPanels();
+    if (selectedKey === itemKey && panel && !panel.hidden) {
+      closeAllPanels();
       selectedKey = "";
       return;
     }
 
-    closeAllYogaPanels();
-    selectedKey = yogaKey;
+    closeAllPanels();
+    selectedKey = itemKey;
 
     if (btn) {
       btn.classList.add("remedy-navatara-btn--active");
@@ -2137,15 +2162,15 @@ function renderKundaliYogasFromPayload(payload) {
     }
   };
 
-  for (const yoga of yogas) {
-    const item = document.createElement("div");
-    item.className = "remedy-navatara-item";
+  for (const item of items) {
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-navatara-item";
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "remedy-navatara-btn";
-    btn.dataset.yogaKey = String(yoga.key || "");
-    btn.textContent = String(yoga.name || yoga.key || "Yoga");
+    btn.dataset.matchKey = String(item.key || "");
+    btn.textContent = String(item.name || item.key || ariaItemKind || headingLabel);
     btn.setAttribute("aria-pressed", "false");
     btn.setAttribute("aria-expanded", "false");
 
@@ -2153,11 +2178,11 @@ function renderKundaliYogasFromPayload(payload) {
     panel.className = "remedy-navatara-panel kundali-yog-panel";
     panel.hidden = true;
 
-    const planetParts = Array.isArray(yoga.planets)
-      ? yoga.planets.map((p) => String(p || "").trim()).filter(Boolean)
+    const planetParts = Array.isArray(item.planets)
+      ? item.planets.map((p) => String(p || "").trim()).filter(Boolean)
       : [];
-    const houseParts = Array.isArray(yoga.houses)
-      ? yoga.houses.map((h) => String(h)).filter(Boolean)
+    const houseParts = Array.isArray(item.houses)
+      ? item.houses.map((h) => String(h)).filter(Boolean)
       : [];
     if (planetParts.length || houseParts.length) {
       const meta = document.createElement("p");
@@ -2169,32 +2194,62 @@ function renderKundaliYogasFromPayload(payload) {
       panel.appendChild(meta);
     }
 
-    if (yoga.summary) {
+    if (item.summary) {
       const summary = document.createElement("p");
       summary.className = "kundali-yog-panel__summary";
-      summary.textContent = String(yoga.summary);
+      summary.textContent = String(item.summary);
       panel.appendChild(summary);
     }
 
-    if (yoga.detail) {
+    if (item.detail) {
       const detail = document.createElement("p");
       detail.className = "kundali-yog-panel__detail";
-      detail.textContent = String(yoga.detail);
+      detail.textContent = String(item.detail);
       panel.appendChild(detail);
     }
 
     if (!panel.childNodes.length) {
       const empty = document.createElement("p");
       empty.className = "kundali-yog-panel__detail";
-      empty.textContent = "No extra detail for this yoga.";
+      empty.textContent = emptyDetail || `No extra detail for this ${ariaItemKind || "item"}.`;
       panel.appendChild(empty);
     }
 
-    btn.addEventListener("click", () => showYogaDetail(yoga, item));
-    item.appendChild(btn);
-    item.appendChild(panel);
-    listEl.appendChild(item);
+    btn.addEventListener("click", () => showItemDetail(item, wrap));
+    wrap.appendChild(btn);
+    wrap.appendChild(panel);
+    listEl.appendChild(wrap);
   }
+}
+
+/** Render yoga tiles from ``kundali_yog``. */
+function renderKundaliYogasFromPayload(payload) {
+  renderKundaliMatchTilesFromPayload(payload, {
+    sectionId: "kundali-yog-section",
+    headingId: "kundali-yog-heading",
+    summaryId: "kundali-yog-summary",
+    listId: "kundali-yog-list",
+    blockKey: "kundali_yog",
+    itemsKey: "yogas",
+    headingLabel: "Yogas",
+    emptyDetail: "No extra detail for this yoga.",
+    ariaItemKind: "Yoga"
+  });
+}
+
+/** Render dosha tiles from ``kundali_dosh`` (same design as yogas). */
+function renderKundaliDoshasFromPayload(payload) {
+  renderKundaliMatchTilesFromPayload(payload, {
+    sectionId: "kundali-dosh-section",
+    headingId: "kundali-dosh-heading",
+    summaryId: "kundali-dosh-summary",
+    listId: "kundali-dosh-list",
+    blockKey: "kundali_dosh",
+    itemsKey: "dosh",
+    headingLabel: "Doshas",
+    emptyDetail: "No extra detail for this dosha.",
+    ariaItemKind: "Dosha"
+  });
 }
 
 /** Toggle expand/collapse for the divisional charts block. */
@@ -2211,22 +2266,24 @@ function toggleDivisionalChartsPanel() {
 }
 
 /** Build query string for GET /api/kundali from form fields. */
-function buildKundaliApiQueryParams(date, time, place) {
-  return new URLSearchParams({
+function buildKundaliApiQueryParams(date, time, place, name) {
+  const params = {
     date,
     time,
     place,
     house_system: C.DEFAULT_HOUSE_SYSTEM
-  });
+  };
+  if (name) params.name = name;
+  return new URLSearchParams(params);
 }
 
 /** Call Flask /api/kundali and return parsed JSON. */
-async function fetchKundaliJsonFromApi(date, time, place) {
-  const params = buildKundaliApiQueryParams(date, time, place);
+async function fetchKundaliJsonFromApi(date, time, place, name) {
+  const params = buildKundaliApiQueryParams(date, time, place, name);
   const path = `${C.API_KUNDALI_PATH}?${params}`;
   if (typeof SaptarishiAuth !== "undefined") {
     if (SaptarishiAuth.fetchKundali) {
-      return SaptarishiAuth.fetchKundali(path, date, time, place);
+      return SaptarishiAuth.fetchKundali(path, date, time, place, name);
     }
     const payload = await SaptarishiAuth.apiFetch(path);
     SaptarishiAuth.updateUserFromApiPayload(payload);
@@ -2242,6 +2299,12 @@ async function fetchKundaliJsonFromApi(date, time, place) {
 
 /** Validate birth form; return error message or null if OK. */
 function validateBirthForm(place) {
+  if (kundaliMode === "new" && birthName && !String(birthName.value || "").trim()) {
+    return "Enter a name to save these birth details.";
+  }
+  if (kundaliMode === "open" && savedKundaliSelect && !savedKundaliSelect.value) {
+    return "Select saved birth details.";
+  }
   if (!placePreset.value) return "Select a place.";
   if (placePreset.value === C.PLACE_CUSTOM_VALUE && !place) return "Enter a custom place.";
   if (!birthDate.value || !birthTime.value) return "Date and time are required.";
@@ -2263,6 +2326,7 @@ function syncCustomPlaceFieldVisibility() {
 async function handleBirthFormSubmit(event) {
   event.preventDefault();
   const place = getBirthPlaceFromKundaliForm();
+  const name = birthName ? String(birthName.value || "").trim() : "";
   const validationError = validateBirthForm(place);
   if (validationError) {
     showStatusMessage(validationError, true);
@@ -2281,9 +2345,11 @@ async function handleBirthFormSubmit(event) {
     const kundaliPayload = await fetchKundaliJsonFromApi(
       birthDate.value,
       birthTime.value,
-      place
+      place,
+      name
     );
     renderKundaliResponseIntoPage(kundaliPayload);
+    refreshSavedKundaliDropdown();
   } catch (err) {
     const formatted = formatKundaliApiError(err);
     if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
@@ -2296,16 +2362,76 @@ async function handleBirthFormSubmit(event) {
   }
 }
 
-function initDefaultBirthFromUser() {
-  if (typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.getToken()) return;
-  SaptarishiAuth.refreshDefaultBirthForm({
-    placePreset,
-    placeCustom,
-    customWrap,
-    birthDate,
-    birthTime,
-    placeCustomValue: C.PLACE_CUSTOM_VALUE
-  }).catch(() => {});
+function birthViewOptionLabel(view) {
+  if (!view) return "";
+  if (view.name) return view.name;
+  const when = [view.date, view.time].filter(Boolean).join(" ");
+  return when || view.place || "Saved birth details";
+}
+
+function refreshSavedKundaliDropdown() {
+  if (!savedKundaliSelect || typeof SaptarishiAuth === "undefined") return;
+  const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+  const previous = savedKundaliSelect.value;
+  savedKundaliSelect.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
+  savedKundaliSelect.appendChild(placeholder);
+  views.forEach((view, index) => {
+    const opt = document.createElement("option");
+    opt.value = String(index);
+    const detail = [view.date, view.place].filter(Boolean).join(" · ");
+    opt.textContent = detail
+      ? `${birthViewOptionLabel(view)} (${detail})`
+      : birthViewOptionLabel(view);
+    savedKundaliSelect.appendChild(opt);
+  });
+  if (previous && [...savedKundaliSelect.options].some((o) => o.value === previous)) {
+    savedKundaliSelect.value = previous;
+  }
+}
+
+function applySavedKundaliSelection() {
+  if (!savedKundaliSelect || typeof SaptarishiAuth === "undefined") return;
+  const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+  const index = Number(savedKundaliSelect.value);
+  if (!Number.isInteger(index) || index < 0 || index >= views.length) return;
+  SaptarishiAuth.applyDefaultBirthToForm(
+    {
+      placePreset,
+      placeCustom,
+      customWrap,
+      birthDate,
+      birthTime,
+      birthName,
+      placeCustomValue: C.PLACE_CUSTOM_VALUE
+    },
+    views[index]
+  );
+}
+
+function setKundaliMode(mode) {
+  kundaliMode = mode === "open" ? "open" : "new";
+  const isOpen = kundaliMode === "open";
+  if (tabOpenKundali) {
+    tabOpenKundali.classList.toggle("kundali-tabs__item--active", isOpen);
+    tabOpenKundali.setAttribute("aria-selected", isOpen ? "true" : "false");
+  }
+  if (tabNewKundali) {
+    tabNewKundali.classList.toggle("kundali-tabs__item--active", !isOpen);
+    tabNewKundali.setAttribute("aria-selected", !isOpen ? "true" : "false");
+  }
+  if (openKundaliWrap) openKundaliWrap.hidden = !isOpen;
+  if (birthNameWrap) birthNameWrap.hidden = isOpen;
+  if (isOpen) {
+    refreshSavedKundaliDropdown();
+    applySavedKundaliSelection();
+  }
+}
+
+function refreshKundaliSavedViews() {
+  refreshSavedKundaliDropdown();
 }
 
 if (document.getElementById("birth-form")) {
@@ -2320,9 +2446,19 @@ if (document.getElementById("birth-form")) {
   if (divisionalToggle) {
     divisionalToggle.addEventListener("click", toggleDivisionalChartsPanel);
   }
-  initDefaultBirthFromUser();
+  if (tabOpenKundali) {
+    tabOpenKundali.addEventListener("click", () => setKundaliMode("open"));
+  }
+  if (tabNewKundali) {
+    tabNewKundali.addEventListener("click", () => setKundaliMode("new"));
+  }
+  if (savedKundaliSelect) {
+    savedKundaliSelect.addEventListener("change", applySavedKundaliSelection);
+  }
+  setKundaliMode("new");
+  refreshKundaliSavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", () => {
-    initDefaultBirthFromUser();
+    refreshKundaliSavedViews();
   });
 }
 
@@ -2338,6 +2474,7 @@ window.SaptarishiKundaliView = {
   renderKundaliChart,
   renderDivisionalChartsFromPayload,
   renderKundaliYogasFromPayload,
+  renderKundaliDoshasFromPayload,
   bindKundaliChartZoom,
   openKundaliChartZoom,
   closeKundaliChartZoom,
@@ -2358,6 +2495,7 @@ window.SaptarishiKundaliPage = {
   getApiOrigin: getFlaskApiOrigin,
   getMainBirthInput() {
     return {
+      name: birthName?.value?.trim() || "",
       date: birthDate?.value?.trim() || "",
       time: birthTime?.value?.trim() || "",
       place: getBirthPlaceFromKundaliForm()

@@ -24,12 +24,27 @@ The deck can also be printed or saved as PDF from the browser print dialog.
 - `previews/mobile-presentation-home.png` - home dashboard placement.
 - `previews/mobile-presentation-menu.png` - grouped menu placement.
 - `previews/mobile-presentation-screens.png` - Kundali, result, and compare screen gallery.
+- `previews/sample/` - competitor reference screenshots used for Kundali design inspiration.
+- `previews/screen-shots/` - clean phone PNGs for PowerPoint (Home, Kundali, Remedy, Auspicious, Auspicious range, Profile options, Menu).
+
+Auspicious flow:
+- `04-auspicious.png` - muhurat tile menu
+- `04b-auspicious-range.png` - after tile click: place + date range
+
+To regenerate PPT screen shots:
+
+```bash
+cd saptarishi/frontend/android
+npm install playwright --no-save
+node capture-shots.mjs
+```
 
 ## What the presentation covers
 
 - Home page/dashboard placement
 - Bottom navigation model
 - Full menu page with current and future options
+- Kundali page with name, birth details, Open Kundali, symbols, and feature previews
 - Kundali birth form and result tabs
 - Kundali compare flow
 - Remedy flow

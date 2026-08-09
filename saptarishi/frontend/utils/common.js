@@ -187,6 +187,7 @@
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
+        <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden title="Wallet">₹0</button>
         <a href="${navHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden title="My profile">Profile</a>
         <button type="button" id="site-premium-btn" class="site-header__premium">Buy Premium</button>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
@@ -196,6 +197,34 @@
     updateHeaderAuth(header, user, usage);
     wireHeaderAuthButtons(header);
     return header;
+  }
+
+  function buildConnectAstrologerBar() {
+    const bar = document.createElement("div");
+    bar.className = "site-connect-bar";
+    bar.setAttribute("aria-label", "Connect with astrologer");
+    bar.innerHTML = `
+      <div class="site-connect-bar__inner">
+        <button
+          type="button"
+          id="site-connect-astrologer-btn"
+          class="site-connect-bar__btn"
+          aria-expanded="false"
+          aria-controls="site-connect-panel"
+        >
+          Connect Astrologer
+        </button>
+        <div id="site-connect-panel" class="site-connect-bar__panel" hidden>
+          <p class="site-connect-bar__rate" id="site-astrologer-rate-label">Call / Ask · ₹21/min</p>
+          <div class="site-connect-bar__actions">
+            <button type="button" id="site-call-btn" class="site-connect-bar__action site-connect-bar__action--call">Call</button>
+            <button type="button" id="site-ask-btn" class="site-connect-bar__action site-connect-bar__action--ask">Ask</button>
+          </div>
+        </div>
+      </div>
+    `;
+    wireConnectAstrologer(bar);
+    return bar;
   }
 
   function resolveHeaderUser(userArg) {
@@ -212,6 +241,7 @@
     const displayUsage = usage || resolvedUser || (AUTH ? AUTH.getUsage() : null);
     const profileLink = header.querySelector("#site-profile-link");
     const usageEl = header.querySelector(".site-header__usage");
+    const walletBtn = header.querySelector("#site-wallet-btn");
     const premiumBtn = header.querySelector("#site-premium-btn");
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
@@ -225,6 +255,20 @@
       premiumBtn.hidden = isUnlimited;
       premiumBtn.textContent =
         displayUsage?.premium_tier === "pack_299" ? "Upgrade" : "Buy Premium";
+    }
+
+    if (walletBtn) {
+      if (resolvedUser) {
+        const bal =
+          AUTH && AUTH.getWalletBalance
+            ? AUTH.getWalletBalance(displayUsage || resolvedUser)
+            : Number(displayUsage?.wallet_balance_inr) || 0;
+        walletBtn.textContent = `₹${bal}`;
+        walletBtn.hidden = false;
+        walletBtn.title = "Wallet — add money for Call, Ask, and Premium";
+      } else {
+        walletBtn.hidden = true;
+      }
     }
 
     if (resolvedUser) {
@@ -290,11 +334,175 @@
     }
   }
 
+  function wireConnectAstrologer(root) {
+    const connectBtn = root.querySelector("#site-connect-astrologer-btn");
+    const connectPanel = root.querySelector("#site-connect-panel");
+    const rateLabel = root.querySelector("#site-astrologer-rate-label");
+    const callBtn = root.querySelector("#site-call-btn");
+    const askBtn = root.querySelector("#site-ask-btn");
+    if (!connectBtn || !connectPanel) return;
+
+    let astrologerConfig = {
+      name: AC.ASTROLOGER_NAME,
+      call_rate_inr_per_min: AC.ASTROLOGER_CALL_RATE_INR_PER_MIN,
+      ask_rate_inr_per_min: AC.ASTROLOGER_ASK_RATE_INR_PER_MIN,
+      phone: AC.PREMIUM_CONTACT_PHONE,
+      whatsapp: `91${AC.PREMIUM_CONTACT_PHONE}`,
+      min_balance_inr: AC.ASTROLOGER_MIN_BALANCE_INR
+    };
+
+    const showConnectStatus = (message, isError) => {
+      const statusEl = document.getElementById("status");
+      if (statusEl) {
+        setStatusMessage(statusEl, message, isError);
+        return;
+      }
+      if (message && isError) {
+        window.alert(message);
+      }
+    };
+
+    const updateRateLabel = () => {
+      if (!rateLabel) return;
+      const rate =
+        astrologerConfig.call_rate_inr_per_min || AC.ASTROLOGER_CALL_RATE_INR_PER_MIN;
+      const name = astrologerConfig.name || AC.ASTROLOGER_NAME;
+      rateLabel.textContent = `${name} · Call / Ask · ₹${rate}/min`;
+    };
+
+    const setOpen = (open) => {
+      const isOpen = Boolean(open);
+      connectPanel.hidden = !isOpen;
+      connectBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    };
+
+    const loadAstrologerConfig = async () => {
+      try {
+        if (AUTH && AUTH.fetchWalletInfo) {
+          const info = await AUTH.fetchWalletInfo();
+          if (info && info.astrologer && typeof info.astrologer === "object") {
+            astrologerConfig = { ...astrologerConfig, ...info.astrologer };
+          }
+        }
+      } catch {
+        /* keep defaults */
+      }
+      updateRateLabel();
+    };
+
+    const ensureLoggedIn = async () => {
+      if (!AUTH) return false;
+      if (AUTH.getToken()) return true;
+      if (AUTH.ensureAuth) {
+        return AUTH.ensureAuth({
+          tab: "login",
+          required: true,
+          message: "Sign in to use Call and Ask."
+        });
+      }
+      return false;
+    };
+
+    const handleCallOrAsk = async (service) => {
+      const ok = await ensureLoggedIn();
+      if (!ok) return;
+
+      const rate =
+        service === "ask"
+          ? Number(astrologerConfig.ask_rate_inr_per_min) || AC.ASTROLOGER_ASK_RATE_INR_PER_MIN
+          : Number(astrologerConfig.call_rate_inr_per_min) || AC.ASTROLOGER_CALL_RATE_INR_PER_MIN;
+      const balance = AUTH.getWalletBalance ? AUTH.getWalletBalance() : 0;
+      const minBalance = Number(astrologerConfig.min_balance_inr) || rate;
+      if (balance < Math.max(rate, minBalance)) {
+        showConnectStatus(
+          `Need at least ₹${Math.max(rate, minBalance)} in wallet (you have ₹${balance}).`,
+          true
+        );
+        if (AUTH.openWalletFlow) {
+          await AUTH.openWalletFlow({
+            message: `Add money to your wallet. ${service === "ask" ? "Ask" : "Call"} is ₹${rate}/min.`
+          });
+        }
+        return;
+      }
+
+      try {
+        showConnectStatus(`Starting ${service}…`, false);
+        let askWin = null;
+        if (service === "ask") {
+          askWin = window.open("about:blank", "_blank");
+        }
+        try {
+          const payload = await AUTH.chargeWalletForService(service, 1);
+          const astro =
+            payload && payload.astrologer && typeof payload.astrologer === "object"
+              ? { ...astrologerConfig, ...payload.astrologer }
+              : astrologerConfig;
+          const phone = String(astro.phone || AC.PREMIUM_CONTACT_PHONE).replace(/\D/g, "");
+          const localPhone = phone.slice(-10);
+          const wa = String(astro.whatsapp || `91${localPhone}`).replace(/\D/g, "");
+          if (service === "call") {
+            window.location.href = `tel:+91${localPhone}`;
+          } else {
+            const text = encodeURIComponent(
+              `Hi ${astro.name || "Astrologer"}, I have a question from Saptarishi.`
+            );
+            const waUrl = `https://wa.me/${wa}?text=${text}`;
+            if (askWin && !askWin.closed) {
+              askWin.location.href = waUrl;
+            } else {
+              window.location.href = waUrl;
+            }
+          }
+          const left = AUTH.getWalletBalance(payload.user || payload.usage);
+          showConnectStatus(
+            payload.message || `Charged ₹${rate}. Wallet balance: ₹${left}.`,
+            false
+          );
+        } catch (err) {
+          if (askWin && !askWin.closed) askWin.close();
+          throw err;
+        }
+      } catch (err) {
+        showConnectStatus(err.message || `Could not start ${service}.`, true);
+        if (
+          String(err.message || "").toLowerCase().includes("insufficient") &&
+          AUTH.openWalletFlow
+        ) {
+          await AUTH.openWalletFlow();
+        }
+      }
+    };
+
+    connectBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextOpen = connectPanel.hidden;
+      setOpen(nextOpen);
+      if (nextOpen) updateRateLabel();
+    });
+    if (callBtn) callBtn.addEventListener("click", () => handleCallOrAsk("call"));
+    if (askBtn) askBtn.addEventListener("click", () => handleCallOrAsk("ask"));
+
+    document.addEventListener("click", (event) => {
+      if (connectPanel.hidden) return;
+      const wrap = root.querySelector(".site-connect-bar__inner");
+      if (wrap && !wrap.contains(event.target)) setOpen(false);
+    });
+
+    global.addEventListener("saptarishi-auth-changed", () => {
+      updateRateLabel();
+    });
+
+    updateRateLabel();
+    loadAstrologerConfig();
+  }
+
   function wireHeaderAuthButtons(header) {
     if (!AUTH) return;
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
     const premiumBtn = header.querySelector("#site-premium-btn");
+    const walletBtn = header.querySelector("#site-wallet-btn");
 
     if (premiumBtn) {
       premiumBtn.addEventListener("click", () => {
@@ -303,6 +511,17 @@
         } else if (PREMIUM) {
           PREMIUM.open();
         }
+      });
+    }
+
+    if (walletBtn) {
+      walletBtn.addEventListener("click", () => {
+        if (AUTH.openWalletFlow) {
+          AUTH.openWalletFlow({ required: true });
+          return;
+        }
+        const modal = global.SaptarishiWalletModal;
+        if (modal && modal.open) modal.open();
       });
     }
 
@@ -386,13 +605,18 @@
 
     const shell = document.getElementById("saptarishi");
     const header = buildHeader(user, viewCount, usage);
+    const connectBar = buildConnectAstrologerBar();
     const footer = buildFooter();
 
     body.insertBefore(header, body.firstChild);
     if (shell) {
       shell.classList.add("main-shell--with-chrome");
+      if (!shell.querySelector(".site-connect-bar")) {
+        shell.prepend(connectBar);
+      }
       shell.after(footer);
     } else {
+      body.appendChild(connectBar);
       body.appendChild(footer);
     }
     wireFooterContact(footer);
