@@ -696,6 +696,19 @@
       .filter((entry) => entry && entry.date && entry.name);
   }
 
+  /** Stable select value for a saved birth (survives birth_views reordering). */
+  function birthViewKey(view) {
+    if (!view || typeof view !== "object") return "";
+    const date = String(view.date || "").trim();
+    if (!date) return "";
+    return [
+      String(view.name || "").trim().toLowerCase(),
+      date,
+      String(view.time || "").trim(),
+      String(view.place || "").trim().toLowerCase()
+    ].join("|");
+  }
+
   function getWalletBalance(usage) {
     const u = usage || getUsage() || getUser();
     if (!u || typeof u !== "object") return 0;
@@ -850,6 +863,7 @@
     handlePremiumRequired,
     getDefaultBirth,
     getBirthViews,
+    birthViewKey,
     getWalletBalance,
     parseBirthViewLabel,
     applyDefaultBirthToForm,

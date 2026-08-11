@@ -2367,6 +2367,19 @@ function birthViewOptionLabel(view) {
   return when || view.place || "Saved birth details";
 }
 
+function birthViewSelectKey(view) {
+  if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
+    return SaptarishiAuth.birthViewKey(view);
+  }
+  if (!view || !view.date) return "";
+  return [
+    String(view.name || "").trim().toLowerCase(),
+    String(view.date || "").trim(),
+    String(view.time || "").trim(),
+    String(view.place || "").trim().toLowerCase()
+  ].join("|");
+}
+
 function refreshSavedKundaliDropdown() {
   if (!savedKundaliSelect || typeof SaptarishiAuth === "undefined") return;
   const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
@@ -2376,9 +2389,11 @@ function refreshSavedKundaliDropdown() {
   placeholder.value = "";
   placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
   savedKundaliSelect.appendChild(placeholder);
-  views.forEach((view, index) => {
+  views.forEach((view) => {
+    const key = birthViewSelectKey(view);
+    if (!key) return;
     const opt = document.createElement("option");
-    opt.value = String(index);
+    opt.value = key;
     const detail = [view.date, view.place].filter(Boolean).join(" · ");
     opt.textContent = detail
       ? `${birthViewOptionLabel(view)} (${detail})`
@@ -2393,8 +2408,10 @@ function refreshSavedKundaliDropdown() {
 function applySavedKundaliSelection() {
   if (!savedKundaliSelect || typeof SaptarishiAuth === "undefined") return;
   const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
-  const index = Number(savedKundaliSelect.value);
-  if (!Number.isInteger(index) || index < 0 || index >= views.length) return;
+  const key = String(savedKundaliSelect.value || "").trim();
+  if (!key) return;
+  const view = views.find((entry) => birthViewSelectKey(entry) === key);
+  if (!view) return;
   SaptarishiAuth.applyDefaultBirthToForm(
     {
       placePreset,
@@ -2405,7 +2422,7 @@ function applySavedKundaliSelection() {
       birthName,
       placeCustomValue: C.PLACE_CUSTOM_VALUE
     },
-    views[index]
+    view
   );
 }
 
@@ -2430,6 +2447,7 @@ function setKundaliMode(mode) {
 
 function refreshKundaliSavedViews() {
   refreshSavedKundaliDropdown();
+  if (kundaliMode === "open") applySavedKundaliSelection();
 }
 
 if (document.getElementById("birth-form")) {
