@@ -182,8 +182,8 @@
       </div>
       <nav class="site-header__nav" aria-label="Main">
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
-        <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
+        <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
@@ -197,34 +197,6 @@
     updateHeaderAuth(header, user, usage);
     wireHeaderAuthButtons(header);
     return header;
-  }
-
-  function buildConnectAstrologerBar() {
-    const bar = document.createElement("div");
-    bar.className = "site-connect-bar";
-    bar.setAttribute("aria-label", "Connect with astrologer");
-    bar.innerHTML = `
-      <div class="site-connect-bar__inner">
-        <button
-          type="button"
-          id="site-connect-astrologer-btn"
-          class="site-connect-bar__btn"
-          aria-expanded="false"
-          aria-controls="site-connect-panel"
-        >
-          Connect Astrologer
-        </button>
-        <div id="site-connect-panel" class="site-connect-bar__panel" hidden>
-          <p class="site-connect-bar__rate" id="site-astrologer-rate-label">Call / Ask · ₹21/min</p>
-          <div class="site-connect-bar__actions">
-            <button type="button" id="site-call-btn" class="site-connect-bar__action site-connect-bar__action--call">Call</button>
-            <button type="button" id="site-ask-btn" class="site-connect-bar__action site-connect-bar__action--ask">Ask</button>
-          </div>
-        </div>
-      </div>
-    `;
-    wireConnectAstrologer(bar);
-    return bar;
   }
 
   function resolveHeaderUser(userArg) {
@@ -485,7 +457,7 @@
 
     document.addEventListener("click", (event) => {
       if (connectPanel.hidden) return;
-      const wrap = root.querySelector(".site-connect-bar__inner");
+      const wrap = root.querySelector(".site-footer__connect");
       if (wrap && !wrap.contains(event.target)) setOpen(false);
     });
 
@@ -574,6 +546,25 @@
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
         <button type="button" class="site-footer__contact-toggle" id="site-contact-toggle" aria-expanded="false" aria-controls="site-contact">Contact us</button>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
+        <span class="site-footer__connect">
+          <button
+            type="button"
+            id="site-connect-astrologer-btn"
+            class="site-footer__connect-toggle"
+            aria-expanded="false"
+            aria-controls="site-connect-panel"
+          >
+            Connect Astrologer
+          </button>
+          <div id="site-connect-panel" class="site-footer__connect-panel" hidden>
+            <p class="site-footer__connect-rate" id="site-astrologer-rate-label">Call / Ask · ₹21/min</p>
+            <div class="site-footer__connect-actions">
+              <button type="button" id="site-call-btn" class="site-footer__connect-action site-footer__connect-action--call">Call</button>
+              <button type="button" id="site-ask-btn" class="site-footer__connect-action site-footer__connect-action--ask">Ask</button>
+            </div>
+          </div>
+        </span>
+        <span class="site-footer__meta-sep" aria-hidden="true">·</span>
         <a class="site-footer__privacy-link" href="${navHref("privacy.html")}">Privacy Policy</a>
       </div>
       <div id="site-contact" class="site-footer__support" hidden>
@@ -584,6 +575,7 @@
         <a class="site-footer__support-link" href="tel:+${phoneIntl}">Call ${phoneDisplay}</a>
       </div>
     `;
+    wireConnectAstrologer(footer);
     return footer;
   }
 
@@ -599,24 +591,28 @@
     });
   }
 
+  function removeLegacyConnectBars(root) {
+    const scope = root || document;
+    scope.querySelectorAll(".site-connect-bar, .kundali-connect-astrologer").forEach((el) => {
+      el.remove();
+    });
+  }
+
   function mountLayout(user, viewCount, usage) {
     const body = document.body;
     if (!body || body.querySelector(".site-header")) return;
 
     const shell = document.getElementById("saptarishi");
+    removeLegacyConnectBars(body);
     const header = buildHeader(user, viewCount, usage);
-    const connectBar = buildConnectAstrologerBar();
     const footer = buildFooter();
 
     body.insertBefore(header, body.firstChild);
     if (shell) {
       shell.classList.add("main-shell--with-chrome");
-      if (!shell.querySelector(".site-connect-bar")) {
-        shell.prepend(connectBar);
-      }
+      removeLegacyConnectBars(shell);
       shell.after(footer);
     } else {
-      body.appendChild(connectBar);
       body.appendChild(footer);
     }
     wireFooterContact(footer);
