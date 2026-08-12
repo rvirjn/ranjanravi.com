@@ -379,7 +379,8 @@
       emptyEl,
       headingEl,
       baseHeading,
-      planetKeys
+      planetKeys,
+      buttonClassName
     } = options;
     if (!buttonsHost) return;
 
@@ -406,7 +407,7 @@
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "remedy-navatara-btn";
+      btn.className = ["remedy-navatara-btn", buttonClassName].filter(Boolean).join(" ");
       btn.dataset.planetKey = normalizeText(planetKey);
       btn.textContent = toTitleCaseWords(planetKey);
       btn.setAttribute("aria-pressed", "false");
@@ -443,7 +444,8 @@
       emptyEl: dusthanaRemedyEmpty,
       headingEl: dusthanaRemedyHeading,
       baseHeading: "Remedy for planet in Dusthana 6/8/12 houses",
-      planetKeys: groups.dusthana
+      planetKeys: groups.dusthana,
+      buttonClassName: "remedy-navatara-btn--dosh"
     });
     renderPlanetRemedyTiles({
       groupKey: "debilitated",
@@ -487,7 +489,7 @@
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "remedy-navatara-btn";
+      btn.className = "remedy-navatara-btn remedy-navatara-btn--dosh";
       btn.dataset.doshKey = normalizeText(itemKey);
       btn.textContent = label;
       btn.setAttribute("aria-pressed", "false");

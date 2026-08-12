@@ -613,7 +613,7 @@ function isPlanetCellColorAllowedForColumn(columnKey, colorKind) {
   if (allowed[palette]) return true;
   if (palette === "green" && allowed.green_text) return true;
   if (palette === "red" && allowed.red_text) return true;
-  if (palette === "neutral" && allowed.lord_neutral) return true;
+  if (palette === "neutral" && (allowed.lord_neutral || allowed.black)) return true;
   return false;
 }
 
@@ -764,14 +764,22 @@ function appendPlanetsAspectedByCell(tr, rowData) {
   tr.appendChild(td);
 }
 
-/** Chart planet color class from API ``planet_status_color`` or status text. */
+/** True when API dumped a CSS hex (``#rgb`` / ``#rrggbb``). */
+function isCssHexColor(value) {
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(value || "").trim());
+}
+
+/**
+ * Chart planet color from API ``planet_status_color``.
+ * Prefer dumped hex (``#2e7d32``); legacy kinds (high/friend/enemy) still map to classes.
+ */
 function planetChartStatusClass(planet) {
-  const kind =
-    planet?.planet_status_color ||
-    planetStatusKind(
-      planet?.planet_status_in_rashi || planet?.planet_relation_with_rashi_lord
-    );
-  if (!isPlanetCellColorAllowedForColumn("planet_symbol_in_birth_chart", kind || "neutral")) {
+  const raw = String(planet?.planet_status_color || "").trim();
+  if (isCssHexColor(raw)) return "";
+  const kind = raw.toLowerCase();
+  if (!kind) return "kundali-chart-planet--neutral";
+  // Same allow-list as the Planet Strength column in planets_table.
+  if (!isPlanetCellColorAllowedForColumn("strength", kind)) {
     return "kundali-chart-planet--neutral";
   }
   if (kind === "high") return "kundali-chart-planet--high";
@@ -782,8 +790,23 @@ function planetChartStatusClass(planet) {
   return "kundali-chart-planet--neutral";
 }
 
+/** Apply dumped hex fill or status class onto a chart planet ``tspan``. */
+function applyPlanetChartColor(tspan, entry) {
+  const raw = String(entry?.planet_status_color || "").trim();
+  if (isCssHexColor(raw)) {
+    tspan.setAttribute("class", "kundali-chart-planet");
+    tspan.style.fill = raw;
+    return;
+  }
+  const statusClass = planetChartStatusClass(entry);
+  tspan.setAttribute(
+    "class",
+    statusClass ? `kundali-chart-planet ${statusClass}` : "kundali-chart-planet kundali-chart-planet--neutral"
+  );
+}
+
 function stylePlanetTspan(tspan, entry, strengthMax) {
-  tspan.setAttribute("class", `kundali-chart-planet ${planetChartStatusClass(entry)}`);
+  applyPlanetChartColor(tspan, entry);
   applyPlanetStrengthStyle(tspan, entry.strength_percent, strengthMax);
 }
 
@@ -1474,11 +1497,9 @@ function appendAspectEyeWithPlanets(parentG, aspectPlanets, originX, originY, op
         textEl.appendChild(comma);
       }
       const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      tspan.setAttribute(
-        "class",
-        "kundali-chart-planet kundali-chart-aspect-eye__label " + planetChartStatusClass(entry)
-      );
-      tspan.setAttribute("style", "font-size:" + fontPx + "px");
+      applyPlanetChartColor(tspan, entry);
+      tspan.classList.add("kundali-chart-aspect-eye__label");
+      tspan.style.fontSize = fontPx + "px";
       applyPlanetStrengthStyle(tspan, entry.strength_percent, options.strengthMax);
       tspan.textContent = entry.label;
       textEl.appendChild(tspan);
@@ -2230,13 +2251,14 @@ function dashaPlanetTableRow(payload, planetKey) {
 
 /**
  * Dasha ring fill from Mahadasha on Age (``cell_styles.dasha_age``),
- * which matches Planet Strength tinting in the planets table.
+ * same tint as Planet Strength — except untinted/black stays white (no fill).
  */
 function dashaPlanetColorKind(payload, planetKey) {
   const row = dashaPlanetTableRow(payload, planetKey);
   if (!row) return "";
-  const kind = String(row.cell_styles?.dasha_age || "").trim();
-  return kind || "";
+  const kind = String(row.cell_styles?.dasha_age || "").trim().toLowerCase();
+  if (!kind || kind === "neutral" || kind === "black") return "";
+  return kind;
 }
 
 function createDashaCirclePath(cx, cy, radius, sweepFrac = 0.62) {
@@ -2666,7 +2688,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     itemsKey,
     headingLabel,
     emptyDetail,
-    ariaItemKind
+    ariaItemKind,
+    buttonClassName
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -2741,7 +2764,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "remedy-navatara-btn";
+    btn.className = ["remedy-navatara-btn", buttonClassName].filter(Boolean).join(" ");
     btn.dataset.matchKey = String(item.key || "");
     btn.textContent = String(item.name || item.key || ariaItemKind || headingLabel);
     btn.setAttribute("aria-pressed", "false");
@@ -2808,7 +2831,7 @@ function renderKundaliYogasFromPayload(payload) {
   });
 }
 
-/** Render dosha tiles from ``kundali_dosh`` (same design as yogas). */
+/** Render dosha tiles from ``kundali_dosh`` (same design as yogas; names in red). */
 function renderKundaliDoshasFromPayload(payload) {
   renderKundaliMatchTilesFromPayload(payload, {
     sectionId: "kundali-dosh-section",
@@ -2819,7 +2842,8 @@ function renderKundaliDoshasFromPayload(payload) {
     itemsKey: "dosh",
     headingLabel: "Doshas",
     emptyDetail: "No extra detail for this dosha.",
-    ariaItemKind: "Dosha"
+    ariaItemKind: "Dosha",
+    buttonClassName: "remedy-navatara-btn--dosh"
   });
 }
 

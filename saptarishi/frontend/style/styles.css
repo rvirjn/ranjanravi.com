@@ -35,7 +35,7 @@
   --planet-color-green-rgb: 46, 125, 50;
   --planet-color-red: #b71c1c;
   --planet-color-red-rgb: 183, 28, 28;
-  --planet-color-neutral: #5c6478;
+  --planet-color-neutral: #000000;
   --planet-color-green_text: #1b5e20;
   --planet-color-red_text: #6d1010;
   --planet-color-lord_plus: #1a6b3a;
@@ -1079,6 +1079,19 @@ tbody tr:last-child td {
   );
 }
 
+/* Untinted / black strength → keep Planet Active Dasha white (no black fill) */
+.current-dasha-ring-fill--neutral,
+.current-dasha-ring-fill--black {
+  fill: none;
+  stroke: none;
+}
+
+.current-dasha-ring-disc--neutral,
+.current-dasha-ring-disc--black {
+  fill: #ffffff;
+  stroke: none;
+}
+
 .current-dasha-ring-outline {
   fill: none;
   stroke: #111;
@@ -1336,8 +1349,8 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-planet--neutral {
-  fill: var(--planet-color-neutral, #5c6478);
-  opacity: calc(0.65 + var(--planet-strength, 0.5) * 0.35);
+  fill: var(--planet-color-neutral, #000000);
+  opacity: 1;
 }
 
 .kundali-chart-label-rashi {
@@ -1564,6 +1577,18 @@ tbody tr:last-child td {
   background-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), calc(0.18 + var(--planet-strength) * 0.4)) !important;
   color: var(--planet-color-red_text, #6d1010) !important;
   font-weight: 600;
+}
+
+/* Untinted Planet Strength (white cell) → black text */
+:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral {
+  background-color: transparent !important;
+  color: var(--planet-color-neutral, #000000) !important;
+  font-weight: 600;
+}
+
+:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral .planets-strength-rule-line,
+:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral .planets-strength-delta {
+  color: var(--planet-color-neutral, #000000) !important;
 }
 
 .navatara-section-header {
@@ -3241,6 +3266,26 @@ body.premium-modal-open {
   border-color: #2e7d32;
   box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.2);
   color: #145a18;
+}
+
+/* Found doshas (Chandra Grahan, Pitra, Mangal, …): red name tiles */
+.remedy-navatara-btn--dosh {
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.35);
+  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.08);
+  color: var(--planet-color-red, #b71c1c);
+}
+
+.remedy-navatara-btn--dosh:hover {
+  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.14);
+  border-color: var(--planet-color-red, #b71c1c);
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.remedy-navatara-btn--dosh.remedy-navatara-btn--active {
+  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.18);
+  border-color: var(--planet-color-red, #b71c1c);
+  box-shadow: inset 0 0 0 1px rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.25);
+  color: var(--planet-color-red_text, #6d1010);
 }
 
 .remedy-navatara-panel {
