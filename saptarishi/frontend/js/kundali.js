@@ -2478,7 +2478,7 @@ function renderCurrentDashaFromPayload(payload) {
   const layout = document.createElement("div");
   layout.className = "current-dasha-orbit";
   layout.appendChild(
-    createDashaOrbitCard("Current", snapshot.current, payload, "current")
+    createDashaOrbitCard("Current Dasha", snapshot.current, payload, "current")
   );
   if (snapshot.next) {
     layout.appendChild(createDashaOrbitArrow());
