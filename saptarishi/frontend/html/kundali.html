@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=162">
+  <link rel="stylesheet" href="../style/styles.css?v=177">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -152,16 +152,23 @@
         <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
       </section>
 
+      <section id="planet-active-dasha-section" class="kundali-yog-section planet-active-dasha-section" hidden>
+        <h2 id="planet-active-dasha-heading" class="result-heading">Planet Active Dasha</h2>
+        <div id="current-dasha-summary" class="current-dasha-summary" aria-label="Planet active dasha"></div>
+      </section>
+
       <section id="divisional-charts-section" class="divisional-charts-section">
-        <button
-          type="button"
-          id="divisional-charts-toggle"
-          class="divisional-charts-toggle"
-          aria-expanded="false"
-          aria-controls="divisional-charts-panel"
-        >
-          Divisional charts (D1, D9, D10, D30, D60)
-        </button>
+        <div class="kundali-expand-toggles">
+          <button
+            type="button"
+            id="divisional-charts-toggle"
+            class="divisional-charts-toggle"
+            aria-expanded="false"
+            aria-controls="divisional-charts-panel"
+          >
+            Divisional charts (D1, D9, D10, D30, D60)
+          </button>
+        </div>
         <div id="divisional-charts-panel" class="divisional-charts-panel" hidden>
           <div id="divisional-charts-grid" class="divisional-charts-grid"></div>
         </div>
@@ -187,7 +194,7 @@
   <script src="../js/premium-modal.js?v=10"></script>
   <script src="../js/wallet-modal.js?v=3"></script>
   <script src="../utils/common.js?v=41"></script>
-  <script src="../js/kundali.js?v=203"></script>
+  <script src="../js/kundali.js?v=231"></script>
   <script src="../js/lord-comparison.js?v=15"></script>
   <script src="../js/kundali-compare.js?v=9"></script>
 </body>

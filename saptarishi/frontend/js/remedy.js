@@ -7,10 +7,9 @@
   if (!C) return;
 
   const PLANET_REMEDY_COLUMNS = C.PLANET_REMEDY_COLUMNS || [];
-  const DOSH_REMEDY_COLUMNS = [
-    { key: "dosh", header: "Dosha" },
-    ...PLANET_REMEDY_COLUMNS.filter((col) => col && col.key !== "planet")
-  ];
+  const DOSH_REMEDY_DETAIL_COLUMNS = PLANET_REMEDY_COLUMNS.filter(
+    (col) => col && col.key !== "planet"
+  );
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
 
   const form = document.getElementById("remedy-form");
@@ -20,17 +19,14 @@
   const resultsEl = document.getElementById("results");
   const buttonsHost = document.getElementById("navatara-buttons");
   const dusthanaRemedyHeading = document.getElementById("dusthana-remedy-heading");
-  const dusthanaRemedyBody = document.querySelector("#dusthana-remedy-table tbody");
+  const dusthanaRemedyButtons = document.getElementById("dusthana-remedy-buttons");
   const dusthanaRemedyEmpty = document.getElementById("dusthana-remedy-empty");
-  const dusthanaRemedyTheadRow = document.getElementById("dusthana-remedy-thead-row");
   const debilitatedRemedyHeading = document.getElementById("debilitated-remedy-heading");
-  const debilitatedRemedyBody = document.querySelector("#debilitated-remedy-table tbody");
+  const debilitatedRemedyButtons = document.getElementById("debilitated-remedy-buttons");
   const debilitatedRemedyEmpty = document.getElementById("debilitated-remedy-empty");
-  const debilitatedRemedyTheadRow = document.getElementById("debilitated-remedy-thead-row");
   const doshRemedyHeading = document.getElementById("dosh-remedy-heading");
-  const doshRemedyBody = document.querySelector("#dosh-remedy-table tbody");
+  const doshRemedyButtons = document.getElementById("dosh-remedy-buttons");
   const doshRemedyEmpty = document.getElementById("dosh-remedy-empty");
-  const doshRemedyTheadRow = document.getElementById("dosh-remedy-thead-row");
   const placePreset = document.getElementById("place-preset");
   const customWrap = document.getElementById("custom-place-wrap");
   const placeCustom = document.getElementById("place-custom");
@@ -47,6 +43,11 @@
   let birthMode = "new";
   let cachedNakshatraRows = [];
   let selectedNavataraKey = "";
+  let selectedRemedyTileKeyByHost = {
+    dusthana: "",
+    debilitated: "",
+    dosh: ""
+  };
   let planetRemedyByName = {};
 
   function normalizeText(value) {
@@ -136,13 +137,10 @@
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
       return SaptarishiAuth.birthViewKey(view);
     }
-    if (!view || !view.date) return "";
-    return [
-      String(view.name || "").trim().toLowerCase(),
-      String(view.date || "").trim(),
-      String(view.time || "").trim(),
-      String(view.place || "").trim().toLowerCase()
-    ].join("|");
+    if (!view || !view.name) return "";
+    return String(view.name || "")
+      .trim()
+      .toLowerCase();
   }
 
   function refreshSavedBirthDropdown() {
@@ -290,16 +288,6 @@
     };
   }
 
-  function fillRemedyTableHeader(rowEl, columns) {
-    if (!rowEl) return;
-    rowEl.replaceChildren();
-    for (const col of columns || []) {
-      const th = document.createElement("th");
-      th.textContent = String(col.header || col.key || "");
-      rowEl.appendChild(th);
-    }
-  }
-
   function formatRemedyCellValue(value) {
     if (value == null) return "";
     if (typeof value === "number" && Number.isFinite(value)) {
@@ -318,58 +306,148 @@
     });
   }
 
-  function renderPlanetKeysRemedyTable(options) {
+  function createRemedyDetailTable(remedy, columns) {
+    const table = document.createElement("table");
+    table.className = "navatara-data-table kundali-table planet-remedy-table remedy-planet-detail-table";
+    const tbody = document.createElement("tbody");
+    const source = remedy && typeof remedy === "object" ? remedy : {};
+    for (const col of columns || []) {
+      if (!col || !col.key) continue;
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.scope = "row";
+      th.textContent = String(col.header || col.key || "");
+      const td = document.createElement("td");
+      td.textContent = formatRemedyCellValue(source[col.key]) || "—";
+      tr.appendChild(th);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function createPlanetRemedyDetailTable(planetKey) {
+    return createRemedyDetailTable(
+      planetRemedyByName[planetKey] || {},
+      DOSH_REMEDY_DETAIL_COLUMNS
+    );
+  }
+
+  function closeRemedyTilePanels(buttonsHost) {
+    if (!buttonsHost) return;
+    buttonsHost.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    buttonsHost.querySelectorAll(".remedy-navatara-btn").forEach((btn) => {
+      btn.classList.remove("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function showRemedyTileDetail(options) {
+    const { groupKey, itemKey, itemEl, buttonsHost } = options;
+    const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
+    const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
+    const key = normalizeText(itemKey);
+
+    if (selectedRemedyTileKeyByHost[groupKey] === key && panel && !panel.hidden) {
+      closeRemedyTilePanels(buttonsHost);
+      selectedRemedyTileKeyByHost[groupKey] = "";
+      return;
+    }
+
+    closeRemedyTilePanels(buttonsHost);
+    selectedRemedyTileKeyByHost[groupKey] = key;
+
+    if (btn) {
+      btn.classList.add("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-expanded", "true");
+    }
+    if (panel) {
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
+  function renderPlanetRemedyTiles(options) {
     const {
-      bodyEl,
-      theadRow,
+      groupKey,
+      buttonsHost,
       emptyEl,
       headingEl,
       baseHeading,
       planetKeys
     } = options;
-    if (!bodyEl) return;
-    fillRemedyTableHeader(theadRow, PLANET_REMEDY_COLUMNS);
-    bodyEl.innerHTML = "";
+    if (!buttonsHost) return;
+
+    buttonsHost.innerHTML = "";
+    selectedRemedyTileKeyByHost[groupKey] = "";
+
     const keys = Array.isArray(planetKeys) ? planetKeys : [];
     if (headingEl) {
       headingEl.textContent = keys.length ? `${baseHeading}(${keys.length})` : baseHeading;
     }
+
     if (!keys.length) {
+      buttonsHost.hidden = true;
       if (emptyEl) emptyEl.hidden = false;
       return;
     }
+
+    buttonsHost.hidden = false;
     if (emptyEl) emptyEl.hidden = true;
+
     for (const planetKey of keys) {
-      const remedy = planetRemedyByName[planetKey] || {};
-      const tr = document.createElement("tr");
-      for (const col of PLANET_REMEDY_COLUMNS) {
-        const td = document.createElement("td");
-        if (col.key === "planet") {
-          td.className = "planets-td-planet";
-          td.textContent = toTitleCaseWords(planetKey);
-        } else {
-          const text = formatRemedyCellValue(remedy[col.key]);
-          td.textContent = text || "—";
-        }
-        tr.appendChild(td);
-      }
-      bodyEl.appendChild(tr);
+      const item = document.createElement("div");
+      item.className = "remedy-navatara-item";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "remedy-navatara-btn";
+      btn.dataset.planetKey = normalizeText(planetKey);
+      btn.textContent = toTitleCaseWords(planetKey);
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+
+      const panel = document.createElement("div");
+      panel.className = "remedy-navatara-panel";
+      panel.hidden = true;
+
+      const tableWrap = document.createElement("div");
+      tableWrap.className = "table-wrap remedy-navatara-panel__table";
+      tableWrap.appendChild(createPlanetRemedyDetailTable(planetKey));
+      panel.appendChild(tableWrap);
+
+      btn.addEventListener("click", () =>
+        showRemedyTileDetail({
+          groupKey,
+          itemKey: planetKey,
+          itemEl: item,
+          buttonsHost
+        })
+      );
+      item.appendChild(btn);
+      item.appendChild(panel);
+      buttonsHost.appendChild(item);
     }
   }
 
   function renderPlanetRemedyTables(kundaliPayload) {
     const groups = remedyPlanetKeysByReason(kundaliPayload);
-    renderPlanetKeysRemedyTable({
-      bodyEl: dusthanaRemedyBody,
-      theadRow: dusthanaRemedyTheadRow,
+    renderPlanetRemedyTiles({
+      groupKey: "dusthana",
+      buttonsHost: dusthanaRemedyButtons,
       emptyEl: dusthanaRemedyEmpty,
       headingEl: dusthanaRemedyHeading,
       baseHeading: "Remedy for planet in Dusthana 6/8/12 houses",
       planetKeys: groups.dusthana
     });
-    renderPlanetKeysRemedyTable({
-      bodyEl: debilitatedRemedyBody,
-      theadRow: debilitatedRemedyTheadRow,
+    renderPlanetRemedyTiles({
+      groupKey: "debilitated",
+      buttonsHost: debilitatedRemedyButtons,
       emptyEl: debilitatedRemedyEmpty,
       headingEl: debilitatedRemedyHeading,
       baseHeading: "Remedy for debilitated planet",
@@ -377,10 +455,11 @@
     });
   }
 
-  function renderDoshRemedyTable(kundaliPayload) {
-    if (!doshRemedyBody) return;
-    fillRemedyTableHeader(doshRemedyTheadRow, DOSH_REMEDY_COLUMNS);
-    doshRemedyBody.innerHTML = "";
+  function renderDoshRemedyTiles(kundaliPayload) {
+    if (!doshRemedyButtons) return;
+    doshRemedyButtons.innerHTML = "";
+    selectedRemedyTileKeyByHost.dosh = "";
+
     const doshas = presentDoshEntriesFromKundali(kundaliPayload);
     const baseHeading = "Remedy for kundali dosh";
     if (doshRemedyHeading) {
@@ -388,26 +467,52 @@
         ? `${baseHeading}(${doshas.length})`
         : baseHeading;
     }
+
     if (!doshas.length) {
+      doshRemedyButtons.hidden = true;
       if (doshRemedyEmpty) doshRemedyEmpty.hidden = false;
       return;
     }
+
+    doshRemedyButtons.hidden = false;
     if (doshRemedyEmpty) doshRemedyEmpty.hidden = true;
+
     for (const dosh of doshas) {
+      const label = String(dosh.name || dosh.key || "Dosha").trim() || "Dosha";
+      const itemKey = String(dosh.key || dosh.name || label).trim();
       const remedy = dosh.remedy && typeof dosh.remedy === "object" ? dosh.remedy : {};
-      const tr = document.createElement("tr");
-      for (const col of DOSH_REMEDY_COLUMNS) {
-        const td = document.createElement("td");
-        if (col.key === "dosh") {
-          td.className = "planets-td-planet";
-          td.textContent = String(dosh.name || dosh.key || "Dosha");
-        } else {
-          const text = formatRemedyCellValue(remedy[col.key]);
-          td.textContent = text || "—";
-        }
-        tr.appendChild(td);
-      }
-      doshRemedyBody.appendChild(tr);
+
+      const item = document.createElement("div");
+      item.className = "remedy-navatara-item";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "remedy-navatara-btn";
+      btn.dataset.doshKey = normalizeText(itemKey);
+      btn.textContent = label;
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+
+      const panel = document.createElement("div");
+      panel.className = "remedy-navatara-panel";
+      panel.hidden = true;
+
+      const tableWrap = document.createElement("div");
+      tableWrap.className = "table-wrap remedy-navatara-panel__table";
+      tableWrap.appendChild(createRemedyDetailTable(remedy, DOSH_REMEDY_DETAIL_COLUMNS));
+      panel.appendChild(tableWrap);
+
+      btn.addEventListener("click", () =>
+        showRemedyTileDetail({
+          groupKey: "dosh",
+          itemKey,
+          itemEl: item,
+          buttonsHost: doshRemedyButtons
+        })
+      );
+      item.appendChild(btn);
+      item.appendChild(panel);
+      doshRemedyButtons.appendChild(item);
     }
   }
 
@@ -598,7 +703,7 @@
       planetRemedyByName = buildPlanetRemedyLookup(db);
       cachedNakshatraRows = kundaliPayload.nakshatras || [];
       renderPlanetRemedyTables(kundaliPayload);
-      renderDoshRemedyTable(kundaliPayload);
+      renderDoshRemedyTiles(kundaliPayload);
       renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
       refreshSavedBirthDropdown();
 

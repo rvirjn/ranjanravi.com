@@ -915,6 +915,13 @@ tbody tr:last-child td {
   border-top: 1px solid var(--color-surface-border);
 }
 
+.kundali-expand-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
 .divisional-charts-toggle {
   display: inline-flex;
   align-items: center;
@@ -948,6 +955,184 @@ tbody tr:last-child td {
 
 .divisional-charts-panel {
   margin-top: var(--space-md);
+}
+
+.current-dasha-summary {
+  display: block;
+  margin-bottom: 0;
+}
+
+.current-dasha-orbit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 3vw, 1.5rem);
+}
+
+.current-dasha-orbit__card {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.current-dasha-orbit__label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-heading, #1e3a5f);
+  text-align: center;
+}
+
+.current-dasha-orbit__arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-top: 1.4rem;
+  line-height: 0;
+  user-select: none;
+}
+
+.current-dasha-orbit__arrow-svg {
+  display: block;
+  width: clamp(2.75rem, 8vw, 4rem);
+  height: auto;
+}
+
+.current-dasha-orbit__stack {
+  flex: 0 0 auto;
+  width: min(20rem, 92vw);
+}
+
+.current-dasha-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.current-dasha-ring-fill {
+  fill: none;
+}
+
+.current-dasha-ring-fill--high,
+.current-dasha-ring-fill--own {
+  stroke: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
+  );
+}
+
+.current-dasha-ring-fill--friend {
+  stroke: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
+  );
+}
+
+.current-dasha-ring-fill--low {
+  stroke: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
+  );
+}
+
+.current-dasha-ring-fill--enemy {
+  stroke: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
+  );
+}
+
+.current-dasha-ring-disc {
+  stroke: none;
+}
+
+.current-dasha-ring-disc--high,
+.current-dasha-ring-disc--own {
+  fill: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
+  );
+}
+
+.current-dasha-ring-disc--friend {
+  fill: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
+  );
+}
+
+.current-dasha-ring-disc--low {
+  fill: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
+  );
+}
+
+.current-dasha-ring-disc--enemy {
+  fill: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
+  );
+}
+
+.current-dasha-ring-outline {
+  fill: none;
+  stroke: #111;
+}
+
+.current-dasha-ring-text {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  fill: #1a1a1a;
+}
+
+.current-dasha-ring-text--maha {
+  font-size: 12px;
+}
+
+.current-dasha-ring-text--antar {
+  font-size: 11px;
+}
+
+.current-dasha-ring-text--pratyantar {
+  font-size: 9.5px;
+}
+
+.current-dasha-ring-text--center {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.current-dasha-empty {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-muted, #5a6a7a);
+}
+
+@media (max-width: 720px) {
+  .current-dasha-orbit {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .current-dasha-orbit__card {
+    width: 100%;
+    max-width: min(20rem, 92vw);
+  }
+
+  .current-dasha-orbit__arrow {
+    margin-top: 0;
+  }
+
+  .current-dasha-orbit__arrow-svg {
+    transform: rotate(90deg);
+  }
 }
 
 .divisional-charts-lead {
@@ -3085,6 +3270,24 @@ body.premium-modal-open {
 
 .remedy-navatara-panel__table {
   margin-top: 0;
+}
+
+.remedy-planet-detail-table {
+  width: 100%;
+}
+
+.remedy-planet-detail-table th {
+  width: 36%;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 600;
+  color: var(--color-heading, #1e3a5f);
+  white-space: normal;
+}
+
+.remedy-planet-detail-table td {
+  vertical-align: top;
+  white-space: normal;
 }
 
 /* ---------- Chart click-to-zoom lightbox ---------- */

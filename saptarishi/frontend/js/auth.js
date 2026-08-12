@@ -691,22 +691,28 @@
   function getBirthViews(usage) {
     const u = usage || getUsage() || getUser();
     if (!u || typeof u !== "object" || !Array.isArray(u.birth_views)) return [];
-    return u.birth_views
+    const seen = new Set();
+    const out = [];
+    u.birth_views
       .map((entry) => parseBirthViewLabel(entry))
-      .filter((entry) => entry && entry.date && entry.name);
+      .filter((entry) => entry && entry.date && entry.name)
+      .forEach((entry) => {
+        const key = String(entry.name || "")
+          .trim()
+          .toLowerCase();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        out.push(entry);
+      });
+    return out;
   }
 
-  /** Stable select value for a saved birth (survives birth_views reordering). */
+  /** Stable select value for a saved birth: name is the unique identifier. */
   function birthViewKey(view) {
     if (!view || typeof view !== "object") return "";
-    const date = String(view.date || "").trim();
-    if (!date) return "";
-    return [
-      String(view.name || "").trim().toLowerCase(),
-      date,
-      String(view.time || "").trim(),
-      String(view.place || "").trim().toLowerCase()
-    ].join("|");
+    return String(view.name || "")
+      .trim()
+      .toLowerCase();
   }
 
   function getWalletBalance(usage) {

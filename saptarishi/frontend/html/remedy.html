@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Remedy by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=162">
+  <link rel="stylesheet" href="../style/styles.css?v=163">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -82,40 +82,19 @@
     <div id="results" hidden>
       <section id="dusthana-remedy-section">
         <h2 id="dusthana-remedy-heading" class="result-heading">Remedy for planet in Dusthana 6/8/12 houses</h2>
-        <div class="table-wrap">
-          <table id="dusthana-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
-            <thead>
-              <tr id="dusthana-remedy-thead-row"></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <div id="dusthana-remedy-buttons" class="remedy-navatara-buttons" role="group" aria-label="Dusthana planet remedies"></div>
         <p id="dusthana-remedy-empty" class="lead" hidden>No planet in Dusthana (6/8/12) houses for this birth chart.</p>
       </section>
 
       <section id="debilitated-remedy-section">
         <h2 id="debilitated-remedy-heading" class="result-heading">Remedy for debilitated planet</h2>
-        <div class="table-wrap">
-          <table id="debilitated-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
-            <thead>
-              <tr id="debilitated-remedy-thead-row"></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <div id="debilitated-remedy-buttons" class="remedy-navatara-buttons" role="group" aria-label="Debilitated planet remedies"></div>
         <p id="debilitated-remedy-empty" class="lead" hidden>No debilitated planet found for this birth chart.</p>
       </section>
 
       <section id="dosh-remedy-section">
         <h2 id="dosh-remedy-heading" class="result-heading">Remedy for kundali dosh</h2>
-        <div class="table-wrap">
-          <table id="dosh-remedy-table" class="navatara-data-table kundali-table planet-remedy-table">
-            <thead>
-              <tr id="dosh-remedy-thead-row"></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <div id="dosh-remedy-buttons" class="remedy-navatara-buttons" role="group" aria-label="Kundali dosh remedies"></div>
         <p id="dosh-remedy-empty" class="lead" hidden>No kundali dosh with a remedy found for this birth chart.</p>
       </section>
 
@@ -132,6 +111,6 @@
   <script src="../js/wallet-modal.js?v=3"></script>
   <script src="../utils/common.js?v=41"></script>
   <script src="../js/kundali.js?v=203"></script>
-  <script src="../js/remedy.js?v=19"></script>
+  <script src="../js/remedy.js?v=22"></script>
 </body>
 </html>

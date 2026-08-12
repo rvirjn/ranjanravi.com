@@ -1881,6 +1881,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
 
   if (!viewTargets.skipShellUpdates) {
     renderDivisionalChartsFromPayload(kundaliPayload);
+    renderCurrentDashaFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
@@ -1894,6 +1895,576 @@ function collapseDivisionalChartsPanel() {
   const toggle = document.getElementById("divisional-charts-toggle");
   if (panel) panel.hidden = true;
   if (toggle) toggle.setAttribute("aria-expanded", "false");
+}
+
+const VIMSHOTTARI_TOTAL_YEARS = 120;
+
+function parseBirthDateFromKundaliPayload(payload) {
+  const iso = String(payload?.datetime_local_iso || "").trim();
+  if (iso) {
+    const parsed = new Date(iso);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  const datePart = String(payload?.date || "").trim();
+  const timePart = String(payload?.time || "00:00:00").trim() || "00:00:00";
+  if (!datePart) return null;
+  const parsed = new Date(`${datePart}T${timePart}`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function ageYearsBetween(birthDate, asOfDate = new Date()) {
+  if (!birthDate || Number.isNaN(birthDate.getTime())) return null;
+  const ms = asOfDate.getTime() - birthDate.getTime();
+  if (!Number.isFinite(ms) || ms < 0) return 0;
+  return ms / (365.2425 * 24 * 60 * 60 * 1000);
+}
+
+function dateFromBirthAgeYears(birthDate, ageYears) {
+  if (!birthDate || !Number.isFinite(ageYears)) return null;
+  return new Date(birthDate.getTime() + ageYears * 365.2425 * 24 * 60 * 60 * 1000);
+}
+
+function formatDashaCalendarDate(date) {
+  if (!date || Number.isNaN(date.getTime())) return "—";
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatDashaYearRange(fromDate, toDate) {
+  if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "";
+  }
+  return `${fromDate.getFullYear()}-${toDate.getFullYear()}`;
+}
+
+function formatDashaMonthYearRange(fromDate, toDate) {
+  if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "";
+  }
+  const from = `${pad2(fromDate.getMonth() + 1)}-${fromDate.getFullYear()}`;
+  const to = `${pad2(toDate.getMonth() + 1)}-${toDate.getFullYear()}`;
+  return `${from} to ${to}`;
+}
+
+function formatDashaDayMonthYearRange(fromDate, toDate) {
+  if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "";
+  }
+  const from = `${pad2(fromDate.getDate())}-${pad2(fromDate.getMonth() + 1)}-${fromDate.getFullYear()}`;
+  const to = `${pad2(toDate.getDate())}-${pad2(toDate.getMonth() + 1)}-${toDate.getFullYear()}`;
+  return `${from} to ${to}`;
+}
+
+function formatDashaPlanetWithRange(planetName, rangeText) {
+  const name = String(planetName || "").trim() || "—";
+  const range = String(rangeText || "").trim();
+  return range ? `${name} (${range})` : name;
+}
+
+function vimshottariSequence() {
+  const order = C.VIMSHOTTARI_PLANET_ORDER || [];
+  return order.map((name) => normalizeText(name)).filter(Boolean);
+}
+
+function planetMahadashaYearsMap(planets) {
+  const out = {};
+  for (const planet of planets || []) {
+    if (!planet || typeof planet !== "object") continue;
+    const key = normalizeText(planet.name);
+    if (!key || key === "ascendant") continue;
+    const years = Number(planet.mahadasha_years);
+    if (Number.isFinite(years) && years > 0) out[key] = years;
+  }
+  return out;
+}
+
+function findMahadashaPeriodAtAge(planets, ageYears) {
+  let current = null;
+  for (const planet of planets || []) {
+    if (!planet || typeof planet !== "object") continue;
+    const key = normalizeText(planet.name);
+    if (!key || key === "ascendant") continue;
+    const age = planet.age && typeof planet.age === "object" ? planet.age : null;
+    if (!age) continue;
+    const fromYears = Number(age.from_years);
+    const toYears = Number(age.to_years);
+    if (!Number.isFinite(fromYears) || !Number.isFinite(toYears)) continue;
+    if (ageYears < fromYears || ageYears >= toYears) continue;
+    current = {
+      planet: key,
+      fromYears,
+      toYears,
+      mahadashaYears: Number(planet.mahadasha_years) || toYears - fromYears
+    };
+    break;
+  }
+  return current;
+}
+
+function listMahadashaPeriods(planets) {
+  const periods = [];
+  for (const planet of planets || []) {
+    if (!planet || typeof planet !== "object") continue;
+    const key = normalizeText(planet.name);
+    if (!key || key === "ascendant") continue;
+    const age = planet.age && typeof planet.age === "object" ? planet.age : null;
+    if (!age) continue;
+    const fromYears = Number(age.from_years);
+    const toYears = Number(age.to_years);
+    if (!Number.isFinite(fromYears) || !Number.isFinite(toYears)) continue;
+    periods.push({
+      planet: key,
+      fromYears,
+      toYears,
+      mahadashaYears: Number(planet.mahadasha_years) || toYears - fromYears
+    });
+  }
+  periods.sort((a, b) => a.fromYears - b.fromYears);
+  return periods;
+}
+
+function findNextMahadashaPeriod(planets, currentMahadasha) {
+  if (!currentMahadasha) return null;
+  const periods = listMahadashaPeriods(planets);
+  const currentIdx = periods.findIndex(
+    (period) =>
+      period.planet === currentMahadasha.planet &&
+      Math.abs(period.fromYears - currentMahadasha.fromYears) < 1e-6
+  );
+  if (currentIdx < 0 || currentIdx + 1 >= periods.length) return null;
+  return periods[currentIdx + 1];
+}
+
+function buildSubPeriodAtOffset(options) {
+  const {
+    startLord,
+    parentDurationYears,
+    ageOffsetYears,
+    durations,
+    sequence
+  } = options;
+  if (!startLord || !sequence.length || !(parentDurationYears > 0)) return null;
+  const startIdx = sequence.indexOf(startLord);
+  if (startIdx < 0) return null;
+
+  let cursor = 0;
+  for (let i = 0; i < sequence.length; i += 1) {
+    const lord = sequence[(startIdx + i) % sequence.length];
+    const lordYears = Number(durations[lord] || 0);
+    if (!(lordYears > 0)) continue;
+    const duration = (lordYears / VIMSHOTTARI_TOTAL_YEARS) * parentDurationYears;
+    const next = cursor + duration;
+    if (ageOffsetYears >= cursor && ageOffsetYears < next) {
+      return {
+        planet: lord,
+        fromOffset: cursor,
+        toOffset: next,
+        durationYears: duration
+      };
+    }
+    cursor = next;
+  }
+  return null;
+}
+
+/**
+ * Next dasha moment: advance pratyantardasha first; if that was the last
+ * pratyantar in the antardasha, advance antardasha; if that was the last
+ * antar in the mahadasha, advance mahadasha.
+ */
+function findNextDashaMoment(mahadasha, ageYears, planets) {
+  if (!mahadasha) return null;
+  const sequence = vimshottariSequence();
+  const durations = planetMahadashaYearsMap(planets);
+  const mdDuration = mahadasha.toYears - mahadasha.fromYears;
+  const mdOffset = Math.max(0, ageYears - mahadasha.fromYears);
+  const eps = 1e-8;
+
+  const antardasha = buildSubPeriodAtOffset({
+    startLord: mahadasha.planet,
+    parentDurationYears: mdDuration,
+    ageOffsetYears: mdOffset,
+    durations,
+    sequence
+  });
+
+  if (antardasha) {
+    const pratyantardasha = buildSubPeriodAtOffset({
+      startLord: antardasha.planet,
+      parentDurationYears: antardasha.durationYears,
+      ageOffsetYears: Math.max(0, mdOffset - antardasha.fromOffset),
+      durations,
+      sequence
+    });
+    const adEndAge = mahadasha.fromYears + antardasha.toOffset;
+
+    if (pratyantardasha) {
+      const pdEndAge =
+        mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset;
+      // Next pratyantardasha within the same antardasha.
+      if (pdEndAge < adEndAge - eps) {
+        return { ageYears: pdEndAge + eps, mahadasha };
+      }
+    }
+
+    // Last pratyantardasha (or none) → next antardasha in this mahadasha.
+    if (adEndAge < mahadasha.toYears - eps) {
+      return { ageYears: adEndAge + eps, mahadasha };
+    }
+  }
+
+  // Last antardasha → next mahadasha.
+  const nextMahadasha = findNextMahadashaPeriod(planets, mahadasha);
+  if (!nextMahadasha) return null;
+  return { ageYears: nextMahadasha.fromYears, mahadasha: nextMahadasha };
+}
+
+function buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets) {
+  if (!birthDate || !mahadasha) return null;
+  const sequence = vimshottariSequence();
+  const durations = planetMahadashaYearsMap(planets);
+  const mdDuration = mahadasha.toYears - mahadasha.fromYears;
+  const mdOffset = Math.max(0, ageYears - mahadasha.fromYears);
+  const antardasha = buildSubPeriodAtOffset({
+    startLord: mahadasha.planet,
+    parentDurationYears: mdDuration,
+    ageOffsetYears: mdOffset,
+    durations,
+    sequence
+  });
+
+  let pratyantardasha = null;
+  if (antardasha) {
+    pratyantardasha = buildSubPeriodAtOffset({
+      startLord: antardasha.planet,
+      parentDurationYears: antardasha.durationYears,
+      ageOffsetYears: Math.max(0, mdOffset - antardasha.fromOffset),
+      durations,
+      sequence
+    });
+  }
+
+  const mdFromDate = dateFromBirthAgeYears(birthDate, mahadasha.fromYears);
+  const mdToDate = dateFromBirthAgeYears(birthDate, mahadasha.toYears);
+  const adFromDate = antardasha
+    ? dateFromBirthAgeYears(birthDate, mahadasha.fromYears + antardasha.fromOffset)
+    : null;
+  const adToDate = antardasha
+    ? dateFromBirthAgeYears(birthDate, mahadasha.fromYears + antardasha.toOffset)
+    : null;
+  const pdFromDate =
+    antardasha && pratyantardasha
+      ? dateFromBirthAgeYears(
+          birthDate,
+          mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.fromOffset
+        )
+      : null;
+  const pdToDate =
+    antardasha && pratyantardasha
+      ? dateFromBirthAgeYears(
+          birthDate,
+          mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset
+        )
+      : null;
+
+  return {
+    mahadashaName: toTitleCaseWords(mahadasha.planet),
+    mahadashaRange: formatDashaYearRange(mdFromDate, mdToDate),
+    antardashaName: antardasha ? toTitleCaseWords(antardasha.planet) : "—",
+    antardashaRange: antardasha
+      ? formatDashaMonthYearRange(adFromDate, adToDate)
+      : "",
+    pratyantardashaName: pratyantardasha
+      ? toTitleCaseWords(pratyantardasha.planet)
+      : "—",
+    pratyantardashaRange: pratyantardasha
+      ? formatDashaDayMonthYearRange(pdFromDate, pdToDate)
+      : "",
+    mahadashaKey: mahadasha.planet,
+    antardashaKey: antardasha?.planet || "",
+    pratyantardashaKey: pratyantardasha?.planet || ""
+  };
+}
+
+function computeCurrentDashaSnapshot(payload, asOfDate = new Date()) {
+  const birthDate = parseBirthDateFromKundaliPayload(payload);
+  if (!birthDate) return null;
+  const ageYears = ageYearsBetween(birthDate, asOfDate);
+  if (ageYears == null) return null;
+
+  const planets = Array.isArray(payload?.planets) ? payload.planets : [];
+  const mahadasha = findMahadashaPeriodAtAge(planets, ageYears);
+  if (!mahadasha) return null;
+
+  const current = buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets);
+  if (!current) return null;
+
+  const nextMoment = findNextDashaMoment(mahadasha, ageYears, planets);
+  const next = nextMoment
+    ? buildDashaLevelSnapshot(
+        birthDate,
+        nextMoment.mahadasha,
+        nextMoment.ageYears,
+        planets
+      )
+    : null;
+
+  return { current, next };
+}
+
+function dashaPlanetTableRow(payload, planetKey) {
+  const key = normalizeText(planetKey);
+  if (!key) return null;
+  return (
+    (payload?.planets_table || []).find((row) => normalizeText(row?.planet) === key) ||
+    null
+  );
+}
+
+/**
+ * Dasha ring fill from Mahadasha on Age (``cell_styles.dasha_age``),
+ * which matches Planet Strength tinting in the planets table.
+ */
+function dashaPlanetColorKind(payload, planetKey) {
+  const row = dashaPlanetTableRow(payload, planetKey);
+  if (!row) return "";
+  const kind = String(row.cell_styles?.dasha_age || "").trim();
+  return kind || "";
+}
+
+function createDashaCirclePath(cx, cy, radius, sweepFrac = 0.62) {
+  // Wide upper arc so curved labels fit without clipping.
+  const sweep = Math.PI * 2 * Math.min(0.85, Math.max(0.35, sweepFrac));
+  const mid = -Math.PI / 2;
+  const start = mid - sweep / 2;
+  const end = mid + sweep / 2;
+  const x1 = cx + radius * Math.cos(start);
+  const y1 = cy + radius * Math.sin(start);
+  const x2 = cx + radius * Math.cos(end);
+  const y2 = cy + radius * Math.sin(end);
+  const largeArc = sweep > Math.PI ? 1 : 0;
+  return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+}
+
+function appendDashaRingLabel(svg, svgNS, xlinkNS, ring, idPrefix, cx, cy) {
+  const rangePart = ring.range ? ` (${ring.range})` : "";
+  const full = `${ring.label} · ${ring.name || "—"}${rangePart}`;
+
+  // Pratyantar sits in the open center so the full date range stays readable.
+  if (ring.id === "pratyantar") {
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("class", `current-dasha-ring-text ${ring.textClass} current-dasha-ring-text--center`);
+    text.setAttribute("x", String(cx));
+    text.setAttribute("y", String(cy - 12));
+    text.setAttribute("text-anchor", "middle");
+
+    const lines = [
+      "Pratyantar",
+      ring.name || "—",
+      ring.range || ""
+    ].filter(Boolean);
+    lines.forEach((line, index) => {
+      const tspan = document.createElementNS(svgNS, "tspan");
+      tspan.setAttribute("x", String(cx));
+      tspan.setAttribute("dy", index === 0 ? "0" : "1.15em");
+      tspan.textContent = line;
+      text.appendChild(tspan);
+    });
+    svg.appendChild(text);
+    return;
+  }
+
+  const text = document.createElementNS(svgNS, "text");
+  text.setAttribute("class", `current-dasha-ring-text ${ring.textClass}`);
+  const textPath = document.createElementNS(svgNS, "textPath");
+  const pathId = `#${idPrefix}-dasha-path-${ring.id}`;
+  textPath.setAttributeNS(xlinkNS, "href", pathId);
+  textPath.setAttribute("href", pathId);
+  textPath.setAttribute("startOffset", "50%");
+  textPath.setAttribute("text-anchor", "middle");
+  textPath.textContent = full;
+  text.appendChild(textPath);
+  svg.appendChild(text);
+}
+
+function createDashaRingSvg(snapshot, payload, idPrefix = "dasha") {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const xlinkNS = "http://www.w3.org/1999/xlink";
+  const size = 420;
+  const cx = size / 2;
+  const cy = size / 2;
+  const thinStroke = 2.5;
+  // Contiguous bands — no white gaps between rings.
+  const mahaOuter = 194;
+  const mahaSW = 56;
+  const antarSW = 56;
+  const mahaInner = mahaOuter - mahaSW;
+  const antarOuter = mahaInner;
+  const antarInner = antarOuter - antarSW;
+  const rings = [
+    {
+      id: "maha",
+      radius: (mahaOuter + mahaInner) / 2,
+      strokeWidth: mahaSW,
+      label: "Mahadasha",
+      name: snapshot.mahadashaName,
+      range: snapshot.mahadashaRange,
+      key: snapshot.mahadashaKey,
+      textClass: "current-dasha-ring-text--maha",
+      sweepFrac: 0.68
+    },
+    {
+      id: "antar",
+      radius: (antarOuter + antarInner) / 2,
+      strokeWidth: antarSW,
+      label: "Antardasha",
+      name: snapshot.antardashaName,
+      range: snapshot.antardashaRange,
+      key: snapshot.antardashaKey,
+      textClass: "current-dasha-ring-text--antar",
+      sweepFrac: 0.72
+    }
+  ];
+  const pratyantar = {
+    id: "pratyantar",
+    label: "Pratyantardasha",
+    name: snapshot.pratyantardashaName,
+    range: snapshot.pratyantardashaRange,
+    key: snapshot.pratyantardashaKey,
+    textClass: "current-dasha-ring-text--pratyantar"
+  };
+  const pratyantarR = antarInner;
+
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+  svg.setAttribute("class", "current-dasha-svg");
+  svg.setAttribute("role", "img");
+  svg.setAttribute(
+    "aria-label",
+    `Mahadasha ${snapshot.mahadashaName}, Antardasha ${snapshot.antardashaName}, Pratyantardasha ${snapshot.pratyantardashaName}`
+  );
+
+  const defs = document.createElementNS(svgNS, "defs");
+  for (const ring of rings) {
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("id", `${idPrefix}-dasha-path-${ring.id}`);
+    path.setAttribute("d", createDashaCirclePath(cx, cy, ring.radius, ring.sweepFrac));
+    path.setAttribute("fill", "none");
+    defs.appendChild(path);
+  }
+  svg.appendChild(defs);
+
+  for (const ring of rings) {
+    const colorKind = dashaPlanetColorKind(payload, ring.key);
+    if (colorKind) {
+      const fill = document.createElementNS(svgNS, "circle");
+      fill.setAttribute("cx", String(cx));
+      fill.setAttribute("cy", String(cy));
+      fill.setAttribute("r", String(ring.radius));
+      fill.setAttribute(
+        "class",
+        `current-dasha-ring-fill current-dasha-ring-fill--${colorKind}`
+      );
+      fill.setAttribute("stroke-width", String(ring.strokeWidth));
+      applyPlanetStatusCellColorIntensity(fill);
+      svg.appendChild(fill);
+    }
+    appendDashaRingLabel(svg, svgNS, xlinkNS, ring, idPrefix, cx, cy);
+  }
+
+  const pratyantarColor = dashaPlanetColorKind(payload, pratyantar.key);
+  if (pratyantarColor) {
+    const disc = document.createElementNS(svgNS, "circle");
+    disc.setAttribute("cx", String(cx));
+    disc.setAttribute("cy", String(cy));
+    disc.setAttribute("r", String(pratyantarR));
+    disc.setAttribute(
+      "class",
+      `current-dasha-ring-disc current-dasha-ring-disc--${pratyantarColor}`
+    );
+    applyPlanetStatusCellColorIntensity(disc);
+    svg.appendChild(disc);
+  }
+
+  // Thick black outlines: outer, middle, and inner.
+  for (const r of [mahaOuter, antarOuter, pratyantarR]) {
+    const outline = document.createElementNS(svgNS, "circle");
+    outline.setAttribute("cx", String(cx));
+    outline.setAttribute("cy", String(cy));
+    outline.setAttribute("r", String(r));
+    outline.setAttribute("class", "current-dasha-ring-outline");
+    outline.setAttribute("stroke-width", String(thinStroke));
+    svg.appendChild(outline);
+  }
+
+  appendDashaRingLabel(svg, svgNS, xlinkNS, pratyantar, idPrefix, cx, cy);
+
+  return svg;
+}
+
+function createDashaOrbitCard(label, snapshot, payload, idPrefix) {
+  const card = document.createElement("div");
+  card.className = "current-dasha-orbit__card";
+
+  const title = document.createElement("h3");
+  title.className = "current-dasha-orbit__label";
+  title.textContent = label;
+  card.appendChild(title);
+
+  const stack = document.createElement("div");
+  stack.className = "current-dasha-orbit__stack";
+  stack.appendChild(createDashaRingSvg(snapshot, payload, idPrefix));
+  card.appendChild(stack);
+  return card;
+}
+
+function createDashaOrbitArrow() {
+  const arrow = document.createElement("div");
+  arrow.className = "current-dasha-orbit__arrow";
+  arrow.setAttribute("aria-hidden", "true");
+  // Empty (outline-only) arrow — no enclosing circle.
+  arrow.innerHTML =
+    '<svg class="current-dasha-orbit__arrow-svg" viewBox="0 0 96 64" focusable="false">' +
+    '<path d="M12 32 H58 M40 14 L78 32 L40 50" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    "</svg>";
+  return arrow;
+}
+
+function renderCurrentDashaFromPayload(payload) {
+  const section = document.getElementById("planet-active-dasha-section");
+  const summaryHost = document.getElementById("current-dasha-summary");
+  if (!summaryHost) return;
+
+  summaryHost.replaceChildren();
+  summaryHost.className = "current-dasha-summary";
+
+  const snapshot = computeCurrentDashaSnapshot(payload);
+  if (!snapshot?.current) {
+    if (section) section.hidden = true;
+    return;
+  }
+
+  if (section) section.hidden = false;
+
+  const layout = document.createElement("div");
+  layout.className = "current-dasha-orbit";
+  layout.appendChild(
+    createDashaOrbitCard("Current", snapshot.current, payload, "current")
+  );
+  if (snapshot.next) {
+    layout.appendChild(createDashaOrbitArrow());
+    layout.appendChild(
+      createDashaOrbitCard("Next Dasha", snapshot.next, payload, "next")
+    );
+  }
+  summaryHost.appendChild(layout);
 }
 
 /** Progressive zoom sizes for the chart lightbox (CSS rem). */
@@ -2034,6 +2605,8 @@ function renderDivisionalChartsFromPayload(payload) {
   grid.innerHTML = "";
 
   const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
+  const divisionalToggle = document.getElementById("divisional-charts-toggle");
+  if (divisionalToggle) divisionalToggle.hidden = charts.length === 0;
   if (section) section.hidden = charts.length === 0;
   if (!charts.length) return;
 
@@ -2371,13 +2944,10 @@ function birthViewSelectKey(view) {
   if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
     return SaptarishiAuth.birthViewKey(view);
   }
-  if (!view || !view.date) return "";
-  return [
-    String(view.name || "").trim().toLowerCase(),
-    String(view.date || "").trim(),
-    String(view.time || "").trim(),
-    String(view.place || "").trim().toLowerCase()
-  ].join("|");
+  if (!view || !view.name) return "";
+  return String(view.name || "")
+    .trim()
+    .toLowerCase();
 }
 
 function refreshSavedKundaliDropdown() {
@@ -2489,6 +3059,7 @@ window.SaptarishiKundaliView = {
   buildNorthIndianChartFromPayload,
   renderKundaliChart,
   renderDivisionalChartsFromPayload,
+  renderCurrentDashaFromPayload,
   renderKundaliYogasFromPayload,
   renderKundaliDoshasFromPayload,
   bindKundaliChartZoom,
