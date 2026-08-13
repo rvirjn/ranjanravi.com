@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=182">
+  <link rel="stylesheet" href="../style/styles.css?v=186">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -113,8 +113,36 @@
         </div>
       </div>
 
-      <h2 class="result-heading">Planets</h2>
-      <div class="table-wrap">
+      <section class="planets-status-section planets-status-section--grid" data-planets-view="grid" aria-label="Birth Time Planets Status">
+      <div class="planets-status-toolbar">
+        <h2 class="result-heading">Birth Time Planets Status</h2>
+        <div class="planets-view-switch" role="group" aria-label="Planets status view">
+          <button
+            type="button"
+            class="planets-view-switch__btn is-active"
+            data-planets-view="grid"
+            aria-pressed="true"
+          >
+            Grid view
+          </button>
+          <button
+            type="button"
+            class="planets-view-switch__btn"
+            data-planets-view="full"
+            aria-pressed="false"
+          >
+            Full view
+          </button>
+        </div>
+      </div>
+      <div
+        id="house-planets-tiles"
+        class="house-planets-tiles"
+        role="group"
+        aria-label="Birth time planets by house"
+        hidden
+      ></div>
+      <div class="table-wrap planets-table-wrap" hidden>
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
@@ -139,6 +167,7 @@
           <tbody></tbody>
         </table>
       </div>
+      </section>
 
       <section id="kundali-yog-section" class="kundali-yog-section" hidden>
         <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
@@ -194,7 +223,7 @@
   <script src="../js/premium-modal.js?v=10"></script>
   <script src="../js/wallet-modal.js?v=3"></script>
   <script src="../utils/common.js?v=43"></script>
-  <script src="../js/kundali.js?v=237"></script>
+  <script src="../js/kundali.js?v=241"></script>
   <script src="../js/lord-comparison.js?v=15"></script>
   <script src="../js/kundali-compare.js?v=9"></script>
 </body>

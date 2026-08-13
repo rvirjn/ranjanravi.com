@@ -1472,12 +1472,13 @@ tbody tr:last-child td {
 #planets-table.kundali-table thead th:nth-child(16),
 #slot-planets-table.kundali-table thead th:nth-child(16) { width: 6%; }
 
-:is(#planets-table, #slot-planets-table) tbody td.planets-td-planet {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planets-td-planet {
   font-weight: 700;
 }
 
 #planets-table .planets-td-aspected-by,
-#slot-planets-table .planets-td-aspected-by {
+#slot-planets-table .planets-td-aspected-by,
+.house-planets-sheet__table .planets-td-aspected-by {
   min-width: 3.25rem;
   max-width: none;
   padding-top: 0.15rem;
@@ -1529,7 +1530,8 @@ tbody tr:last-child td {
 }
 
 #planets-table .planets-strength-delta,
-#slot-planets-table .planets-strength-delta {
+#slot-planets-table .planets-strength-delta,
+.house-planets-sheet__table .planets-strength-delta {
   font-weight: 600;
   font-size: 0.62rem;
   color: var(--color-text-muted);
@@ -1545,49 +1547,49 @@ tbody tr:last-child td {
 }
 
 /* Planets: per-cell tint (status + yes/no flags). Navatara keeps row-wise rules below. */
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell {
   --planet-strength: 0.35;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--high {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--high {
   background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.28 + var(--planet-strength) * 0.5)) !important;
   color: var(--planet-color-green_text, #1b5e20) !important;
   font-weight: 600;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--low {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--low {
   background-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), calc(0.24 + var(--planet-strength) * 0.45)) !important;
   color: var(--planet-color-red_text, #6d1010) !important;
   font-weight: 600;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--friend {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--friend {
   background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.2 + var(--planet-strength) * 0.45)) !important;
   color: var(--planet-color-green_text, #1b5e20) !important;
   font-weight: 600;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--own {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--own {
   background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.26 + var(--planet-strength) * 0.5)) !important;
   color: var(--planet-color-green_text, #1b5e20) !important;
   font-weight: 600;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--enemy {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--enemy {
   background-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), calc(0.18 + var(--planet-strength) * 0.4)) !important;
   color: var(--planet-color-red_text, #6d1010) !important;
   font-weight: 600;
 }
 
 /* Untinted Planet Strength (white cell) → black text */
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--neutral {
   background-color: transparent !important;
   color: var(--planet-color-neutral, #000000) !important;
   font-weight: 600;
 }
 
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral .planets-strength-rule-line,
-:is(#planets-table, #slot-planets-table) tbody td.planet-cell--neutral .planets-strength-delta {
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--neutral .planets-strength-rule-line,
+:is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planet-cell--neutral .planets-strength-delta {
   color: var(--planet-color-neutral, #000000) !important;
 }
 
@@ -3292,6 +3294,306 @@ body.premium-modal-open {
   grid-column: 1 / -1;
   margin: 0 0 var(--space-xs);
   padding: var(--space-sm) 0 0;
+}
+
+/* Birth Time Planets Status — toolbar + grid / full toggle */
+.planets-status-section {
+  margin-top: 0.15rem;
+}
+
+.planets-status-section--full .house-planets-tiles,
+.planets-status-section--grid .planets-table-wrap,
+.house-planets-tiles[hidden],
+.planets-table-wrap[hidden] {
+  display: none !important;
+}
+
+.planets-status-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 var(--space-sm);
+}
+
+.planets-status-toolbar .result-heading {
+  margin: 0;
+}
+
+.planets-view-switch {
+  display: inline-flex;
+  align-items: stretch;
+  margin-left: auto;
+  padding: 0.15rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(30, 58, 95, 0.06);
+}
+
+.planets-view-switch__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.planets-view-switch__btn:hover {
+  color: var(--color-heading);
+}
+
+.planets-view-switch__btn.is-active {
+  background: color-mix(in srgb, var(--color-heading) 12%, #fff);
+  color: var(--color-heading);
+  box-shadow: 0 1px 2px rgba(30, 58, 95, 0.12);
+}
+
+/* Birth Time Planets Status — 12 equal house tiles */
+.house-planets-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  align-items: stretch;
+}
+
+.house-planets-tile-item {
+  display: contents;
+}
+
+.house-planets-tile-btn {
+  box-sizing: border-box;
+  width: 100%;
+  height: 11.5rem;
+  min-height: 11.5rem;
+  max-height: 11.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  padding: 0.7rem 0.55rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.03);
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.house-planets-tile-btn:hover {
+  border-color: rgba(46, 125, 50, 0.45);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.house-planets-tile-btn--active {
+  box-shadow: inset 0 0 0 2px rgba(46, 125, 50, 0.35);
+}
+
+.house-planets-tile-btn__num {
+  flex: 0 0 auto;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.house-planets-tile-btn__for {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 5em;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.house-planets-tile-btn__pct {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-top: 0.05rem;
+}
+
+.house-planets-tile-panel {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.house-planets-sheet {
+  border: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.18));
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.08);
+  overflow: hidden;
+}
+
+.house-planets-sheet__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem 0.85rem;
+  padding: 0.7rem 0.95rem;
+  background: color-mix(in srgb, var(--color-heading, #1e3a5f) 7%, #fff);
+  border-bottom: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.14));
+}
+
+.house-planets-sheet__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.house-planets-sheet__title strong {
+  font-size: 0.95rem;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.house-planets-sheet__for,
+.house-planets-sheet__planets {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.house-planets-sheet__pct {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-heading, #1e3a5f);
+  white-space: nowrap;
+}
+
+.house-planets-sheet__table-wrap {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-x: auto;
+}
+
+.house-planets-sheet__table {
+  min-width: 56rem;
+}
+
+.house-planets-sheet__list {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11.5rem) minmax(0, 1fr) minmax(8rem, 11.5rem) minmax(0, 1fr);
+  margin: 0;
+}
+
+.house-planets-sheet__list dt,
+.house-planets-sheet__list dd {
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  border-top: 1px solid rgba(30, 58, 95, 0.08);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.house-planets-sheet__list dt {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: rgba(30, 58, 95, 0.035);
+}
+
+.house-planets-sheet__list dd {
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .house-planets-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .house-planets-sheet__list {
+    grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .house-planets-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .house-planets-tile-btn {
+    height: 10.5rem;
+    min-height: 10.5rem;
+    max-height: 10.5rem;
+  }
+
+  .house-planets-sheet__list {
+    grid-template-columns: 1fr;
+  }
+
+  .house-planets-sheet__list dt {
+    border-top: 1px solid rgba(30, 58, 95, 0.08);
+    padding-bottom: 0.15rem;
+  }
+
+  .house-planets-sheet__list dd {
+    border-top: 0;
+    padding-top: 0.1rem;
+    padding-bottom: 0.7rem;
+  }
+}
+
+.house-planets-tile-btn.planet-cell {
+  --planet-strength: 0.35;
+}
+
+.house-planets-tile-btn.planet-cell--high {
+  background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.28 + var(--planet-strength) * 0.5)) !important;
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.35);
+  color: var(--planet-color-green_text, #1b5e20) !important;
+}
+
+.house-planets-tile-btn.planet-cell--low {
+  background-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), calc(0.24 + var(--planet-strength) * 0.45)) !important;
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.35);
+  color: var(--planet-color-red_text, #6d1010) !important;
+}
+
+.house-planets-tile-btn.planet-cell--friend {
+  background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.2 + var(--planet-strength) * 0.45)) !important;
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.3);
+  color: var(--planet-color-green_text, #1b5e20) !important;
+}
+
+.house-planets-tile-btn.planet-cell--own {
+  background-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), calc(0.26 + var(--planet-strength) * 0.5)) !important;
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.35);
+  color: var(--planet-color-green_text, #1b5e20) !important;
+}
+
+.house-planets-tile-btn.planet-cell--enemy {
+  background-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), calc(0.18 + var(--planet-strength) * 0.4)) !important;
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.3);
+  color: var(--planet-color-red_text, #6d1010) !important;
+}
+
+.house-planets-tile-btn.planet-cell--neutral {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--planet-color-neutral, #000000) !important;
 }
 
 .remedy-navatara-panel__table {

@@ -994,6 +994,336 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
 
 const KUNDALI_PLANETS_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS.map((col) => col.header);
 
+const KUNDALI_PLANETS_TABLE_HEADING = "Birth Time Planets Status";
+const KUNDALI_PLANETS_VIEW_GRID = "grid";
+const KUNDALI_PLANETS_VIEW_FULL = "full";
+let kundaliPlanetsViewMode = KUNDALI_PLANETS_VIEW_GRID;
+
+/** Group ``planets_table`` rows by whole-sign house number (1–12). */
+function groupPlanetsTableRowsByHouse(rows) {
+  const byHouse = {};
+  for (let house = 1; house <= 12; house += 1) byHouse[house] = [];
+  for (const rowData of rows || []) {
+    const houseNum = Number(houseFromTableRow(rowData).number);
+    if (houseNum >= 1 && houseNum <= 12) byHouse[houseNum].push(rowData);
+  }
+  return byHouse;
+}
+
+/** Rows in this house that have a planet (same rows the full table shows). */
+function housePlanetTableRows(houseRows) {
+  return (houseRows || []).filter((row) => String(row?.planet || "").trim());
+}
+
+/** Same Planet Strength cell text as the full table view. */
+function planetsTableStrengthCellText(rowData) {
+  const direct = formatTableCellForDisplay(
+    "strength",
+    planetsTableCellText("strength", rowData)
+  );
+  if (direct && direct !== "—") return direct;
+  const total = rowData?.strength_adjustments?.total;
+  if (typeof total === "number" && Number.isFinite(total)) return `${total}%`;
+  if (typeof rowData?.strength_percent === "number") return `${rowData.strength_percent}%`;
+  return "—";
+}
+
+/** Row that drives tile tint: first planet in this house, else the empty-house table row. */
+function pickHouseTileRepresentativeRow(houseRows) {
+  if (!Array.isArray(houseRows) || !houseRows.length) return null;
+  const planetRows = housePlanetTableRows(houseRows);
+  return planetRows[0] || houseRows[0] || null;
+}
+
+/** Display text for one ``planets_table`` column on a single row. */
+function planetsTableRowDisplayForColumn(rowData, col) {
+  if (col.key === "planet") {
+    const text = formatTableCellForDisplay("planet", rowData.planet);
+    return text === "No planet" ? "" : text;
+  }
+  if (col.type === "house") {
+    const { number: num, for: forRaw } = houseFromTableRow(rowData);
+    const forText = formatHouseForList(forRaw);
+    if (num != null && num !== "" && forText) return `${num} — ${forText}`;
+    if (num != null && num !== "") return String(num);
+    return forText;
+  }
+  if (col.type === "aspected_by") {
+    const text = formatAspectedByPlanets(rowData);
+    return text || "—";
+  }
+  if (col.key === "degree") {
+    return formatTableCellForDisplay("degree", rowData.degree) || "—";
+  }
+  if (col.key === "strength") {
+    return planetsTableStrengthCellText(rowData);
+  }
+  const key = col.key;
+  const displayValue = planetsTableCellText(key, rowData);
+  return formatTableCellForDisplay(key, displayValue);
+}
+
+/** Combine column values for all planets sitting in one house. */
+function houseColumnDisplayForRows(houseRows, col) {
+  const rows = Array.isArray(houseRows) ? houseRows : [];
+  const planetRows = housePlanetTableRows(rows);
+  const sourceRows = planetRows.length ? planetRows : rows.slice(0, 1);
+  if (col.key === "planet") {
+    const names = planetRows
+      .map((row) => planetsTableRowDisplayForColumn(row, col))
+      .filter(Boolean);
+    return names.length ? names.join(", ") : "—";
+  }
+  if (col.key === "strength") {
+    if (!planetRows.length) return "—";
+    if (planetRows.length === 1) return planetsTableStrengthCellText(planetRows[0]);
+    return planetRows
+      .map((row) => {
+        const name = formatTableCellForDisplay("planet", row.planet);
+        return `${name}: ${planetsTableStrengthCellText(row)}`;
+      })
+      .join("\n");
+  }
+  const values = sourceRows
+    .map((row) => planetsTableRowDisplayForColumn(row, col))
+    .filter((value) => value && value !== "—");
+  if (!values.length) return "—";
+  return [...new Set(values)].join(", ");
+}
+
+function formatHouseTileStrengthPercent(houseRows) {
+  const planetRows = housePlanetTableRows(houseRows);
+  if (!planetRows.length) return "—";
+  if (planetRows.length === 1) return planetsTableStrengthCellText(planetRows[0]);
+  return planetRows
+    .map((row) => {
+      const name = formatTableCellForDisplay("planet", row.planet);
+      return `${name} ${planetsTableStrengthCellText(row)}`;
+    })
+    .join(" · ");
+}
+
+/** Apply planet-table tint classes onto a house tile button. */
+function applyHousePlanetsTileStyle(btn, representativeRow) {
+  if (!btn || !representativeRow) return;
+  const colorKind = representativeRow?.cell_styles?.strength || "";
+  applyPlanetTableCellStyle(btn, colorKind, "strength");
+}
+
+function normalizeKundaliPlanetsViewMode(mode) {
+  return mode === KUNDALI_PLANETS_VIEW_FULL ? KUNDALI_PLANETS_VIEW_FULL : KUNDALI_PLANETS_VIEW_GRID;
+}
+
+/** Show grid tiles or the full planets table inside one status section. */
+function applyKundaliPlanetsView(fromEl) {
+  const view = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
+  const sections = fromEl
+    ? [fromEl.closest?.(".planets-status-section") || fromEl].filter(Boolean)
+    : Array.from(document.querySelectorAll(".planets-status-section"));
+  for (const section of sections) {
+    if (!section?.querySelector) continue;
+    section.setAttribute("data-planets-view", view);
+    section.classList.toggle("planets-status-section--grid", view === KUNDALI_PLANETS_VIEW_GRID);
+    section.classList.toggle("planets-status-section--full", view === KUNDALI_PLANETS_VIEW_FULL);
+    const tiles = section.querySelector(".house-planets-tiles");
+    const tableWrap = section.querySelector(".planets-table-wrap");
+    const hasData = Boolean(
+      (tiles && tiles.childElementCount) || tableWrap?.querySelector("tbody tr")
+    );
+    if (tiles) {
+      tiles.hidden = !(hasData && view === KUNDALI_PLANETS_VIEW_GRID);
+      if (tiles.hidden) {
+        tiles.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
+          btn.classList.remove("house-planets-tile-btn--active");
+          btn.setAttribute("aria-pressed", "false");
+          btn.setAttribute("aria-expanded", "false");
+        });
+        tiles.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
+          panel.hidden = true;
+        });
+      }
+    }
+    if (tableWrap) tableWrap.hidden = !(hasData && view === KUNDALI_PLANETS_VIEW_FULL);
+    section.querySelectorAll(".planets-view-switch__btn[data-planets-view]").forEach((btn) => {
+      const active = btn.getAttribute("data-planets-view") === view;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+}
+
+function setKundaliPlanetsViewMode(mode, fromEl) {
+  kundaliPlanetsViewMode = normalizeKundaliPlanetsViewMode(mode);
+  applyKundaliPlanetsView(fromEl);
+}
+
+function createPlanetsViewSwitchElement(idPrefix) {
+  const switchEl = document.createElement("div");
+  switchEl.className = "planets-view-switch";
+  switchEl.setAttribute("role", "group");
+  switchEl.setAttribute("aria-label", "Planets status view");
+  const current = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
+  for (const [mode, label] of [
+    [KUNDALI_PLANETS_VIEW_GRID, "Grid view"],
+    [KUNDALI_PLANETS_VIEW_FULL, "Full view"]
+  ]) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `planets-view-switch__btn${mode === current ? " is-active" : ""}`;
+    btn.dataset.planetsView = mode;
+    btn.id = kundaliElementId(idPrefix, `planets-view-${mode}`);
+    btn.textContent = label;
+    btn.setAttribute("aria-pressed", mode === current ? "true" : "false");
+    switchEl.appendChild(btn);
+  }
+  return switchEl;
+}
+
+function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetNames, houseRows) {
+  const sheet = document.createElement("div");
+  sheet.className = "house-planets-sheet";
+
+  const head = document.createElement("div");
+  head.className = "house-planets-sheet__head";
+
+  const title = document.createElement("div");
+  title.className = "house-planets-sheet__title";
+  const houseLabel = document.createElement("strong");
+  houseLabel.textContent = `House ${houseNum}`;
+  title.appendChild(houseLabel);
+  if (forText) {
+    const forEl = document.createElement("span");
+    forEl.className = "house-planets-sheet__for";
+    forEl.textContent = forText;
+    title.appendChild(forEl);
+  }
+  if (planetNames) {
+    const planetsEl = document.createElement("span");
+    planetsEl.className = "house-planets-sheet__planets";
+    planetsEl.textContent = planetNames;
+    title.appendChild(planetsEl);
+  }
+  head.appendChild(title);
+
+  if (strengthText && strengthText !== "—") {
+    const pct = document.createElement("span");
+    pct.className = "house-planets-sheet__pct";
+    pct.textContent = strengthText;
+    head.appendChild(pct);
+  }
+
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "table-wrap house-planets-sheet__table-wrap";
+  const table = document.createElement("table");
+  table.className = "navatara-data-table kundali-table house-planets-sheet__table";
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  for (const label of KUNDALI_PLANETS_TABLE_HEADERS) {
+    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: label }));
+  }
+  thead.appendChild(headerRow);
+  const tbody = document.createElement("tbody");
+  renderPlanetsTableWithColors(tbody, houseRows);
+  table.append(thead, tbody);
+  tableWrap.appendChild(table);
+
+  sheet.append(head, tableWrap);
+  return sheet;
+}
+
+/** Render 12 house tiles (heading from In House; tint/% from Planet Strength). */
+function renderHousePlanetsTiles(container, rows, options = {}) {
+  if (!container) return;
+  container.innerHTML = "";
+  const allRows = Array.isArray(rows) ? rows : [];
+  if (!allRows.length) return;
+
+  const byHouse = groupPlanetsTableRowsByHouse(allRows);
+  let selectedHouse = "";
+
+  const closeAllPanels = () => {
+    container.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
+      btn.classList.remove("house-planets-tile-btn--active");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+    });
+    container.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+  };
+
+  for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
+    const houseRows = byHouse[houseNum];
+    const sampleRow = houseRows[0];
+    if (!sampleRow) continue;
+
+    const { number: num, for: forRaw } = houseFromTableRow(sampleRow);
+    const forText = formatHouseForList(forRaw);
+    const representativeRow = pickHouseTileRepresentativeRow(houseRows);
+    const strengthText = formatHouseTileStrengthPercent(houseRows);
+    const planetNames = houseColumnDisplayForRows(houseRows, { key: "planet" });
+    const displayPlanetNames = planetNames && planetNames !== "—" ? planetNames : "";
+    const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
+
+    const wrap = document.createElement("div");
+    wrap.className = "house-planets-tile-item";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "house-planets-tile-btn";
+    btn.dataset.house = String(houseNum);
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
+    btn.title = [houseLabel, forText, strengthText].filter(Boolean).join(" · ");
+    applyHousePlanetsTileStyle(btn, representativeRow);
+
+    const numEl = document.createElement("span");
+    numEl.className = "house-planets-tile-btn__num";
+    numEl.textContent = houseLabel;
+    btn.appendChild(numEl);
+
+    if (forText) {
+      const forEl = document.createElement("span");
+      forEl.className = "house-planets-tile-btn__for";
+      forEl.textContent = forText;
+      btn.appendChild(forEl);
+    }
+
+    if (strengthText) {
+      const pctEl = document.createElement("span");
+      pctEl.className = "house-planets-tile-btn__pct";
+      pctEl.textContent = strengthText;
+      btn.appendChild(pctEl);
+    }
+
+    const panel = document.createElement("div");
+    panel.className = "house-planets-tile-panel";
+    panel.hidden = true;
+    panel.appendChild(
+      createHousePlanetsSheetElement(houseLabel, forText, strengthText, displayPlanetNames, houseRows)
+    );
+
+    btn.addEventListener("click", () => {
+      const houseKey = String(houseNum);
+      if (selectedHouse === houseKey && !panel.hidden) {
+        closeAllPanels();
+        selectedHouse = "";
+        return;
+      }
+      closeAllPanels();
+      selectedHouse = houseKey;
+      btn.classList.add("house-planets-tile-btn--active");
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-expanded", "true");
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    wrap.append(btn, panel);
+    container.appendChild(wrap);
+  }
+}
+
 /** Planets table: values and ``cell_styles`` come from API (kundali.py). */
 function renderPlanetsTableWithColors(tbody, rows) {
   if (!tbody) return;
@@ -1750,6 +2080,7 @@ function buildKundaliViewTargets(options = {}) {
     chartHost: kundaliElementId(idPrefix, "kundali-chart"),
     chartHeading: kundaliElementId(idPrefix, "kundali-chart-heading"),
     planetsTable: `#${dash}planets-table tbody`,
+    housePlanetsTiles: kundaliElementId(idPrefix, "house-planets-tiles"),
     skipShellUpdates: Boolean(options.skipShellUpdates)
   };
 }
@@ -1824,15 +2155,35 @@ function createStandardKundaliPanelElement(options = {}) {
   summaryRow.append(summaryWrap, chartWrap);
   panel.appendChild(summaryRow);
 
-  panel.appendChild(Object.assign(document.createElement("h2"), {
-    className: "result-heading",
-    textContent: "Planets"
-  }));
-  const planetsWrap = document.createElement("div");
-  planetsWrap.className = "table-wrap";
-  planetsWrap.appendChild(createKundaliPlanetsTableElement(idPrefix));
-  panel.appendChild(planetsWrap);
+  const planetsSection = document.createElement("section");
+  planetsSection.className = "planets-status-section planets-status-section--grid";
+  planetsSection.setAttribute("data-planets-view", KUNDALI_PLANETS_VIEW_GRID);
+  planetsSection.setAttribute("aria-label", KUNDALI_PLANETS_TABLE_HEADING);
 
+  const toolbar = document.createElement("div");
+  toolbar.className = "planets-status-toolbar";
+  toolbar.appendChild(Object.assign(document.createElement("h2"), {
+    className: "result-heading",
+    textContent: KUNDALI_PLANETS_TABLE_HEADING
+  }));
+  toolbar.appendChild(createPlanetsViewSwitchElement(idPrefix));
+  planetsSection.appendChild(toolbar);
+
+  const houseTiles = document.createElement("div");
+  houseTiles.id = kundaliElementId(idPrefix, "house-planets-tiles");
+  houseTiles.className = "house-planets-tiles";
+  houseTiles.setAttribute("role", "group");
+  houseTiles.setAttribute("aria-label", "Birth time planets by house");
+  houseTiles.hidden = true;
+  planetsSection.appendChild(houseTiles);
+
+  const planetsWrap = document.createElement("div");
+  planetsWrap.className = "table-wrap planets-table-wrap";
+  planetsWrap.hidden = true;
+  planetsWrap.appendChild(createKundaliPlanetsTableElement(idPrefix));
+  planetsSection.appendChild(planetsWrap);
+
+  panel.appendChild(planetsSection);
   return panel;
 }
 
@@ -1891,7 +2242,13 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   if (chartHostEl) {
     renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHostId);
   }
-  renderPlanetsTableWithColors(planetsBody, kundaliPayload.planets_table || []);
+  const planetsRows = kundaliPayload.planets_table || [];
+  renderPlanetsTableWithColors(planetsBody, planetsRows);
+  const houseTilesEl = viewTargets.housePlanetsTiles
+    ? document.getElementById(viewTargets.housePlanetsTiles)
+    : document.getElementById("house-planets-tiles");
+  renderHousePlanetsTiles(houseTilesEl, planetsRows);
+  applyKundaliPlanetsView(houseTilesEl || planetsBody);
 
   if (viewTargets.nakshatraTable) {
     const nakshatraBody = document.querySelector(viewTargets.nakshatraTable);
@@ -3072,6 +3429,14 @@ if (document.getElementById("birth-form")) {
   });
 }
 
+document.addEventListener("click", (event) => {
+  const btn = event.target.closest?.(".planets-view-switch__btn[data-planets-view]");
+  if (!btn || !btn.closest(".planets-status-section")) return;
+  const mode = btn.getAttribute("data-planets-view");
+  if (mode !== KUNDALI_PLANETS_VIEW_GRID && mode !== KUNDALI_PLANETS_VIEW_FULL) return;
+  setKundaliPlanetsViewMode(mode, btn);
+});
+
 /** Shared kundali view helpers (auspicious page row drill-down). */
 window.SaptarishiKundaliView = {
   ensurePlanetDatabase,
@@ -3086,6 +3451,8 @@ window.SaptarishiKundaliView = {
   renderCurrentDashaFromPayload,
   renderKundaliYogasFromPayload,
   renderKundaliDoshasFromPayload,
+  renderHousePlanetsTiles,
+  applyKundaliPlanetsView,
   bindKundaliChartZoom,
   openKundaliChartZoom,
   closeKundaliChartZoom,
