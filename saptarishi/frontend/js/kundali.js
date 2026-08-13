@@ -993,6 +993,12 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
 ];
 
 const KUNDALI_PLANETS_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS.map((col) => col.header);
+const KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT_HOUSE = KUNDALI_PLANETS_TABLE_COLUMNS.filter(
+  (col) => col.type !== "house"
+);
+const KUNDALI_PLANETS_GRID_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT_HOUSE.map(
+  (col) => col.header
+);
 
 const KUNDALI_PLANETS_TABLE_HEADING = "Birth Time Planets Status";
 const KUNDALI_PLANETS_VIEW_GRID = "grid";
@@ -1218,12 +1224,12 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   table.className = "navatara-data-table kundali-table house-planets-sheet__table";
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
-  for (const label of KUNDALI_PLANETS_TABLE_HEADERS) {
+  for (const label of KUNDALI_PLANETS_GRID_TABLE_HEADERS) {
     headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: label }));
   }
   thead.appendChild(headerRow);
   const tbody = document.createElement("tbody");
-  renderPlanetsTableWithColors(tbody, houseRows);
+  renderPlanetsTableWithColors(tbody, houseRows, { hideHouseColumn: true });
   table.append(thead, tbody);
   tableWrap.appendChild(table);
 
@@ -1325,14 +1331,17 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
 }
 
 /** Planets table: values and ``cell_styles`` come from API (kundali.py). */
-function renderPlanetsTableWithColors(tbody, rows) {
+function renderPlanetsTableWithColors(tbody, rows, options = {}) {
   if (!tbody) return;
   tbody.innerHTML = "";
+  const columns = options.hideHouseColumn
+    ? KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT_HOUSE
+    : KUNDALI_PLANETS_TABLE_COLUMNS;
   const sortedRows = Array.isArray(rows) ? rows : [];
   for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
     const cellStyles = rowData.cell_styles || {};
-    for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
+    for (const col of columns) {
       if (col.key === "planet") {
         appendPlanetsPlanetCell(tr, rowData, cellStyles);
         continue;
