@@ -956,6 +956,92 @@ tbody tr:last-child td {
   margin-top: var(--space-md);
 }
 
+.planet-active-dasha-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: var(--space-sm);
+}
+
+.planet-active-dasha-header .result-heading {
+  margin: 0;
+}
+
+.kundali-info-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-heading, #1e3a5f) 28%, var(--color-surface-border));
+  border-radius: 999px;
+  background: #fffef8;
+  color: var(--color-heading, #1e3a5f);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.kundali-info-btn:hover {
+  background: color-mix(in srgb, var(--color-accent, #c9a227) 12%, #fffef8);
+  border-color: color-mix(in srgb, var(--color-accent, #c9a227) 45%, var(--color-surface-border));
+}
+
+.kundali-info-btn[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--color-accent, #c9a227) 18%, #fffef8);
+  border-color: var(--color-accent, #c9a227);
+}
+
+.kundali-info-btn__glyph {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.planet-active-dasha-info-panel {
+  margin: 0 0 var(--space-md);
+  max-width: 52rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent, #c9a227) 35%, var(--color-surface-border));
+  border-radius: var(--radius-md, 8px);
+  background: #fffef8;
+}
+
+.planet-active-dasha-info-panel__question {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.planet-active-dasha-info-panel__answer {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-text-muted, #5a6a7a);
+}
+
+.planet-active-dasha-info-panel__answer p {
+  margin: 0 0 0.65rem;
+}
+
+.planet-active-dasha-info-panel__answer p:last-child {
+  margin-bottom: 0;
+}
+
+.planet-active-dasha-info-panel__good {
+  color: var(--planet-color-green, #2e7d32);
+  font-weight: 600;
+}
+
+.planet-active-dasha-info-panel__care {
+  color: var(--planet-color-red, #b71c1c);
+  font-weight: 600;
+}
+
 .current-dasha-summary {
   display: block;
   margin-bottom: 0;

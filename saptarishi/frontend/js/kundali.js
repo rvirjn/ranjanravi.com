@@ -3271,6 +3271,132 @@ function createDashaNextCard(snapshot, payload) {
   return side;
 }
 
+const DASHA_QA_KEY = "your_dasha";
+
+/** Read ``data.json`` → ``Q&A.your_dasha`` (question + answer paragraphs). */
+function dashaQaEntryFromDatabase(db) {
+  const qaRoot = db?.["Q&A"];
+  if (!qaRoot || typeof qaRoot !== "object") return null;
+  const entry = qaRoot[DASHA_QA_KEY] || qaRoot.dasha;
+  if (!entry || typeof entry !== "object") return null;
+  const question = String(entry.question || "").trim();
+  let answerParts = entry.answer;
+  if (typeof answerParts === "string") {
+    answerParts = answerParts
+      .split(/\n\n+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  if (!Array.isArray(answerParts)) answerParts = [];
+  answerParts = answerParts.map((part) => String(part || "").trim()).filter(Boolean);
+  if (!question || !answerParts.length) return null;
+  return { question, answerParts };
+}
+
+function formatDashaQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
+  const p = document.createElement("p");
+  const isColorParagraph =
+    paragraphIndex === totalParagraphs - 1 && /\bgreen\b/i.test(text) && /\bred\b/i.test(text);
+  if (!isColorParagraph) {
+    p.textContent = text;
+    return p;
+  }
+  const frag = document.createDocumentFragment();
+  const re = /\b(green|red)\b/gi;
+  let last = 0;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) {
+      frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+    }
+    const span = document.createElement("span");
+    span.className =
+      match[1].toLowerCase() === "green"
+        ? "planet-active-dasha-info-panel__good"
+        : "planet-active-dasha-info-panel__care";
+    span.textContent = match[1];
+    frag.appendChild(span);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) {
+    frag.appendChild(document.createTextNode(text.slice(last)));
+  }
+  p.appendChild(frag);
+  return p;
+}
+
+function renderDashaQaPanelFromDatabase(db) {
+  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
+  const panel = document.getElementById("planet-active-dasha-info-panel");
+  const questionEl = document.getElementById("planet-active-dasha-info-question");
+  const answerEl = document.getElementById("planet-active-dasha-info-answer");
+  if (!infoBtn || !panel || !questionEl || !answerEl) return;
+
+  const entry = dashaQaEntryFromDatabase(db);
+  if (!entry) {
+    infoBtn.hidden = true;
+    panel.hidden = true;
+    infoBtn.setAttribute("aria-expanded", "false");
+    questionEl.textContent = "";
+    answerEl.replaceChildren();
+    return;
+  }
+
+  questionEl.textContent = entry.question;
+  answerEl.replaceChildren();
+  entry.answerParts.forEach((text, index) => {
+    answerEl.appendChild(formatDashaQaAnswerParagraph(text, index, entry.answerParts.length));
+  });
+
+  infoBtn.hidden = false;
+  infoBtn.setAttribute("aria-label", entry.question);
+  infoBtn.title = entry.question;
+}
+
+let dashaQaInfoBound = false;
+
+function setDashaQaPanelOpen(open) {
+  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
+  const panel = document.getElementById("planet-active-dasha-info-panel");
+  if (!infoBtn || !panel || infoBtn.hidden) return;
+  const isOpen = Boolean(open);
+  panel.hidden = !isOpen;
+  infoBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function bindDashaQaInfoInteractions() {
+  if (dashaQaInfoBound) return;
+  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
+  const panel = document.getElementById("planet-active-dasha-info-panel");
+  if (!infoBtn || !panel) return;
+  dashaQaInfoBound = true;
+
+  infoBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = infoBtn.getAttribute("aria-expanded") === "true";
+    setDashaQaPanelOpen(!isOpen);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (panel.hidden) return;
+    if (infoBtn.contains(event.target) || panel.contains(event.target)) return;
+    setDashaQaPanelOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !panel.hidden) {
+      setDashaQaPanelOpen(false);
+      infoBtn.focus();
+    }
+  });
+}
+
+async function ensureDashaQaPanel() {
+  bindDashaQaInfoInteractions();
+  const db = await ensurePlanetDatabase();
+  renderDashaQaPanelFromDatabase(db);
+}
+
 function renderCurrentDashaFromPayload(payload) {
   const section = document.getElementById("planet-active-dasha-section");
   const summaryHost = document.getElementById("current-dasha-summary");
@@ -3286,6 +3412,7 @@ function renderCurrentDashaFromPayload(payload) {
   }
 
   if (section) section.hidden = false;
+  ensureDashaQaPanel().catch(() => {});
 
   const layout = document.createElement("div");
   layout.className = "dasha-stage";
@@ -3870,7 +3997,12 @@ if (document.getElementById("birth-form")) {
   }
   if (form) {
     form.addEventListener("submit", handleBirthFormSubmit);
-    ensurePlanetDatabase().catch(() => {});
+    ensurePlanetDatabase()
+      .then((db) => {
+        renderDashaQaPanelFromDatabase(db);
+        bindDashaQaInfoInteractions();
+      })
+      .catch(() => {});
   }
   const divisionalToggle = document.getElementById("divisional-charts-toggle");
   if (divisionalToggle) {
