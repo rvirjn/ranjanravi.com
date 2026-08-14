@@ -974,9 +974,9 @@ const KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN = {
 
 /** Planets table columns (keep in sync with kundali.html thead). */
 const KUNDALI_PLANETS_TABLE_COLUMNS = [
+  { key: "dasha_age", header: "Mahadasha on Age" },
   { key: "planet", header: "Planet" },
   { key: "strength", header: "Planet Strength" },
-  { key: "dasha_age", header: "Mahadasha on Age" },
   { type: "house", header: "In House" },
   { type: "aspected_by", header: "Aspected By" },
   { key: "house_rashi", header: "House Rashi" },
@@ -1000,10 +1000,19 @@ const KUNDALI_PLANETS_GRID_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT
   (col) => col.header
 );
 
-const KUNDALI_PLANETS_TABLE_HEADING = "Birth Time Planets Status";
+const KUNDALI_PLANETS_TABLE_HEADING = "Planet/Houses Status";
 const KUNDALI_PLANETS_VIEW_GRID = "grid";
 const KUNDALI_PLANETS_VIEW_FULL = "full";
 let kundaliPlanetsViewMode = KUNDALI_PLANETS_VIEW_GRID;
+
+/** Grid-house → linked divisional chart keys (D1 stays in Full-view strip only). */
+const HOUSE_DIVISIONAL_CHART_KEYS = {
+  6: ["D30"],
+  8: ["D30"],
+  9: ["D9"],
+  10: ["D10"],
+  12: ["D60"]
+};
 
 /** Group ``planets_table`` rows by whole-sign house number (1–12). */
 function groupPlanetsTableRowsByHouse(rows) {
@@ -1150,6 +1159,11 @@ function applyKundaliPlanetsView(fromEl) {
       }
     }
     if (tableWrap) tableWrap.hidden = !(hasData && view === KUNDALI_PLANETS_VIEW_FULL);
+    const divisional = section.querySelector(".planets-status-divisional, #divisional-charts-section");
+    if (divisional && divisional.dataset.hasCharts === "1") {
+      divisional.hidden = view !== KUNDALI_PLANETS_VIEW_FULL;
+      if (view !== KUNDALI_PLANETS_VIEW_FULL) collapseDivisionalChartsPanel();
+    }
     section.querySelectorAll(".planets-view-switch__btn[data-planets-view]").forEach((btn) => {
       const active = btn.getAttribute("data-planets-view") === view;
       btn.classList.toggle("is-active", active);
@@ -1171,7 +1185,7 @@ function createPlanetsViewSwitchElement(idPrefix) {
   const current = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
   for (const [mode, label] of [
     [KUNDALI_PLANETS_VIEW_GRID, "Grid view"],
-    [KUNDALI_PLANETS_VIEW_FULL, "Full view"]
+    [KUNDALI_PLANETS_VIEW_FULL, "Table view"]
   ]) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -1185,7 +1199,142 @@ function createPlanetsViewSwitchElement(idPrefix) {
   return switchEl;
 }
 
-function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetNames, houseRows) {
+function houseGridDescriptionEntry(descriptions, houseNum) {
+  const block = descriptions && typeof descriptions === "object" ? descriptions : null;
+  if (!block) return null;
+  return block[String(houseNum)] || block[houseNum] || null;
+}
+
+function houseGridDescriptionParagraphs(descriptions, houseNum) {
+  const entry = houseGridDescriptionEntry(descriptions, houseNum);
+  if (!entry) return [];
+  if (Array.isArray(entry.paragraphs)) {
+    return entry.paragraphs.map((part) => String(part || "").trim()).filter(Boolean);
+  }
+  const text = String(entry.text || "").trim();
+  return text ? [text] : [];
+}
+
+function appendHouseDescriptionLabeledList(parent, label, items) {
+  if (!Array.isArray(items) || !items.length) return;
+  const wrap = document.createElement("div");
+  wrap.className = "house-planets-sheet__pc";
+  const heading = document.createElement("strong");
+  heading.className = "house-planets-sheet__pc-label";
+  heading.textContent = label;
+  const list = document.createElement("ol");
+  list.className = "house-planets-sheet__pc-list";
+  for (const item of items) {
+    const li = document.createElement("li");
+    li.textContent = String(item || "").trim();
+    if (li.textContent) list.appendChild(li);
+  }
+  if (!list.children.length) return;
+  wrap.append(heading, list);
+  parent.appendChild(wrap);
+}
+
+function renderHouseGridDescription(descEl, descriptions, houseNum) {
+  const entry = houseGridDescriptionEntry(descriptions, houseNum);
+  if (!entry) return false;
+  const sections = Array.isArray(entry.sections) ? entry.sections : [];
+  if (sections.length) {
+    for (const section of sections) {
+      if (!section || typeof section !== "object") continue;
+      if (section.kind === "planet") {
+        const wrap = document.createElement("div");
+        wrap.className = "house-planets-sheet__planet-read";
+        const title = document.createElement("p");
+        title.className = "house-planets-sheet__planet-read-title";
+        title.textContent = String(section.title || "").trim();
+        if (title.textContent) wrap.appendChild(title);
+        appendHouseDescriptionLabeledList(wrap, "Pros:", section.pros);
+        appendHouseDescriptionLabeledList(wrap, "Cons:", section.cons);
+        if (wrap.children.length) descEl.appendChild(wrap);
+        continue;
+      }
+      const text = String(section.text || "").trim();
+      if (!text) continue;
+      const p = document.createElement("p");
+      p.textContent = text;
+      descEl.appendChild(p);
+    }
+    return descEl.children.length > 0;
+  }
+  const paragraphs = houseGridDescriptionParagraphs({ [String(houseNum)]: entry }, houseNum);
+  for (const text of paragraphs) {
+    const p = document.createElement("p");
+    p.textContent = text;
+    descEl.appendChild(p);
+  }
+  return paragraphs.length > 0;
+}
+
+function findDivisionalChartByKey(charts, key) {
+  const want = String(key || "").trim().toUpperCase();
+  if (!want) return null;
+  return (Array.isArray(charts) ? charts : []).find(
+    (chart) => String(chart?.key || "").trim().toUpperCase() === want
+  ) || null;
+}
+
+function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
+  const keys = HOUSE_DIVISIONAL_CHART_KEYS[Number(houseNum)] || [];
+  if (!keys.length) return;
+  const charts = Array.isArray(options.divisionalCharts) ? options.divisionalCharts : [];
+  const strengthMax =
+    typeof options.strengthMax === "number" ? options.strengthMax : undefined;
+  const matched = keys
+    .map((key) => findDivisionalChartByKey(charts, key))
+    .filter(Boolean);
+  if (!matched.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "house-planets-sheet__divisional";
+
+  for (const chart of matched) {
+    const key = String(chart.key || "Dx").toUpperCase();
+    const title = chart.title || key;
+    const block = document.createElement("div");
+    block.className = "house-planets-sheet__divisional-item";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "house-planets-sheet__divisional-btn";
+    btn.setAttribute("aria-expanded", "false");
+    btn.textContent = `Show ${key} chart`;
+
+    const host = document.createElement("div");
+    host.className = "kundali-chart-host house-planets-sheet__divisional-host";
+    host.hidden = true;
+    host.setAttribute("aria-label", title);
+
+    let rendered = false;
+    btn.addEventListener("click", () => {
+      const open = host.hidden;
+      host.hidden = !open;
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = open ? `Hide ${key} chart` : `Show ${key} chart`;
+      if (open && !rendered) {
+        const chartPayload = {
+          planets: chart.planets,
+          strength_max:
+            typeof chart.strength_max === "number" ? chart.strength_max : strengthMax
+        };
+        renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
+        bindKundaliChartZoom(host, chartPayload, title);
+        rendered = true;
+      }
+    });
+
+    block.append(btn, host);
+    wrap.appendChild(block);
+  }
+
+  sheet.appendChild(wrap);
+}
+
+function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetNames, houseRows, descriptions, options = {}) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet";
 
@@ -1234,6 +1383,16 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   tableWrap.appendChild(table);
 
   sheet.append(head, tableWrap);
+
+  const desc = document.createElement("div");
+  desc.className = "house-planets-sheet__desc";
+  desc.setAttribute("aria-label", `House ${houseNum} reading`);
+  if (renderHouseGridDescription(desc, descriptions, houseNum)) {
+    sheet.appendChild(desc);
+  }
+
+  appendHouseDivisionalChartControls(sheet, houseNum, options);
+
   return sheet;
 }
 
@@ -1245,6 +1404,9 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
   if (!allRows.length) return;
 
   const byHouse = groupPlanetsTableRowsByHouse(allRows);
+  const descriptions = options.descriptions || null;
+  const divisionalCharts = Array.isArray(options.divisionalCharts) ? options.divisionalCharts : [];
+  const strengthMax = typeof options.strengthMax === "number" ? options.strengthMax : undefined;
   let selectedHouse = "";
 
   const closeAllPanels = () => {
@@ -1306,7 +1468,15 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     panel.className = "house-planets-tile-panel";
     panel.hidden = true;
     panel.appendChild(
-      createHousePlanetsSheetElement(houseLabel, forText, strengthText, displayPlanetNames, houseRows)
+      createHousePlanetsSheetElement(
+        houseLabel,
+        forText,
+        strengthText,
+        displayPlanetNames,
+        houseRows,
+        descriptions,
+        { divisionalCharts, strengthMax }
+      )
     );
 
     btn.addEventListener("click", () => {
@@ -2256,7 +2426,12 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   const houseTilesEl = viewTargets.housePlanetsTiles
     ? document.getElementById(viewTargets.housePlanetsTiles)
     : document.getElementById("house-planets-tiles");
-  renderHousePlanetsTiles(houseTilesEl, planetsRows);
+  renderHousePlanetsTiles(houseTilesEl, planetsRows, {
+    descriptions: kundaliPayload.house_grid_descriptions,
+    divisionalCharts: kundaliPayload.divisional_charts,
+    strengthMax:
+      typeof kundaliPayload.strength_max === "number" ? kundaliPayload.strength_max : undefined
+  });
   applyKundaliPlanetsView(houseTilesEl || planetsBody);
 
   if (viewTargets.nakshatraTable) {
@@ -2324,29 +2499,80 @@ function pad2(value) {
   return String(value).padStart(2, "0");
 }
 
+function dashaMonthShort(date) {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  return months[date.getMonth()];
+}
+
 function formatDashaYearRange(fromDate, toDate) {
   if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
     return "";
   }
-  return `${fromDate.getFullYear()}-${toDate.getFullYear()}`;
+  return `${fromDate.getFullYear()} – ${toDate.getFullYear()}`;
 }
 
 function formatDashaMonthYearRange(fromDate, toDate) {
   if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
     return "";
   }
-  const from = `${pad2(fromDate.getMonth() + 1)}-${fromDate.getFullYear()}`;
-  const to = `${pad2(toDate.getMonth() + 1)}-${toDate.getFullYear()}`;
-  return `${from} to ${to}`;
+  return `${dashaMonthShort(fromDate)} ${fromDate.getFullYear()} – ${dashaMonthShort(toDate)} ${toDate.getFullYear()}`;
 }
 
 function formatDashaDayMonthYearRange(fromDate, toDate) {
   if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
     return "";
   }
-  const from = `${pad2(fromDate.getDate())}-${pad2(fromDate.getMonth() + 1)}-${fromDate.getFullYear()}`;
-  const to = `${pad2(toDate.getDate())}-${pad2(toDate.getMonth() + 1)}-${toDate.getFullYear()}`;
-  return `${from} to ${to}`;
+  const from = `${pad2(fromDate.getDate())} ${dashaMonthShort(fromDate)}`;
+  const to = `${pad2(toDate.getDate())} ${dashaMonthShort(toDate)}`;
+  if (fromDate.getFullYear() === toDate.getFullYear()) {
+    return `${from} – ${to} ${toDate.getFullYear()}`;
+  }
+  return `${from} ${fromDate.getFullYear()} – ${to} ${toDate.getFullYear()}`;
+}
+
+function dashaSpanProgress(ageYears, fromYears, toYears) {
+  if (!Number.isFinite(ageYears) || !Number.isFinite(fromYears) || !Number.isFinite(toYears)) {
+    return 0;
+  }
+  const span = toYears - fromYears;
+  if (!(span > 0)) return 0;
+  return Math.min(1, Math.max(0, (ageYears - fromYears) / span));
+}
+
+function formatDashaEta(days) {
+  if (!Number.isFinite(days)) return "";
+  if (days <= 0) return "today";
+  if (days === 1) return "in 1 day";
+  return `in ${days} days`;
+}
+
+function dashaChangeLevel(current, next) {
+  if (!current || !next) return null;
+  if (current.mahadashaKey !== next.mahadashaKey) {
+    return {
+      level: "Mahadasha",
+      key: next.mahadashaKey,
+      name: next.mahadashaName,
+      range: next.mahadashaRange
+    };
+  }
+  if (current.antardashaKey !== next.antardashaKey) {
+    return {
+      level: "Antardasha",
+      key: next.antardashaKey,
+      name: next.antardashaName,
+      range: next.antardashaRange
+    };
+  }
+  return {
+    level: "Pratyantar dasha",
+    key: next.pratyantardashaKey,
+    name: next.pratyantardashaName,
+    range: next.pratyantardashaRange
+  };
 }
 
 function formatDashaPlanetWithRange(planetName, rangeText) {
@@ -2538,28 +2764,31 @@ function buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets) {
     });
   }
 
+  const adFromYears = antardasha ? mahadasha.fromYears + antardasha.fromOffset : null;
+  const adToYears = antardasha ? mahadasha.fromYears + antardasha.toOffset : null;
+  const pdFromYears =
+    antardasha && pratyantardasha
+      ? mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.fromOffset
+      : null;
+  const pdToYears =
+    antardasha && pratyantardasha
+      ? mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset
+      : null;
+
   const mdFromDate = dateFromBirthAgeYears(birthDate, mahadasha.fromYears);
   const mdToDate = dateFromBirthAgeYears(birthDate, mahadasha.toYears);
-  const adFromDate = antardasha
-    ? dateFromBirthAgeYears(birthDate, mahadasha.fromYears + antardasha.fromOffset)
+  const adFromDate = Number.isFinite(adFromYears)
+    ? dateFromBirthAgeYears(birthDate, adFromYears)
     : null;
-  const adToDate = antardasha
-    ? dateFromBirthAgeYears(birthDate, mahadasha.fromYears + antardasha.toOffset)
+  const adToDate = Number.isFinite(adToYears)
+    ? dateFromBirthAgeYears(birthDate, adToYears)
     : null;
-  const pdFromDate =
-    antardasha && pratyantardasha
-      ? dateFromBirthAgeYears(
-          birthDate,
-          mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.fromOffset
-        )
-      : null;
-  const pdToDate =
-    antardasha && pratyantardasha
-      ? dateFromBirthAgeYears(
-          birthDate,
-          mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset
-        )
-      : null;
+  const pdFromDate = Number.isFinite(pdFromYears)
+    ? dateFromBirthAgeYears(birthDate, pdFromYears)
+    : null;
+  const pdToDate = Number.isFinite(pdToYears)
+    ? dateFromBirthAgeYears(birthDate, pdToYears)
+    : null;
 
   return {
     mahadashaName: toTitleCaseWords(mahadasha.planet),
@@ -2576,7 +2805,13 @@ function buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets) {
       : "",
     mahadashaKey: mahadasha.planet,
     antardashaKey: antardasha?.planet || "",
-    pratyantardashaKey: pratyantardasha?.planet || ""
+    pratyantardashaKey: pratyantardasha?.planet || "",
+    mahadashaYears: mdDuration,
+    antardashaYears: antardasha?.durationYears || 0,
+    pratyantardashaYears: pratyantardasha?.durationYears || 0,
+    mahadashaProgress: dashaSpanProgress(ageYears, mahadasha.fromYears, mahadasha.toYears),
+    antardashaProgress: dashaSpanProgress(ageYears, adFromYears, adToYears),
+    pratyantardashaProgress: dashaSpanProgress(ageYears, pdFromYears, pdToYears)
   };
 }
 
@@ -2603,7 +2838,16 @@ function computeCurrentDashaSnapshot(payload, asOfDate = new Date()) {
       )
     : null;
 
-  return { current, next };
+  const nextChangeDate = nextMoment
+    ? dateFromBirthAgeYears(birthDate, nextMoment.ageYears)
+    : null;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const daysUntilNext =
+    nextChangeDate && !Number.isNaN(nextChangeDate.getTime())
+      ? Math.ceil((nextChangeDate.getTime() - asOfDate.getTime()) / dayMs)
+      : null;
+
+  return { current, next, asOfDate, nextChangeDate, daysUntilNext };
 }
 
 function dashaPlanetTableRow(payload, planetKey) {
@@ -2616,213 +2860,415 @@ function dashaPlanetTableRow(payload, planetKey) {
 }
 
 /**
- * Dasha ring fill from Mahadasha on Age (``cell_styles.dasha_age``),
- * same tint as Planet Strength — except untinted/black stays white (no fill).
+ * Same tint kind as Mahadasha on Age (``cell_styles.dasha_age``).
+ * Untinted / black → cream (no green/red).
  */
 function dashaPlanetColorKind(payload, planetKey) {
   const row = dashaPlanetTableRow(payload, planetKey);
   if (!row) return "";
-  const kind = String(row.cell_styles?.dasha_age || "").trim().toLowerCase();
+  const kind = String(
+    row.cell_styles?.dasha_age || row.cell_styles?.strength || ""
+  )
+    .trim()
+    .toLowerCase();
   if (!kind || kind === "neutral" || kind === "black") return "";
   return kind;
 }
 
-function createDashaCirclePath(cx, cy, radius, sweepFrac = 0.62) {
-  // Wide upper arc so curved labels fit without clipping.
-  const sweep = Math.PI * 2 * Math.min(0.85, Math.max(0.35, sweepFrac));
-  const mid = -Math.PI / 2;
-  const start = mid - sweep / 2;
-  const end = mid + sweep / 2;
-  const x1 = cx + radius * Math.cos(start);
-  const y1 = cy + radius * Math.sin(start);
-  const x2 = cx + radius * Math.cos(end);
-  const y2 = cy + radius * Math.sin(end);
-  const largeArc = sweep > Math.PI ? 1 : 0;
-  return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+function dashaFillClass(kind) {
+  return kind
+    ? `dasha-dial__fill dasha-dial__fill--${kind}`
+    : "dasha-dial__fill dasha-dial__fill--cream";
 }
 
-function appendDashaRingLabel(svg, svgNS, xlinkNS, ring, idPrefix, cx, cy) {
-  const rangePart = ring.range ? ` (${ring.range})` : "";
-  const full = `${ring.label} · ${ring.name || "—"}${rangePart}`;
-
-  // Pratyantar sits in the open center so the full date range stays readable.
-  if (ring.id === "pratyantar") {
-    const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("class", `current-dasha-ring-text ${ring.textClass} current-dasha-ring-text--center`);
-    text.setAttribute("x", String(cx));
-    text.setAttribute("y", String(cy - 12));
-    text.setAttribute("text-anchor", "middle");
-
-    const lines = [
-      "Pratyantar",
-      ring.name || "—",
-      ring.range || ""
-    ].filter(Boolean);
-    lines.forEach((line, index) => {
-      const tspan = document.createElementNS(svgNS, "tspan");
-      tspan.setAttribute("x", String(cx));
-      tspan.setAttribute("dy", index === 0 ? "0" : "1.15em");
-      tspan.textContent = line;
-      text.appendChild(tspan);
-    });
-    svg.appendChild(text);
-    return;
-  }
-
-  const text = document.createElementNS(svgNS, "text");
-  text.setAttribute("class", `current-dasha-ring-text ${ring.textClass}`);
-  const textPath = document.createElementNS(svgNS, "textPath");
-  const pathId = `#${idPrefix}-dasha-path-${ring.id}`;
-  textPath.setAttributeNS(xlinkNS, "href", pathId);
-  textPath.setAttribute("href", pathId);
-  textPath.setAttribute("startOffset", "50%");
-  textPath.setAttribute("text-anchor", "middle");
-  textPath.textContent = full;
-  text.appendChild(textPath);
-  svg.appendChild(text);
+function dashaDurationWeight(years) {
+  return Math.pow(Math.max(Number(years) || 0, 0.03), 0.38);
 }
 
-function createDashaRingSvg(snapshot, payload, idPrefix = "dasha") {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const xlinkNS = "http://www.w3.org/1999/xlink";
-  const size = 420;
+/** Ring thickness + type scale from Maha / Antar / Pratyantar duration. */
+function dashaDurationLayout(snapshot) {
+  const size = 440;
   const cx = size / 2;
   const cy = size / 2;
-  const thinStroke = 2.5;
-  // Contiguous bands — no white gaps between rings.
-  const mahaOuter = 194;
-  const mahaSW = 56;
-  const antarSW = 56;
-  const mahaInner = mahaOuter - mahaSW;
-  const antarOuter = mahaInner;
-  const antarInner = antarOuter - antarSW;
-  const rings = [
-    {
-      id: "maha",
-      radius: (mahaOuter + mahaInner) / 2,
-      strokeWidth: mahaSW,
-      label: "Mahadasha",
-      name: snapshot.mahadashaName,
-      range: snapshot.mahadashaRange,
-      key: snapshot.mahadashaKey,
-      textClass: "current-dasha-ring-text--maha",
-      sweepFrac: 0.68
-    },
-    {
-      id: "antar",
-      radius: (antarOuter + antarInner) / 2,
-      strokeWidth: antarSW,
-      label: "Antardasha",
-      name: snapshot.antardashaName,
-      range: snapshot.antardashaRange,
-      key: snapshot.antardashaKey,
-      textClass: "current-dasha-ring-text--antar",
-      sweepFrac: 0.72
+  const outer = 208;
+  const discMin = 78;
+  const gap = 4;
+  const budget = outer - discMin - gap * 2;
+  const mw = dashaDurationWeight(snapshot.mahadashaYears);
+  const aw = dashaDurationWeight(snapshot.antardashaYears);
+  const pw = dashaDurationWeight(snapshot.pratyantardashaYears);
+  const sum = mw + aw + pw || 1;
+  const fracM = mw / sum;
+  const fracA = aw / sum;
+  const fracP = pw / sum;
+  let maha = fracM * budget;
+  let antar = fracA * budget;
+  let pd = fracP * budget;
+  maha = Math.max(36, maha);
+  antar = Math.max(18, antar);
+  pd = Math.max(11, pd);
+  const total = maha + antar + pd;
+  if (total > budget) {
+    const scale = budget / total;
+    maha *= scale;
+    antar *= scale;
+    pd *= scale;
+  }
+  maha = Math.round(maha);
+  antar = Math.round(antar);
+  pd = Math.round(pd);
+  const mahaOuter = outer;
+  const mahaInner = mahaOuter - maha;
+  const antarOuter = mahaInner - gap;
+  const antarInner = antarOuter - antar;
+  const pdOuter = antarInner - gap;
+  const pdInner = pdOuter - pd;
+  const discR = Math.max(70, pdInner - 3);
+  const antarMid = (antarOuter + antarInner) / 2;
+  return {
+    size,
+    cx,
+    cy,
+    maha,
+    antar,
+    pratyantar: pd,
+    mahaOuter,
+    mahaInner,
+    antarOuter,
+    antarInner,
+    pdOuter,
+    pdInner,
+    discR,
+    antarLabelTop: ((cy - antarMid) / size) * 100 - 2.2,
+    centerInset: ((cy - discR) / size) * 100,
+    fonts: {
+      mahaTitle: `${(0.92 + fracM * 0.42).toFixed(3)}rem`,
+      mahaRange: `${(0.72 + fracM * 0.22).toFixed(3)}rem`,
+      antarTitle: `${(0.68 + fracA * 0.38).toFixed(3)}rem`,
+      antarRange: `${(0.6 + fracA * 0.22).toFixed(3)}rem`,
+      pdLevel: `${(0.66 + fracP * 0.22).toFixed(3)}rem`,
+      pdPlanet: `${(0.92 + fracP * 0.55).toFixed(3)}rem`,
+      pdRange: `${(0.62 + fracP * 0.22).toFixed(3)}rem`
     }
-  ];
-  const pratyantar = {
-    id: "pratyantar",
-    label: "Pratyantardasha",
-    name: snapshot.pratyantardashaName,
-    range: snapshot.pratyantardashaRange,
-    key: snapshot.pratyantardashaKey,
-    textClass: "current-dasha-ring-text--pratyantar"
   };
-  const pratyantarR = antarInner;
+}
+
+function dashaAnnularRingPath(cx, cy, innerR, outerR) {
+  return (
+    `M ${cx} ${cy - outerR} A ${outerR} ${outerR} 0 1 1 ${cx} ${cy + outerR} ` +
+    `A ${outerR} ${outerR} 0 1 1 ${cx} ${cy - outerR} Z ` +
+    `M ${cx} ${cy - innerR} A ${innerR} ${innerR} 0 1 0 ${cx} ${cy + innerR} ` +
+    `A ${innerR} ${innerR} 0 1 0 ${cx} ${cy - innerR} Z`
+  );
+}
+
+function dashaAnnularSectorPath(cx, cy, innerR, outerR, startRad, endRad) {
+  const sweep = endRad - startRad;
+  if (sweep <= 0) return "";
+  if (sweep >= Math.PI * 2 - 1e-6) return dashaAnnularRingPath(cx, cy, innerR, outerR);
+  const x0o = cx + outerR * Math.cos(startRad);
+  const y0o = cy + outerR * Math.sin(startRad);
+  const x1o = cx + outerR * Math.cos(endRad);
+  const y1o = cy + outerR * Math.sin(endRad);
+  const x0i = cx + innerR * Math.cos(startRad);
+  const y0i = cy + innerR * Math.sin(startRad);
+  const x1i = cx + innerR * Math.cos(endRad);
+  const y1i = cy + innerR * Math.sin(endRad);
+  const large = sweep > Math.PI ? 1 : 0;
+  return (
+    `M ${x0o} ${y0o} A ${outerR} ${outerR} 0 ${large} 1 ${x1o} ${y1o} ` +
+    `L ${x1i} ${y1i} A ${innerR} ${innerR} 0 ${large} 0 ${x0i} ${y0i} Z`
+  );
+}
+
+function appendDashaBand(svg, svgNS, options) {
+  const { cx, cy, innerR, outerR, progress, trackClass, progressClass } = options;
+  const track = document.createElementNS(svgNS, "path");
+  track.setAttribute("d", dashaAnnularRingPath(cx, cy, innerR, outerR));
+  track.setAttribute("class", trackClass);
+  track.setAttribute("fill-rule", "evenodd");
+  svg.appendChild(track);
+
+  const frac = Math.min(1, Math.max(0, Number(progress) || 0));
+  if (frac <= 0.004) return;
+  const start = -Math.PI / 2;
+  const end = start + frac * Math.PI * 2;
+  const sector = document.createElementNS(svgNS, "path");
+  sector.setAttribute("d", dashaAnnularSectorPath(cx, cy, innerR, outerR, start, end));
+  sector.setAttribute("class", progressClass);
+  svg.appendChild(sector);
+}
+
+function appendDashaStartMark(svg, svgNS, cx, cy, outerR, innerR) {
+  const line = document.createElementNS(svgNS, "line");
+  line.setAttribute("x1", String(cx));
+  line.setAttribute("y1", String(cy - outerR));
+  line.setAttribute("x2", String(cx));
+  line.setAttribute("y2", String(cy - innerR));
+  line.setAttribute("class", "dasha-dial__tick");
+  svg.appendChild(line);
+  const dot = document.createElementNS(svgNS, "circle");
+  dot.setAttribute("cx", String(cx));
+  dot.setAttribute("cy", String(cy - outerR));
+  dot.setAttribute("r", "3.2");
+  dot.setAttribute("class", "dasha-dial__tick-dot");
+  svg.appendChild(dot);
+}
+
+function createDashaDialSvg(snapshot, payload, layout) {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const { size, cx, cy } = layout;
+  const mahaColor = dashaPlanetColorKind(payload, snapshot.mahadashaKey);
+  const antarColor = dashaPlanetColorKind(payload, snapshot.antardashaKey);
+  const pdColor = dashaPlanetColorKind(payload, snapshot.pratyantardashaKey);
 
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-  svg.setAttribute("class", "current-dasha-svg");
+  svg.setAttribute("class", "dasha-dial__svg");
   svg.setAttribute("role", "img");
   svg.setAttribute(
     "aria-label",
-    `Mahadasha ${snapshot.mahadashaName}, Antardasha ${snapshot.antardashaName}, Pratyantardasha ${snapshot.pratyantardashaName}`
+    `Mahadasha ${snapshot.mahadashaName}, Antardasha ${snapshot.antardashaName}, Pratyantar ${snapshot.pratyantardashaName}`
   );
+  applyPlanetStatusCellColorIntensity(svg);
 
   const defs = document.createElementNS(svgNS, "defs");
-  for (const ring of rings) {
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("id", `${idPrefix}-dasha-path-${ring.id}`);
-    path.setAttribute("d", createDashaCirclePath(cx, cy, ring.radius, ring.sweepFrac));
-    path.setAttribute("fill", "none");
-    defs.appendChild(path);
-  }
+  const filter = document.createElementNS(svgNS, "filter");
+  filter.setAttribute("id", "dasha-disc-shadow");
+  filter.setAttribute("x", "-25%");
+  filter.setAttribute("y", "-25%");
+  filter.setAttribute("width", "150%");
+  filter.setAttribute("height", "150%");
+  const shadow = document.createElementNS(svgNS, "feDropShadow");
+  shadow.setAttribute("dx", "0");
+  shadow.setAttribute("dy", "3");
+  shadow.setAttribute("stdDeviation", "5");
+  shadow.setAttribute("flood-color", "#5c4f1a");
+  shadow.setAttribute("flood-opacity", "0.14");
+  filter.appendChild(shadow);
+  defs.appendChild(filter);
   svg.appendChild(defs);
 
-  for (const ring of rings) {
-    const colorKind = dashaPlanetColorKind(payload, ring.key);
-    if (colorKind) {
-      const fill = document.createElementNS(svgNS, "circle");
-      fill.setAttribute("cx", String(cx));
-      fill.setAttribute("cy", String(cy));
-      fill.setAttribute("r", String(ring.radius));
-      fill.setAttribute(
-        "class",
-        `current-dasha-ring-fill current-dasha-ring-fill--${colorKind}`
-      );
-      fill.setAttribute("stroke-width", String(ring.strokeWidth));
-      applyPlanetStatusCellColorIntensity(fill);
-      svg.appendChild(fill);
-    }
-    appendDashaRingLabel(svg, svgNS, xlinkNS, ring, idPrefix, cx, cy);
-  }
+  const rim = document.createElementNS(svgNS, "circle");
+  rim.setAttribute("cx", String(cx));
+  rim.setAttribute("cy", String(cy));
+  rim.setAttribute("r", String(layout.mahaOuter + 6));
+  rim.setAttribute("class", "dasha-dial__rim");
+  svg.appendChild(rim);
 
-  const pratyantarColor = dashaPlanetColorKind(payload, pratyantar.key);
-  if (pratyantarColor) {
-    const disc = document.createElementNS(svgNS, "circle");
-    disc.setAttribute("cx", String(cx));
-    disc.setAttribute("cy", String(cy));
-    disc.setAttribute("r", String(pratyantarR));
-    disc.setAttribute(
-      "class",
-      `current-dasha-ring-disc current-dasha-ring-disc--${pratyantarColor}`
-    );
-    applyPlanetStatusCellColorIntensity(disc);
-    svg.appendChild(disc);
-  }
+  appendDashaBand(svg, svgNS, {
+    cx,
+    cy,
+    innerR: layout.mahaInner,
+    outerR: layout.mahaOuter,
+    progress: snapshot.mahadashaProgress,
+    trackClass: "dasha-dial__track",
+    progressClass: dashaFillClass(mahaColor)
+  });
+  appendDashaBand(svg, svgNS, {
+    cx,
+    cy,
+    innerR: layout.antarInner,
+    outerR: layout.antarOuter,
+    progress: snapshot.antardashaProgress,
+    trackClass: "dasha-dial__track",
+    progressClass: dashaFillClass(antarColor)
+  });
+  appendDashaBand(svg, svgNS, {
+    cx,
+    cy,
+    innerR: layout.pdInner,
+    outerR: layout.pdOuter,
+    progress: snapshot.pratyantardashaProgress,
+    trackClass: "dasha-dial__track",
+    progressClass: dashaFillClass(pdColor)
+  });
+  appendDashaStartMark(svg, svgNS, cx, cy, layout.mahaOuter, layout.pdInner);
 
-  // Thick black outlines: outer, middle, and inner.
-  for (const r of [mahaOuter, antarOuter, pratyantarR]) {
-    const outline = document.createElementNS(svgNS, "circle");
-    outline.setAttribute("cx", String(cx));
-    outline.setAttribute("cy", String(cy));
-    outline.setAttribute("r", String(r));
-    outline.setAttribute("class", "current-dasha-ring-outline");
-    outline.setAttribute("stroke-width", String(thinStroke));
-    svg.appendChild(outline);
-  }
-
-  appendDashaRingLabel(svg, svgNS, xlinkNS, pratyantar, idPrefix, cx, cy);
-
+  const disc = document.createElementNS(svgNS, "circle");
+  disc.setAttribute("cx", String(cx));
+  disc.setAttribute("cy", String(cy));
+  disc.setAttribute("r", String(layout.discR));
+  disc.setAttribute("class", "dasha-dial__disc");
+  disc.setAttribute("filter", "url(#dasha-disc-shadow)");
+  svg.appendChild(disc);
   return svg;
 }
 
-function createDashaOrbitCard(label, snapshot, payload, idPrefix) {
-  const card = document.createElement("div");
-  card.className = "current-dasha-orbit__card";
-
-  const title = document.createElement("h3");
-  title.className = "current-dasha-orbit__label";
-  title.textContent = label;
-  card.appendChild(title);
-
-  const stack = document.createElement("div");
-  stack.className = "current-dasha-orbit__stack";
-  stack.appendChild(createDashaRingSvg(snapshot, payload, idPrefix));
-  card.appendChild(stack);
-  return card;
+function appendDashaRingLabel(host, extraClass, title, range, styleVars) {
+  const label = document.createElement("div");
+  label.className = extraClass;
+  if (styleVars) {
+    Object.entries(styleVars).forEach(([key, value]) => {
+      if (value != null && value !== "") label.style.setProperty(key, String(value));
+    });
+  }
+  const strong = document.createElement("strong");
+  strong.textContent = title;
+  label.appendChild(strong);
+  if (range) {
+    const span = document.createElement("span");
+    span.textContent = range;
+    label.appendChild(span);
+  }
+  host.appendChild(label);
+  return label;
 }
 
-function createDashaOrbitArrow() {
-  const arrow = document.createElement("div");
-  arrow.className = "current-dasha-orbit__arrow";
-  arrow.setAttribute("aria-hidden", "true");
-  // Empty (outline-only) arrow — no enclosing circle.
-  arrow.innerHTML =
-    '<svg class="current-dasha-orbit__arrow-svg" viewBox="0 0 96 64" focusable="false">' +
-    '<path d="M12 32 H58 M40 14 L78 32 L40 50" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-    "</svg>";
-  return arrow;
+function createDashaDial(snapshot, payload) {
+  const layout = dashaDurationLayout(snapshot);
+  const wrap = document.createElement("div");
+  wrap.className = "dasha-dial-wrap";
+  wrap.style.setProperty("--dasha-maha-title", layout.fonts.mahaTitle);
+  wrap.style.setProperty("--dasha-maha-range", layout.fonts.mahaRange);
+  wrap.style.setProperty("--dasha-antar-title", layout.fonts.antarTitle);
+  wrap.style.setProperty("--dasha-antar-range", layout.fonts.antarRange);
+  wrap.style.setProperty("--dasha-pd-level", layout.fonts.pdLevel);
+  wrap.style.setProperty("--dasha-pd-planet", layout.fonts.pdPlanet);
+  wrap.style.setProperty("--dasha-pd-range", layout.fonts.pdRange);
+
+  appendDashaRingLabel(
+    wrap,
+    "dasha-dial__maha-out",
+    `Maha · ${snapshot.mahadashaName || "—"}`,
+    snapshot.mahadashaRange
+  );
+
+  const dial = document.createElement("div");
+  dial.className = "dasha-dial";
+  dial.appendChild(createDashaDialSvg(snapshot, payload, layout));
+  const antarLabel = appendDashaRingLabel(
+    dial,
+    "dasha-dial__ring-label dasha-dial__ring-label--antar",
+    `Antar · ${snapshot.antardashaName || "—"}`,
+    snapshot.antardashaRange
+  );
+  antarLabel.style.top = `${layout.antarLabelTop}%`;
+
+  const center = document.createElement("div");
+  center.className = "dasha-dial__center";
+  center.style.inset = `${layout.centerInset}%`;
+
+  const level = document.createElement("span");
+  level.className = "dasha-dial__level";
+  level.textContent = "Pratyantar";
+  center.appendChild(level);
+
+  const planet = document.createElement("strong");
+  planet.className = "dasha-dial__planet";
+  planet.textContent = snapshot.pratyantardashaName || "—";
+  center.appendChild(planet);
+
+  if (snapshot.pratyantardashaRange) {
+    const rule = document.createElement("span");
+    rule.className = "dasha-dial__rule";
+    rule.setAttribute("aria-hidden", "true");
+    center.appendChild(rule);
+
+    const range = document.createElement("span");
+    range.className = "dasha-dial__range";
+    range.textContent = snapshot.pratyantardashaRange;
+    center.appendChild(range);
+  }
+  dial.appendChild(center);
+  wrap.appendChild(dial);
+  return wrap;
+}
+
+function createDashaChip(label, name, running, toneClass) {
+  const chip = document.createElement("div");
+  chip.className = "dasha-chip";
+
+  const mark = document.createElement("span");
+  mark.className = toneClass ? `dasha-chip__mark ${toneClass}` : "dasha-chip__mark";
+  mark.setAttribute("aria-hidden", "true");
+  mark.textContent = String(name || "?").trim().charAt(0).toUpperCase() || "•";
+  chip.appendChild(mark);
+
+  const body = document.createElement("div");
+  body.className = "dasha-chip__body";
+
+  const title = document.createElement("strong");
+  title.className = "dasha-chip__title";
+  title.textContent = `${label} ${name || "—"}`;
+  body.appendChild(title);
+
+  const status = document.createElement("span");
+  status.className = "dasha-chip__status";
+  status.textContent = running ? "still running" : "changes next";
+  body.appendChild(status);
+
+  chip.appendChild(body);
+  return chip;
+}
+
+function createDashaNextCard(snapshot, payload) {
+  const change = dashaChangeLevel(snapshot.current, snapshot.next);
+  if (!change) return null;
+
+  const side = document.createElement("div");
+  side.className = "dasha-side";
+
+  const card = document.createElement("div");
+  const nextKind = dashaPlanetColorKind(payload, change.key);
+  card.className = nextKind ? `dasha-next dasha-next--${nextKind}` : "dasha-next";
+  if (nextKind) applyPlanetStatusCellColorIntensity(card);
+
+  const kicker = document.createElement("p");
+  kicker.className = "dasha-next__kicker";
+  kicker.textContent = "Next change";
+  card.appendChild(kicker);
+
+  const planet = document.createElement("p");
+  planet.className = "dasha-next__planet";
+  planet.textContent = change.name || "—";
+  card.appendChild(planet);
+
+  const level = document.createElement("p");
+  level.className = "dasha-next__level";
+  level.textContent = change.level;
+  card.appendChild(level);
+
+  if (change.range) {
+    const range = document.createElement("p");
+    range.className = "dasha-next__range";
+    range.textContent = change.range;
+    card.appendChild(range);
+  }
+
+  const etaText = formatDashaEta(snapshot.daysUntilNext);
+  if (etaText) {
+    const eta = document.createElement("p");
+    eta.className = "dasha-next__eta";
+    eta.textContent = etaText;
+    card.appendChild(eta);
+  }
+  side.appendChild(card);
+
+  const chips = document.createElement("div");
+  chips.className = "dasha-chips";
+  const mahaRunning = snapshot.current.mahadashaKey === snapshot.next.mahadashaKey;
+  const antarRunning = snapshot.current.antardashaKey === snapshot.next.antardashaKey;
+  const mahaKind = dashaPlanetColorKind(payload, snapshot.current.mahadashaKey);
+  const antarKind = dashaPlanetColorKind(payload, snapshot.current.antardashaKey);
+  chips.appendChild(
+    createDashaChip(
+      "Maha",
+      snapshot.current.mahadashaName,
+      mahaRunning,
+      mahaKind ? `dasha-chip__mark--${mahaKind}` : "dasha-chip__mark--cream"
+    )
+  );
+  chips.appendChild(
+    createDashaChip(
+      "Antar",
+      snapshot.current.antardashaName,
+      antarRunning,
+      antarKind ? `dasha-chip__mark--${antarKind}` : "dasha-chip__mark--cream"
+    )
+  );
+  side.appendChild(chips);
+  return side;
 }
 
 function renderCurrentDashaFromPayload(payload) {
@@ -2842,16 +3288,10 @@ function renderCurrentDashaFromPayload(payload) {
   if (section) section.hidden = false;
 
   const layout = document.createElement("div");
-  layout.className = "current-dasha-orbit";
-  layout.appendChild(
-    createDashaOrbitCard("Current Dasha", snapshot.current, payload, "current")
-  );
-  if (snapshot.next) {
-    layout.appendChild(createDashaOrbitArrow());
-    layout.appendChild(
-      createDashaOrbitCard("Next Dasha", snapshot.next, payload, "next")
-    );
-  }
+  layout.className = "dasha-stage";
+  layout.appendChild(createDashaDial(snapshot.current, payload));
+  const nextCard = createDashaNextCard(snapshot, payload);
+  if (nextCard) layout.appendChild(nextCard);
   summaryHost.appendChild(layout);
 }
 
@@ -2995,7 +3435,12 @@ function renderDivisionalChartsFromPayload(payload) {
   const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
   const divisionalToggle = document.getElementById("divisional-charts-toggle");
   if (divisionalToggle) divisionalToggle.hidden = charts.length === 0;
-  if (section) section.hidden = charts.length === 0;
+  if (section) {
+    section.dataset.hasCharts = charts.length ? "1" : "0";
+    const view = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
+    // Table view: strip under planets table. Grid view: charts open from house panels.
+    section.hidden = charts.length === 0 || view !== KUNDALI_PLANETS_VIEW_FULL;
+  }
   if (!charts.length) return;
 
   const strengthMax =
@@ -3055,7 +3500,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     headingLabel,
     emptyDetail,
     ariaItemKind,
-    buttonClassName
+    buttonClassName,
+    isBadItem
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -3130,7 +3576,11 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = ["remedy-navatara-btn", buttonClassName].filter(Boolean).join(" ");
+    const extraBtnClass =
+      typeof isBadItem === "function" && isBadItem(item)
+        ? "remedy-navatara-btn--dosh"
+        : buttonClassName;
+    btn.className = ["remedy-navatara-btn", extraBtnClass].filter(Boolean).join(" ");
     btn.dataset.matchKey = String(item.key || "");
     btn.textContent = String(item.name || item.key || ariaItemKind || headingLabel);
     btn.setAttribute("aria-pressed", "false");
@@ -3193,7 +3643,8 @@ function renderKundaliYogasFromPayload(payload) {
     itemsKey: "yogas",
     headingLabel: "Yogas",
     emptyDetail: "No extra detail for this yoga.",
-    ariaItemKind: "Yoga"
+    ariaItemKind: "Yoga",
+    isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad"
   });
 }
 
@@ -3408,6 +3859,9 @@ function setKundaliMode(mode) {
 function refreshKundaliSavedViews() {
   refreshSavedKundaliDropdown();
   if (kundaliMode === "open") applySavedKundaliSelection();
+  if (window.SaptarishiKundaliCompare?.refreshSavedDropdowns) {
+    window.SaptarishiKundaliCompare.refreshSavedDropdowns();
+  }
 }
 
 if (document.getElementById("birth-form")) {
@@ -3490,5 +3944,6 @@ window.SaptarishiKundaliPage = {
   },
   validateMainBirthForm() {
     return validateBirthForm(getBirthPlaceFromKundaliForm());
-  }
+  },
+  refreshSavedViews: refreshKundaliSavedViews
 };

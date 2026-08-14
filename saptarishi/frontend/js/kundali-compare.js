@@ -76,6 +76,106 @@
     if (singleResultsEl) singleResultsEl.hidden = mode === "compare";
   }
 
+  function birthViewSelectKey(view) {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
+      return SaptarishiAuth.birthViewKey(view);
+    }
+    if (!view || !view.name) return "";
+    return String(view.name || "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function birthViewOptionLabel(view) {
+    if (!view) return "";
+    if (view.name) return view.name;
+    const when = [view.date, view.time].filter(Boolean).join(" ");
+    return when || view.place || "Saved birth details";
+  }
+
+  function getSavedBirthViews() {
+    return typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
+      ? SaptarishiAuth.getBirthViews()
+      : [];
+  }
+
+  function populateCompareSavedSelect(selectEl, selectedKey) {
+    if (!selectEl) return;
+    const views = getSavedBirthViews();
+    const previous = selectedKey || selectEl.value;
+    selectEl.replaceChildren();
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
+    selectEl.appendChild(placeholder);
+    views.forEach((view) => {
+      const key = birthViewSelectKey(view);
+      if (!key) return;
+      const opt = document.createElement("option");
+      opt.value = key;
+      const detail = [view.date, view.place].filter(Boolean).join(" · ");
+      opt.textContent = detail
+        ? `${birthViewOptionLabel(view)} (${detail})`
+        : birthViewOptionLabel(view);
+      selectEl.appendChild(opt);
+    });
+    if (previous && [...selectEl.options].some((o) => o.value === previous)) {
+      selectEl.value = previous;
+    }
+  }
+
+  function refreshCompareSavedDropdowns() {
+    compareBirthsHost.querySelectorAll(".compare-saved-birth").forEach((selectEl) => {
+      populateCompareSavedSelect(selectEl);
+    });
+  }
+
+  function applySavedBirthToCompareRow(rowEl, view) {
+    if (!rowEl || !view || typeof SaptarishiAuth === "undefined") return;
+    SaptarishiAuth.applyDefaultBirthToForm(
+      {
+        placePreset: rowEl.querySelector(".compare-place-preset"),
+        placeCustom: rowEl.querySelector(".compare-place-custom"),
+        customWrap: rowEl.querySelector(".compare-custom-place-wrap"),
+        birthDate: rowEl.querySelector(".compare-birth-date"),
+        birthTime: rowEl.querySelector(".compare-birth-time"),
+        birthName: rowEl.querySelector(".compare-birth-name"),
+        placeCustomValue: C.PLACE_CUSTOM_VALUE
+      },
+      view
+    );
+  }
+
+  function applyCompareSavedSelection(rowEl) {
+    const selectEl = rowEl.querySelector(".compare-saved-birth");
+    const key = String(selectEl?.value || "").trim();
+    if (!key) return;
+    const view = getSavedBirthViews().find((entry) => birthViewSelectKey(entry) === key);
+    if (view) applySavedBirthToCompareRow(rowEl, view);
+  }
+
+  function getCompareRowBirthInput(rowEl) {
+    const selectEl = rowEl.querySelector(".compare-saved-birth");
+    const key = String(selectEl?.value || "").trim();
+    if (key) {
+      const view = getSavedBirthViews().find((entry) => birthViewSelectKey(entry) === key);
+      if (view) {
+        return {
+          name: String(view.name || "").trim(),
+          date: String(view.date || "").trim(),
+          time: String(view.time || "").trim(),
+          place: String(view.place || "").trim()
+        };
+      }
+    }
+    return {
+      name: rowEl.querySelector(".compare-birth-name")?.value?.trim() || "",
+      date: rowEl.querySelector(".compare-birth-date")?.value?.trim() || "",
+      time: rowEl.querySelector(".compare-birth-time")?.value?.trim() || "",
+      place: getPlaceFromCompareRow(rowEl)
+    };
+  }
+
   function buildPlaceSelectElement(selectedValue) {
     const select = document.createElement("select");
     select.className = "compare-place-preset";
@@ -116,6 +216,26 @@
     const row = document.createElement("div");
     row.className = "kundali-compare-birth search-form kundali-form";
     row.dataset.birthIndex = String(index);
+
+    const savedField = document.createElement("div");
+    savedField.className = "form-field compare-saved-wrap";
+    const savedLabel = document.createElement("label");
+    savedLabel.textContent = "Saved birth details";
+    const savedSelect = document.createElement("select");
+    savedSelect.className = "compare-saved-birth";
+    populateCompareSavedSelect(savedSelect);
+    savedField.append(savedLabel, savedSelect);
+
+    const nameField = document.createElement("div");
+    nameField.className = "form-field compare-name-wrap";
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Name";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "compare-birth-name";
+    nameInput.maxLength = 120;
+    nameInput.placeholder = "Enter name";
+    nameField.append(nameLabel, nameInput);
 
     const placeField = document.createElement("div");
     placeField.className = "form-field";
@@ -172,8 +292,9 @@
     removeField.appendChild(removeBtn);
 
     placeSelect.addEventListener("change", () => syncCompareCustomPlace(row));
+    savedSelect.addEventListener("change", () => applyCompareSavedSelection(row));
 
-    row.append(placeField, customWrap, dateField, timeField, removeField);
+    row.append(savedField, nameField, placeField, customWrap, dateField, timeField, removeField);
     return row;
   }
 
@@ -224,15 +345,21 @@
   }
 
   function validateCompareBirthRow(rowEl, index) {
-    const date = rowEl.querySelector(".compare-birth-date")?.value?.trim();
-    const time = rowEl.querySelector(".compare-birth-time")?.value?.trim();
-    const place = getPlaceFromCompareRow(rowEl);
+    const input = getCompareRowBirthInput(rowEl);
+    const savedKey = String(rowEl.querySelector(".compare-saved-birth")?.value || "").trim();
+    if (savedKey) {
+      if (!input.date || !input.time || !input.place) {
+        return `Birth ${index}: saved birth details are incomplete.`;
+      }
+      return null;
+    }
+    if (!input.name) return `Birth ${index}: enter a name for new birth details.`;
     const preset = rowEl.querySelector(".compare-place-preset");
     if (!preset?.value) return `Birth ${index}: select a place.`;
-    if (preset.value === C.PLACE_CUSTOM_VALUE && !place) {
+    if (preset.value === C.PLACE_CUSTOM_VALUE && !input.place) {
       return `Birth ${index}: enter a custom place.`;
     }
-    if (!date || !time) return `Birth ${index}: date and time are required.`;
+    if (!input.date || !input.time) return `Birth ${index}: date and time are required.`;
     return null;
   }
 
@@ -246,10 +373,11 @@
     for (let i = 0; i < rows.length; i += 1) {
       const err = validateCompareBirthRow(rows[i], i + 2);
       if (err) return { error: err, inputs: [] };
+      const rowInput = getCompareRowBirthInput(rows[i]);
       inputs.push({
-        date: rows[i].querySelector(".compare-birth-date").value.trim(),
-        time: rows[i].querySelector(".compare-birth-time").value.trim(),
-        place: getPlaceFromCompareRow(rows[i])
+        date: rowInput.date,
+        time: rowInput.time,
+        place: rowInput.place
       });
     }
     if (inputs.length < COMPARE_MIN_BIRTHS) {
@@ -343,7 +471,11 @@
       panel.hidden = !show;
       compareToggleBtn.setAttribute("aria-expanded", show ? "true" : "false");
       if (mainLeadEl) mainLeadEl.hidden = show;
-      if (show && !compareBirthsHost.childElementCount) initCompareBirthRows();
+      if (show) {
+        if (!compareBirthsHost.childElementCount) initCompareBirthRows();
+        refreshCompareSavedDropdowns();
+        if (typeof page.refreshSavedViews === "function") page.refreshSavedViews();
+      }
     });
   }
 
@@ -371,5 +503,9 @@
       handleCompareShow();
     });
   }
+
+  window.SaptarishiKundaliCompare = {
+    refreshSavedDropdowns: refreshCompareSavedDropdowns
+  };
 
 })();

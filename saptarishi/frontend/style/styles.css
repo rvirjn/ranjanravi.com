@@ -961,164 +961,406 @@ tbody tr:last-child td {
   margin-bottom: 0;
 }
 
-.current-dasha-orbit {
+.dasha-stage {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.75rem, 3vw, 1.5rem);
+  gap: clamp(1rem, 3vw, 2rem);
 }
 
-.current-dasha-orbit__card {
+.dasha-dial-wrap {
   flex: 1 1 16rem;
   max-width: 22rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.55rem;
 }
 
-.current-dasha-orbit__label {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-heading, #1e3a5f);
+.dasha-dial__maha-out {
   text-align: center;
+  margin: 0 0 0.45rem;
+  line-height: 1.2;
 }
 
-.current-dasha-orbit__arrow {
-  flex: 0 0 auto;
-  align-self: center;
-  margin-top: 1.4rem;
-  line-height: 0;
-  user-select: none;
-}
-
-.current-dasha-orbit__arrow-svg {
+.dasha-dial__maha-out strong {
   display: block;
-  width: clamp(2.75rem, 8vw, 4rem);
-  height: auto;
+  font-family: var(--font-display);
+  font-size: var(--dasha-maha-title, 1.12rem);
+  font-weight: 700;
+  color: var(--color-heading, #1f1806);
 }
 
-.current-dasha-orbit__stack {
-  flex: 0 0 auto;
-  width: min(20rem, 92vw);
+.dasha-dial__maha-out span {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: var(--dasha-maha-range, 0.82rem);
+  color: var(--color-text-muted, #5c4f1a);
 }
 
-.current-dasha-svg {
+.dasha-dial {
+  position: relative;
+}
+
+.dasha-dial__svg {
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
 }
 
-.current-dasha-ring-fill {
+.dasha-dial__rim {
   fill: none;
+  stroke: #9a7b1a;
+  stroke-width: 2.4;
 }
 
-.current-dasha-ring-fill--high,
-.current-dasha-ring-fill--own {
-  stroke: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
-  );
+/* Unused ring remainder — cream white, not pink/reddish */
+.dasha-dial__track {
+  fill: #fffef5;
+  stroke: #b8952a;
+  stroke-width: 1.35;
 }
 
-.current-dasha-ring-fill--friend {
-  stroke: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
-  );
+.dasha-dial__svg {
+  --planet-strength: 0.72;
 }
 
-.current-dasha-ring-fill--low {
-  stroke: rgba(
-    var(--planet-color-red-rgb, 183, 28, 28),
-    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
-  );
-}
-
-.current-dasha-ring-fill--enemy {
-  stroke: rgba(
-    var(--planet-color-red-rgb, 183, 28, 28),
-    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
-  );
-}
-
-.current-dasha-ring-disc {
-  stroke: none;
-}
-
-.current-dasha-ring-disc--high,
-.current-dasha-ring-disc--own {
+/* Same light greens/reds as Mahadasha on Age table cells */
+.dasha-dial__fill--high {
   fill: rgba(
     var(--planet-color-green-rgb, 46, 125, 50),
     calc(0.28 + var(--planet-strength, 0.72) * 0.5)
   );
 }
 
-.current-dasha-ring-disc--friend {
+.dasha-dial__fill--own {
+  fill: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.26 + var(--planet-strength, 0.72) * 0.5)
+  );
+}
+
+.dasha-dial__fill--friend {
   fill: rgba(
     var(--planet-color-green-rgb, 46, 125, 50),
     calc(0.2 + var(--planet-strength, 0.72) * 0.45)
   );
 }
 
-.current-dasha-ring-disc--low {
+.dasha-dial__fill--low {
   fill: rgba(
     var(--planet-color-red-rgb, 183, 28, 28),
     calc(0.24 + var(--planet-strength, 0.72) * 0.45)
   );
 }
 
-.current-dasha-ring-disc--enemy {
+.dasha-dial__fill--enemy {
   fill: rgba(
     var(--planet-color-red-rgb, 183, 28, 28),
     calc(0.18 + var(--planet-strength, 0.72) * 0.4)
   );
 }
 
-/* Untinted / black strength → keep Planet Active Dasha white (no black fill) */
-.current-dasha-ring-fill--neutral,
-.current-dasha-ring-fill--black {
-  fill: none;
-  stroke: none;
+/* White / untinted Mahadasha on Age → light greenish so progress is visible */
+.dasha-dial__fill--cream {
+  fill: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.2);
 }
 
-.current-dasha-ring-disc--neutral,
-.current-dasha-ring-disc--black {
-  fill: #ffffff;
-  stroke: none;
+.dasha-dial__tick {
+  stroke: #5c4f1a;
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
-.current-dasha-ring-outline {
-  fill: none;
-  stroke: #111;
+.dasha-dial__tick-dot {
+  fill: #5c4f1a;
 }
 
-.current-dasha-ring-text {
-  font-family: var(--font-ui);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  fill: #1a1a1a;
+.dasha-dial__disc {
+  fill: #fffef5;
+  stroke: #9a7b1a;
+  stroke-width: 1.8;
 }
 
-.current-dasha-ring-text--maha {
-  font-size: 12px;
+.dasha-dial__ring-label {
+  position: absolute;
+  left: 50%;
+  width: 68%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.15;
+  z-index: 1;
 }
 
-.current-dasha-ring-text--antar {
-  font-size: 11px;
+.dasha-dial__ring-label--antar {
+  top: 16.5%;
 }
 
-.current-dasha-ring-text--pratyantar {
-  font-size: 9.5px;
-}
-
-.current-dasha-ring-text--center {
-  font-size: 9px;
+.dasha-dial__ring-label strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--dasha-antar-title, 0.78rem);
   font-weight: 700;
+  color: var(--color-heading, #1f1806);
+}
+
+.dasha-dial__ring-label span {
+  display: block;
+  font-size: var(--dasha-antar-range, 0.66rem);
+  color: var(--color-text-muted, #5c4f1a);
+}
+
+.dasha-dial__center {
+  position: absolute;
+  inset: 27%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dasha-dial__level {
+  font-family: var(--font-display);
+  font-size: var(--dasha-pd-level, 0.72rem);
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted, #5c4f1a);
+}
+
+.dasha-dial__planet {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display);
+  font-size: var(--dasha-pd-planet, 1.05rem);
+  font-weight: 700;
+  color: var(--color-heading, #1f1806);
+  line-height: 1.1;
+}
+
+.dasha-dial__rule {
+  display: block;
+  width: 2.4rem;
+  height: 1px;
+  margin: 0.4rem 0 0.35rem;
+  background: var(--color-accent, #c9a227);
+}
+
+.dasha-dial__range {
+  font-size: var(--dasha-pd-range, 0.7rem);
+  line-height: 1.3;
+  color: var(--color-text-muted, #5c4f1a);
+}
+
+.dasha-side {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dasha-next {
+  --planet-strength: 0.72;
+  padding: 1rem 1.15rem 1.05rem;
+  background: #fffef5;
+  border: 1.5px solid #b8952a;
+  border-radius: var(--radius-md);
+}
+
+/* Same light cell tint as Mahadasha on Age */
+.dasha-next--high {
+  background: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
+  );
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.55);
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--own {
+  background: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.26 + var(--planet-strength, 0.72) * 0.5)
+  );
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.55);
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--friend {
+  background: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
+  );
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.5);
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--low {
+  background: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
+  );
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.55);
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.dasha-next--enemy {
+  background: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
+  );
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.5);
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.dasha-next__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-primary, #8b6914);
+}
+
+.dasha-next--high .dasha-next__kicker,
+.dasha-next--own .dasha-next__kicker,
+.dasha-next--friend .dasha-next__kicker {
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--low .dasha-next__kicker,
+.dasha-next--enemy .dasha-next__kicker {
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.dasha-next__planet {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-heading, #1f1806);
+}
+
+.dasha-next--high .dasha-next__planet,
+.dasha-next--own .dasha-next__planet,
+.dasha-next--friend .dasha-next__planet {
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--low .dasha-next__planet,
+.dasha-next--enemy .dasha-next__planet {
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.dasha-next__level,
+.dasha-next__range,
+.dasha-next__eta {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  color: var(--color-text-muted, #5c4f1a);
+}
+
+.dasha-next--high .dasha-next__level,
+.dasha-next--high .dasha-next__range,
+.dasha-next--high .dasha-next__eta,
+.dasha-next--own .dasha-next__level,
+.dasha-next--own .dasha-next__range,
+.dasha-next--own .dasha-next__eta,
+.dasha-next--friend .dasha-next__level,
+.dasha-next--friend .dasha-next__range,
+.dasha-next--friend .dasha-next__eta {
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.dasha-next--low .dasha-next__level,
+.dasha-next--low .dasha-next__range,
+.dasha-next--low .dasha-next__eta,
+.dasha-next--enemy .dasha-next__level,
+.dasha-next--enemy .dasha-next__range,
+.dasha-next--enemy .dasha-next__eta {
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.dasha-next__eta {
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+  border-top: 1.5px dotted #9a7b1a;
+  font-size: 0.82rem;
+}
+
+.dasha-next--high .dasha-next__eta,
+.dasha-next--own .dasha-next__eta,
+.dasha-next--friend .dasha-next__eta {
+  border-top-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.4);
+}
+
+.dasha-next--low .dasha-next__eta,
+.dasha-next--enemy .dasha-next__eta {
+  border-top-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.4);
+}
+
+.dasha-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.dasha-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+  border: 1.5px solid #b8952a;
+  border-radius: var(--radius-sm);
+}
+
+.dasha-chip__mark {
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-primary, #8b6914);
+  background: #fff9e8;
+  border: 1.5px solid #b8952a;
+}
+
+.dasha-chip__mark--cream {
+  color: var(--color-text-muted, #5c4f1a);
+  background: #fffef5;
+}
+
+.dasha-chip__mark--high,
+.dasha-chip__mark--own,
+.dasha-chip__mark--friend {
+  color: var(--planet-color-green_text, #1b5e20);
+  background: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.22);
+}
+
+.dasha-chip__mark--low,
+.dasha-chip__mark--enemy {
+  color: var(--planet-color-red_text, #6d1010);
+  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.18);
+}
+
+.dasha-chip__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.dasha-chip__title {
+  font-size: 0.92rem;
+  color: var(--color-heading, #1f1806);
+}
+
+.dasha-chip__status {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #5c4f1a);
 }
 
 .current-dasha-empty {
@@ -1128,22 +1370,15 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 720px) {
-  .current-dasha-orbit {
+  .dasha-stage {
     flex-direction: column;
     align-items: center;
   }
 
-  .current-dasha-orbit__card {
+  .dasha-dial-wrap,
+  .dasha-side {
     width: 100%;
-    max-width: min(20rem, 92vw);
-  }
-
-  .current-dasha-orbit__arrow {
-    margin-top: 0;
-  }
-
-  .current-dasha-orbit__arrow-svg {
-    transform: rotate(90deg);
+    max-width: min(22rem, 92vw);
   }
 }
 
@@ -2234,6 +2469,13 @@ tbody tr:last-child td {
   border-top: 1px solid var(--color-surface-border);
 }
 
+.kundali-compare-hint {
+  margin: 0 0 var(--space-md);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--color-muted, #5a6a7a);
+}
+
 .kundali-compare-births {
   display: flex;
   flex-direction: column;
@@ -3303,6 +3545,7 @@ body.premium-modal-open {
 
 .planets-status-section--full .house-planets-tiles,
 .planets-status-section--grid .planets-table-wrap,
+.planets-status-section--grid .planets-status-divisional,
 .house-planets-tiles[hidden],
 .planets-table-wrap[hidden] {
   display: none !important;
@@ -3489,6 +3732,114 @@ body.premium-modal-open {
 
 .house-planets-sheet__table {
   min-width: 56rem;
+}
+
+.house-planets-sheet__desc {
+  padding: 0.9rem 0.95rem 0.35rem;
+  border-top: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.14));
+  background: color-mix(in srgb, var(--color-heading, #1e3a5f) 4%, #fff);
+}
+
+.house-planets-sheet__desc p {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text, #243044);
+  white-space: pre-line;
+}
+
+.house-planets-sheet__planet-read {
+  margin: 0 0 0.95rem;
+}
+
+.house-planets-sheet__planet-read-title {
+  margin: 0 0 0.45rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.house-planets-sheet__pc {
+  margin: 0.2rem 0 0.35rem;
+}
+
+.house-planets-sheet__pc-label {
+  display: block;
+  margin: 0.35rem 0 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-muted, #5a6578);
+}
+
+.house-planets-sheet__pc-list {
+  margin: 0 0 0.2rem 1.25rem;
+  padding: 0;
+}
+
+.house-planets-sheet__pc-list li {
+  margin: 0 0 0.22rem;
+}
+
+.house-planets-sheet__divisional {
+  margin: 0.35rem 0.95rem 0.85rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.14));
+  display: grid;
+  gap: 0.55rem;
+}
+
+.house-planets-sheet__divisional-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.22));
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-heading, #1e3a5f);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.house-planets-sheet__divisional-btn:hover {
+  border-color: color-mix(in srgb, var(--color-heading, #1e3a5f) 35%, #fff);
+  background: color-mix(in srgb, var(--color-heading, #1e3a5f) 6%, #fff);
+}
+
+.house-planets-sheet__divisional-btn[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--color-heading, #1e3a5f) 10%, #fff);
+}
+
+.house-planets-sheet__divisional-host {
+  margin: 0.55rem auto 0;
+  width: min(100%, 16.5rem);
+  max-width: 16.5rem;
+  aspect-ratio: 1;
+}
+
+.house-planets-sheet__divisional-host .kundali-chart-svg {
+  width: 100%;
+  height: auto;
+  max-width: 16.5rem;
+  max-height: 16.5rem;
+}
+
+.house-planets-sheet__divisional-host[hidden] {
+  display: none !important;
+}
+
+.planets-status-divisional {
+  margin-top: 0.85rem;
+}
+
+.house-planets-sheet__desc p:last-child {
+  margin-bottom: 0.55rem;
 }
 
 .house-planets-sheet__list {

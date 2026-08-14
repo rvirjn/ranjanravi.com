@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=186">
+  <link rel="stylesheet" href="../style/styles.css?v=203">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -83,6 +83,10 @@
 
     <section id="kundali-compare-panel" class="kundali-compare-panel" hidden>
       <p class="lead">Enter another birth details</p>
+      <p class="kundali-compare-hint">
+        Birth 1 uses the form above — choose <strong>Open birth details</strong> to pick a saved profile.
+        For Birth 2 and below, pick from <strong>Saved birth details</strong> or enter a <strong>Name</strong> with place, date, and time.
+      </p>
       <form id="kundali-compare-form" class="kundali-compare-form" autocomplete="off">
         <div id="compare-births" class="kundali-compare-births"></div>
         <div class="search-form kundali-form kundali-compare-actions">
@@ -113,9 +117,14 @@
         </div>
       </div>
 
-      <section class="planets-status-section planets-status-section--grid" data-planets-view="grid" aria-label="Birth Time Planets Status">
+      <section id="planet-active-dasha-section" class="kundali-yog-section planet-active-dasha-section" hidden>
+        <h2 id="planet-active-dasha-heading" class="result-heading">Your Dasha</h2>
+        <div id="current-dasha-summary" class="current-dasha-summary" aria-label="Your dasha"></div>
+      </section>
+
+      <section class="planets-status-section planets-status-section--grid" data-planets-view="grid" aria-label="Planet/Houses Status">
       <div class="planets-status-toolbar">
-        <h2 class="result-heading">Birth Time Planets Status</h2>
+        <h2 class="result-heading">Planet/Houses Status</h2>
         <div class="planets-view-switch" role="group" aria-label="Planets status view">
           <button
             type="button"
@@ -131,7 +140,7 @@
             data-planets-view="full"
             aria-pressed="false"
           >
-            Full view
+            Table view
           </button>
         </div>
       </div>
@@ -146,9 +155,9 @@
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
+              <th>Mahadasha on Age</th>
               <th>Planet</th>
               <th>Planet Strength</th>
-              <th>Mahadasha on Age</th>
               <th>In House</th>
               <th>Aspected By</th>
               <th>House Rashi</th>
@@ -167,26 +176,7 @@
           <tbody></tbody>
         </table>
       </div>
-      </section>
-
-      <section id="kundali-yog-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
-        <p id="kundali-yog-summary" class="kundali-yog-summary"></p>
-        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
-      </section>
-
-      <section id="kundali-dosh-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-dosh-heading" class="result-heading">Doshas</h2>
-        <p id="kundali-dosh-summary" class="kundali-yog-summary"></p>
-        <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
-      </section>
-
-      <section id="planet-active-dasha-section" class="kundali-yog-section planet-active-dasha-section" hidden>
-        <h2 id="planet-active-dasha-heading" class="result-heading">Planet Active Dasha</h2>
-        <div id="current-dasha-summary" class="current-dasha-summary" aria-label="Planet active dasha"></div>
-      </section>
-
-      <section id="divisional-charts-section" class="divisional-charts-section">
+      <section id="divisional-charts-section" class="divisional-charts-section planets-status-divisional">
         <div class="kundali-expand-toggles">
           <button
             type="button"
@@ -202,6 +192,20 @@
           <div id="divisional-charts-grid" class="divisional-charts-grid"></div>
         </div>
       </section>
+      </section>
+
+      <section id="kundali-yog-section" class="kundali-yog-section" hidden>
+        <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
+        <p id="kundali-yog-summary" class="kundali-yog-summary"></p>
+        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
+      </section>
+
+      <section id="kundali-dosh-section" class="kundali-yog-section" hidden>
+        <h2 id="kundali-dosh-heading" class="result-heading">Doshas</h2>
+        <p id="kundali-dosh-summary" class="kundali-yog-summary"></p>
+        <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
+      </section>
+
       </div>
 
       <div id="lord-comparison-section" hidden>
@@ -223,8 +227,8 @@
   <script src="../js/premium-modal.js?v=10"></script>
   <script src="../js/wallet-modal.js?v=3"></script>
   <script src="../utils/common.js?v=43"></script>
-  <script src="../js/kundali.js?v=242"></script>
+  <script src="../js/kundali.js?v=253"></script>
   <script src="../js/lord-comparison.js?v=15"></script>
-  <script src="../js/kundali-compare.js?v=9"></script>
+  <script src="../js/kundali-compare.js?v=11"></script>
 </body>
 </html>
