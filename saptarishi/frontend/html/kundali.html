@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=206">
+  <link rel="stylesheet" href="../style/styles.css?v=207">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -124,24 +124,15 @@
             type="button"
             id="planet-active-dasha-info-btn"
             class="kundali-info-btn"
+            data-qa-key="your_dasha"
             aria-label="What is Dasha?"
             aria-expanded="false"
-            aria-controls="planet-active-dasha-info-panel"
+            aria-controls="kundali-qa-popover"
             title="What is Dasha?"
             hidden
           >
             <span class="kundali-info-btn__glyph" aria-hidden="true">i</span>
           </button>
-        </div>
-        <div
-          id="planet-active-dasha-info-panel"
-          class="planet-active-dasha-info-panel"
-          role="region"
-          aria-labelledby="planet-active-dasha-info-question"
-          hidden
-        >
-          <p id="planet-active-dasha-info-question" class="planet-active-dasha-info-panel__question"></p>
-          <div id="planet-active-dasha-info-answer" class="planet-active-dasha-info-panel__answer"></div>
         </div>
         <div id="current-dasha-summary" class="current-dasha-summary" aria-label="Your dasha"></div>
       </section>
@@ -251,7 +242,7 @@
   <script src="../js/premium-modal.js?v=10"></script>
   <script src="../js/wallet-modal.js?v=3"></script>
   <script src="../utils/common.js?v=43"></script>
-  <script src="../js/kundali.js?v=254"></script>
+  <script src="../js/kundali.js?v=255"></script>
   <script src="../js/lord-comparison.js?v=16"></script>
   <script src="../js/kundali-compare.js?v=11"></script>
 </body>

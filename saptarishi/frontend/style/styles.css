@@ -1001,16 +1001,26 @@ tbody tr:last-child td {
   font-style: italic;
 }
 
-.planet-active-dasha-info-panel {
+.planet-active-dasha-info-panel,
+.kundali-qa-popover {
   margin: 0 0 var(--space-md);
   max-width: 52rem;
   padding: 0.85rem 1rem;
   border: 1px solid color-mix(in srgb, var(--color-accent, #c9a227) 35%, var(--color-surface-border));
   border-radius: var(--radius-md, 8px);
   background: #fffef8;
+  z-index: 40;
 }
 
-.planet-active-dasha-info-panel__question {
+.kundali-qa-popover {
+  position: fixed;
+  margin: 0;
+  max-width: min(52rem, calc(100vw - 2rem));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.planet-active-dasha-info-panel__question,
+.kundali-qa-popover__question {
   margin: 0 0 0.55rem;
   font-size: 0.95rem;
   line-height: 1.35;
@@ -1018,28 +1028,60 @@ tbody tr:last-child td {
   color: var(--color-heading, #1e3a5f);
 }
 
-.planet-active-dasha-info-panel__answer {
+.planet-active-dasha-info-panel__answer,
+.kundali-qa-popover__answer {
   font-size: 0.88rem;
   line-height: 1.55;
   color: var(--color-text-muted, #5a6a7a);
 }
 
-.planet-active-dasha-info-panel__answer p {
+.planet-active-dasha-info-panel__answer p,
+.kundali-qa-popover__answer p {
   margin: 0 0 0.65rem;
 }
 
-.planet-active-dasha-info-panel__answer p:last-child {
+.planet-active-dasha-info-panel__answer p:last-child,
+.kundali-qa-popover__answer p:last-child {
   margin-bottom: 0;
 }
 
-.planet-active-dasha-info-panel__good {
+.planet-active-dasha-info-panel__good,
+.kundali-qa-popover__good {
   color: var(--planet-color-green, #2e7d32);
   font-weight: 600;
 }
 
-.planet-active-dasha-info-panel__care {
+.planet-active-dasha-info-panel__care,
+.kundali-qa-popover__care {
   color: var(--planet-color-red, #b71c1c);
   font-weight: 600;
+}
+
+.kundali-table-header-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+
+.kundali-table-header-with-info .kundali-info-btn {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.kundali-table-header-with-info .kundali-info-btn__glyph {
+  font-size: 0.72rem;
+}
+
+#summary-table th[scope="row"] .kundali-table-header-with-info,
+[id$="-summary-table"] th[scope="row"] .kundali-table-header-with-info {
+  justify-content: flex-start;
+}
+
+#planets-table thead th,
+.house-planets-sheet__table thead th {
+  vertical-align: bottom;
 }
 
 .current-dasha-summary {

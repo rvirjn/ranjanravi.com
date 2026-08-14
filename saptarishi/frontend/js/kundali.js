@@ -139,12 +139,28 @@ function summaryValueClassForLabel(label, value) {
   return "";
 }
 
+const KUNDALI_SUMMARY_QA_KEYS = {
+  "combust planet": "combust_planet",
+  "exalted planet": "exalted_planet",
+  "debilitated planet": "debilitated_planet",
+  "retrograde planet": "retrograde_planet"
+};
+
 /** One label + value row for the summary facts table. */
 function createSummaryLabelValueRow(label, value) {
   const tr = document.createElement("tr");
   const th = document.createElement("th");
   th.scope = "row";
-  th.textContent = toTitleCaseWords(label);
+  const qaKey = KUNDALI_SUMMARY_QA_KEYS[normalizeText(label)] || "";
+  if (qaKey) {
+    const wrap = document.createElement("span");
+    wrap.className = "kundali-table-header-with-info";
+    wrap.appendChild(document.createTextNode(toTitleCaseWords(label)));
+    wrap.appendChild(createKundaliQaInfoButton(qaKey));
+    th.appendChild(wrap);
+  } else {
+    th.textContent = toTitleCaseWords(label);
+  }
   const td = document.createElement("td");
   const valueClass = summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
@@ -983,14 +999,18 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { key: "house_lord", header: "House Lord" },
   { key: "planet_status_in_rashi", header: "Rashi Status" },
   { key: "is_planet_lagna_lord_enemy", header: "Lagna Lord Enemy" },
-  { key: "nakshatra", header: "Nakshatra" },
+  { key: "nakshatra", header: "Nakshatra", qaKey: "nakshatra" },
   { key: "planet_status_in_nakshatra", header: "Nakshatra Status" },
-  { key: "karakwaqt", header: "Karakwaqt" },
-  { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12" },
-  { key: "navatara", header: "Nakshatra navatara" },
+  { key: "karakwaqt", header: "Karakwaqt", qaKey: "karakwaqt" },
+  { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12", qaKey: "malefic_6_8_12" },
+  { key: "navatara", header: "Nakshatra navatara", qaKey: "nakshatra_navatara" },
   { key: "degree", header: "Degree" },
-  { key: "is_planet_at_death_degree", header: "Death Degree" }
+  { key: "is_planet_at_death_degree", header: "Death Degree", qaKey: "death_degree" }
 ];
+
+const KUNDALI_PLANETS_HEADER_QA_KEYS = Object.fromEntries(
+  KUNDALI_PLANETS_TABLE_COLUMNS.filter((col) => col.qaKey).map((col) => [col.header, col.qaKey])
+);
 
 const KUNDALI_PLANETS_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS.map((col) => col.header);
 const KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT_HOUSE = KUNDALI_PLANETS_TABLE_COLUMNS.filter(
@@ -1374,7 +1394,7 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
   for (const label of KUNDALI_PLANETS_GRID_TABLE_HEADERS) {
-    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: label }));
+    headerRow.appendChild(createPlanetsTableHeaderCell(label));
   }
   thead.appendChild(headerRow);
   const tbody = document.createElement("tbody");
@@ -2278,8 +2298,8 @@ function createKundaliPlanetsTableElement(idPrefix) {
   table.className = "navatara-data-table kundali-table";
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
-  for (const label of KUNDALI_PLANETS_TABLE_HEADERS) {
-    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: label }));
+  for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
+    headerRow.appendChild(createPlanetsTableHeaderCell(col.header, col.qaKey));
   }
   thead.appendChild(headerRow);
   table.append(thead, document.createElement("tbody"));
@@ -3271,13 +3291,22 @@ function createDashaNextCard(snapshot, payload) {
   return side;
 }
 
-const DASHA_QA_KEY = "your_dasha";
+const KUNDALI_QA_POPOVER_ID = "kundali-qa-popover";
 
-/** Read ``data.json`` → ``Q&A.your_dasha`` (question + answer paragraphs). */
-function dashaQaEntryFromDatabase(db) {
+const kundaliQaPopoverState = {
+  el: null,
+  openKey: "",
+  trigger: null,
+  bound: false
+};
+
+/** Read ``data.json`` → ``Q&A.<key>`` (question + answer paragraphs). */
+function qaEntryFromDatabase(db, qaKey) {
+  const key = String(qaKey || "").trim();
+  if (!key) return null;
   const qaRoot = db?.["Q&A"];
   if (!qaRoot || typeof qaRoot !== "object") return null;
-  const entry = qaRoot[DASHA_QA_KEY] || qaRoot.dasha;
+  const entry = qaRoot[key];
   if (!entry || typeof entry !== "object") return null;
   const question = String(entry.question || "").trim();
   let answerParts = entry.answer;
@@ -3293,7 +3322,7 @@ function dashaQaEntryFromDatabase(db) {
   return { question, answerParts };
 }
 
-function formatDashaQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
+function formatKundaliQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
   const p = document.createElement("p");
   const isColorParagraph =
     paragraphIndex === totalParagraphs - 1 && /\bgreen\b/i.test(text) && /\bred\b/i.test(text);
@@ -3311,9 +3340,7 @@ function formatDashaQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
     }
     const span = document.createElement("span");
     span.className =
-      match[1].toLowerCase() === "green"
-        ? "planet-active-dasha-info-panel__good"
-        : "planet-active-dasha-info-panel__care";
+      match[1].toLowerCase() === "green" ? "kundali-qa-popover__good" : "kundali-qa-popover__care";
     span.textContent = match[1];
     frag.appendChild(span);
     last = match.index + match[0].length;
@@ -3325,76 +3352,217 @@ function formatDashaQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
   return p;
 }
 
-function renderDashaQaPanelFromDatabase(db) {
-  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
-  const panel = document.getElementById("planet-active-dasha-info-panel");
-  const questionEl = document.getElementById("planet-active-dasha-info-question");
-  const answerEl = document.getElementById("planet-active-dasha-info-answer");
-  if (!infoBtn || !panel || !questionEl || !answerEl) return;
+function ensureKundaliQaPopoverElement() {
+  if (kundaliQaPopoverState.el) return kundaliQaPopoverState.el;
+  const pop = document.createElement("div");
+  pop.id = KUNDALI_QA_POPOVER_ID;
+  pop.className = "kundali-qa-popover";
+  pop.hidden = true;
+  pop.setAttribute("role", "dialog");
+  pop.setAttribute("aria-modal", "false");
+  const questionEl = document.createElement("p");
+  questionEl.className = "kundali-qa-popover__question";
+  questionEl.id = `${KUNDALI_QA_POPOVER_ID}-question`;
+  const answerEl = document.createElement("div");
+  answerEl.className = "kundali-qa-popover__answer";
+  answerEl.id = `${KUNDALI_QA_POPOVER_ID}-answer`;
+  pop.append(questionEl, answerEl);
+  document.body.appendChild(pop);
+  kundaliQaPopoverState.el = pop;
+  return pop;
+}
 
-  const entry = dashaQaEntryFromDatabase(db);
+function positionKundaliQaPopover(trigger) {
+  const pop = kundaliQaPopoverState.el;
+  if (!pop || !trigger || typeof trigger.getBoundingClientRect !== "function") return;
+  pop.hidden = false;
+  pop.style.visibility = "hidden";
+  pop.style.left = "0";
+  pop.style.top = "0";
+  const triggerRect = trigger.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  const margin = 8;
+  let left = triggerRect.left;
+  let top = triggerRect.bottom + margin;
+  if (left + popRect.width > window.innerWidth - margin) {
+    left = Math.max(margin, window.innerWidth - popRect.width - margin);
+  }
+  if (top + popRect.height > window.innerHeight - margin) {
+    top = Math.max(margin, triggerRect.top - popRect.height - margin);
+  }
+  pop.style.left = `${Math.round(left)}px`;
+  pop.style.top = `${Math.round(top)}px`;
+  pop.style.visibility = "";
+}
+
+function closeKundaliQaPopover() {
+  const pop = kundaliQaPopoverState.el;
+  if (!pop || pop.hidden) return;
+  pop.hidden = true;
+  kundaliQaPopoverState.openKey = "";
+  if (kundaliQaPopoverState.trigger) {
+    kundaliQaPopoverState.trigger.setAttribute("aria-expanded", "false");
+    kundaliQaPopoverState.trigger = null;
+  }
+}
+
+function renderKundaliQaPopover(db, qaKey) {
+  const pop = ensureKundaliQaPopoverElement();
+  const questionEl = pop.querySelector(".kundali-qa-popover__question");
+  const answerEl = pop.querySelector(".kundali-qa-popover__answer");
+  if (!questionEl || !answerEl) return false;
+
+  const entry = qaEntryFromDatabase(db, qaKey);
   if (!entry) {
-    infoBtn.hidden = true;
-    panel.hidden = true;
-    infoBtn.setAttribute("aria-expanded", "false");
-    questionEl.textContent = "";
-    answerEl.replaceChildren();
-    return;
+    closeKundaliQaPopover();
+    return false;
   }
 
   questionEl.textContent = entry.question;
   answerEl.replaceChildren();
   entry.answerParts.forEach((text, index) => {
-    answerEl.appendChild(formatDashaQaAnswerParagraph(text, index, entry.answerParts.length));
+    answerEl.appendChild(formatKundaliQaAnswerParagraph(text, index, entry.answerParts.length));
   });
-
-  infoBtn.hidden = false;
-  infoBtn.setAttribute("aria-label", entry.question);
-  infoBtn.title = entry.question;
+  pop.setAttribute("aria-labelledby", questionEl.id);
+  return true;
 }
 
-let dashaQaInfoBound = false;
+function openKundaliQaPopover(qaKey, trigger) {
+  const key = String(qaKey || "").trim();
+  if (!key) return;
 
-function setDashaQaPanelOpen(open) {
-  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
-  const panel = document.getElementById("planet-active-dasha-info-panel");
-  if (!infoBtn || !panel || infoBtn.hidden) return;
-  const isOpen = Boolean(open);
-  panel.hidden = !isOpen;
-  infoBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  if (kundaliQaPopoverState.openKey === key && kundaliQaPopoverState.trigger === trigger) {
+    closeKundaliQaPopover();
+    return;
+  }
+
+  ensurePlanetDatabase()
+    .then((db) => {
+      if (!renderKundaliQaPopover(db, key)) return;
+      kundaliQaPopoverState.openKey = key;
+      if (kundaliQaPopoverState.trigger && kundaliQaPopoverState.trigger !== trigger) {
+        kundaliQaPopoverState.trigger.setAttribute("aria-expanded", "false");
+      }
+      kundaliQaPopoverState.trigger = trigger || null;
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", "true");
+        const entry = qaEntryFromDatabase(db, key);
+        if (entry?.question) {
+          trigger.setAttribute("aria-label", entry.question);
+          trigger.title = entry.question;
+        }
+      }
+      positionKundaliQaPopover(trigger);
+    })
+    .catch(() => {});
 }
 
-function bindDashaQaInfoInteractions() {
-  if (dashaQaInfoBound) return;
-  const infoBtn = document.getElementById("planet-active-dasha-info-btn");
-  const panel = document.getElementById("planet-active-dasha-info-panel");
-  if (!infoBtn || !panel) return;
-  dashaQaInfoBound = true;
-
-  infoBtn.addEventListener("click", (event) => {
+function createKundaliQaInfoButton(qaKey) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "kundali-info-btn";
+  btn.dataset.qaKey = String(qaKey || "").trim();
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", KUNDALI_QA_POPOVER_ID);
+  btn.title = "More info";
+  btn.setAttribute("aria-label", "More info");
+  btn.innerHTML = '<span class="kundali-info-btn__glyph" aria-hidden="true">i</span>';
+  btn.addEventListener("click", (event) => {
+    event.preventDefault();
     event.stopPropagation();
-    const isOpen = infoBtn.getAttribute("aria-expanded") === "true";
-    setDashaQaPanelOpen(!isOpen);
+    openKundaliQaPopover(btn.dataset.qaKey, btn);
   });
+  return btn;
+}
+
+function createPlanetsTableHeaderCell(label, qaKey) {
+  const th = document.createElement("th");
+  const resolvedKey = qaKey || KUNDALI_PLANETS_HEADER_QA_KEYS[label] || "";
+  if (!resolvedKey) {
+    th.textContent = label;
+    return th;
+  }
+  const wrap = document.createElement("span");
+  wrap.className = "kundali-table-header-with-info";
+  wrap.appendChild(document.createTextNode(label));
+  wrap.appendChild(createKundaliQaInfoButton(resolvedKey));
+  th.appendChild(wrap);
+  return th;
+}
+
+function enhancePlanetsTableStaticHeaders() {
+  const table = document.getElementById("planets-table");
+  if (!table) return;
+  table.querySelectorAll("thead th").forEach((th) => {
+    if (th.querySelector(".kundali-info-btn")) return;
+    const label = String(th.textContent || "").trim();
+    const qaKey = KUNDALI_PLANETS_HEADER_QA_KEYS[label];
+    if (!qaKey) return;
+    const fresh = createPlanetsTableHeaderCell(label, qaKey);
+    th.replaceWith(fresh);
+  });
+}
+
+function bindKundaliQaGlobalInteractions() {
+  if (kundaliQaPopoverState.bound) return;
+  kundaliQaPopoverState.bound = true;
 
   document.addEventListener("click", (event) => {
-    if (panel.hidden) return;
-    if (infoBtn.contains(event.target) || panel.contains(event.target)) return;
-    setDashaQaPanelOpen(false);
+    const pop = kundaliQaPopoverState.el;
+    if (!pop || pop.hidden) return;
+    const trigger = kundaliQaPopoverState.trigger;
+    if (pop.contains(event.target) || (trigger && trigger.contains(event.target))) return;
+    closeKundaliQaPopover();
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !panel.hidden) {
-      setDashaQaPanelOpen(false);
-      infoBtn.focus();
-    }
+    if (event.key !== "Escape") return;
+    const pop = kundaliQaPopoverState.el;
+    if (!pop || pop.hidden) return;
+    closeKundaliQaPopover();
+    kundaliQaPopoverState.trigger?.focus();
   });
+
+  window.addEventListener(
+    "resize",
+    () => {
+      const pop = kundaliQaPopoverState.el;
+      if (!pop || pop.hidden || !kundaliQaPopoverState.trigger) return;
+      positionKundaliQaPopover(kundaliQaPopoverState.trigger);
+    },
+    { passive: true }
+  );
 }
 
-async function ensureDashaQaPanel() {
-  bindDashaQaInfoInteractions();
+function initKundaliQaFromDatabase(db) {
+  bindKundaliQaGlobalInteractions();
+  enhancePlanetsTableStaticHeaders();
+
+  const dashaBtn = document.getElementById("planet-active-dasha-info-btn");
+  if (dashaBtn && qaEntryFromDatabase(db, "your_dasha")) {
+    dashaBtn.hidden = false;
+    const entry = qaEntryFromDatabase(db, "your_dasha");
+    dashaBtn.setAttribute("aria-label", entry.question);
+    dashaBtn.title = entry.question;
+    if (!dashaBtn.dataset.qaKey) dashaBtn.dataset.qaKey = "your_dasha";
+    if (!dashaBtn.dataset.qaBound) {
+      dashaBtn.dataset.qaBound = "1";
+      dashaBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openKundaliQaPopover(dashaBtn.dataset.qaKey || "your_dasha", dashaBtn);
+      });
+    }
+  } else if (dashaBtn) {
+    dashaBtn.hidden = true;
+  }
+}
+
+async function ensureKundaliQaUi() {
+  bindKundaliQaGlobalInteractions();
   const db = await ensurePlanetDatabase();
-  renderDashaQaPanelFromDatabase(db);
+  initKundaliQaFromDatabase(db);
+  return db;
 }
 
 function renderCurrentDashaFromPayload(payload) {
@@ -3412,7 +3580,7 @@ function renderCurrentDashaFromPayload(payload) {
   }
 
   if (section) section.hidden = false;
-  ensureDashaQaPanel().catch(() => {});
+  ensureKundaliQaUi().catch(() => {});
 
   const layout = document.createElement("div");
   layout.className = "dasha-stage";
@@ -3997,12 +4165,7 @@ if (document.getElementById("birth-form")) {
   }
   if (form) {
     form.addEventListener("submit", handleBirthFormSubmit);
-    ensurePlanetDatabase()
-      .then((db) => {
-        renderDashaQaPanelFromDatabase(db);
-        bindDashaQaInfoInteractions();
-      })
-      .catch(() => {});
+    ensureKundaliQaUi().catch(() => {});
   }
   const divisionalToggle = document.getElementById("divisional-charts-toggle");
   if (divisionalToggle) {
