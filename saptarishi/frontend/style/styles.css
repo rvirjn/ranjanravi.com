@@ -2381,6 +2381,47 @@ tbody tr:last-child td {
   color: var(--color-heading, #1e3a5f);
 }
 
+#lord-comparison-table td.auspicious-lord-col--match-list {
+  vertical-align: top;
+  min-width: 10rem;
+  max-width: 22rem;
+}
+
+.lord-compare-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.4rem;
+  line-height: 1.35;
+}
+
+.lord-compare-chip {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  border: 1px solid transparent;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.lord-compare-chip--good {
+  color: #1b5e20;
+  background: rgba(46, 125, 50, 0.12);
+  border-color: rgba(46, 125, 50, 0.28);
+}
+
+.lord-compare-chip--bad {
+  color: #6d1010;
+  background: rgba(183, 28, 28, 0.1);
+  border-color: rgba(183, 28, 28, 0.32);
+}
+
+#lord-comparison-table tbody tr.lord-comparison-row--dosh td.planets-td-planet {
+  color: #6d1010;
+}
+
 .auspicious-lord-cell {
   line-height: 1.45;
   max-width: 100%;

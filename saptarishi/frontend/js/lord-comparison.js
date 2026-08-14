@@ -213,7 +213,7 @@
   function appendYogaCompareCell(tr, cell, rowKind) {
     const td = document.createElement("td");
     td.className = "auspicious-lord-col auspicious-lord-col--yoga";
-    if (rowKind === "yoga_count") {
+    if (rowKind === "yoga_count" || rowKind === "match_count") {
       td.classList.add("auspicious-lord-col--yoga-count");
       td.textContent =
         cell?.count != null ? String(cell.count) : String(cell?.text || "0");
@@ -224,6 +224,35 @@
       td.classList.add("auspicious-lord-col--yoga-no");
       td.textContent = "—";
     }
+    tr.appendChild(td);
+  }
+
+  function appendMatchListCell(tr, cell, matchKind) {
+    const td = document.createElement("td");
+    td.className = "auspicious-lord-col auspicious-lord-col--match-list";
+    if (matchKind === "kundali_dosh") {
+      td.classList.add("auspicious-lord-col--dosh-list");
+    }
+
+    const items = Array.isArray(cell?.items) ? cell.items : [];
+    if (!items.length) {
+      td.classList.add("auspicious-lord-col--yoga-no");
+      td.textContent = "—";
+      tr.appendChild(td);
+      return;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "lord-compare-chip-list";
+    items.forEach((item) => {
+      const chip = document.createElement("span");
+      const nature = String(item?.nature || "good").toLowerCase();
+      chip.className = `lord-compare-chip lord-compare-chip--${nature === "bad" ? "bad" : "good"}`;
+      chip.textContent = String(item?.name || item?.key || "").trim() || "—";
+      if (item?.summary) chip.title = String(item.summary);
+      wrap.appendChild(chip);
+    });
+    td.appendChild(wrap);
     tr.appendChild(td);
   }
 
@@ -323,12 +352,18 @@
     for (const rowData of rows) {
       const tr = document.createElement("tr");
       const isDivisional = rowData.row_kind === "divisional_chart";
-      const isYoga =
+      const isMatchList = rowData.row_kind === "match_list";
+      const isMatchCount = rowData.row_kind === "match_count";
+      const isYogaLegacy =
         rowData.row_kind === "yoga_diff" || rowData.row_kind === "yoga_count";
+      const isMatchRow = isMatchList || isMatchCount || isYogaLegacy;
       if (isDivisional) tr.classList.add("lord-comparison-row--divisional");
-      if (isYoga) tr.classList.add("lord-comparison-row--yoga");
-      if (rowData.row_kind === "yoga_count") {
+      if (isMatchRow) tr.classList.add("lord-comparison-row--yoga");
+      if (isMatchCount || rowData.row_kind === "yoga_count") {
         tr.classList.add("lord-comparison-row--yoga-count");
+      }
+      if (isMatchList && rowData.match_kind === "kundali_dosh") {
+        tr.classList.add("lord-comparison-row--dosh");
       }
 
       const planetTd = document.createElement("td");
@@ -338,7 +373,11 @@
 
       if (isDivisional) {
         (rowData.cells || []).forEach((cell) => appendDivisionalChartCell(tr, cell));
-      } else if (isYoga) {
+      } else if (isMatchList) {
+        (rowData.cells || []).forEach((cell) =>
+          appendMatchListCell(tr, cell, rowData.match_kind)
+        );
+      } else if (isMatchRow) {
         (rowData.cells || []).forEach((cell) =>
           appendYogaCompareCell(tr, cell, rowData.row_kind)
         );
