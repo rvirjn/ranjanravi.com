@@ -12,6 +12,9 @@
   const PREMIUM_LEAD =
     "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 6 queries or ₹1899 for unlimited).";
 
+  const FORGOT_LEAD =
+    "Enter the mobile number and email on your account. If they match, we email you a temporary password.";
+
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
@@ -20,8 +23,10 @@
   let statusEl = null;
   let loginForm = null;
   let registerForm = null;
+  let forgotForm = null;
   let leadEl = null;
   let authBusy = false;
+  let activePanel = "login";
 
   function ensureAuthModalMounted() {
     if (overlay) return;
@@ -50,9 +55,30 @@
               <label for="auth-modal-login-password">Password</label>
               <input type="password" id="auth-modal-login-password" name="password" autocomplete="current-password" required minlength="4" placeholder="Enter your password" />
             </div>
+            <p class="auth-modal__forgot-wrap">
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-link">Forgot password?</button>
+            </p>
             <div class="form-field form-field--submit">
               <button type="submit">Sign in</button>
             </div>
+          </form>
+        </div>
+        <div id="auth-modal-panel-forgot" class="auth-modal__panel auth-modal__panel--hidden" hidden>
+          <form id="auth-modal-forgot-form" class="auth-form" autocomplete="on">
+            <div class="form-field">
+              <label for="auth-modal-forgot-mobile">Mobile number</label>
+              <input type="tel" id="auth-modal-forgot-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+            </div>
+            <div class="form-field">
+              <label for="auth-modal-forgot-email">Email</label>
+              <input type="email" id="auth-modal-forgot-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+            </div>
+            <div class="form-field form-field--submit">
+              <button type="submit">Send temporary password</button>
+            </div>
+            <p class="auth-modal__forgot-wrap">
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-back">Back to sign in</button>
+            </p>
           </form>
         </div>
         <div id="auth-modal-panel-register" class="auth-modal__panel auth-modal__panel--hidden" hidden>
@@ -91,6 +117,7 @@
     leadEl = overlay.querySelector("#auth-modal-lead");
     loginForm = overlay.querySelector("#auth-modal-login-form");
     registerForm = overlay.querySelector("#auth-modal-register-form");
+    forgotForm = overlay.querySelector("#auth-modal-forgot-form");
 
     overlay.querySelector("#auth-modal-close").addEventListener("click", () => close(false));
     overlay.addEventListener("click", (event) => {
@@ -101,6 +128,15 @@
 
     overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
       btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+    });
+
+    overlay.querySelector("#auth-modal-forgot-link").addEventListener("click", () => {
+      if (authBusy) return;
+      setActiveTab("forgot");
+    });
+    overlay.querySelector("#auth-modal-forgot-back").addEventListener("click", () => {
+      if (authBusy) return;
+      setActiveTab("login");
     });
 
     document.addEventListener("keydown", (event) => {
@@ -149,12 +185,32 @@
         showStatus(err.message || "Registration failed", true);
       }
     });
+
+    forgotForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      startAuthLoading();
+      try {
+        const payload = await AUTH.forgotPassword(
+          overlay.querySelector("#auth-modal-forgot-mobile").value,
+          overlay.querySelector("#auth-modal-forgot-email").value
+        );
+        stopAuthLoading();
+        showStatus(
+          payload.message ||
+            "If that mobile and email match an account, a temporary password was sent to your email.",
+          false
+        );
+      } catch (err) {
+        stopAuthLoading();
+        showStatus(err.message || "Could not reset password", true);
+      }
+    });
   }
 
   function setAuthBusy(busy) {
     authBusy = busy;
     if (!overlay) return;
-    [loginForm, registerForm].forEach((form) => {
+    [loginForm, registerForm, forgotForm].forEach((form) => {
       if (!form) return;
       form.querySelectorAll("input, button[type='submit']").forEach((el) => {
         el.disabled = busy;
@@ -163,6 +219,10 @@
     overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
       btn.disabled = busy;
     });
+    const forgotLink = overlay.querySelector("#auth-modal-forgot-link");
+    const forgotBack = overlay.querySelector("#auth-modal-forgot-back");
+    if (forgotLink) forgotLink.disabled = busy;
+    if (forgotBack) forgotBack.disabled = busy;
     const closeBtn = overlay.querySelector("#auth-modal-close");
     if (closeBtn) closeBtn.disabled = busy && overlay.dataset.required !== "true";
   }
@@ -202,22 +262,44 @@
 
   function setActiveTab(tab) {
     if (authBusy) return;
-    const isLogin = tab !== "register";
+    activePanel = tab === "register" ? "register" : tab === "forgot" ? "forgot" : "login";
+    const isForgot = activePanel === "forgot";
+    const isLogin = activePanel === "login";
+    const isRegister = activePanel === "register";
+
+    const tabsEl = overlay.querySelector(".auth-tabs");
+    if (tabsEl) tabsEl.hidden = isForgot;
+
     overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
-      const active = btn.dataset.tab === (isLogin ? "login" : "register");
+      const active =
+        (btn.dataset.tab === "login" && isLogin) || (btn.dataset.tab === "register" && isRegister);
       btn.classList.toggle("auth-tabs__btn--active", active);
       btn.setAttribute("aria-selected", active ? "true" : "false");
+      btn.hidden = false;
     });
 
     const loginPanel = overlay.querySelector("#auth-modal-panel-login");
     const registerPanel = overlay.querySelector("#auth-modal-panel-register");
+    const forgotPanel = overlay.querySelector("#auth-modal-panel-forgot");
     if (loginPanel) {
       loginPanel.hidden = !isLogin;
       loginPanel.classList.toggle("auth-modal__panel--hidden", !isLogin);
     }
     if (registerPanel) {
-      registerPanel.hidden = isLogin;
-      registerPanel.classList.toggle("auth-modal__panel--hidden", isLogin);
+      registerPanel.hidden = !isRegister;
+      registerPanel.classList.toggle("auth-modal__panel--hidden", !isRegister);
+    }
+    if (forgotPanel) {
+      forgotPanel.hidden = !isForgot;
+      forgotPanel.classList.toggle("auth-modal__panel--hidden", !isForgot);
+    }
+
+    if (leadEl) {
+      if (isForgot) {
+        leadEl.textContent = FORGOT_LEAD;
+      } else if (overlay.dataset.lead) {
+        leadEl.textContent = overlay.dataset.lead;
+      }
     }
     showStatus("");
   }
@@ -254,12 +336,16 @@
 
   function openAuthModal(options = {}) {
     ensureAuthModalMounted();
-    const tab = options.tab === "register" ? "register" : "login";
+    const tab =
+      options.tab === "register" ? "register" : options.tab === "forgot" ? "forgot" : "login";
     const required = Boolean(options.required);
     const isPremium = options.reason === "premium";
 
     if (leadEl) {
-      leadEl.textContent = options.message || (isPremium ? PREMIUM_LEAD : DEFAULT_LEAD);
+      leadEl.textContent =
+        options.message ||
+        (tab === "forgot" ? FORGOT_LEAD : isPremium ? PREMIUM_LEAD : DEFAULT_LEAD);
+      overlay.dataset.lead = leadEl.textContent;
     }
 
     setActiveTab(tab);
@@ -269,7 +355,11 @@
     document.body.classList.add("auth-modal-open");
 
     const firstInput = overlay.querySelector(
-      tab === "register" ? "#auth-modal-reg-name" : "#auth-modal-login-mobile"
+      tab === "register"
+        ? "#auth-modal-reg-name"
+        : tab === "forgot"
+          ? "#auth-modal-forgot-mobile"
+          : "#auth-modal-login-mobile"
     );
     if (firstInput) {
       window.requestAnimationFrame(() => firstInput.focus());

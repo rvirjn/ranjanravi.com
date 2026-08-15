@@ -36,6 +36,9 @@ const SAPTARISHI_CONSTANTS = {
   API_AUTH_LOGIN_PATH: "/api/auth/login",
   API_AUTH_PROFILE_PATH: "/api/auth/profile",
   API_AUTH_PROFILE_UPDATE_PATH: "/api/auth/profile/update",
+  API_AUTH_PASSWORD_UPDATE_PATH: "/api/auth/password/update",
+  API_AUTH_PASSWORD_FORGOT_PATH: "/api/auth/password/forgot",
+  API_AUTH_ACCOUNT_DELETE_PATH: "/api/auth/account/delete",
   API_AUTH_LOGOUT_PATH: "/api/auth/logout",
   API_AUTH_ME_PATH: "/api/auth/me",
   API_SITE_VIEW_PATH: "/api/site/view",
@@ -43,6 +46,11 @@ const SAPTARISHI_CONSTANTS = {
   API_PREMIUM_INFO_PATH: "/api/premium/info",
   API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
   API_WALLET_PATH: "/api/wallet",
+  API_DB_USERS_PATH: "/api/db/users",
+  API_DB_WALLET_PATH: "/api/db/wallet",
+  API_DB_SEND_COUPON_PATH: "/api/db/send-coupon",
+  USER_TYPE_ENDUSER: "enduser",
+  USER_TYPE_ADMIN: "admin",
 
   // --- Usage / auth headers ---
   GUEST_ID_HEADER: "X-Guest-Id",

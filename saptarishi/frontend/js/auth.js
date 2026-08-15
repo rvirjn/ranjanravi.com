@@ -341,6 +341,64 @@
     return payload;
   }
 
+  async function updatePassword(currentPassword, newPassword, confirmPassword) {
+    return apiFetch(AC.API_AUTH_PASSWORD_UPDATE_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      })
+    });
+  }
+
+  async function forgotPassword(mobile, email) {
+    return apiFetch(AC.API_AUTH_PASSWORD_FORGOT_PATH, {
+      method: "POST",
+      body: JSON.stringify({ mobile, email })
+    });
+  }
+
+  async function deleteAccount(password) {
+    const payload = await apiFetch(AC.API_AUTH_ACCOUNT_DELETE_PATH, {
+      method: "POST",
+      body: JSON.stringify({ password })
+    });
+    clearSession();
+    global.dispatchEvent(
+      new CustomEvent("saptarishi-auth-changed", {
+        detail: { user: null, usage: null }
+      })
+    );
+    return payload;
+  }
+
+  function isAdmin(userOrUsage) {
+    const src = userOrUsage || getUsage() || getUser() || {};
+    const type = String(src.user_type || "").trim().toLowerCase();
+    return type === (AC.USER_TYPE_ADMIN || "admin");
+  }
+
+  async function fetchDbUsers() {
+    return apiFetch(AC.API_DB_USERS_PATH);
+  }
+
+  async function fetchDbWallet() {
+    return apiFetch(AC.API_DB_WALLET_PATH);
+  }
+
+  async function sendDbCoupon({ id, name, amount_inr, coupon_code }) {
+    return apiFetch(AC.API_DB_SEND_COUPON_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        id: id || "",
+        name: name || "",
+        amount_inr,
+        coupon_code: coupon_code || ""
+      })
+    });
+  }
+
   async function logout() {
     const token = getToken();
     clearSession();
@@ -848,6 +906,13 @@
     register,
     fetchProfile,
     updateProfile,
+    updatePassword,
+    forgotPassword,
+    deleteAccount,
+    isAdmin,
+    fetchDbUsers,
+    fetchDbWallet,
+    sendDbCoupon,
     logout,
     recordSiteView,
     getCachedViewCount,

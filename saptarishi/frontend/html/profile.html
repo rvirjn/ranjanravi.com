@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>My profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=182">
+  <link rel="stylesheet" href="../style/styles.css?v=208">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -22,6 +22,7 @@
       <p id="profile-member-since" class="profile-summary__meta"></p>
       <div class="profile-summary__actions">
         <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
+        <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
       </div>
     </div>
 
@@ -43,16 +44,91 @@
       </div>
     </form>
 
+    <section id="profile-security" class="profile-security" hidden>
+      <h2 class="profile-security__title">Security</h2>
+      <form id="password-form" class="auth-form profile-form" autocomplete="off">
+        <div class="form-field">
+          <label for="profile-current-password">Current password</label>
+          <input type="password" id="profile-current-password" name="current-password" autocomplete="current-password" required minlength="4" />
+        </div>
+        <div class="form-field">
+          <label for="profile-new-password">New password</label>
+          <input type="password" id="profile-new-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" />
+        </div>
+        <div class="form-field">
+          <label for="profile-confirm-password">Confirm new password</label>
+          <input type="password" id="profile-confirm-password" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter new password" />
+        </div>
+        <div class="form-field form-field--submit">
+          <button type="submit">Update password</button>
+        </div>
+      </form>
+      <p id="password-status" class="status" role="status" aria-live="polite" hidden></p>
+
+      <div class="profile-danger">
+        <h2 class="profile-danger__title">Delete account</h2>
+        <p class="profile-danger__lead">This permanently removes your account from Saptarishi. This cannot be undone.</p>
+        <form id="delete-account-form" class="auth-form profile-form" autocomplete="off">
+          <div class="form-field">
+            <label for="profile-delete-password">Confirm with your password</label>
+            <input type="password" id="profile-delete-password" name="delete-password" autocomplete="current-password" required minlength="4" />
+          </div>
+          <div class="form-field form-field--submit">
+            <button type="submit" class="btn-danger">Delete my account</button>
+          </div>
+        </form>
+        <p id="delete-status" class="status" role="status" aria-live="polite" hidden></p>
+      </div>
+    </section>
+
     <p id="profile-status" class="status" role="status" aria-live="polite" hidden></p>
   </div>
 
-  <script src="../utils/constant.js?v=59"></script>
-  <script src="../js/auth.js?v=27"></script>
+  <div id="send-coupon-overlay" class="send-coupon-overlay" hidden>
+    <div class="send-coupon-modal" role="dialog" aria-modal="true" aria-labelledby="send-coupon-title">
+      <button type="button" class="send-coupon-modal__close" id="send-coupon-close" aria-label="Close">&times;</button>
+      <h2 id="send-coupon-title" class="send-coupon-modal__title">Send coupon to users</h2>
+      <p class="send-coupon-modal__lead">Select a user, amount, and unused coupon code.</p>
+      <form id="send-coupon-form" class="auth-form send-coupon-form">
+        <div class="form-field">
+          <label for="send-coupon-name">User name</label>
+          <select id="send-coupon-name" required>
+            <option value="">Select name…</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="send-coupon-email">Email</label>
+          <select id="send-coupon-email" required disabled>
+            <option value="">Select email…</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="send-coupon-amount">Amount</label>
+          <select id="send-coupon-amount" required disabled>
+            <option value="">Select amount…</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="send-coupon-code">Coupon</label>
+          <select id="send-coupon-code" required disabled>
+            <option value="">Select coupon…</option>
+          </select>
+        </div>
+        <div class="form-field form-field--submit">
+          <button type="submit" id="send-coupon-submit">Send coupon email</button>
+        </div>
+      </form>
+      <p id="send-coupon-status" class="status" role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
+
+  <script src="../utils/constant.js?v=62"></script>
+  <script src="../js/auth.js?v=30"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=11"></script>
+  <script src="../js/auth-modal.js?v=12"></script>
   <script src="../js/premium-modal.js?v=10"></script>
   <script src="../js/wallet-modal.js?v=3"></script>
-  <script src="../js/profile.js?v=5"></script>
+  <script src="../js/profile.js?v=10"></script>
   <script src="../utils/common.js?v=43"></script>
 </body>
 </html>

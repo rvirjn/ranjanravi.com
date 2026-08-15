@@ -1,0 +1,1140 @@
+/*
+ * Copyright © 2018-2026 ranjanravi.com. All rights reserved.
+ * Android / native-app shell — matches backend/mobile/android/final-design
+ * Applied only when html.saptarishi-native-app is present.
+ */
+
+html.saptarishi-native-app {
+  --app-bg: #f6f0e2;
+  --app-bg-deep: #efe6d2;
+  --app-ink: #3d2a14;
+  --app-ink-soft: #6b5235;
+  --app-gold: #b28d3c;
+  --app-gold-deep: #8b6d3b;
+  --app-brown: #4a371f;
+  --app-brown-deep: #2b1c0e;
+  --app-card: #ffffff;
+  --app-call: #34a853;
+  --app-ask: #4285f4;
+  --app-do: #2f7a4a;
+  --app-dont: #b44a3a;
+  --app-shadow: 0 10px 28px rgba(61, 42, 20, 0.1);
+  --app-radius: 22px;
+  --app-radius-sm: 16px;
+  --app-font: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --app-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --app-dock-h: 7.75rem;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+html.saptarishi-native-app body.saptarishi-page {
+  min-height: 100%;
+  font-family: var(--app-font);
+  color: var(--app-ink);
+  background:
+    linear-gradient(180deg, #fbf6ea 0%, var(--app-bg) 42%, var(--app-bg-deep) 100%);
+  background-attachment: scroll;
+  padding: 0 0 calc(var(--app-dock-h) + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior-y: contain;
+}
+
+html.saptarishi-native-app .native-only {
+  display: block;
+}
+
+html.saptarishi-native-app .web-only {
+  display: none !important;
+}
+
+.native-only {
+  display: none;
+}
+
+/* ----- Hide website chrome pieces ----- */
+
+html.saptarishi-native-app .site-footer,
+html.saptarishi-native-app .site-header__nav,
+html.saptarishi-native-app .site-header__brand,
+html.saptarishi-native-app .site-header__usage,
+html.saptarishi-native-app .site-header__premium,
+html.saptarishi-native-app .site-header__login,
+html.saptarishi-native-app .site-header__logout,
+html.saptarishi-native-app .site-header__tagline,
+html.saptarishi-native-app #compare-toggle-btn {
+  display: none !important;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell,
+html.saptarishi-native-app #saptarishi.main-shell--with-chrome,
+html.saptarishi-native-app .site-header {
+  max-width: 100%;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell,
+html.saptarishi-native-app #saptarishi.main-shell--with-chrome {
+  background: transparent;
+  padding: 0.85rem 1.05rem 1.25rem;
+}
+
+html.saptarishi-native-app body.saptarishi-page:has(.site-header) #saptarishi.main-shell--with-chrome {
+  margin-top: 0;
+}
+
+/* ----- Top bar ----- */
+
+html.saptarishi-native-app .site-header.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: calc(0.45rem + env(safe-area-inset-top, 0px)) 0.85rem 0.55rem;
+  background: rgba(246, 240, 226, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.saptarishi-native-app .app-menu-btn,
+html.saptarishi-native-app .app-avatar {
+  flex: 0 0 auto;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--app-brown);
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-menu-btn svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+}
+
+html.saptarishi-native-app .app-brand {
+  flex: 1 1 auto;
+  margin: 0;
+  text-align: center;
+  font-family: var(--app-serif);
+  font-size: 1.22rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--app-gold-deep);
+  text-decoration: none;
+}
+
+html.saptarishi-native-app .site-header.app-topbar .site-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: auto;
+  justify-content: flex-end;
+}
+
+html.saptarishi-native-app #site-wallet-btn.site-header__wallet,
+html.saptarishi-native-app #site-wallet-btn.app-wallet {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 2.05rem;
+  padding: 0.28rem 0.7rem 0.28rem 0.55rem;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--app-brown);
+  font-family: var(--app-font);
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(61, 42, 20, 0.1);
+  cursor: pointer;
+}
+
+html.saptarishi-native-app #site-wallet-btn.site-header__wallet[hidden] {
+  display: none !important;
+}
+
+html.saptarishi-native-app .app-wallet__icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+html.saptarishi-native-app .app-avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--app-brown-deep);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+html.saptarishi-native-app .app-avatar--guest {
+  background: var(--app-gold-deep);
+}
+
+/* ----- Page titles ----- */
+
+html.saptarishi-native-app .app-kicker {
+  display: block;
+  margin: 0.15rem 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--app-gold-deep);
+}
+
+html.saptarishi-native-app .app-title,
+html.saptarishi-native-app #saptarishi.main-shell .app-title,
+html.saptarishi-native-app #saptarishi.main-shell .auspicious-heading h1 {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  border: none;
+  font-family: var(--app-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--app-brown);
+  letter-spacing: 0;
+}
+
+html.saptarishi-native-app .app-lead,
+html.saptarishi-native-app #saptarishi.main-shell .app-lead,
+html.saptarishi-native-app #saptarishi.main-shell .auspicious-heading .lead {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--app-ink-soft);
+}
+
+html.saptarishi-native-app .app-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1.15rem 0 0.7rem;
+}
+
+html.saptarishi-native-app .app-section-head h2 {
+  margin: 0;
+  font-family: var(--app-serif);
+  font-size: 1.35rem;
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .app-more {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(61, 42, 20, 0.18);
+  background: #fff;
+  color: var(--app-brown);
+  text-decoration: none;
+}
+
+html.saptarishi-native-app .app-more svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+}
+
+/* ----- Home ----- */
+
+html.saptarishi-native-app .app-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 8.6rem;
+  padding: 1.2rem 1.2rem 1.35rem;
+  border-radius: 1.35rem;
+  color: #fff;
+  background: linear-gradient(165deg, #5a4024 0%, #2b1c0e 100%);
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-hero__kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+html.saptarishi-native-app .app-hero h2 {
+  margin: 0 0 0.45rem;
+  font-family: var(--app-serif);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+html.saptarishi-native-app .app-hero p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(255, 248, 230, 0.88);
+}
+
+html.saptarishi-native-app .app-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.7rem 0 0.15rem;
+}
+
+html.saptarishi-native-app .app-dots button {
+  width: 0.42rem;
+  height: 0.42rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(61, 42, 20, 0.22);
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-dots button.is-on {
+  background: var(--app-gold);
+}
+
+html.saptarishi-native-app .app-about-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+html.saptarishi-native-app .app-about-item {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.15rem;
+  border: none;
+  background: transparent;
+  color: var(--app-brown);
+  font-family: var(--app-font);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-about-item svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  stroke-width: 1.7;
+}
+
+html.saptarishi-native-app .app-service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+html.saptarishi-native-app .app-service {
+  display: grid;
+  justify-items: start;
+  gap: 0.55rem;
+  min-height: 6.4rem;
+  padding: 1rem 1rem 0.95rem;
+  border: none;
+  border-radius: 1.2rem;
+  background: #fff;
+  color: var(--app-brown);
+  text-align: left;
+  text-decoration: none;
+  box-shadow: var(--app-shadow);
+  cursor: pointer;
+  font-family: var(--app-font);
+}
+
+html.saptarishi-native-app .app-service--dark {
+  background: linear-gradient(165deg, #4a371f, #2b1c0e);
+  color: #fff;
+}
+
+html.saptarishi-native-app .app-service svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+}
+
+html.saptarishi-native-app .app-service strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+html.saptarishi-native-app .app-service span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+html.saptarishi-native-app .app-service--wide {
+  grid-column: 1 / 2;
+}
+
+html.saptarishi-native-app .app-astrologers {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.15rem 0 0.4rem;
+  scrollbar-width: none;
+}
+
+html.saptarishi-native-app .app-astrologers::-webkit-scrollbar {
+  display: none;
+}
+
+html.saptarishi-native-app .app-astro-card {
+  flex: 0 0 auto;
+  min-width: 7.4rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.4rem;
+  border: none;
+  background: transparent;
+  color: var(--app-brown);
+  font-family: var(--app-font);
+}
+
+html.saptarishi-native-app .app-astro-orb {
+  width: 4.4rem;
+  height: 4.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f3d27a, #b28d3c 58%, #6b4a16);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+  box-shadow: 0 8px 16px rgba(139, 109, 59, 0.28);
+}
+
+html.saptarishi-native-app .app-astro-card strong {
+  font-size: 0.88rem;
+}
+
+html.saptarishi-native-app .app-astro-card span {
+  font-size: 0.78rem;
+  color: var(--app-ink-soft);
+}
+
+/* ----- Feature grids (auspicious / remedy) ----- */
+
+html.saptarishi-native-app .auspicious-grid,
+html.saptarishi-native-app .app-house-grid {
+  max-width: none;
+  background: #fff;
+  border: none;
+  border-radius: 1.4rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .feature-tile,
+html.saptarishi-native-app .app-house-grid .feature-tile {
+  min-height: 5.8rem;
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .feature-tile--active,
+html.saptarishi-native-app .app-house-grid .feature-tile--active {
+  background: linear-gradient(165deg, #4a371f, #2b1c0e);
+  color: #fff;
+}
+
+html.saptarishi-native-app .feature-tile--active .feature-tile__icon,
+html.saptarishi-native-app .app-house-grid .feature-tile--active .feature-tile__icon {
+  color: #fff;
+}
+
+html.saptarishi-native-app .feature-tile__icon {
+  color: var(--app-gold-deep);
+}
+
+html.saptarishi-native-app #auspicious-options-view .app-kicker,
+html.saptarishi-native-app #auspicious-options-view .app-title,
+html.saptarishi-native-app #auspicious-options-view .app-lead {
+  display: block;
+}
+
+html.saptarishi-native-app .auspicious-back {
+  color: var(--app-gold-deep);
+  font-weight: 800;
+}
+
+html.saptarishi-native-app #auspicious-range-view .search-form.kundali-form,
+html.saptarishi-native-app .app-form-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.05rem 1rem 1.15rem;
+  background: #fff;
+  border-radius: 1.4rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app #auspicious-form .form-field label,
+html.saptarishi-native-app .app-form-card .form-field label {
+  color: var(--app-gold-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+html.saptarishi-native-app #auspicious-form select,
+html.saptarishi-native-app #auspicious-form input,
+html.saptarishi-native-app .app-form-card select,
+html.saptarishi-native-app .app-form-card input {
+  border: 1px solid rgba(178, 141, 60, 0.45);
+  border-radius: 0.85rem;
+  background: #fff;
+  color: var(--app-brown);
+  font-weight: 700;
+}
+
+html.saptarishi-native-app #auspicious-form button[type="submit"],
+html.saptarishi-native-app .app-show-btn,
+html.saptarishi-native-app #birth-form button[type="submit"],
+html.saptarishi-native-app #remedy-form button[type="submit"] {
+  width: 100%;
+  min-height: 3rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #d4b25a, #8b6d3b);
+  box-shadow: 0 8px 18px rgba(139, 109, 59, 0.28);
+}
+
+/* ----- Kundali form ----- */
+
+html.saptarishi-native-app #saptarishi.main-shell > p.lead {
+  display: none;
+}
+
+html.saptarishi-native-app .kundali-tabs {
+  gap: 0;
+  margin: 0.15rem 0 1.15rem;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.14);
+}
+
+html.saptarishi-native-app .kundali-tabs__item {
+  flex: 1 1 0;
+  color: var(--app-brown);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+}
+
+html.saptarishi-native-app .kundali-tabs__item--active {
+  color: var(--app-brown);
+  box-shadow: inset 0 -3px 0 var(--app-brown);
+}
+
+html.saptarishi-native-app .search-form.kundali-form {
+  display: grid;
+  gap: 1rem;
+}
+
+html.saptarishi-native-app .search-form.kundali-form .form-field {
+  width: 100%;
+}
+
+html.saptarishi-native-app .native-field-row {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+}
+
+html.saptarishi-native-app .native-field-row > svg {
+  margin-top: 0.85rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: var(--app-gold-deep);
+  fill: none;
+  stroke-width: 1.7;
+}
+
+html.saptarishi-native-app #birth-form input[type="text"],
+html.saptarishi-native-app #birth-form input[type="date"],
+html.saptarishi-native-app #birth-form input[type="time"],
+html.saptarishi-native-app #birth-form select,
+html.saptarishi-native-app #remedy-form input,
+html.saptarishi-native-app #remedy-form select {
+  width: 100%;
+  max-width: none;
+  min-height: 2.7rem;
+  border: 1px solid rgba(178, 141, 60, 0.5);
+  border-radius: 0.75rem;
+  background: #fff;
+  color: var(--app-brown);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+html.saptarishi-native-app #birth-name {
+  border: none;
+  border-bottom: 1px solid var(--app-brown);
+  border-radius: 0;
+  background: transparent;
+  min-height: 2.2rem;
+  padding-left: 0;
+}
+
+html.saptarishi-native-app .native-datetime {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+html.saptarishi-native-app .native-gender {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  border: 1px solid rgba(178, 141, 60, 0.5);
+  border-radius: 0.75rem;
+}
+
+html.saptarishi-native-app .native-gender button {
+  min-height: 2.55rem;
+  border: none;
+  background: #fff;
+  color: var(--app-brown);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .native-gender button.is-on {
+  background: var(--app-gold);
+  color: #fff;
+}
+
+html.saptarishi-native-app .native-save {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--app-brown);
+  font-weight: 700;
+}
+
+html.saptarishi-native-app .native-save input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--app-gold);
+}
+
+html.saptarishi-native-app .form-actions {
+  display: block;
+  width: 100%;
+}
+
+/* ----- Dasha / horoscope / dos-dont ----- */
+
+html.saptarishi-native-app .app-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0.2rem 0 0.9rem;
+}
+
+html.saptarishi-native-app .app-stat {
+  padding: 0.9rem 0.95rem 0.85rem;
+  background: #fff;
+  border-radius: 1.1rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-stat small {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-gold-deep);
+}
+
+html.saptarishi-native-app .app-stat strong {
+  font-family: var(--app-serif);
+  font-size: 1.2rem;
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .app-accordion {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-acc-item + .app-acc-item {
+  border-top: 1px solid rgba(61, 42, 20, 0.08);
+}
+
+html.saptarishi-native-app .app-acc-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.95rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--app-brown);
+  font-family: var(--app-font);
+  font-size: 0.98rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-acc-btn svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+html.saptarishi-native-app .app-acc-body {
+  padding: 0 1rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--app-ink-soft);
+}
+
+html.saptarishi-native-app .app-guide-card {
+  margin: 0 0 0.85rem;
+  padding: 1rem 1.05rem 0.95rem;
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-guide-card h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--app-serif);
+  font-size: 1.35rem;
+}
+
+html.saptarishi-native-app .app-guide-card--do h3 {
+  color: var(--app-do);
+}
+
+html.saptarishi-native-app .app-guide-card--dont h3 {
+  color: var(--app-dont);
+}
+
+html.saptarishi-native-app .app-guide-card ul {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+}
+
+html.saptarishi-native-app .app-guide-card li {
+  margin: 0.35rem 0;
+  color: var(--app-ink);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+html.saptarishi-native-app .app-empty {
+  padding: 1.1rem 0.2rem;
+  color: var(--app-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+html.saptarishi-native-app .app-empty a {
+  color: var(--app-gold-deep);
+  font-weight: 700;
+}
+
+/* ----- Menu overlay ----- */
+
+html.saptarishi-native-app .app-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: auto;
+  padding: 0 1rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  background: var(--app-bg);
+}
+
+html.saptarishi-native-app .app-drawer[hidden] {
+  display: none !important;
+}
+
+html.saptarishi-native-app .app-user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0.4rem 0 1.1rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border-radius: 1.3rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-user-card .app-avatar {
+  width: 3rem;
+  height: 3rem;
+  font-size: 0.9rem;
+}
+
+html.saptarishi-native-app .app-user-card strong {
+  display: block;
+  color: var(--app-brown);
+  font-size: 1.05rem;
+}
+
+html.saptarishi-native-app .app-user-card span {
+  color: var(--app-ink-soft);
+  font-size: 0.82rem;
+}
+
+html.saptarishi-native-app .app-menu-label {
+  margin: 1rem 0 0.45rem 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-gold);
+}
+
+html.saptarishi-native-app .app-menu-list {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 1.3rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .app-menu-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.92rem 1rem;
+  border: none;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.08);
+  background: transparent;
+  color: var(--app-brown);
+  font-family: var(--app-font);
+  font-size: 0.98rem;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-menu-list .app-menu-item:last-child {
+  border-bottom: none;
+}
+
+html.saptarishi-native-app .app-menu-item svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--app-gold-deep);
+  fill: none;
+  stroke-width: 1.7;
+}
+
+html.saptarishi-native-app .app-menu-item .app-chevron {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke: rgba(61, 42, 20, 0.35);
+}
+
+html.saptarishi-native-app .app-drawer-foot {
+  margin: 1.4rem 0 0.4rem;
+  text-align: center;
+}
+
+html.saptarishi-native-app .app-drawer-foot strong {
+  display: block;
+  font-family: var(--app-serif);
+  letter-spacing: 0.14em;
+  color: var(--app-gold);
+}
+
+html.saptarishi-native-app .app-drawer-foot span {
+  font-size: 0.78rem;
+  color: var(--app-ink-soft);
+}
+
+/* ----- Profile sheet ----- */
+
+html.saptarishi-native-app .app-sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(43, 28, 14, 0.38);
+}
+
+html.saptarishi-native-app .app-sheet-mask[hidden] {
+  display: none !important;
+}
+
+html.saptarishi-native-app .app-sheet {
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  max-height: min(78vh, 36rem);
+  overflow: auto;
+  padding: 0.55rem 1rem 1.1rem;
+  background: #fffef8;
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 40px rgba(43, 28, 14, 0.22);
+}
+
+html.saptarishi-native-app .app-sheet__handle {
+  width: 2.6rem;
+  height: 0.28rem;
+  margin: 0.25rem auto 0.7rem;
+  border-radius: 99px;
+  background: rgba(61, 42, 20, 0.18);
+}
+
+html.saptarishi-native-app .app-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+html.saptarishi-native-app .app-sheet__head h2 {
+  margin: 0;
+  font-family: var(--app-serif);
+  font-size: 1.55rem;
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .app-sheet__close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(61, 42, 20, 0.08);
+  color: var(--app-brown);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-profile-row {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 0 0 0.55rem;
+  padding: 0.7rem 0.75rem;
+  border: none;
+  border-radius: 1rem;
+  background: #fff;
+  color: var(--app-brown);
+  text-align: left;
+  font-family: var(--app-font);
+  box-shadow: 0 4px 12px rgba(61, 42, 20, 0.06);
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-profile-row.is-on {
+  background: #f3ead4;
+}
+
+html.saptarishi-native-app .app-profile-row .app-avatar {
+  width: 2.45rem;
+  height: 2.45rem;
+}
+
+html.saptarishi-native-app .app-profile-row strong,
+html.saptarishi-native-app .app-profile-row span {
+  display: block;
+}
+
+html.saptarishi-native-app .app-profile-row span {
+  font-size: 0.8rem;
+  color: var(--app-ink-soft);
+}
+
+html.saptarishi-native-app .app-edit {
+  width: 1.85rem;
+  height: 1.85rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: rgba(61, 42, 20, 0.08);
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .app-check {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  border: 2px solid var(--app-gold);
+}
+
+html.saptarishi-native-app .app-profile-row.is-on .app-check {
+  background: var(--app-gold);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+html.saptarishi-native-app .app-sheet-hint {
+  margin: 0.55rem 0 0.9rem;
+  text-align: center;
+  color: var(--app-ink-soft);
+  font-size: 0.82rem;
+}
+
+html.saptarishi-native-app .app-add-chart {
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(180deg, #d4b25a, #8b6d3b);
+  cursor: pointer;
+}
+
+/* ----- Dock: Call / Ask + bottom nav ----- */
+
+html.saptarishi-native-app .app-dock {
+  position: fixed;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: grid;
+  gap: 0.55rem;
+}
+
+html.saptarishi-native-app .app-cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+html.saptarishi-native-app .app-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--app-font);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-cta svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+}
+
+html.saptarishi-native-app .app-cta--call {
+  background: var(--app-call);
+}
+
+html.saptarishi-native-app .app-cta--ask {
+  background: var(--app-ask);
+}
+
+html.saptarishi-native-app .app-tabbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  min-height: 3.15rem;
+  padding: 0.28rem;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(61, 42, 20, 0.16);
+}
+
+html.saptarishi-native-app .app-tab {
+  display: grid;
+  place-items: center;
+  min-height: 2.55rem;
+  padding: 0.35rem 0.2rem;
+  border-radius: 999px;
+  color: var(--app-brown);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+}
+
+html.saptarishi-native-app .app-tab.is-on {
+  background: var(--app-brown);
+  color: #fff;
+}
+
+/* Profile page in native: keep form readable */
+html.saptarishi-native-app .profile-form,
+html.saptarishi-native-app .profile-summary {
+  background: #fff;
+  border-radius: 1.2rem;
+  padding: 1rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app body.app-page--remedy .kundali-tabs,
+html.saptarishi-native-app body.app-page--remedy #remedy-form,
+html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead {
+  display: none;
+}
+
+html.saptarishi-native-app .app-about-item svg,
+html.saptarishi-native-app .app-service svg,
+html.saptarishi-native-app .app-more svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+html.saptarishi-native-app .app-screen {
+  display: none;
+}
+
+html.saptarishi-native-app .app-screen.is-on {
+  display: block;
+}
+
+html.saptarishi-native-app body.app-overlay-on #saptarishi.main-shell > :not(.app-screen) {
+  display: none !important;
+}
+
+html.saptarishi-native-app body.app-page--home #saptarishi.main-shell > p.lead,
+html.saptarishi-native-app body.app-page--dasha #saptarishi.main-shell > p.lead,
+html.saptarishi-native-app body.app-page--horoscope #saptarishi.main-shell > p.lead,
+html.saptarishi-native-app body.app-page--dos #saptarishi.main-shell > p.lead {
+  display: none;
+}

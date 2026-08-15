@@ -275,6 +275,9 @@ body.saptarishi-page {
 }
 
 .profile-summary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.85rem;
 }
 
@@ -2887,9 +2890,110 @@ tbody tr:last-child td {
   color: #7a5c00;
 }
 
+.profile-summary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+body.send-coupon-open {
+  overflow: hidden;
+}
+
+.send-coupon-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(43, 28, 14, 0.45);
+}
+
+.send-coupon-overlay[hidden] {
+  display: none !important;
+}
+
+.send-coupon-modal {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: min(90vh, 640px);
+  overflow: auto;
+  padding: 1.25rem 1.25rem 1rem;
+  border-radius: 12px;
+  background: #fbf6ea;
+  border: 1px solid #ead7a8;
+  box-shadow: 0 12px 36px rgba(43, 28, 14, 0.2);
+}
+
+.send-coupon-modal__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.65rem;
+  border: 0;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #6b5235;
+  cursor: pointer;
+}
+
+.send-coupon-modal__title {
+  margin: 0 1.5rem 0.35rem 0;
+  font-size: 1.2rem;
+  color: #3d2a14;
+}
+
+.send-coupon-modal__lead {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #6b5235;
+}
+
+.send-coupon-form .form-field select {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #d4c4a8;
+  border-radius: 8px;
+  background: #fff;
+  color: #3d2a14;
+}
+
+.send-coupon-form .form-field--submit button {
+  width: 100%;
+}
+
 .profile-form {
   margin-top: var(--space-sm);
   max-width: 480px;
+}
+
+.profile-security {
+  margin-top: var(--space-lg);
+  max-width: 480px;
+}
+
+.profile-security__title,
+.profile-danger__title {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.profile-danger {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(61, 42, 20, 0.14);
+}
+
+.profile-danger__lead {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
 }
 
 #saptarishi .profile-form.auth-form button[type="submit"] {
@@ -2910,6 +3014,15 @@ tbody tr:last-child td {
 
 #saptarishi .profile-form.auth-form button[type="submit"]:hover:not(:disabled) {
   filter: brightness(1.05);
+}
+
+#saptarishi .profile-form.auth-form button.btn-danger {
+  background: linear-gradient(180deg, #b4543a 0%, #8f3b28 100%);
+  box-shadow: 0 4px 14px rgba(143, 59, 40, 0.28);
+}
+
+#saptarishi .profile-form.auth-form button.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.06);
 }
 
 .site-header__login[hidden],
@@ -3368,6 +3481,33 @@ body.auth-modal-open {
 
 .auth-modal__status {
   margin-top: var(--space-xs);
+}
+
+.auth-modal__forgot-wrap {
+  margin: 0.15rem 0 0.65rem;
+  text-align: right;
+}
+
+.auth-modal__forgot-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-modal__forgot-link:hover:not(:disabled) {
+  color: var(--color-primary-hover);
+}
+
+.auth-modal__forgot-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .auth-modal .auth-tabs {
