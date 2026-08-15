@@ -5,6 +5,7 @@
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
   const LOADING = global.SaptarishiLoading;
+  const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   if (!AUTH) return;
 
   const form = document.getElementById("profile-form");
@@ -25,6 +26,7 @@
   const couponForm = document.getElementById("send-coupon-form");
   const couponClose = document.getElementById("send-coupon-close");
   const couponStatus = document.getElementById("send-coupon-status");
+  const couponDownloadBtn = document.getElementById("send-coupon-download-btn");
   const nameSelect = document.getElementById("send-coupon-name");
   const emailSelect = document.getElementById("send-coupon-email");
   const amountSelect = document.getElementById("send-coupon-amount");
@@ -32,6 +34,7 @@
 
   let couponUsers = [];
   let couponPlans = [];
+  let lastCouponEmailFile = null;
 
   function showStatus(message, isError) {
     if (!statusEl) return;
@@ -56,6 +59,70 @@
     couponStatus.textContent = message || "";
     couponStatus.hidden = !message;
     couponStatus.classList.toggle("error", Boolean(isError));
+  }
+
+  function setCouponDownloadAvailable(file) {
+    lastCouponEmailFile = file && file.html ? file : null;
+    if (!couponDownloadBtn) return;
+    couponDownloadBtn.hidden = !lastCouponEmailFile;
+  }
+
+  function couponEmailFilename(result) {
+    const suggested = String(result?.filename || "").trim();
+    if (suggested) return suggested.replace(/[^\w.\-]+/g, "_");
+    const slug = String(result?.name || "user")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "user";
+    const amount = Number(result?.amount_inr) || 0;
+    return `saptarishi-coupon-${slug}${amount ? `-rs${amount}` : ""}.html`;
+  }
+
+  async function downloadCouponEmailFile(file) {
+    const payload = file || lastCouponEmailFile;
+    const html = String(payload?.html || "");
+    if (!html) throw new Error("No coupon email HTML to download.");
+    const filename = couponEmailFilename(payload);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const shareFile =
+      typeof File === "function"
+        ? new File([blob], filename, { type: "text/html" })
+        : null;
+    const mobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (
+      mobile &&
+      shareFile &&
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [shareFile] })
+    ) {
+      try {
+        await navigator.share({
+          title: filename,
+          text: "Saptarishi coupon email",
+          files: [shareFile]
+        });
+        return "shared";
+      } catch (err) {
+        if (err && err.name === "AbortError") return "cancelled";
+      }
+    }
+    const nav = window.navigator;
+    if (nav && typeof nav.msSaveOrOpenBlob === "function") {
+      nav.msSaveOrOpenBlob(blob, filename);
+      return "downloaded";
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.rel = "noopener";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 8000);
+    return "downloaded";
   }
 
   function formatDate(iso) {
@@ -247,15 +314,14 @@
     if (emailSelect) emailSelect.disabled = true;
     if (amountSelect) amountSelect.disabled = true;
     if (codeSelect) codeSelect.disabled = true;
+    setCouponDownloadAvailable(null);
     showCouponStatus("");
   }
 
   function expectedCouponPrefix(amountInr) {
     const amount = Number(amountInr) || 0;
-    if (amount === 299) return "WL29";
-    if (amount === 500) return "WL50";
-    if (amount === 1899) return "WL18";
-    return "";
+    const map = C?.WALLET_COUPON_PREFIX_BY_AMOUNT || {};
+    return String(map[amount] || map[String(amount)] || "").trim();
   }
 
   function populateAmountOptions() {
@@ -506,19 +572,43 @@
         el.disabled = true;
       });
       showCouponStatus("Sending coupon email…", false);
+      setCouponDownloadAvailable(null);
       try {
         const result = await AUTH.sendDbCoupon({
           id: userId,
           amount_inr: amountInr,
           coupon_code: coupon
         });
-        showCouponStatus(
-          result.message
-            || (result.dumped
-              ? `SMTP unavailable. Open backend/output/coupon_email.html to copy/send.`
-              : `Sent ${result.coupon_code} to ${result.email}.`),
-          Boolean(result.error && !result.dumped && !result.sent)
-        );
+        if (result.dumped && result.html) {
+          setCouponDownloadAvailable({
+            html: result.html,
+            filename: result.filename,
+            name: result.name,
+            amount_inr: result.amount_inr
+          });
+          let saved = "";
+          try {
+            saved = await downloadCouponEmailFile(lastCouponEmailFile);
+          } catch {
+            saved = "";
+          }
+          const how =
+            saved === "shared"
+              ? "Use Share to save or send the HTML file."
+              : saved === "cancelled"
+                ? "Tap Download email HTML to save the file."
+                : "Check Downloads, or tap Download email HTML.";
+          showCouponStatus(
+            `${result.message || "Email not sent (SMTP unavailable)."} ${how}`,
+            true
+          );
+        } else {
+          setCouponDownloadAvailable(null);
+          showCouponStatus(
+            result.message || `Sent ${result.coupon_code} to ${result.email}.`,
+            Boolean(result.error && !result.sent)
+          );
+        }
         // Refresh unused coupon list after send.
         const walletPayload = await AUTH.fetchDbWallet();
         couponPlans = walletPayload.wallet?.topup_plans || [];
@@ -536,6 +626,27 @@
         if (emailSelect && !emailSelect.value) emailSelect.disabled = !nameSelect?.value;
         if (amountSelect) amountSelect.disabled = false;
         if (codeSelect) codeSelect.disabled = !amountSelect?.value;
+      }
+    });
+  }
+
+  if (couponDownloadBtn) {
+    couponDownloadBtn.addEventListener("click", async () => {
+      if (!lastCouponEmailFile) return;
+      couponDownloadBtn.disabled = true;
+      try {
+        const saved = await downloadCouponEmailFile(lastCouponEmailFile);
+        if (saved === "cancelled") {
+          showCouponStatus("Save cancelled. Tap Download email HTML to try again.", true);
+        } else if (saved === "shared") {
+          showCouponStatus("Choose Save to Files / Downloads from the share sheet.", false);
+        } else {
+          showCouponStatus("Coupon email HTML downloaded. Search your Downloads folder.", false);
+        }
+      } catch (err) {
+        showCouponStatus(err.message || "Could not download email HTML.", true);
+      } finally {
+        couponDownloadBtn.disabled = false;
       }
     });
   }

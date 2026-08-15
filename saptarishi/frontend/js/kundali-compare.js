@@ -7,21 +7,18 @@
   const panel = document.getElementById("kundali-compare-panel");
   if (!panel) return;
 
-  const COMPARE_MIN_BIRTHS = 2;
-  const COMPARE_MAX_BIRTHS = 5;
+  const COMPARE_MIN_BIRTHS = Number(C.KUNDALI_COMPARE_MIN_BIRTHS) || 2;
+  const COMPARE_MAX_BIRTHS = Number(C.KUNDALI_COMPARE_MAX_BIRTHS) || 5;
   /** Extra birth rows in the compare panel (birth 1 is always the main form above). */
-  const COMPARE_MIN_EXTRA_ROWS = 1;
+  const COMPARE_MIN_EXTRA_ROWS = Math.max(1, COMPARE_MIN_BIRTHS - 1);
   const COMPARE_MAX_EXTRA_ROWS = COMPARE_MAX_BIRTHS - 1;
-  const COMPARE_PLACE_OPTIONS = [
-    { value: "", label: "Select place…" },
-    { value: "New Delhi, India", label: "New Delhi, India" },
-    { value: "Mumbai, India", label: "Mumbai, India" },
-    { value: "Kolkata, India", label: "Kolkata, India" },
-    { value: "Bengaluru, India", label: "Bengaluru, India" },
-    { value: "Patna, India", label: "Patna, India" },
-    { value: "Motihari, India", label: "Motihari, India" },
-    { value: C.PLACE_CUSTOM_VALUE, label: "Other…" }
-  ];
+  const COMPARE_PLACE_OPTIONS = (CU && CU.placePresetOptions)
+    ? CU.placePresetOptions()
+    : [
+        { value: "", label: "Select place…" },
+        ...((C.BIRTH_PLACE_PRESETS || []).map((place) => ({ value: place, label: place }))),
+        { value: C.PLACE_CUSTOM_VALUE, label: "Other…" }
+      ];
 
   const compareToggleBtn = document.getElementById("compare-toggle-btn");
   const compareForm = document.getElementById("kundali-compare-form");

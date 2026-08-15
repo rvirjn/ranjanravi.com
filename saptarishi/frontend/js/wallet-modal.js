@@ -135,7 +135,7 @@
             />
           </div>
           <p class="premium-modal__amount">
-            Amount: <strong id="wallet-modal-amount">₹299</strong>
+            Amount: <strong id="wallet-modal-amount">₹${DEFAULT_PLANS[0]?.amount_inr || AC.PREMIUM_PACK_AMOUNT_INR}</strong>
           </p>
           <p id="wallet-modal-plan-summary" class="premium-modal__plan-summary"></p>
           <ol class="premium-modal__steps">
@@ -143,7 +143,7 @@
             <li>
               Within 2 hours you will get a coupon code on your email or phone.
               To get it ASAP, call
-              <strong id="wallet-modal-phone">${formatContactPhoneDisplay(AC.PREMIUM_CONTACT_PHONE)}</strong>.
+              <strong id="wallet-modal-phone">${formatContactPhoneDisplay(AC.CONTACT_PHONE || AC.PREMIUM_CONTACT_PHONE)}</strong>.
             </li>
           </ol>
           <form id="wallet-modal-form" class="premium-modal__form" autocomplete="off">
@@ -153,9 +153,9 @@
                 type="text"
                 id="wallet-modal-coupon"
                 required
-                minlength="4"
-                maxlength="32"
-                placeholder="e.g. WL29-XXXX"
+                minlength="${AC.COUPON_CODE_MIN_LENGTH || 4}"
+                maxlength="${AC.COUPON_CODE_MAX_LENGTH || 32}"
+                placeholder="e.g. ${(AC.WALLET_COUPON_PREFIX_BY_AMOUNT && AC.WALLET_COUPON_PREFIX_BY_AMOUNT[AC.PREMIUM_PACK_AMOUNT_INR]) || "WL29"}-XXXX"
                 autocapitalize="characters"
                 spellcheck="false"
               />

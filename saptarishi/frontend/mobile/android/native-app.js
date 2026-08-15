@@ -429,7 +429,7 @@
       if (service === "ask") askWin = window.open("about:blank", "_blank");
       const payload = await AUTH.chargeWalletForService(service, 1);
       const astro = payload?.astrologer || {};
-      const phone = String(astro.phone || AC?.PREMIUM_CONTACT_PHONE || "").replace(/\D/g, "");
+      const phone = String(astro.phone || AC?.CONTACT_PHONE || AC?.PREMIUM_CONTACT_PHONE || "").replace(/\D/g, "");
       const localPhone = phone.slice(-10);
       const wa = String(astro.whatsapp || `91${localPhone}`).replace(/\D/g, "");
       if (service === "call") {

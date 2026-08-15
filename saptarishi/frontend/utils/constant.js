@@ -15,6 +15,45 @@ const SAPTARISHI_CONSTANTS = {
   HTML_BASE: _DEPLOY_PREFIX + "/frontend/html/",
   /** Production API (Render). Local UI uses localhost:8081 instead. */
   PRODUCTION_API_ORIGIN: "https://api.ranjanravi.com",
+  /** Public site (privacy, emails, native app). */
+  SITE_NAME: "Saptarishi",
+  SITE_ORIGIN: "https://saptarishi.ranjanravi.com",
+  OPERATOR_NAME: "ranjanravi.com",
+  /** Public / app contact. Change these; support and phone aliases follow below. */
+  CONTACT_EMAIL: "rv.saptarishi@gmail.com",
+  CONTACT_PHONE: "8184046618",
+  PRIVACY_LAST_UPDATED: "15 August 2026",
+  CHILDREN_PRIVACY_MIN_AGE: 13,
+
+  /** Birth-form place dropdown (kundali, remedy, auspicious, compare). */
+  BIRTH_PLACE_PRESETS: [
+    "New Delhi, India",
+    "Mumbai, India",
+    "Kolkata, India",
+    "Bengaluru, India",
+    "Patna, India",
+    "Motihari, India"
+  ],
+
+  /** Form limits (keep in sync with backend/utils/constant.py). */
+  MAX_NAME_LENGTH: 120,
+  MAX_EMAIL_LENGTH: 240,
+  MIN_PASSWORD_LENGTH: 4,
+  EMAIL_PLACEHOLDER: "you@example.com",
+  MOBILE_PLACEHOLDER: "e.g. 9876543210",
+  NAME_PLACEHOLDER: "Enter name",
+  FULL_NAME_PLACEHOLDER: "Your full name",
+  PLACE_CUSTOM_PLACEHOLDER: "City, Country",
+
+  KUNDALI_COMPARE_MIN_BIRTHS: 2,
+  KUNDALI_COMPARE_MAX_BIRTHS: 5,
+  COUPON_CODE_MIN_LENGTH: 4,
+  COUPON_CODE_MAX_LENGTH: 32,
+  WALLET_COUPON_PREFIX_BY_AMOUNT: {
+    299: "WL29",
+    500: "WL50",
+    1899: "WL18"
+  },
 
   // --- Frontend routes ---
   PAGE_FILE_TO_PATH: {
@@ -67,8 +106,6 @@ const SAPTARISHI_CONSTANTS = {
   PREMIUM_AMOUNT_INR: 1899,
   /** Per kundali/auspicious query when remedies are unlocked via wallet (not unlimited). */
   QUERY_CHARGE_INR: 51,
-  PREMIUM_CONTACT_PHONE: "8184046618",
-  SUPPORT_EMAIL: "raviranjan.amu@gmail.com",
   SUPPORT_WHATSAPP_MESSAGE: "Hi, I need support with Saptarishi.",
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
@@ -246,6 +283,9 @@ const SAPTARISHI_CONSTANTS = {
     vadha: 1
   }
 };
+
+SAPTARISHI_CONSTANTS.PREMIUM_CONTACT_PHONE = SAPTARISHI_CONSTANTS.CONTACT_PHONE;
+SAPTARISHI_CONSTANTS.SUPPORT_EMAIL = SAPTARISHI_CONSTANTS.CONTACT_EMAIL;
 
 /** Expose for scripts that read from window (e.g. common.js nav links). */
 window.SAPTARISHI_CONSTANTS = SAPTARISHI_CONSTANTS;

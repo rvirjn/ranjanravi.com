@@ -1499,6 +1499,10 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
       )
     );
 
+    if (housePlanetsTileIsAdverse(houseRows, representativeRow)) {
+      applyAdverseHouseTileContentLock(btn, panel);
+    }
+
     btn.addEventListener("click", () => {
       const houseKey = String(houseNum);
       if (selectedHouse === houseKey && !panel.hidden) {
@@ -3835,6 +3839,59 @@ function blurLockedTextElement(el) {
   });
 }
 
+/** Red strength tints on Planet/Houses Status tiles. */
+function isAdversePlanetColorKind(kind) {
+  const k = String(kind || "").trim().toLowerCase();
+  return k === "low" || k === "enemy";
+}
+
+function rowHasNegativePlanetStrength(row) {
+  if (!row) return false;
+  if (typeof row.strength_percent === "number" && row.strength_percent < 0) return true;
+  const total = row?.strength_adjustments?.total;
+  if (typeof total === "number" && total < 0) return true;
+  const pct = strengthPercentFromRow(row);
+  return typeof pct === "number" && pct < 0;
+}
+
+/** True when a house tile is red or any planet in it has negative strength. */
+function housePlanetsTileIsAdverse(houseRows, representativeRow) {
+  const planetRows = housePlanetTableRows(houseRows);
+  const rows = planetRows.length ? planetRows : [representativeRow].filter(Boolean);
+  for (const row of rows) {
+    if (isAdversePlanetColorKind(row?.cell_styles?.strength)) return true;
+    if (rowHasNegativePlanetStrength(row)) return true;
+  }
+  return isAdversePlanetColorKind(representativeRow?.cell_styles?.strength);
+}
+
+function applyAdverseHouseTileContentLock(btn, panel) {
+  if (!btn || canViewLockedPremiumContent()) return;
+  btn.classList.add("house-planets-tile-btn--content-locked");
+  btn
+    .querySelectorAll(".house-planets-tile-btn__for, .house-planets-tile-btn__pct")
+    .forEach((el) => blurLockedTextElement(el));
+  if (!panel) return;
+  panel.classList.add("house-planets-tile-panel--locked");
+  panel
+    .querySelectorAll(
+      ".house-planets-sheet__for, .house-planets-sheet__planets, .house-planets-sheet__pct, .house-planets-sheet__desc, .house-planets-sheet__table tbody td"
+    )
+    .forEach((el) => blurLockedTextElement(el));
+}
+
+function blurMatchTileButtonLabel(btn) {
+  if (!btn) return;
+  const label = String(btn.textContent || "").trim();
+  if (!label) return;
+  btn.textContent = "";
+  const hold = document.createElement("span");
+  hold.className = "remedy-navatara-btn__label";
+  hold.textContent = label;
+  btn.appendChild(hold);
+  blurLockedTextElement(hold);
+}
+
 function renderKundaliMatchTilesFromPayload(payload, options) {
   const {
     sectionId,
@@ -3848,7 +3905,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     ariaItemKind,
     buttonClassName,
     isBadItem,
-    blurPanelText
+    blurPanelText,
+    blurAdverseTiles
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -3880,7 +3938,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
   }
 
   let selectedKey = "";
-  const lockPanelText = Boolean(blurPanelText) && !canViewLockedPremiumContent();
+  const contentLocked = !canViewLockedPremiumContent();
+  const lockAllPanels = Boolean(blurPanelText) && contentLocked;
 
   const closeAllPanels = () => {
     listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
@@ -3924,10 +3983,13 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
 
     const btn = document.createElement("button");
     btn.type = "button";
-    const extraBtnClass =
-      typeof isBadItem === "function" && isBadItem(item)
-        ? "remedy-navatara-btn--dosh"
-        : buttonClassName;
+    const itemIsBad =
+      typeof isBadItem === "function"
+        ? Boolean(isBadItem(item))
+        : Boolean(buttonClassName && /dosh/i.test(buttonClassName));
+    const extraBtnClass = itemIsBad
+      ? "remedy-navatara-btn--dosh"
+      : buttonClassName;
     btn.className = ["remedy-navatara-btn", extraBtnClass].filter(Boolean).join(" ");
     btn.dataset.matchKey = String(item.key || "");
     btn.textContent = String(item.name || item.key || ariaItemKind || headingLabel);
@@ -3973,9 +4035,14 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       panel.appendChild(empty);
     }
 
-    if (lockPanelText) {
+    const lockAdverse =
+      Boolean(blurAdverseTiles) && contentLocked && itemIsBad;
+    if (lockAllPanels || lockAdverse) {
       panel.classList.add("kundali-yog-panel--locked");
       panel.querySelectorAll("p").forEach((el) => blurLockedTextElement(el));
+    }
+    if (lockAdverse || (lockAllPanels && itemIsBad)) {
+      blurMatchTileButtonLabel(btn);
     }
 
     btn.addEventListener("click", () => showItemDetail(item, wrap));
@@ -3997,7 +4064,8 @@ function renderKundaliYogasFromPayload(payload) {
     headingLabel: "Yogas",
     emptyDetail: "No extra detail for this yoga.",
     ariaItemKind: "Yoga",
-    isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad"
+    isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad",
+    blurAdverseTiles: true
   });
 }
 
@@ -4014,7 +4082,8 @@ function renderKundaliDoshasFromPayload(payload) {
     emptyDetail: "No extra detail for this dosha.",
     ariaItemKind: "Dosha",
     buttonClassName: "remedy-navatara-btn--dosh",
-    blurPanelText: true
+    blurPanelText: true,
+    blurAdverseTiles: true
   });
 }
 

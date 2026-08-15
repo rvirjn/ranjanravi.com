@@ -46,6 +46,143 @@
     return digits.length === 10 ? `91${digits}` : digits;
   }
 
+  function originHref(raw) {
+    const trimmed = String(raw || "").trim().replace(/\/+$/, "");
+    return trimmed ? `${trimmed}/` : "";
+  }
+
+  function hostFromOrigin(raw) {
+    try {
+      return new URL(originHref(raw) || String(raw || "")).hostname;
+    } catch {
+      return "";
+    }
+  }
+
+  function paidPlanFooterNote() {
+    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
+    const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    return (
+      `Paid plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries ` +
+      `or ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
+    );
+  }
+
+  function contactPhone() {
+    return String(AC.CONTACT_PHONE || AC.PREMIUM_CONTACT_PHONE || "").trim();
+  }
+
+  function contactEmail() {
+    return String(AC.CONTACT_EMAIL || AC.SUPPORT_EMAIL || "").trim();
+  }
+
+  function placePresetOptions() {
+    const places = Array.isArray(AC.BIRTH_PLACE_PRESETS) ? AC.BIRTH_PLACE_PRESETS : [];
+    const custom = AC.PLACE_CUSTOM_VALUE || "__custom__";
+    return [
+      { value: "", label: "Select place…" },
+      ...places.map((place) => ({ value: place, label: place })),
+      { value: custom, label: "Other…" }
+    ];
+  }
+
+  function fillPlacePresetSelects(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    const options = placePresetOptions();
+    scope.querySelectorAll("#place-preset, .compare-place-preset").forEach((select) => {
+      const current = select.value;
+      select.innerHTML = "";
+      for (const item of options) {
+        const opt = document.createElement("option");
+        opt.value = item.value;
+        opt.textContent = item.label;
+        select.appendChild(opt);
+      }
+      if (current) select.value = current;
+    });
+  }
+
+  function applyFormFieldLimits(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    const nameMax = Number(AC.MAX_NAME_LENGTH) || 120;
+    const emailMax = Number(AC.MAX_EMAIL_LENGTH) || 240;
+    const placeMax = Number(AC.MAX_PLACE_QUERY_LENGTH) || 240;
+    const pwMin = Number(AC.MIN_PASSWORD_LENGTH) || 4;
+    const pwPlaceholder = `At least ${pwMin} characters`;
+    scope.querySelectorAll("#birth-name").forEach((el) => {
+      el.maxLength = nameMax;
+      el.placeholder = AC.NAME_PLACEHOLDER || el.placeholder;
+    });
+    scope.querySelectorAll("#profile-name, #auth-modal-reg-name").forEach((el) => {
+      el.maxLength = nameMax;
+    });
+    const nameFull = scope.querySelector("#auth-modal-reg-name");
+    if (nameFull) nameFull.placeholder = AC.FULL_NAME_PLACEHOLDER || nameFull.placeholder;
+    scope.querySelectorAll(
+      "#profile-email, #auth-modal-reg-email, #auth-modal-forgot-email"
+    ).forEach((el) => {
+      el.maxLength = emailMax;
+      el.placeholder = AC.EMAIL_PLACEHOLDER || el.placeholder;
+    });
+    scope.querySelectorAll("#place-custom, .compare-place-custom").forEach((el) => {
+      el.maxLength = placeMax;
+      el.placeholder = AC.PLACE_CUSTOM_PLACEHOLDER || el.placeholder;
+    });
+    scope.querySelectorAll(
+      'input[type="password"][minlength], #profile-current-password, #profile-new-password, #profile-confirm-password, #profile-delete-password, #auth-modal-login-password, #auth-modal-reg-password, #auth-modal-reg-password-confirm'
+    ).forEach((el) => {
+      el.minLength = pwMin;
+    });
+    scope.querySelectorAll("#profile-new-password, #auth-modal-reg-password").forEach((el) => {
+      el.placeholder = pwPlaceholder;
+    });
+    scope.querySelectorAll(
+      "#profile-mobile, #auth-modal-login-mobile, #auth-modal-reg-mobile, #auth-modal-forgot-mobile"
+    ).forEach((el) => {
+      el.placeholder = AC.MOBILE_PLACEHOLDER || el.placeholder;
+    });
+  }
+
+  function fillPrivacyPageFromConstants() {
+    if (!document.getElementById("privacy-email") && !document.getElementById("privacy-updated")) {
+      return;
+    }
+    const siteName = String(AC.SITE_NAME || "Saptarishi");
+    const operator = String(AC.OPERATOR_NAME || "");
+    const siteHref = originHref(AC.SITE_ORIGIN);
+    const siteText = siteHref || String(AC.SITE_ORIGIN || "");
+    const email = contactEmail();
+    const phone = contactPhone();
+    const phoneDisplay = formatIndiaPhoneDisplay(phone);
+    const phoneIntl = indiaPhoneDigits(phone);
+
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text || "";
+    };
+    const setLink = (id, href, text) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (href) el.setAttribute("href", href);
+      el.textContent = text || href || "";
+    };
+
+    setText("privacy-updated", AC.PRIVACY_LAST_UPDATED || "");
+    setText("privacy-site-name", siteName);
+    setLink("privacy-site-url", siteHref, siteText);
+    setText("privacy-operator", operator);
+    setText("privacy-api-host", hostFromOrigin(AC.PRODUCTION_API_ORIGIN));
+    setLink("privacy-email", email ? `mailto:${email}` : "", email);
+    setLink("privacy-phone", phoneIntl ? `tel:+${phoneIntl}` : "", phoneDisplay);
+    setLink("privacy-site-contact", siteHref, siteText);
+    setText("privacy-min-age", String(AC.CHILDREN_PRIVACY_MIN_AGE || 13));
+
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) {
+      desc.setAttribute("content", `Privacy Policy for ${siteName} by ${operator}`);
+    }
+  }
+
   function setStatusMessage(statusEl, message, isError, isLimitError) {
     if (!statusEl) return;
     if (globalThis.SaptarishiLoading) {
@@ -311,8 +448,8 @@
       name: AC.ASTROLOGER_NAME,
       call_rate_inr_per_min: AC.ASTROLOGER_CALL_RATE_INR_PER_MIN,
       ask_rate_inr_per_min: AC.ASTROLOGER_ASK_RATE_INR_PER_MIN,
-      phone: AC.PREMIUM_CONTACT_PHONE,
-      whatsapp: `91${AC.PREMIUM_CONTACT_PHONE}`,
+      phone: contactPhone(),
+      whatsapp: `91${contactPhone()}`,
       min_balance_inr: AC.ASTROLOGER_MIN_BALANCE_INR
     };
 
@@ -403,7 +540,7 @@
             payload && payload.astrologer && typeof payload.astrologer === "object"
               ? { ...astrologerConfig, ...payload.astrologer }
               : astrologerConfig;
-          const phone = String(astro.phone || AC.PREMIUM_CONTACT_PHONE).replace(/\D/g, "");
+          const phone = String(astro.phone || contactPhone()).replace(/\D/g, "");
           const localPhone = phone.slice(-10);
           const wa = String(astro.whatsapp || `91${localPhone}`).replace(/\D/g, "");
           if (service === "call") {
@@ -540,9 +677,9 @@
   }
 
   function buildFooter() {
-    const phoneIntl = indiaPhoneDigits(AC.PREMIUM_CONTACT_PHONE);
-    const phoneDisplay = formatIndiaPhoneDisplay(AC.PREMIUM_CONTACT_PHONE);
-    const email = String(AC.SUPPORT_EMAIL).trim();
+    const phoneIntl = indiaPhoneDigits(contactPhone());
+    const phoneDisplay = formatIndiaPhoneDisplay(contactPhone());
+    const email = contactEmail();
     const waMessage = encodeURIComponent(
       String(AC.SUPPORT_WHATSAPP_MESSAGE)
     );
@@ -558,8 +695,8 @@
     const footer = document.createElement("footer");
     footer.className = "site-footer";
     footer.innerHTML = `
-      <p class="site-footer__copy">© ${new Date().getFullYear()} ranjanravi.com · Saptarishi</p>
-      <p class="site-footer__note">Paid plans: ₹299 for 6 queries or ₹1899 for unlimited access for 1 month.</p>
+      <p class="site-footer__copy">© ${new Date().getFullYear()} ${AC.OPERATOR_NAME} · ${AC.SITE_NAME}</p>
+      <p class="site-footer__note">${paidPlanFooterNote()}</p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
@@ -576,7 +713,7 @@
             Connect Astrologer
           </button>
           <div id="site-connect-panel" class="site-footer__connect-panel" hidden>
-            <p class="site-footer__connect-rate" id="site-astrologer-rate-label">Call / Ask · ₹21/min</p>
+            <p class="site-footer__connect-rate" id="site-astrologer-rate-label">Call / Ask · ₹${AC.ASTROLOGER_CALL_RATE_INR_PER_MIN}/min</p>
             <div class="site-footer__connect-actions">
               <button type="button" id="site-call-btn" class="site-footer__connect-action site-footer__connect-action--call">Call</button>
               <button type="button" id="site-ask-btn" class="site-footer__connect-action site-footer__connect-action--ask">Ask</button>
@@ -752,9 +889,13 @@
           host === "api.whatsapp.com";
         if (isWhatsApp) return;
 
+        const operatorHost = String(AC.OPERATOR_NAME || "").replace(/^www\./i, "").toLowerCase();
+        const siteHost = hostFromOrigin(AC.SITE_ORIGIN).toLowerCase();
+        const apiHost = hostFromOrigin(AC.PRODUCTION_API_ORIGIN).toLowerCase();
         const isOurs =
-          host === "ranjanravi.com" ||
-          host.endsWith(".ranjanravi.com") ||
+          (operatorHost && (host === operatorHost || host.endsWith(`.${operatorHost}`))) ||
+          (siteHost && host === siteHost) ||
+          (apiHost && host === apiHost) ||
           host === window.location.hostname;
 
         if (isOurs && anchor.target === "_blank") {
@@ -773,6 +914,9 @@
     }
 
     mountLayout(AUTH ? AUTH.getUser() : null, null, AUTH ? AUTH.getUsage() : null);
+    fillPlacePresetSelects();
+    applyFormFieldLimits();
+    fillPrivacyPageFromConstants();
     recordPageView();
     keepAppLinksInWebView();
 
@@ -813,7 +957,12 @@
     formatApiLoadError,
     parseApiJsonResponse,
     getPlaceFromPresetOrCustom,
-    syncCustomPlaceVisibility
+    syncCustomPlaceVisibility,
+    placePresetOptions,
+    fillPlacePresetSelects,
+    applyFormFieldLimits,
+    contactPhone,
+    contactEmail
   };
 })(window);
 

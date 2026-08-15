@@ -5,12 +5,15 @@
   const AUTH = global.SaptarishiAuth;
   if (!AUTH) return;
 
+  const AC = global.SAPTARISHI_CONSTANTS || {};
   const DEFAULT_LEAD =
-    "Try 2 free queries per device without login (kundali or auspicious). " +
+    `Try ${AC.MAX_FREE_QUERIES_PER_USER || 2} free queries per device without login (kundali or auspicious). ` +
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    "Your free limit is used. Sign in, pay via the QR, and verify your coupon code (₹299 for 6 queries or ₹1899 for unlimited).";
+    `Your free limit is used. Sign in, pay via the QR, and verify your coupon code ` +
+    `(₹${AC.PREMIUM_PACK_AMOUNT_INR || 299} for ${AC.PREMIUM_PACK_QUERY_LIMIT || 6} queries ` +
+    `or ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR || 1899} for unlimited).`;
 
   const FORGOT_LEAD =
     "Enter the mobile number and email on your account. If they match, we email you a temporary password.";
@@ -112,6 +115,8 @@
       </div>
     `;
     document.body.appendChild(overlay);
+    const formUtils = global.SaptarishiCommonUtils;
+    if (formUtils && formUtils.applyFormFieldLimits) formUtils.applyFormFieldLimits(overlay);
 
     statusEl = overlay.querySelector("#auth-modal-status");
     leadEl = overlay.querySelector("#auth-modal-lead");
