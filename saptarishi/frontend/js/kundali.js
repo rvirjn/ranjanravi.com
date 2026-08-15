@@ -3784,6 +3784,57 @@ function renderDivisionalChartsFromPayload(payload) {
  * Render yoga/dosha tiles from a kundali match block
  * (same click-to-expand pattern as Remedy navatara).
  */
+function canViewLockedPremiumContent() {
+  if (typeof SaptarishiAuth === "undefined") return false;
+  const usage = SaptarishiAuth.getUsage ? SaptarishiAuth.getUsage() : null;
+  if (usage && usage.remedy_unlocked === true) return true;
+  if (usage && usage.remedy_unlocked === false) return false;
+  if (typeof SaptarishiAuth.isPremiumActive === "function") {
+    return Boolean(SaptarishiAuth.isPremiumActive());
+  }
+  return false;
+}
+
+function openUnlockWalletFromBlur() {
+  if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
+    SaptarishiAuth.openWalletFlow({
+      required: true,
+      message: "Add money to your wallet to unlock full details."
+    });
+    return;
+  }
+  if (globalThis.SaptarishiWalletModal && SaptarishiWalletModal.open) {
+    SaptarishiWalletModal.open();
+  }
+}
+
+function blurLockedTextElement(el) {
+  if (!el) return;
+  const value = String(el.textContent || "").trim();
+  if (!value || value === "—") return;
+  el.textContent = "";
+  const span = document.createElement("span");
+  span.className = "remedy-text--blurred";
+  span.textContent = value;
+  span.setAttribute("title", "Add money to unlock");
+  span.setAttribute("aria-label", "Blurred text. Add money to wallet to unlock.");
+  span.setAttribute("role", "button");
+  span.setAttribute("tabindex", "0");
+  el.appendChild(span);
+  el.classList.add("remedy-text-cell--locked");
+  if (span.dataset.remedyUnlockBound === "1") return;
+  span.dataset.remedyUnlockBound = "1";
+  const open = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openUnlockWalletFromBlur();
+  };
+  span.addEventListener("click", open);
+  span.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") open(event);
+  });
+}
+
 function renderKundaliMatchTilesFromPayload(payload, options) {
   const {
     sectionId,
@@ -3796,7 +3847,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     emptyDetail,
     ariaItemKind,
     buttonClassName,
-    isBadItem
+    isBadItem,
+    blurPanelText
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -3828,6 +3880,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
   }
 
   let selectedKey = "";
+  const lockPanelText = Boolean(blurPanelText) && !canViewLockedPremiumContent();
 
   const closeAllPanels = () => {
     listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
@@ -3920,6 +3973,11 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       panel.appendChild(empty);
     }
 
+    if (lockPanelText) {
+      panel.classList.add("kundali-yog-panel--locked");
+      panel.querySelectorAll("p").forEach((el) => blurLockedTextElement(el));
+    }
+
     btn.addEventListener("click", () => showItemDetail(item, wrap));
     wrap.appendChild(btn);
     wrap.appendChild(panel);
@@ -3955,7 +4013,8 @@ function renderKundaliDoshasFromPayload(payload) {
     headingLabel: "Doshas",
     emptyDetail: "No extra detail for this dosha.",
     ariaItemKind: "Dosha",
-    buttonClassName: "remedy-navatara-btn--dosh"
+    buttonClassName: "remedy-navatara-btn--dosh",
+    blurPanelText: true
   });
 }
 

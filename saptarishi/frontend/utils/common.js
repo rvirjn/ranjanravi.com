@@ -12,7 +12,6 @@
   if (!AC) return;
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
-  const PREMIUM = global.SaptarishiPremiumModal;
 
   const isLoginPage =
     /^\/login\/?$/i.test(window.location.pathname) ||
@@ -143,34 +142,9 @@
   }
 
   function formatUsageBadgeText(usage) {
-    if (!usage || !AUTH) return "";
-    const u = AUTH.normalizeUsage ? AUTH.normalizeUsage(usage) : usage;
-    if (u.is_premium) {
-      if (u.premium_tier === "pack_299") {
-        const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? u.query_limit ?? 6;
-        const used = u.queries_used ?? 0;
-        return `Premium · ${used}/${limit} queries`;
-      }
-      const until = formatPremiumExpiry(u.premium_expires_at);
-      return until
-        ? `Premium · unlimited until ${until}`
-        : "Premium · unlimited (1 month)";
-    }
-    const used =
-      u.queries_used != null
-        ? Number(u.queries_used)
-        : (Number(u.kundali_used) || 0) + (Number(u.auspicious_used) || 0);
-    const limit = u.query_limit ?? AC.MAX_FREE_QUERIES_PER_GUEST ?? 2;
-    const remaining =
-      u.queries_remaining != null ? Number(u.queries_remaining) : Math.max(0, limit - used);
-    const displayUsed = Math.min(used, limit);
-    const label =
-      remaining > 0 && used === 0
-        ? `${limit} free queries`
-        : remaining > 0
-          ? `${remaining}/${limit} free queries`
-          : `${displayUsed}/${limit} queries`;
-    return u.is_guest ? `Free plan: ${label}` : label;
+    // Plan / wallet details live on Profile; keep the header clean.
+    void usage;
+    return "";
   }
 
   function buildHeader(user, viewCount, usage) {
@@ -188,10 +162,18 @@
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
         <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden title="Wallet">₹0</button>
-        <a href="${navHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden title="My profile">Profile</a>
-        <button type="button" id="site-premium-btn" class="site-header__premium">Buy Premium</button>
+        <button type="button" id="site-unlock-remedies-btn" class="site-header__premium" hidden>Unlock remedies</button>
+        <div class="site-header__account" id="site-account-menu" hidden>
+          <button type="button" id="site-account-btn" class="site-header__account-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="site-account-dropdown">
+            <span id="site-account-name">Account</span>
+          </button>
+          <div class="site-header__account-menu" id="site-account-dropdown" role="menu" hidden>
+            <a href="${navHref("profile.html")}" class="site-header__account-item" role="menuitem" id="site-account-profile">Profile</a>
+            <button type="button" class="site-header__account-item" role="menuitem" id="site-logout-btn">Logout</button>
+          </div>
+        </div>
+        <button type="button" id="site-register-btn" class="site-header__premium">Register</button>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
-        <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
       </div>
     `;
     updateHeaderAuth(header, user, usage);
@@ -211,23 +193,19 @@
 
     const resolvedUser = resolveHeaderUser(user);
     const displayUsage = usage || resolvedUser || (AUTH ? AUTH.getUsage() : null);
-    const profileLink = header.querySelector("#site-profile-link");
     const usageEl = header.querySelector(".site-header__usage");
     const walletBtn = header.querySelector("#site-wallet-btn");
-    const premiumBtn = header.querySelector("#site-premium-btn");
+    const unlockRemediesBtn = header.querySelector("#site-unlock-remedies-btn");
+    const accountMenu = header.querySelector("#site-account-menu");
+    const accountBtn = header.querySelector("#site-account-btn");
+    const accountName = header.querySelector("#site-account-name");
+    const accountDropdown = header.querySelector("#site-account-dropdown");
+    const registerBtn = header.querySelector("#site-register-btn");
     const loginBtn = header.querySelector("#site-login-btn");
-    const logoutBtn = header.querySelector("#site-logout-btn");
 
-    const isUnlimited = Boolean(
-      displayUsage &&
-      displayUsage.is_premium &&
-      displayUsage.premium_tier !== "pack_299"
+    const showUnlockRemedies = Boolean(
+      resolvedUser && displayUsage && displayUsage.remedy_unlocked !== true
     );
-    if (premiumBtn) {
-      premiumBtn.hidden = isUnlimited;
-      premiumBtn.textContent =
-        displayUsage?.premium_tier === "pack_299" ? "Upgrade" : "Buy Premium";
-    }
 
     if (walletBtn) {
       if (resolvedUser) {
@@ -237,27 +215,34 @@
             : Number(displayUsage?.wallet_balance_inr) || 0;
         walletBtn.textContent = `₹${bal}`;
         walletBtn.hidden = false;
-        walletBtn.title = "Wallet — add money for Call, Ask, and Premium";
+        walletBtn.title = "Wallet — add money";
       } else {
         walletBtn.hidden = true;
       }
     }
 
+    if (unlockRemediesBtn) {
+      unlockRemediesBtn.hidden = !showUnlockRemedies;
+    }
+
     if (resolvedUser) {
-      if (profileLink) {
-        profileLink.textContent = resolvedUser.name || resolvedUser.mobile || "Profile";
-        profileLink.hidden = false;
-        profileLink.title = "My profile";
+      if (accountMenu) accountMenu.hidden = false;
+      if (accountName) {
+        accountName.textContent = resolvedUser.name || resolvedUser.mobile || "Account";
       }
+      if (accountBtn) {
+        accountBtn.title = resolvedUser.name || resolvedUser.mobile || "Account menu";
+      }
+      if (registerBtn) registerBtn.hidden = true;
       if (loginBtn) loginBtn.hidden = true;
-      if (logoutBtn) logoutBtn.hidden = false;
     } else {
-      if (profileLink) {
-        profileLink.hidden = true;
-        profileLink.textContent = "Profile";
+      if (accountMenu) accountMenu.hidden = true;
+      if (accountDropdown) {
+        accountDropdown.hidden = true;
       }
+      if (accountBtn) accountBtn.setAttribute("aria-expanded", "false");
+      if (registerBtn) registerBtn.hidden = false;
       if (loginBtn) loginBtn.hidden = false;
-      if (logoutBtn) logoutBtn.hidden = true;
     }
 
     if (usageEl) {
@@ -269,6 +254,14 @@
         usageEl.hidden = true;
       }
     }
+  }
+
+  function setAccountMenuOpen(header, open) {
+    const accountBtn = header.querySelector("#site-account-btn");
+    const accountDropdown = header.querySelector("#site-account-dropdown");
+    if (!accountBtn || !accountDropdown) return;
+    accountDropdown.hidden = !open;
+    accountBtn.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
   function setLogoutLoading(logoutBtn, loading) {
@@ -473,18 +466,11 @@
     if (!AUTH) return;
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
-    const premiumBtn = header.querySelector("#site-premium-btn");
+    const registerBtn = header.querySelector("#site-register-btn");
     const walletBtn = header.querySelector("#site-wallet-btn");
-
-    if (premiumBtn) {
-      premiumBtn.addEventListener("click", () => {
-        if (AUTH.openPremiumFlow) {
-          AUTH.openPremiumFlow({ required: false });
-        } else if (PREMIUM) {
-          PREMIUM.open();
-        }
-      });
-    }
+    const accountMenu = header.querySelector("#site-account-menu");
+    const accountBtn = header.querySelector("#site-account-btn");
+    const unlockRemediesBtn = header.querySelector("#site-unlock-remedies-btn");
 
     if (walletBtn) {
       walletBtn.addEventListener("click", () => {
@@ -497,24 +483,57 @@
       });
     }
 
+    if (unlockRemediesBtn) {
+      unlockRemediesBtn.addEventListener("click", () => {
+        if (AUTH.openWalletFlow) {
+          AUTH.openWalletFlow({
+            required: true,
+            message: "Add money to your wallet to unlock remedies."
+          });
+          return;
+        }
+        const modal = global.SaptarishiWalletModal;
+        if (modal && modal.open) modal.open();
+      });
+    }
+
+    if (registerBtn) {
+      registerBtn.addEventListener("click", () => {
+        if (MODAL) MODAL.open({ tab: "register", required: false });
+      });
+    }
+
     if (loginBtn) {
       loginBtn.addEventListener("click", () => {
         if (MODAL) MODAL.open({ tab: "login", required: false });
       });
     }
 
+    if (accountBtn && accountMenu) {
+      accountBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const open = accountBtn.getAttribute("aria-expanded") !== "true";
+        setAccountMenuOpen(header, open);
+      });
+      document.addEventListener("click", (event) => {
+        if (!accountMenu.contains(event.target)) {
+          setAccountMenuOpen(header, false);
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setAccountMenuOpen(header, false);
+      });
+    }
+
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async () => {
         if (logoutBtn.disabled) return;
+        setAccountMenuOpen(header, false);
         setLogoutLoading(logoutBtn, true);
         try {
           await AUTH.logout();
-          updateHeaderAuth(header, null, null);
-          await AUTH.fetchUsage();
-          updateHeaderAuth(header, null, AUTH.getUsage());
         } finally {
-          setLogoutLoading(logoutBtn, false);
-          updateHeaderAuth(header, null, AUTH ? AUTH.getUsage() : null);
+          window.location.replace(navHref("kundali.html"));
         }
       });
     }

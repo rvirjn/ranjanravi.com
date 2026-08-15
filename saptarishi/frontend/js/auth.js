@@ -27,6 +27,7 @@
           ...usage,
           is_premium: true,
           premium_tier: "pack_299",
+          remedy_unlocked: remaining > 0 || Boolean(usage.remedy_unlocked),
           query_limit: limit,
           queries_used: used,
           queries_remaining: remaining,
@@ -40,6 +41,7 @@
         ...usage,
         is_premium: true,
         premium_tier: "unlimited",
+        remedy_unlocked: true,
         premium_expires_at: usage.premium_expires_at || null,
         kundali_limit: null,
         auspicious_limit: null,
@@ -50,10 +52,26 @@
         queries_remaining: null
       };
     }
-    const isGuest = Boolean(usage.is_guest);
-    const limit = isGuest
-      ? AC.MAX_FREE_QUERIES_PER_GUEST
-      : AC.MAX_FREE_QUERIES_PER_USER;
+    // Only treat explicit logged-in sessions as unlimited (API sets is_guest: false).
+    if (usage.is_guest === false) {
+      // Logged-in non-premium: unlimited scans; remedies unlock with Premium.
+      return {
+        ...usage,
+        is_guest: false,
+        is_premium: false,
+        remedy_unlocked: Boolean(usage.remedy_unlocked),
+        queries_used: null,
+        query_limit: null,
+        queries_remaining: null,
+        kundali_limit: null,
+        auspicious_limit: null,
+        kundali_remaining: null,
+        auspicious_remaining: null,
+        kundali_used: Number(usage.kundali_used) || 0,
+        auspicious_used: Number(usage.auspicious_used) || 0
+      };
+    }
+    const limit = AC.MAX_FREE_QUERIES_PER_GUEST;
     const kUsed = Number(usage.kundali_used) || 0;
     const aUsed = Number(usage.auspicious_used) || 0;
     const totalUsed =
@@ -66,6 +84,8 @@
     );
     return {
       ...usage,
+      is_guest: true,
+      remedy_unlocked: false,
       queries_used: totalUsed,
       query_limit: usage.query_limit ?? limit,
       queries_remaining: remaining,
@@ -567,7 +587,7 @@
       const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
       message =
         `Free query limit reached (${limit} queries per device). ` +
-        "Buy a plan: ₹299 for 6 queries or ₹1899 for unlimited scans.";
+        "Sign in for unlimited scans. Buy Premium to unlock remedy details.";
     }
     const err = new Error(message);
     err.premiumRequired = true;
@@ -780,6 +800,13 @@
     return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
   }
 
+  function getWalletCreditedTotal(usage) {
+    const u = usage || getUsage() || getUser();
+    if (!u || typeof u !== "object") return 0;
+    const value = Number(u.wallet_credited_total_inr);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  }
+
   function parseBirthViewLabel(label) {
     if (label && typeof label === "object" && !Array.isArray(label)) {
       const date = String(label.date || "").trim();
@@ -936,6 +963,7 @@
     getBirthViews,
     birthViewKey,
     getWalletBalance,
+    getWalletCreditedTotal,
     parseBirthViewLabel,
     applyDefaultBirthToForm,
     refreshDefaultBirthForm,

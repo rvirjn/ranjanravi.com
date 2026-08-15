@@ -12,6 +12,96 @@
     }
   };
 
+  let currentMode = "top";
+
+  function isLordComparisonContentLocked() {
+    if (typeof canViewLockedPremiumContent === "function") {
+      return !canViewLockedPremiumContent();
+    }
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.isPremiumActive) {
+      return !SaptarishiAuth.isPremiumActive();
+    }
+    return true;
+  }
+
+  function openUnlockWalletFromLordBlur() {
+    if (typeof openUnlockWalletFromBlur === "function") {
+      openUnlockWalletFromBlur();
+      return;
+    }
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
+      SaptarishiAuth.openWalletFlow({
+        required: true,
+        message: "Add money to your wallet to unlock full details."
+      });
+    }
+  }
+
+  function bindBlurUnlock(el) {
+    if (!el || el.dataset.remedyUnlockBound === "1") return;
+    el.dataset.remedyUnlockBound = "1";
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("title", "Add money to unlock");
+    el.setAttribute("aria-label", "Blurred text. Add money to wallet to unlock.");
+    const open = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openUnlockWalletFromLordBlur();
+    };
+    el.addEventListener("click", open);
+    el.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") open(event);
+    });
+  }
+
+  /** Blur text nodes while keeping colored chip/span markup. */
+  function blurLordComparisonSubtree(host) {
+    if (!host) return;
+    const text = String(host.textContent || "").trim();
+    if (!text || text === "—") return;
+    if (host.querySelector(".remedy-text--blurred, .lord-comparison-blur-wrap")) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-text--blurred lord-comparison-blur-wrap";
+    while (host.firstChild) wrap.appendChild(host.firstChild);
+    host.appendChild(wrap);
+    bindBlurUnlock(wrap);
+  }
+
+  function applyLordComparisonBlur(table) {
+    if (!table) return;
+    table.classList.add("lord-comparison-table--locked");
+
+    table
+      .querySelectorAll(
+        "thead .auspicious-lord-col__label, thead .auspicious-lord-col__total, thead .auspicious-lord-col__exalted, thead .auspicious-lord-col__debilitated"
+      )
+      .forEach((el) => {
+        if (typeof blurLockedTextElement === "function") {
+          blurLockedTextElement(el);
+        } else {
+          blurLordComparisonSubtree(el);
+        }
+      });
+
+    table.querySelectorAll("tbody tr").forEach((tr) => {
+      [...tr.children].forEach((td, index) => {
+        if (index === 0) return; // keep planet / row labels readable
+        if (td.querySelector(".kundali-chart-host")) {
+          td.querySelectorAll(
+            ".auspicious-lord-col__total, .auspicious-lord-col__total--divisional"
+          ).forEach((el) => {
+            if (typeof blurLockedTextElement === "function") blurLockedTextElement(el);
+            else blurLordComparisonSubtree(el);
+          });
+          return;
+        }
+        blurLordComparisonSubtree(td);
+      });
+    });
+  }
+
   function formatPlanetDisplayName(planetKey) {
     const key = String(planetKey || "").trim();
     if (!key) return "—";
@@ -257,9 +347,10 @@
   }
 
   function setChrome(mode) {
+    currentMode = mode === "compare" ? "compare" : "top";
     const heading = document.getElementById("lord-comparison-heading");
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
-    const cfg = CHROME[mode] || CHROME.top;
+    const cfg = CHROME[currentMode] || CHROME.top;
     if (heading) heading.textContent = cfg.heading;
     if (lead) {
       const text = String(cfg.lead || "").trim();
@@ -276,6 +367,7 @@
     const columns = comparison?.columns || [];
     const rows = comparison?.rows || [];
     table._lordComparisonColumns = columns;
+    table.classList.remove("lord-comparison-table--locked");
 
     if (!columns.length || !rows.length) {
       section.hidden = true;
@@ -391,6 +483,10 @@
         });
       }
       tbody.appendChild(tr);
+    }
+
+    if (isLordComparisonContentLocked()) {
+      applyLordComparisonBlur(table);
     }
   }
 

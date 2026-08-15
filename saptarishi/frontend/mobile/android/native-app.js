@@ -322,7 +322,6 @@
         <button type="button" id="site-wallet-btn" class="site-header__wallet app-wallet" hidden title="Wallet">${ICONS.wallet}<span class="app-wallet__amt">₹0</span></button>
         <button type="button" class="app-avatar" id="app-profile-btn" aria-label="Your profiles">PR</button>
         <a href="${pageHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden>Profile</a>
-        <button type="button" id="site-premium-btn" class="site-header__premium" hidden>Buy Premium</button>
         <button type="button" id="site-login-btn" class="site-header__login" hidden>Login</button>
         <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
       </div>
@@ -497,7 +496,6 @@
       <div class="app-menu-list">
         <a class="app-menu-item" href="${pageHref("profile.html")}">${icon("person")}<span>Edit details</span>${ICONS.chevron}</a>
         <button type="button" class="app-menu-item" id="app-menu-wallet">${ICONS.wallet}<span>Wallet</span>${ICONS.chevron}</button>
-        <button type="button" class="app-menu-item" id="app-menu-premium">${icon("stars")}<span>Buy Premium</span>${ICONS.chevron}</button>
         <button type="button" class="app-menu-item" id="app-menu-logout">${icon("swap")}<span>${user ? "Logout" : "Login"}</span>${ICONS.chevron}</button>
         <a class="app-menu-item" href="${pageHref("privacy.html")}">${icon("brief")}<span>Privacy</span>${ICONS.chevron}</a>
         <a class="app-menu-item" href="mailto:${AC?.SUPPORT_EMAIL || ""}">${icon("chat")}<span>Support</span>${ICONS.chevron}</a>
@@ -517,14 +515,14 @@
       if (AUTH?.openWalletFlow) AUTH.openWalletFlow();
       else if (!AUTH?.getToken() && AUTH?.ensureAuth) AUTH.ensureAuth({ tab: "login", required: true });
     });
-    drawer.querySelector("#app-menu-premium")?.addEventListener("click", () => {
-      closeDrawer();
-      if (AUTH?.openPremiumFlow) AUTH.openPremiumFlow();
-    });
     drawer.querySelector("#app-menu-logout")?.addEventListener("click", async () => {
       closeDrawer();
-      if (user && AUTH?.logout) await AUTH.logout();
-      else if (AUTH?.ensureAuth) await AUTH.ensureAuth({ tab: "login", required: true });
+      if (user && AUTH?.logout) {
+        await AUTH.logout();
+        window.location.replace(pageHref("kundali.html"));
+        return;
+      }
+      if (AUTH?.ensureAuth) await AUTH.ensureAuth({ tab: "login", required: true });
       refreshHeaderAuth();
     });
   }

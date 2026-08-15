@@ -296,6 +296,72 @@
     return String(value).trim();
   }
 
+  /** Premium unlocks readable remedy text; logged-in users still get unlimited scans. */
+  function canViewRemedyDetails() {
+    if (typeof SaptarishiAuth === "undefined") return false;
+    const usage = SaptarishiAuth.getUsage ? SaptarishiAuth.getUsage() : null;
+    if (usage && usage.remedy_unlocked === true) return true;
+    if (usage && usage.remedy_unlocked === false) return false;
+    if (typeof SaptarishiAuth.isPremiumActive === "function") {
+      return Boolean(SaptarishiAuth.isPremiumActive());
+    }
+    return false;
+  }
+
+  function openRemedyUnlock() {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
+      SaptarishiAuth.openWalletFlow({
+        required: true,
+        message: "Add money to your wallet to unlock full remedy details."
+      });
+      return;
+    }
+    if (globalThis.SaptarishiWalletModal && SaptarishiWalletModal.open) {
+      SaptarishiWalletModal.open();
+    }
+  }
+
+  function blurLockedRemedyValueCell(td, text) {
+    if (!td) return;
+    const value = String(text || "").trim();
+    if (!value || value === "—") return;
+
+    // Blur a span — filter on <td> is unreliable in Chromium table layout.
+    td.textContent = "";
+    const span = document.createElement("span");
+    span.className = "remedy-text--blurred";
+    span.textContent = value;
+    span.setAttribute("title", "Add money to unlock");
+    span.setAttribute("aria-label", "Blurred remedy text. Add money to wallet to unlock.");
+    span.setAttribute("role", "button");
+    span.setAttribute("tabindex", "0");
+    td.appendChild(span);
+    td.classList.add("remedy-text-cell--locked");
+
+    if (span.dataset.remedyUnlockBound === "1") return;
+    span.dataset.remedyUnlockBound = "1";
+    const open = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openRemedyUnlock();
+    };
+    span.addEventListener("click", open);
+    span.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") open(event);
+    });
+  }
+
+  function blurNavataraRemedyCells(tbody) {
+    if (!tbody || canViewRemedyDetails()) return;
+    const table = tbody.closest("table");
+    if (table) table.classList.add("nakshatra-remedy-table--locked");
+    // Blur every data cell; row color styling on <tr> stays visible.
+    tbody.querySelectorAll("td").forEach((td) => {
+      const text = (td.textContent || "").trim();
+      if (text && text !== "—") blurLockedRemedyValueCell(td, text);
+    });
+  }
+
   function presentDoshEntriesFromKundali(kundaliPayload) {
     const block = kundaliPayload?.kundali_dosh;
     const items = Array.isArray(block?.dosh) ? block.dosh : [];
@@ -309,6 +375,8 @@
   function createRemedyDetailTable(remedy, columns) {
     const table = document.createElement("table");
     table.className = "navatara-data-table kundali-table planet-remedy-table remedy-planet-detail-table";
+    const locked = !canViewRemedyDetails();
+    if (locked) table.classList.add("remedy-planet-detail-table--locked");
     const tbody = document.createElement("tbody");
     const source = remedy && typeof remedy === "object" ? remedy : {};
     for (const col of columns || []) {
@@ -318,7 +386,9 @@
       th.scope = "row";
       th.textContent = String(col.header || col.key || "");
       const td = document.createElement("td");
-      td.textContent = formatRemedyCellValue(source[col.key]) || "—";
+      const cellText = formatRemedyCellValue(source[col.key]) || "—";
+      td.textContent = cellText;
+      if (locked) blurLockedRemedyValueCell(td, cellText);
       tr.appendChild(th);
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -613,6 +683,7 @@
 
     if (KV && KV.renderNakshatraTableWithColors && tbody) {
       KV.renderNakshatraTableWithColors(tbody, rows);
+      blurNavataraRemedyCells(tbody);
     }
 
     showRemedyStatus("");

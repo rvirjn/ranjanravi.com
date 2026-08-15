@@ -65,6 +65,8 @@ const SAPTARISHI_CONSTANTS = {
   PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
   PREMIUM_UNLIMITED_MONTHS: 1,
   PREMIUM_AMOUNT_INR: 1899,
+  /** Per kundali/auspicious query when remedies are unlocked via wallet (not unlimited). */
+  QUERY_CHARGE_INR: 51,
   PREMIUM_CONTACT_PHONE: "8184046618",
   SUPPORT_EMAIL: "raviranjan.amu@gmail.com",
   SUPPORT_WHATSAPP_MESSAGE: "Hi, I need support with Saptarishi.",

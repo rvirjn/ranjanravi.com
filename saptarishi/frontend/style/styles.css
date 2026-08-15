@@ -2863,6 +2863,87 @@ tbody tr:last-child td {
   display: none !important;
 }
 
+.site-header__account {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 10rem;
+}
+
+.site-header__account[hidden] {
+  display: none !important;
+}
+
+.site-header__account-btn {
+  max-width: 10rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-header__account-btn:hover,
+.site-header__account-btn[aria-expanded="true"] {
+  background: #fff;
+}
+
+.site-header__account-btn #site-account-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-header__account-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 80;
+  min-width: 11rem;
+  padding: 0.35rem 0;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface, #fff8ea);
+  box-shadow: 0 8px 20px rgba(74, 47, 20, 0.16);
+}
+
+.site-header__account-menu[hidden] {
+  display: none !important;
+}
+
+.site-header__account-item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--color-heading, #1e3a5f);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.site-header__account-item:hover,
+.site-header__account-item:focus-visible {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  outline: none;
+}
+
+.site-header__account-item--danger {
+  color: #9b2c2c;
+  font-weight: 600;
+}
+
 .profile-summary {
   margin-bottom: var(--space-md);
   padding: var(--space-sm) var(--space-md);
@@ -3026,7 +3107,9 @@ body.send-coupon-open {
 }
 
 .site-header__login[hidden],
-.site-header__logout[hidden] {
+.site-header__logout[hidden],
+.site-header__premium[hidden],
+.site-header__wallet[hidden] {
   display: none !important;
 }
 
@@ -4276,6 +4359,41 @@ body.premium-modal-open {
 .remedy-planet-detail-table td {
   vertical-align: top;
   white-space: normal;
+}
+
+.remedy-text-cell--locked {
+  cursor: pointer;
+}
+
+.remedy-text--blurred {
+  display: inline-block;
+  max-width: 100%;
+  filter: blur(6px);
+  -webkit-filter: blur(6px);
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  color: inherit;
+  pointer-events: auto;
+}
+
+.remedy-planet-detail-table--locked .remedy-text--blurred {
+  max-width: 28rem;
+}
+
+.remedy-text--blurred:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-heading, #1e3a5f) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.lord-comparison-blur-wrap {
+  display: block;
+  width: 100%;
+}
+
+.lord-comparison-table--locked .auspicious-lord-col__chart,
+.lord-comparison-table--locked .kundali-chart-host {
+  filter: none;
 }
 
 /* ---------- Chart click-to-zoom lightbox ---------- */

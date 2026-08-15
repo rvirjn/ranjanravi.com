@@ -115,15 +115,29 @@
     if (!summaryEl) return;
     summaryEl.hidden = false;
 
+    const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
+    const packAmount = C?.PREMIUM_PACK_AMOUNT_INR ?? 299;
+    const packQueries = C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
+    const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const queryCharge = C?.QUERY_CHARGE_INR ?? 51;
+    const bal =
+      AUTH.getWalletBalance
+        ? AUTH.getWalletBalance(usage || profile)
+        : Number(profile.wallet_balance_inr || usage?.wallet_balance_inr) || 0;
+    const added =
+      AUTH.getWalletCreditedTotal
+        ? AUTH.getWalletCreditedTotal(usage || profile)
+        : Number(profile.wallet_credited_total_inr || usage?.wallet_credited_total_inr) || 0;
+    const queriesLeft = queryCharge > 0 ? Math.floor(bal / queryCharge) : 0;
+    const tier = profile.premium_tier || usage?.premium_tier;
+    const isPaid = profile.is_premium || usage?.is_premium;
+    const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
+    const remediesUnlocked = Boolean(
+      usage?.remedy_unlocked || profile?.remedy_unlocked || isUnlimited || bal >= queryCharge
+    );
+
     if (planEl) {
-      const tier = profile.premium_tier || usage?.premium_tier;
-      const isPaid = profile.is_premium || usage?.is_premium;
-      if (isPaid && tier === "pack_299") {
-        const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
-        const limit = usage?.query_limit ?? C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
-        const used = usage?.queries_used ?? 0;
-        planEl.textContent = `Plan: ${limit} queries · ${used}/${limit} used`;
-      } else if (isPaid) {
+      if (isUnlimited) {
         const until = usage?.premium_expires_at
           ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
               year: "numeric",
@@ -132,32 +146,50 @@
             })
           : "";
         planEl.textContent = until
-          ? `Plan: Unlimited until ${until}`
+          ? `Plan: Unlimited · active until ${until}`
           : "Plan: Unlimited (1 month)";
+      } else if (isPaid && tier === "pack_299") {
+        const limit = usage?.query_limit ?? packQueries;
+        const used = usage?.queries_used ?? 0;
+        planEl.textContent = `Plan: ${limit}-query pack · ${used}/${limit} used`;
+      } else if (remediesUnlocked) {
+        planEl.textContent = `Plan: Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`;
       } else {
-        planEl.textContent = "Plan: Free";
+        planEl.textContent = "Plan: No plan active";
       }
-      planEl.classList.toggle("profile-summary__plan--premium", Boolean(isPaid));
+      planEl.classList.toggle(
+        "profile-summary__plan--premium",
+        Boolean(isUnlimited || remediesUnlocked)
+      );
     }
 
     if (walletEl) {
-      const bal =
-        AUTH.getWalletBalance
-          ? AUTH.getWalletBalance(usage || profile)
-          : Number(profile.wallet_balance_inr || usage?.wallet_balance_inr) || 0;
-      walletEl.textContent = `Wallet: ₹${bal}`;
+      const addedPart = added > 0 ? ` · Added ₹${added}` : "";
+      if (isUnlimited) {
+        walletEl.textContent = `Wallet: ₹${bal}${addedPart}`;
+      } else if (remediesUnlocked) {
+        walletEl.textContent =
+          `Wallet: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
+          (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
+      } else {
+        walletEl.textContent =
+          `Wallet: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
+      }
       walletEl.hidden = false;
     }
 
-    if (usageEl && usage && !usage.is_premium) {
-      const used =
-        usage.queries_used != null
-          ? Number(usage.queries_used)
-          : (Number(usage.kundali_used) || 0) + (Number(usage.auspicious_used) || 0);
-      const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
-      const limit = usage.query_limit ?? C?.MAX_FREE_QUERIES_PER_GUEST ?? 2;
-      usageEl.textContent = `Usage: ${used}/${limit} queries`;
-      usageEl.hidden = false;
+    if (usageEl && usage && !usage.is_premium && !remediesUnlocked) {
+      if (usage.is_guest === false || usage.query_limit == null) {
+        usageEl.hidden = true;
+      } else {
+        const used =
+          usage.queries_used != null
+            ? Number(usage.queries_used)
+            : (Number(usage.kundali_used) || 0) + (Number(usage.auspicious_used) || 0);
+        const limit = usage.query_limit ?? C?.MAX_FREE_QUERIES_PER_GUEST ?? 2;
+        usageEl.textContent = `Usage: ${used}/${limit} queries`;
+        usageEl.hidden = false;
+      }
     } else if (usageEl) {
       usageEl.hidden = true;
     }

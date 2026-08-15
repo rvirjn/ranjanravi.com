@@ -27,8 +27,6 @@
   let overlay = null;
   let resolvePending = null;
   let statusEl = null;
-  let amountEl = null;
-  let planSummaryEl = null;
   let balanceEl = null;
   let leadEl = null;
   let successPanel = null;
@@ -49,16 +47,6 @@
     if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
     const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
     return `${limit} queries · ₹${plan.amount_inr}`;
-  }
-
-  function planDescription(plan) {
-    if (!plan) return "";
-    if (plan.id === "unlimited") {
-      const months = plan.duration_months || AC.PREMIUM_UNLIMITED_MONTHS;
-      return `Unlimited kundali and auspicious scans for ${months} month(s).`;
-    }
-    const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
-    return `${limit} kundali or auspicious queries combined.`;
   }
 
   function currentBalance() {
@@ -85,10 +73,7 @@
       const text = document.createElement("span");
       text.className = "premium-modal__plan-text";
       text.textContent = planLabel(plan);
-      const detail = document.createElement("span");
-      detail.className = "premium-modal__plan-detail";
-      detail.textContent = planDescription(plan);
-      label.append(input, text, detail);
+      label.append(input, text);
       planPickerEl.appendChild(label);
     }
     updateSelectedPlanDisplay();
@@ -97,20 +82,17 @@
   function updateSelectedPlanDisplay() {
     const plan = planById(selectedPlanId);
     const balance = currentBalance();
-    if (amountEl && plan) {
-      amountEl.textContent = `₹${plan.amount_inr}`;
-    }
-    if (planSummaryEl && plan) {
-      planSummaryEl.textContent = planDescription(plan);
-    }
     if (balanceEl) {
       balanceEl.textContent = `Wallet balance: ₹${balance}`;
     }
     if (walletPayBtn && plan) {
       const enough = balance >= Number(plan.amount_inr || 0);
-      walletPayBtn.textContent = enough
-        ? `Pay ₹${plan.amount_inr} from wallet`
-        : `Need ₹${plan.amount_inr} (have ₹${balance})`;
+      walletPayBtn.hidden = !enough;
+      walletPayBtn.textContent = `Pay ₹${plan.amount_inr} from wallet`;
+    }
+    if (addWalletBtn && plan) {
+      const enough = balance >= Number(plan.amount_inr || 0);
+      addWalletBtn.hidden = enough;
     }
   }
 
@@ -130,13 +112,9 @@
         <p id="premium-modal-balance" class="premium-modal__plan-summary"></p>
         <div id="premium-modal-payment-panel" class="premium-modal__panel">
           <div id="premium-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose a plan"></div>
-          <p class="premium-modal__amount">
-            Plan amount: <strong id="premium-modal-amount">₹${AC.PREMIUM_PACK_AMOUNT_INR}</strong>
-          </p>
-          <p id="premium-modal-plan-summary" class="premium-modal__plan-summary"></p>
           <div class="premium-modal__form">
             <div class="form-field form-field--submit">
-              <button type="button" id="premium-modal-wallet-pay" class="premium-modal__wallet-pay premium-modal__wallet-pay--primary">
+              <button type="button" id="premium-modal-wallet-pay" class="premium-modal__wallet-pay premium-modal__wallet-pay--primary" hidden>
                 Pay from wallet
               </button>
               <button type="button" id="premium-modal-add-wallet" class="premium-modal__wallet-pay">
@@ -157,8 +135,6 @@
     statusEl = overlay.querySelector("#premium-modal-status");
     leadEl = overlay.querySelector("#premium-modal-lead");
     balanceEl = overlay.querySelector("#premium-modal-balance");
-    amountEl = overlay.querySelector("#premium-modal-amount");
-    planSummaryEl = overlay.querySelector("#premium-modal-plan-summary");
     successPanel = overlay.querySelector("#premium-modal-success-panel");
     paymentPanel = overlay.querySelector("#premium-modal-payment-panel");
     planPickerEl = overlay.querySelector("#premium-modal-plan-picker");
@@ -187,10 +163,8 @@
         const plan = planById(selectedPlanId);
         const balance = currentBalance();
         if (balance < (plan?.amount_inr || 0)) {
-          showStatus(
-            `Need ₹${plan?.amount_inr || 0} in wallet (you have ₹${balance}). Add money first.`,
-            true
-          );
+          showStatus("Add money to wallet first.", true);
+          updateSelectedPlanDisplay();
           return;
         }
         setBusy(true);
