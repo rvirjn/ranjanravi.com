@@ -31,6 +31,12 @@ let kundaliMode = "new";
 /** True when UI is opened from localhost (Docker nginx on :9999 or file://). */
 function isLocalDevUi() {
   if (CU && CU.isLocalDevUiHost) return CU.isLocalDevUiHost();
+  if (
+    document.documentElement.classList.contains("saptarishi-native-app") ||
+    /SaptarishiNativeApp/i.test(navigator.userAgent || "")
+  ) {
+    return false;
+  }
   const host = window.location.hostname;
   return window.location.protocol === "file:" || host === "localhost" || host === "127.0.0.1";
 }
@@ -4334,6 +4340,7 @@ window.SaptarishiKundaliView = {
   buildNorthIndianChartFromPayload,
   renderKundaliChart,
   renderDivisionalChartsFromPayload,
+  computeCurrentDashaSnapshot,
   renderCurrentDashaFromPayload,
   renderKundaliYogasFromPayload,
   renderKundaliDoshasFromPayload,

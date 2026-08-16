@@ -78,6 +78,8 @@ const SAPTARISHI_CONSTANTS = {
   API_AUTH_PASSWORD_UPDATE_PATH: "/api/auth/password/update",
   API_AUTH_PASSWORD_FORGOT_PATH: "/api/auth/password/forgot",
   API_AUTH_ACCOUNT_DELETE_PATH: "/api/auth/account/delete",
+  API_AUTH_BIRTH_VIEWS_PATH: "/api/auth/birth-views",
+  API_AUTH_BIRTH_VIEWS_DELETE_PATH: "/api/auth/birth-views/delete",
   API_AUTH_LOGOUT_PATH: "/api/auth/logout",
   API_AUTH_ME_PATH: "/api/auth/me",
   API_SITE_VIEW_PATH: "/api/site/view",

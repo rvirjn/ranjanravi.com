@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>My profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=208">
+  <link rel="stylesheet" href="../style/styles.css?v=213">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -43,6 +43,17 @@
         <button type="submit">Save changes</button>
       </div>
     </form>
+
+    <section id="profile-births" class="profile-births" hidden>
+      <h2 class="profile-security__title">Saved birth details</h2>
+      <p class="profile-danger__lead">Charts saved on your account. Deleting one removes it here and in the app.</p>
+      <div id="profile-birth-list" class="profile-birth-list"></div>
+      <p id="profile-birth-empty" class="profile-danger__lead" hidden>No saved birth details yet.</p>
+      <p class="profile-birth-actions">
+        <a id="profile-new-birth" class="btn-secondary" href="kundali.html?mode=new">Enter New Birth details</a>
+      </p>
+      <p id="profile-birth-status" class="status" role="status" aria-live="polite" hidden></p>
+    </section>
 
     <section id="profile-security" class="profile-security" hidden>
       <h2 class="profile-security__title">Security</h2>
@@ -125,13 +136,13 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=65"></script>
-  <script src="../js/auth.js?v=31"></script>
+  <script src="../utils/constant.js?v=66"></script>
+  <script src="../js/auth.js?v=33"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=14"></script>
-  <script src="../js/premium-modal.js?v=10"></script>
-  <script src="../js/wallet-modal.js?v=4"></script>
-  <script src="../js/profile.js?v=14"></script>
-  <script src="../utils/common.js?v=48"></script>
+  <script src="../js/auth-modal.js?v=16"></script>
+  <script src="../js/premium-modal.js?v=11"></script>
+  <script src="../js/wallet-modal.js?v=7"></script>
+  <script src="../js/profile.js?v=15"></script>
+  <script src="../utils/common.js?v=50"></script>
 </body>
 </html>

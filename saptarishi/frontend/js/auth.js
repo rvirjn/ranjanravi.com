@@ -97,6 +97,12 @@
   }
 
   function isLocalDevUi() {
+    if (
+      document.documentElement.classList.contains("saptarishi-native-app") ||
+      /SaptarishiNativeApp/i.test(navigator.userAgent || "")
+    ) {
+      return false;
+    }
     const host = window.location.hostname;
     return (
       window.location.protocol === "file:" ||
@@ -377,6 +383,42 @@
       method: "POST",
       body: JSON.stringify({ mobile, email })
     });
+  }
+
+  function clearNativeChartCacheForName(name) {
+    const key = String(name || "").trim().toLowerCase();
+    if (!key) return;
+    const dropIfName = (storageKey) => {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        const storedName = String(parsed?.name || parsed?.birth?.name || "")
+          .trim()
+          .toLowerCase();
+        if (storedName === key) localStorage.removeItem(storageKey);
+      } catch {
+        /* ignore */
+      }
+    };
+    dropIfName("saptarishi.native.activeChart");
+    dropIfName("saptarishi.native.lastChart");
+  }
+
+  async function fetchBirthViews() {
+    const payload = await apiFetch(AC.API_AUTH_BIRTH_VIEWS_PATH);
+    updateUserFromApiPayload(payload);
+    return payload;
+  }
+
+  async function deleteBirthView(name) {
+    const payload = await apiFetch(AC.API_AUTH_BIRTH_VIEWS_DELETE_PATH, {
+      method: "POST",
+      body: JSON.stringify({ name })
+    });
+    updateUserFromApiPayload(payload);
+    clearNativeChartCacheForName(name);
+    return payload;
   }
 
   async function deleteAccount(password) {
@@ -935,6 +977,8 @@
     updateProfile,
     updatePassword,
     forgotPassword,
+    fetchBirthViews,
+    deleteBirthView,
     deleteAccount,
     isAdmin,
     fetchDbUsers,

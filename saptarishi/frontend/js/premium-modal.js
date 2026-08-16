@@ -357,6 +357,7 @@
     close,
     hidePremiumModal,
     open: openPremiumModal,
-    hide: hidePremiumModal
+    hide: hidePremiumModal,
+    isOpen: () => Boolean(overlay && !overlay.hidden)
   };
 })(window);

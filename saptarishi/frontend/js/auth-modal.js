@@ -21,6 +21,16 @@
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
+  function privacyPolicyHref() {
+    const prefix = AC.DEPLOY_PREFIX || "";
+    if (/\/frontend\/html\//i.test(window.location.pathname)) {
+      return `${prefix}/frontend/html/privacy.html`;
+    }
+    const map = AC.PAGE_FILE_TO_PATH;
+    if (map && map["privacy.html"]) return map["privacy.html"];
+    return `${prefix}/privacy`;
+  }
+
   let overlay = null;
   let resolvePending = null;
   let statusEl = null;
@@ -106,6 +116,10 @@
               <label for="auth-modal-reg-password-confirm">Confirm password</label>
               <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
             </div>
+            <p class="auth-modal__privacy">
+              By creating an account you agree we collect your name, mobile, and email, and any birth details you later enter, as described in our
+              <a href="${privacyPolicyHref()}">Privacy Policy</a>.
+            </p>
             <div class="form-field form-field--submit">
               <button type="submit">Create account</button>
             </div>
@@ -339,6 +353,21 @@
     }
   }
 
+  function isOpen() {
+    return Boolean(overlay && !overlay.hidden);
+  }
+
+  /** Always hide (hardware back). Required sign-in can be skipped. */
+  function dismiss() {
+    if (!isOpen()) return false;
+    hideAuthModal();
+    if (resolvePending) {
+      resolvePending(false);
+      resolvePending = null;
+    }
+    return true;
+  }
+
   function openAuthModal(options = {}) {
     ensureAuthModalMounted();
     const tab =
@@ -384,6 +413,8 @@
     hideAuthModal,
     setActiveTab,
     open,
-    hide
+    hide,
+    isOpen,
+    dismiss
   };
 })(window);

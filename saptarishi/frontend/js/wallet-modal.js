@@ -19,6 +19,13 @@
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
+  function isNativeApp() {
+    return (
+      document.documentElement.classList.contains("saptarishi-native-app") ||
+      /SaptarishiNativeApp/i.test(navigator.userAgent || "")
+    );
+  }
+
   function formatContactPhoneDisplay(raw) {
     if (CU && CU.formatIndiaPhoneDisplay) return CU.formatIndiaPhoneDisplay(raw);
     const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
@@ -34,6 +41,7 @@
   let contactPhoneEl = null;
   let leadEl = null;
   let balanceEl = null;
+  let extraEl = null;
   let successPanel = null;
   let paymentPanel = null;
   let planPickerEl = null;
@@ -116,13 +124,24 @@
     overlay.className = "premium-modal-overlay";
     overlay.hidden = true;
     overlay.setAttribute("role", "presentation");
+    const native = isNativeApp();
+    const headerHtml = native
+      ? `<h2 id="wallet-modal-title" class="premium-modal__title">Wallet</h2>
+        <p id="wallet-modal-lead" class="premium-modal__lead" hidden></p>
+        <div id="wallet-modal-info" class="premium-modal__wallet-info">
+          <p class="premium-modal__info-kicker">Current balance</p>
+          <p id="wallet-modal-balance" class="premium-modal__info-balance">₹0</p>
+          <p id="wallet-modal-info-extra" class="premium-modal__info-extra"></p>
+        </div>`
+      : `<h2 id="wallet-modal-title" class="premium-modal__title">Add money to wallet</h2>
+        <p id="wallet-modal-lead" class="premium-modal__lead"></p>
+        <p id="wallet-modal-balance" class="premium-modal__plan-summary"></p>`;
     overlay.innerHTML = `
       <div class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
         <button type="button" class="premium-modal__close" id="wallet-modal-close" aria-label="Close">&times;</button>
-        <h2 id="wallet-modal-title" class="premium-modal__title">Add money to wallet</h2>
-        <p id="wallet-modal-lead" class="premium-modal__lead"></p>
-        <p id="wallet-modal-balance" class="premium-modal__plan-summary"></p>
+        ${headerHtml}
         <div id="wallet-modal-payment-panel" class="premium-modal__panel">
+          ${native ? '<h3 class="premium-modal__add-title">Add money</h3>' : ""}
           <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose amount"></div>
           <div class="premium-modal__qr-wrap">
             <img
@@ -177,6 +196,7 @@
     statusEl = overlay.querySelector("#wallet-modal-status");
     leadEl = overlay.querySelector("#wallet-modal-lead");
     balanceEl = overlay.querySelector("#wallet-modal-balance");
+    extraEl = overlay.querySelector("#wallet-modal-info-extra");
     form = overlay.querySelector("#wallet-modal-form");
     amountEl = overlay.querySelector("#wallet-modal-amount");
     planSummaryEl = overlay.querySelector("#wallet-modal-plan-summary");
@@ -214,10 +234,7 @@
         stopLoading();
         setBusy(false);
         showSuccess(payload.message || "Wallet topped up.");
-        if (balanceEl) {
-          const bal = AUTH.getWalletBalance(payload.user || payload.usage);
-          balanceEl.textContent = `Current balance: ₹${bal}`;
-        }
+        renderWalletSummary(payload.user || payload.usage);
       } catch (err) {
         stopLoading();
         setBusy(false);
@@ -226,6 +243,58 @@
     });
 
     renderPlanPicker();
+  }
+
+  function renderWalletSummary(source) {
+    const usage = source || AUTH.getUsage() || AUTH.getUser() || {};
+    const bal =
+      source && source.wallet_balance_inr != null
+        ? Math.max(0, Math.floor(Number(source.wallet_balance_inr) || 0))
+        : AUTH.getWalletBalance();
+
+    if (!isNativeApp()) {
+      if (balanceEl) balanceEl.textContent = `Current balance: ₹${bal}`;
+      return;
+    }
+
+    const packAmount = AC.PREMIUM_PACK_AMOUNT_INR ?? 299;
+    const packQueries = AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
+    const unlimitedAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const queryCharge = AC.QUERY_CHARGE_INR ?? 51;
+    const added = AUTH.getWalletCreditedTotal
+      ? AUTH.getWalletCreditedTotal(usage)
+      : 0;
+    const queriesLeft = queryCharge > 0 ? Math.floor(bal / queryCharge) : 0;
+    const isPaid = Boolean(usage.is_premium);
+    const tier = usage.premium_tier;
+    const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
+
+    if (balanceEl) {
+      balanceEl.textContent = `₹${bal}`;
+    }
+    if (!extraEl) return;
+
+    const bits = [];
+    if (added > 0) bits.push(`Added so far ₹${added}`);
+    if (isUnlimited) {
+      const until = usage.premium_expires_at
+        ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+          })
+        : "";
+      bits.push(until ? `Unlimited until ${until}` : "Unlimited plan active");
+    } else if (isPaid && tier === "pack_299") {
+      const limit = usage.query_limit ?? packQueries;
+      const used = usage.queries_used ?? 0;
+      bits.push(`${limit}-query pack · ${used}/${limit} used`);
+    } else {
+      bits.push(`₹${queryCharge} per query`);
+      if (queriesLeft > 0) bits.push(`~${queriesLeft} queries left`);
+      else if (bal <= 0) bits.push(`Add ₹${packAmount} or ₹${unlimitedAmount} for unlimited`);
+    }
+    extraEl.textContent = bits.join(" · ");
   }
 
   async function loadWalletInfo() {
@@ -245,14 +314,13 @@
       if (contactPhoneEl && payload.contact_phone) {
         contactPhoneEl.textContent = formatContactPhoneDisplay(payload.contact_phone);
       }
-      if (balanceEl) {
-        const bal =
-          payload.wallet_balance_inr != null
-            ? Number(payload.wallet_balance_inr) || 0
-            : AUTH.getWalletBalance();
-        balanceEl.textContent = `Current balance: ₹${bal}`;
-      }
+      renderWalletSummary({
+        ...(AUTH.getUsage() || AUTH.getUser() || {}),
+        wallet_balance_inr:
+          payload.wallet_balance_inr != null ? payload.wallet_balance_inr : AUTH.getWalletBalance()
+      });
     } catch {
+      renderWalletSummary();
       renderPlanPicker();
     }
   }
@@ -360,22 +428,34 @@
     }
     renderPlanPicker();
 
-    if (leadEl) {
-      leadEl.textContent =
-        options.message ||
-        "Select an amount, scan the QR, pay, then enter your coupon code.";
-    }
-    if (balanceEl) {
-      balanceEl.textContent = `Current balance: ₹${AUTH.getWalletBalance()}`;
-    }
-
-    overlay.hidden = false;
-    document.body.classList.add("premium-modal-open");
-    loadWalletInfo();
-
-    const couponInput = overlay.querySelector("#wallet-modal-coupon");
-    if (couponInput) {
-      window.requestAnimationFrame(() => couponInput.focus());
+    if (isNativeApp()) {
+      if (leadEl) {
+        const message = options.message || "";
+        leadEl.textContent = message;
+        leadEl.hidden = !message;
+      }
+      renderWalletSummary();
+      overlay.hidden = false;
+      document.body.classList.add("premium-modal-open");
+      const dialog = overlay.querySelector(".premium-modal");
+      if (dialog) dialog.scrollTop = 0;
+      loadWalletInfo();
+    } else {
+      if (leadEl) {
+        leadEl.textContent =
+          options.message ||
+          "Select an amount, scan the QR, pay, then enter your coupon code.";
+      }
+      if (balanceEl) {
+        balanceEl.textContent = `Current balance: ₹${AUTH.getWalletBalance()}`;
+      }
+      overlay.hidden = false;
+      document.body.classList.add("premium-modal-open");
+      loadWalletInfo();
+      const couponInput = overlay.querySelector("#wallet-modal-coupon");
+      if (couponInput) {
+        window.requestAnimationFrame(() => couponInput.focus());
+      }
     }
 
     return new Promise((resolve) => {
@@ -388,6 +468,7 @@
     open: openWalletModal,
     close,
     hide: hideWalletModal,
-    hideWalletModal
+    hideWalletModal,
+    isOpen: () => Boolean(overlay && !overlay.hidden)
   };
 })(window);

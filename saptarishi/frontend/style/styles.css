@@ -348,6 +348,26 @@ body.saptarishi-page {
   padding: var(--space-sm);
 }
 
+.search-form .privacy-collect-note {
+  flex: 1 1 100%;
+  align-self: stretch;
+  width: 100%;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted, var(--color-text));
+}
+
+.search-form .privacy-collect-note a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.search-form .privacy-collect-note a:hover {
+  text-decoration: underline;
+}
+
 .search-form .form-field {
   display: flex;
   flex-direction: column;
@@ -3077,6 +3097,70 @@ body.send-coupon-open {
   line-height: 1.45;
 }
 
+.profile-births {
+  margin-top: var(--space-lg);
+  max-width: 480px;
+}
+
+.profile-birth-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 var(--space-sm);
+}
+
+.profile-birth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(61, 42, 20, 0.14);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.profile-birth-row__meta {
+  min-width: 0;
+}
+
+.profile-birth-row strong {
+  display: block;
+}
+
+.profile-birth-row span {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.profile-birth-actions {
+  margin: 0.35rem 0 0;
+}
+
+.profile-birth-actions .btn-secondary {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+#saptarishi .profile-birth-row .btn-danger {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 0;
+  padding: 0.4rem 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #b4543a 0%, #8f3b28 100%);
+  cursor: pointer;
+}
+
+#saptarishi .profile-birth-row .btn-danger:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
 #saptarishi .profile-form.auth-form button[type="submit"] {
   width: auto;
   min-width: 10rem;
@@ -3436,6 +3520,23 @@ a.auth-form__link {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   line-height: 1.35;
+}
+
+.auth-modal__privacy {
+  margin: 0 0 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted, var(--color-text));
+}
+
+.auth-modal__privacy a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-modal__privacy a:hover {
+  text-decoration: underline;
 }
 
 .saptarishi-page--login .auth-form button[type="submit"] {
@@ -4496,20 +4597,6 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 }
 
 @media (max-width: 900px) {
-  html.saptarishi-native-app .site-header {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  html.saptarishi-native-app .site-header__nav {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    -webkit-overflow-scrolling: touch;
-  }
-
   html.saptarishi-native-app .search-form.kundali-form {
     flex-direction: column;
     align-items: stretch;

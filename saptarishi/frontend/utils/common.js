@@ -18,7 +18,15 @@
     /login\.html$/i.test(window.location.pathname);
   const logoutTimers = new WeakMap();
 
+  function isNativeAppShell() {
+    return (
+      document.documentElement.classList.contains("saptarishi-native-app") ||
+      /SaptarishiNativeApp/i.test(navigator.userAgent || "")
+    );
+  }
+
   function isLocalDevUiHost() {
+    if (isNativeAppShell()) return false;
     const host = window.location.hostname;
     return (
       window.location.protocol === "file:" ||
@@ -141,6 +149,41 @@
     ).forEach((el) => {
       el.placeholder = AC.MOBILE_PLACEHOLDER || el.placeholder;
     });
+  }
+
+  function privacyPolicyHref() {
+    return navHref("privacy.html");
+  }
+
+  function makePrivacyNote(textBeforeLink) {
+    const note = document.createElement("p");
+    note.className = "privacy-collect-note";
+    note.append(document.createTextNode(textBeforeLink));
+    const link = document.createElement("a");
+    link.href = privacyPolicyHref();
+    link.textContent = "Privacy Policy";
+    note.appendChild(link);
+    note.append(document.createTextNode("."));
+    return note;
+  }
+
+  function attachPrivacyNote(form, textBeforeLink) {
+    if (!form || form.querySelector(".privacy-collect-note")) return;
+    const note = makePrivacyNote(textBeforeLink);
+    const submit = form.querySelector(".form-field--submit");
+    if (submit) form.insertBefore(note, submit);
+    else form.appendChild(note);
+  }
+
+  function mountCollectionNotices() {
+    const birthText =
+      "Name, date, time, and place of birth you enter are sent to our servers to generate results. " +
+      "If you are signed in, we save them as Saved birth details on your account. See ";
+    const placeText =
+      "Place you enter is sent to our servers to calculate timings. We do not use device GPS. See ";
+    attachPrivacyNote(document.getElementById("birth-form"), birthText);
+    attachPrivacyNote(document.getElementById("remedy-form"), birthText);
+    attachPrivacyNote(document.getElementById("auspicious-form"), placeText);
   }
 
   function fillPrivacyPageFromConstants() {
@@ -898,6 +941,10 @@
           (apiHost && host === apiHost) ||
           host === window.location.hostname;
 
+        if (isNativeAppShell() && url.origin !== window.location.origin) {
+          return;
+        }
+
         if (isOurs && anchor.target === "_blank") {
           event.preventDefault();
           window.location.assign(url.toString());
@@ -917,6 +964,7 @@
     fillPlacePresetSelects();
     applyFormFieldLimits();
     fillPrivacyPageFromConstants();
+    mountCollectionNotices();
     recordPageView();
     keepAppLinksInWebView();
 
@@ -947,6 +995,7 @@
   }
 
   global.SaptarishiCommonUtils = {
+    isNativeAppShell,
     isLocalDevUiHost,
     getApiOrigin,
     formatIndiaPhoneDisplay,

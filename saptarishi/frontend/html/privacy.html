@@ -9,7 +9,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Privacy Policy — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=208">
+  <link rel="stylesheet" href="../style/styles.css?v=213">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell legal-page">
@@ -25,7 +25,8 @@
     <h2>1. Information we collect</h2>
     <ul>
       <li><strong>Account details</strong> — name, mobile number, email, and a hashed password when you register or update your profile.</li>
-      <li><strong>Birth details you enter</strong> — date, time, and place of birth, used to generate kundali, comparison, auspicious timing, and remedy results. For logged-in users we may keep recent birth views so forms can be prefilled.</li>
+      <li><strong>Birth details you enter</strong> — name, date, time, and place of birth, used to generate kundali, comparison, auspicious timing, and remedy results. For logged-in users we keep recent birth views so forms can be prefilled from Saved birth details.</li>
+      <li><strong>Place for timings</strong> — city or place you select for auspicious timing searches, converted to coordinates. We do not access device GPS or request location permission.</li>
       <li><strong>Usage and device signals</strong> — public IP address, a guest ID stored in your browser, session tokens, and query usage counts to enforce free / premium limits and keep the service secure.</li>
       <li><strong>Premium / coupon</strong> — when you redeem a paid plan coupon, we store plan tier, usage, and expiry on your account. We do not collect card numbers; payments are completed via UPI / QR outside our card processing.</li>
       <li><strong>Site view counter</strong> — aggregated visit counts (not used to identify you personally).</li>
@@ -42,9 +43,9 @@
 
     <h2>3. How we store and share information</h2>
     <ul>
-      <li>Account and usage data are stored on our servers and related infrastructure (including our API at <span id="privacy-api-host"></span> and database providers we use to operate the service).</li>
+      <li>Account, birth views, and usage data are stored on our servers and related infrastructure (including our API at <span id="privacy-api-host"></span>). Production account data may be stored using Google Drive as our own database store, not sold to third parties.</li>
       <li>Passwords are stored as one-way hashes, not in plain text.</li>
-      <li>Place lookup may use geocoding services to resolve birth place to coordinates.</li>
+      <li>Place lookup may use geocoding services to resolve a typed place name to coordinates for the chart. That is not your live device location.</li>
       <li>We do not sell your personal information.</li>
       <li>We may disclose information if required by law or to protect the security and integrity of the service.</li>
     </ul>
@@ -58,8 +59,11 @@
 
     <h2>5. Children’s privacy</h2>
     <p>
-      Saptarishi is not directed at children under <span id="privacy-min-age"></span>. If you believe a child has provided personal
-      information, contact us and we will delete it when required.
+      Saptarishi accounts are for people aged <span id="privacy-min-age"></span> or older. We do not knowingly
+      create accounts for children, and the app is not directed at children.
+      You may enter another person’s birth details (for example a child’s kundali) to generate a chart.
+      That information is stored on <em>your</em> account. Only do this if you are their parent or guardian
+      or they have asked you to. If you believe a child has created an account, contact us and we will delete it.
     </p>
 
     <h2>6. Data retention</h2>
@@ -97,12 +101,12 @@
     </p>
   </div>
 
-  <script src="../utils/constant.js?v=65"></script>
-  <script src="../js/auth.js?v=31"></script>
+  <script src="../utils/constant.js?v=66"></script>
+  <script src="../js/auth.js?v=33"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=14"></script>
-  <script src="../js/premium-modal.js?v=10"></script>
-  <script src="../js/wallet-modal.js?v=4"></script>
-  <script src="../utils/common.js?v=48"></script>
+  <script src="../js/auth-modal.js?v=16"></script>
+  <script src="../js/premium-modal.js?v=11"></script>
+  <script src="../js/wallet-modal.js?v=7"></script>
+  <script src="../utils/common.js?v=50"></script>
 </body>
 </html>

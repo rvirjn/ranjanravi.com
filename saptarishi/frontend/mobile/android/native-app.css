@@ -92,9 +92,13 @@ html.saptarishi-native-app .site-header.app-topbar {
   position: sticky;
   top: 0;
   z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  display: grid !important;
+  grid-template-columns: 2.55rem minmax(0, 1fr) auto !important;
+  grid-template-rows: auto;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.4rem;
   margin: 0;
   padding: calc(0.45rem + env(safe-area-inset-top, 0px)) 0.85rem 0.55rem;
   background: rgba(246, 240, 226, 0.92);
@@ -102,15 +106,36 @@ html.saptarishi-native-app .site-header.app-topbar {
   -webkit-backdrop-filter: blur(12px);
 }
 
-html.saptarishi-native-app .app-menu-btn,
-html.saptarishi-native-app .app-avatar {
-  flex: 0 0 auto;
+html.saptarishi-native-app .app-menu-btn {
+  grid-column: 1;
+  justify-self: start;
+  display: grid;
+  place-items: center;
   width: 2.35rem;
   height: 2.35rem;
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--app-brown);
+  color: var(--app-brown-deep);
+  cursor: pointer;
+}
+
+html.saptarishi-native-app .app-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 2.35rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 2.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  background: var(--app-brown-deep);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
@@ -124,7 +149,8 @@ html.saptarishi-native-app .app-menu-btn svg {
 }
 
 html.saptarishi-native-app .app-brand {
-  flex: 1 1 auto;
+  grid-column: 2;
+  justify-self: center;
   margin: 0;
   text-align: center;
   font-family: var(--app-serif);
@@ -133,13 +159,18 @@ html.saptarishi-native-app .app-brand {
   letter-spacing: 0.14em;
   color: var(--app-gold-deep);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 html.saptarishi-native-app .site-header.app-topbar .site-header__meta {
+  grid-column: 3;
   display: flex;
+  flex-wrap: nowrap !important;
   align-items: center;
   gap: 0.45rem;
-  width: auto;
+  width: auto !important;
+  min-width: 0;
+  justify-self: end;
   justify-content: flex-end;
 }
 
@@ -171,17 +202,6 @@ html.saptarishi-native-app .app-wallet__icon {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
-}
-
-html.saptarishi-native-app .app-avatar {
-  display: inline-grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--app-brown-deep);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
 }
 
 html.saptarishi-native-app .app-avatar--guest {
@@ -532,16 +552,24 @@ html.saptarishi-native-app #saptarishi.main-shell > p.lead {
 }
 
 html.saptarishi-native-app .kundali-tabs {
+  display: flex;
+  width: 100%;
   gap: 0;
-  margin: 0.15rem 0 1.15rem;
-  border-bottom: 1px solid rgba(61, 42, 20, 0.14);
+  margin: 0.15rem 0 1.25rem;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.16);
 }
 
 html.saptarishi-native-app .kundali-tabs__item {
-  flex: 1 1 0;
-  color: var(--app-brown);
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
+  flex: 1 1 50%;
+  max-width: none;
+  padding: 0.55rem 0.2rem 0.75rem;
+  color: var(--app-gold-deep);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: none;
 }
 
 html.saptarishi-native-app .kundali-tabs__item--active {
@@ -549,9 +577,18 @@ html.saptarishi-native-app .kundali-tabs__item--active {
   box-shadow: inset 0 -3px 0 var(--app-brown);
 }
 
+html.saptarishi-native-app #birth-form .form-field > label,
+html.saptarishi-native-app .privacy-collect-note {
+  display: none !important;
+}
+
 html.saptarishi-native-app .search-form.kundali-form {
   display: grid;
   gap: 1rem;
+}
+
+html.saptarishi-native-app .search-form .privacy-collect-note {
+  grid-column: 1 / -1;
 }
 
 html.saptarishi-native-app .search-form.kundali-form .form-field {
@@ -624,7 +661,7 @@ html.saptarishi-native-app .native-gender button {
 }
 
 html.saptarishi-native-app .native-gender button.is-on {
-  background: var(--app-gold);
+  background: linear-gradient(180deg, #d4b25a, #8b6d3b);
   color: #fff;
 }
 
@@ -846,6 +883,12 @@ html.saptarishi-native-app .app-menu-item {
   cursor: pointer;
 }
 
+html.saptarishi-native-app .app-menu-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 html.saptarishi-native-app .app-menu-list .app-menu-item:last-child {
   border-bottom: none;
 }
@@ -862,6 +905,78 @@ html.saptarishi-native-app .app-menu-item .app-chevron {
   width: 0.85rem;
   height: 0.85rem;
   stroke: rgba(61, 42, 20, 0.35);
+}
+
+html.saptarishi-native-app .support-contact-list {
+  overflow: hidden;
+  margin: 0.35rem 0 1.4rem;
+  background: #fff;
+  border-radius: 1.3rem;
+  box-shadow: var(--app-shadow);
+}
+
+html.saptarishi-native-app .support-contact {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.08);
+}
+
+html.saptarishi-native-app .support-contact:last-child {
+  border-bottom: none;
+}
+
+html.saptarishi-native-app .support-contact__kind {
+  color: var(--app-gold);
+}
+
+html.saptarishi-native-app .support-contact__value {
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .premium-modal__lead[hidden] {
+  display: none !important;
+}
+
+html.saptarishi-native-app .premium-modal__wallet-info {
+  margin: 0 0 1rem;
+  padding: 0.95rem 1.05rem;
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  border-radius: 0.9rem;
+  background: rgba(184, 134, 11, 0.08);
+}
+
+html.saptarishi-native-app .premium-modal__info-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-gold);
+}
+
+html.saptarishi-native-app .premium-modal__info-balance {
+  margin: 0.2rem 0 0.4rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--app-brown);
+}
+
+html.saptarishi-native-app .premium-modal__info-extra {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--app-ink-soft);
+}
+
+html.saptarishi-native-app .premium-modal__add-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--app-brown);
+}
+  color: var(--app-brown);
 }
 
 html.saptarishi-native-app .app-drawer-foot {
@@ -925,7 +1040,7 @@ html.saptarishi-native-app .app-sheet__head {
 html.saptarishi-native-app .app-sheet__head h2 {
   margin: 0;
   font-family: var(--app-serif);
-  font-size: 1.55rem;
+  font-size: 1.28rem;
   color: var(--app-brown);
 }
 
@@ -977,7 +1092,8 @@ html.saptarishi-native-app .app-profile-row span {
   color: var(--app-ink-soft);
 }
 
-html.saptarishi-native-app .app-edit {
+html.saptarishi-native-app .app-edit,
+html.saptarishi-native-app .app-delete {
   width: 1.85rem;
   height: 1.85rem;
   display: grid;
@@ -985,6 +1101,22 @@ html.saptarishi-native-app .app-edit {
   border-radius: 0.45rem;
   background: rgba(61, 42, 20, 0.08);
   color: var(--app-brown);
+  flex-shrink: 0;
+}
+
+html.saptarishi-native-app .app-delete {
+  background: rgba(180, 74, 58, 0.12);
+  color: #b44a3a;
+}
+
+html.saptarishi-native-app .app-delete svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 html.saptarishi-native-app .app-check {
@@ -1010,9 +1142,11 @@ html.saptarishi-native-app .app-add-chart {
   display: block;
   width: 100%;
   min-height: 3rem;
+  margin-top: 0.9rem;
   border: none;
   border-radius: 999px;
   color: #fff;
+  font-size: 0.92rem;
   font-weight: 800;
   background: linear-gradient(180deg, #d4b25a, #8b6d3b);
   cursor: pointer;
@@ -1099,17 +1233,47 @@ html.saptarishi-native-app .app-tab.is-on {
 
 /* Profile page in native: keep form readable */
 html.saptarishi-native-app .profile-form,
-html.saptarishi-native-app .profile-summary {
+html.saptarishi-native-app .profile-summary,
+html.saptarishi-native-app .profile-births,
+html.saptarishi-native-app .profile-security {
   background: #fff;
   border-radius: 1.2rem;
   padding: 1rem;
   box-shadow: var(--app-shadow);
 }
 
+html.saptarishi-native-app body:has(#auspicious-options-view) #app-remedy-grid,
+html.saptarishi-native-app body:has(#auspicious-options-view) #app-remedy-intro,
+html.saptarishi-native-app body:has(#auspicious-options-view) #app-kundali-houses,
+html.saptarishi-native-app body:has(#auspicious-options-view) .app-house-grid,
+html.saptarishi-native-app body:has(#auspicious-options-view) .feature-tile[data-house],
+html.saptarishi-native-app body.app-page--auspicious #app-remedy-grid,
+html.saptarishi-native-app body.app-page--auspicious #app-remedy-intro,
+html.saptarishi-native-app body.app-page--auspicious #app-kundali-houses,
+html.saptarishi-native-app body.app-page--auspicious .app-house-grid,
+html.saptarishi-native-app body.app-page--auspicious .feature-tile[data-house],
+html.saptarishi-native-app body:not(.app-page--remedy) #app-remedy-grid,
+html.saptarishi-native-app body:not(.app-page--remedy) #app-remedy-intro {
+  display: none !important;
+}
+
+html.saptarishi-native-app body:not(.app-page--kundali) #app-kundali-houses {
+  display: none !important;
+}
+
+html.saptarishi-native-app #app-kundali-houses {
+  margin: 0.4rem 0 1rem;
+}
+
+html.saptarishi-native-app #app-kundali-houses .app-title {
+  margin: 0.2rem 0 0.2rem;
+}
+
 html.saptarishi-native-app body.app-page--remedy .kundali-tabs,
 html.saptarishi-native-app body.app-page--remedy #remedy-form,
-html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead {
-  display: none;
+html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead,
+html.saptarishi-native-app body.app-page--remedy .privacy-collect-note {
+  display: none !important;
 }
 
 html.saptarishi-native-app .app-about-item svg,
