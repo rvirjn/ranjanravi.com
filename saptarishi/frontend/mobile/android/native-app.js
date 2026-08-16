@@ -1,6 +1,6 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 /**
- * Native Android shell: top bar, bottom nav, Call/Ask, menu, profiles,
+ * Native Android shell: top bar, bottom nav, menu, profiles,
  * and Home / Dasha / Horoscope / Do's & Don't screens.
  */
 (function nativeApp(global) {
@@ -125,7 +125,8 @@
     kundali: '<svg viewBox="0 0 24 24"><path d="M12 3.5 13.2 8.2 18 7.4 14.4 11 18 14.8l-4.8-.8L12 20.5l-1.2-6.5-4.8.8L9.6 11 6 7.4l4.8.8z"/></svg>',
     remedy: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M8 12h8M12 8c2 1.4 2 6.6 0 8-2-1.4-2-6.6 0-8z"/></svg>',
     swap: '<svg viewBox="0 0 24 24"><path d="M7 8h11l-2.4-2.4"/><path d="M17 16H6l2.4 2.4"/></svg>',
-    trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M10 7V5h4v2"/><path d="M8.5 7l.7 12h5.6l.7-12"/></svg>'
+    trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M10 7V5h4v2"/><path d="M8.5 7l.7 12h5.6l.7-12"/></svg>',
+    guide: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.2 7.2 10.4 12 5.8"/><path d="M5 16.2 7.2 18.4 12 13.8"/><path d="M15 6.5h5M15 17.5h5"/></svg>'
   };
 
   function pageHref(file) {
@@ -221,7 +222,8 @@
     const params = new URLSearchParams(raw.includes("=") ? raw.replace(/^app=/, "app=") : `app=${raw}`);
     const fromPair = /(?:^|&)app=([^&]*)/.exec(raw);
     const value = (fromPair ? fromPair[1] : params.get("app") || "").toLowerCase();
-    if (value === "home" || value === "dasha" || value === "horoscope" || value === "dos" || value === "kundali") {
+    if (value === "dasha") return "horoscope";
+    if (value === "home" || value === "horoscope" || value === "dos" || value === "kundali") {
       return value;
     }
     return "";
@@ -490,26 +492,31 @@
     if (profileLink) profileLink.hidden = true;
   }
 
+  function dockTabHtml(screen, label, iconName, isOn) {
+    return `<a class="app-tab${isOn ? " is-on" : ""}" data-app-screen="${screen}" href="${screenHref(screen)}">
+      <span class="app-tab__icon">${icon(iconName)}</span>
+      <span class="app-tab__label">${label}</span>
+    </a>`;
+  }
+
   function mountDock() {
     if (document.querySelector(".app-dock")) return;
     const page = currentPage();
     const dock = document.createElement("div");
     dock.className = "app-dock";
     dock.innerHTML = `
-      <div class="app-cta-row">
-        <button type="button" class="app-cta app-cta--call" id="app-call-btn">${ICONS.phone} Call</button>
-        <button type="button" class="app-cta app-cta--ask" id="app-ask-btn">${ICONS.chat} Ask</button>
-      </div>
       <nav class="app-tabbar" aria-label="App">
-        <a class="app-tab${page === "home" ? " is-on" : ""}" data-app-screen="home" href="${screenHref("home")}">Home</a>
-        <a class="app-tab${page === "dasha" ? " is-on" : ""}" data-app-screen="dasha" href="${screenHref("dasha")}">Dasha</a>
-        <a class="app-tab${page === "horoscope" ? " is-on" : ""}" data-app-screen="horoscope" href="${screenHref("horoscope")}">Horoscope</a>
-        <a class="app-tab${page === "dos" ? " is-on" : ""}" data-app-screen="dos" href="${screenHref("dos")}">Do's & Don't</a>
+        ${dockTabHtml("home", "Home", "home", page === "home")}
+        <button type="button" class="app-tab" id="app-tab-call">
+          <span class="app-tab__icon">${icon("phone")}</span>
+          <span class="app-tab__label">Call</span>
+        </button>
+        ${dockTabHtml("horoscope", "Horoscope", "stars", page === "horoscope")}
+        ${dockTabHtml("dos", "Do's &amp; Don't", "guide", page === "dos")}
       </nav>
     `;
     document.body.appendChild(dock);
-    dock.querySelector("#app-call-btn")?.addEventListener("click", () => handleCallOrAsk("call"));
-    dock.querySelector("#app-ask-btn")?.addEventListener("click", () => handleCallOrAsk("ask"));
+    dock.querySelector("#app-tab-call")?.addEventListener("click", () => handleCallOrAsk("call"));
     dock.querySelectorAll("[data-app-screen]").forEach((tab) => {
       tab.addEventListener("click", (event) => {
         event.preventDefault();
@@ -586,7 +593,7 @@
     const user = AUTH ? AUTH.getUser() : null;
     const chart = getActiveChart();
     const aboutHouses =
-      livePage() === "remedy" || currentPage() === "kundali"
+      currentPage() === "kundali"
         ? [
             ...HOUSES.filter((house) => house.n === 4),
             ...HOUSES.filter((house) => house.n !== 4)
@@ -1077,13 +1084,22 @@
         return;
       }
       const g = fillGuidance(payload);
+      const current = g.snap?.current || {};
+      const mdRange = current.mahadashaRange || "";
+      const adRange = current.antardashaRange || "";
+      const pdRange = current.pratyantardashaRange || "";
       host.innerHTML = `
         <article class="app-hero">
           <p class="app-hero__kicker">${formatLongDate(new Date())}</p>
           <h2>Today’s horoscope for you</h2>
           <p>${g.copy.hero}</p>
         </article>
-        <div class="app-accordion" style="margin-top:0.9rem">
+        <div class="app-stat-grid app-stat-grid--dasha">
+          <div class="app-stat"><small>Mahadasha</small><strong>${g.maha || "—"}</strong>${mdRange ? `<span>${mdRange}</span>` : ""}</div>
+          <div class="app-stat"><small>Antardasha</small><strong>${g.antar || "—"}</strong>${adRange ? `<span>${adRange}</span>` : ""}</div>
+          <div class="app-stat"><small>Pratyantar dasha</small><strong>${g.prat || "—"}</strong>${pdRange ? `<span>${pdRange}</span>` : ""}</div>
+        </div>
+        <div class="app-accordion">
           <div class="app-acc-item">
             <button type="button" class="app-acc-btn" aria-expanded="true">Why this matters today ${ICONS.up}</button>
             <div class="app-acc-body">${g.copy.why}</div>
@@ -1272,23 +1288,72 @@
     document.getElementById("submit-btn")?.click();
   }
 
+  function fillActiveBirthIntoForm() {
+    const chart = getActiveChart();
+    if (!chart?.date || !chart?.time || !chart?.place) return false;
+    if (AUTH?.applyDefaultBirthToForm) {
+      AUTH.applyDefaultBirthToForm(
+        {
+          placePreset: document.getElementById("place-preset"),
+          placeCustom: document.getElementById("place-custom"),
+          customWrap: document.getElementById("custom-place-wrap"),
+          birthDate: document.getElementById("birth-date"),
+          birthTime: document.getElementById("birth-time"),
+          birthName: document.getElementById("birth-name")
+        },
+        chart
+      );
+    }
+    return true;
+  }
+
+  function showRemedyEmpty(message) {
+    const form = document.getElementById("remedy-form");
+    const shell = document.getElementById("saptarishi");
+    let empty = document.getElementById("app-remedy-empty");
+    if (!empty) {
+      empty = document.createElement("div");
+      empty.id = "app-remedy-empty";
+      empty.className = "app-empty";
+      if (form) form.before(empty);
+      else if (shell) shell.appendChild(empty);
+    }
+    empty.innerHTML = `<p>${escapeHtml(message || "Select a birth to open remedies.")}</p>
+      <button type="button" class="app-add-chart" id="app-remedy-pick">Select Birth details</button>`;
+    empty.querySelector("#app-remedy-pick")?.addEventListener("click", openProfiles);
+  }
+
+  function openRemedyDetails() {
+    if (livePage() !== "remedy") return;
+    document.getElementById("app-remedy-empty")?.remove();
+    document.getElementById("app-remedy-grid")?.remove();
+    const form = document.getElementById("remedy-form");
+    if (!fillActiveBirthIntoForm() || !form) {
+      showRemedyEmpty();
+      return;
+    }
+    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  }
+
   function enhanceRemedy() {
     if (livePage() !== "remedy" || document.getElementById("auspicious-options-view")) return;
     const shell = document.getElementById("saptarishi");
-    if (!shell || document.getElementById("app-remedy-grid")) return;
+    if (!shell) return;
     document.querySelectorAll(
       "#saptarishi > p.lead, .kundali-tabs, #remedy-form, .privacy-collect-note"
     ).forEach((el) => {
       el.hidden = true;
     });
-    const wrap = document.createElement("div");
-    wrap.id = "app-remedy-grid";
-    wrap.innerHTML = `<span class="app-kicker">Support</span><h1 class="app-title">Remedy</h1><p class="app-lead">Choose a house area for planet and ritual remedies.</p>
-      <div class="app-house-grid auspicious-grid">${houseGridHtml()}</div>`;
-    const form = document.getElementById("remedy-form");
-    if (form) form.before(wrap);
-    else shell.insertBefore(wrap, shell.firstChild);
-    bindHouseGrid(wrap.querySelector(".app-house-grid"));
+    document.getElementById("app-remedy-grid")?.remove();
+    if (!document.getElementById("app-remedy-intro")) {
+      const intro = document.createElement("header");
+      intro.id = "app-remedy-intro";
+      intro.innerHTML = `<h1 class="app-title">Remedy</h1><p class="app-lead">Planet and ritual remedies for this birth.</p>`;
+      const form = document.getElementById("remedy-form");
+      if (form) form.before(intro);
+      else shell.insertBefore(intro, shell.firstChild);
+    }
+    openRemedyDetails();
   }
 
   function enhanceKundaliHouses() {
@@ -1324,6 +1389,33 @@
     });
   }
 
+  function houseSheetHeaderLabel(th) {
+    const clone = th.cloneNode(true);
+    clone.querySelectorAll("button, .kundali-info-btn").forEach((el) => el.remove());
+    return clone.textContent.replace(/\s+/g, " ").trim();
+  }
+
+  function stackNativeHousePlanetTables(root = document) {
+    root.querySelectorAll(".house-planets-sheet__table").forEach((table) => {
+      const headers = Array.from(table.querySelectorAll("thead th")).map(houseSheetHeaderLabel);
+      if (!headers.length) return;
+      table.querySelectorAll("tbody tr").forEach((tr) => {
+        Array.from(tr.children).forEach((cell, i) => {
+          if (headers[i]) cell.setAttribute("data-label", headers[i]);
+        });
+      });
+      table.classList.add("is-native-stacked");
+    });
+  }
+
+  function observeNativeHousePlanetTables() {
+    if (observeNativeHousePlanetTables.bound) return;
+    observeNativeHousePlanetTables.bound = true;
+    const observer = new MutationObserver(() => stackNativeHousePlanetTables());
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    stackNativeHousePlanetTables();
+  }
+
   function hookKundaliPersist() {
     const view = global.SaptarishiKundaliView;
     if (!view || view.__nativePersistHooked) return;
@@ -1348,6 +1440,7 @@
           );
         }
       }
+      stackNativeHousePlanetTables();
       return rendered;
     };
     view.__nativePersistHooked = true;
@@ -1402,19 +1495,15 @@
       </div>
       <div class="app-astrologers" id="app-astrologers"></div>
     `;
-    const dasha = document.createElement("div");
-    dasha.id = "app-dasha";
-    dasha.className = "app-screen";
-    dasha.innerHTML = `<span class="app-kicker">Timing</span><h1 class="app-title">Dasha</h1><p class="app-lead">Your current planetary periods and what they mean for today.</p><div id="app-dasha-body"></div>`;
     const horoscope = document.createElement("div");
     horoscope.id = "app-horoscope";
     horoscope.className = "app-screen";
-    horoscope.innerHTML = `<span class="app-kicker">Daily guidance</span><h1 class="app-title">Horoscope</h1><p class="app-lead">Today’s horoscope for you — based on your chart and current dasha.</p><div id="app-horoscope-body"></div>`;
+    horoscope.innerHTML = `<span class="app-kicker">Daily guidance</span><h1 class="app-title">Horoscope</h1><p class="app-lead">Today’s horoscope, with mahadasha, antardasha, and pratyantar dasha.</p><div id="app-horoscope-body"></div>`;
     const dos = document.createElement("div");
     dos.id = "app-dos";
     dos.className = "app-screen";
     dos.innerHTML = `<span class="app-kicker">Guidance</span><h1 class="app-title">Do's & Don't</h1><p class="app-lead">Practical yes and no for today’s planetary mood.</p><div id="app-dos-body"></div>`;
-    shell.prepend(home, dasha, horoscope, dos);
+    shell.prepend(home, horoscope, dos);
     home.querySelectorAll("[data-app-screen]").forEach((el) => {
       el.addEventListener("click", (event) => {
         event.preventDefault();
@@ -1424,7 +1513,7 @@
   }
 
   function overlayScreens() {
-    return ["home", "dasha", "horoscope", "dos"];
+    return ["home", "horoscope", "dos"];
   }
 
   function applyScreen(page) {
@@ -1437,7 +1526,7 @@
     document.body.classList.toggle("app-overlay-on", overlay && livePage() === "kundali");
     document.querySelectorAll(".app-screen").forEach((el) => {
       const id = el.id.replace(/^app-/, "").replace(/^horoscope$/, "horoscope");
-      const name = el.id === "app-home" ? "home" : el.id === "app-dasha" ? "dasha" : el.id === "app-horoscope" ? "horoscope" : el.id === "app-dos" ? "dos" : "";
+      const name = el.id === "app-home" ? "home" : el.id === "app-horoscope" ? "horoscope" : el.id === "app-dos" ? "dos" : "";
       el.classList.toggle("is-on", overlay && name === page);
     });
     document.querySelectorAll(".app-tab[data-app-screen]").forEach((tab) => {
@@ -1446,7 +1535,12 @@
   }
 
   function goScreen(screen) {
-    const name = String(screen || "home");
+    let name = String(screen || "home");
+    if (name === "dasha") name = "horoscope";
+    if (name === "call") {
+      handleCallOrAsk("call");
+      return;
+    }
     if (overlayScreens().includes(name) || name === "kundali") {
       if (livePage() !== "kundali") {
         window.location.href = screenHref(name);
@@ -1457,7 +1551,6 @@
         window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}${hash}`);
       }
       applyScreen(name);
-      if (name === "dasha") initDasha();
       if (name === "horoscope") initHoroscope();
       if (name === "dos") initDosDont();
       if (name === "kundali") openKundaliDetails();
@@ -1485,9 +1578,9 @@
     enhanceAuspicious();
     stripHouseGridsOffAuspicious();
     hookKundaliPersist();
+    observeNativeHousePlanetTables();
     initHome();
     fillSupportContacts();
-    if (page === "dasha") initDasha();
     if (page === "horoscope") initHoroscope();
     if (page === "dos") initDosDont();
     if (page === "kundali") openKundaliDetails();
@@ -1495,6 +1588,8 @@
       const next = currentPage();
       applyScreen(next);
       if (next === "kundali") openKundaliDetails();
+      if (next === "horoscope") initHoroscope();
+      if (next === "dos") initDosDont();
     });
   }
 
@@ -1504,6 +1599,9 @@
       refreshHeaderAuth();
       if (!document.getElementById("app-drawer")?.hidden) renderDrawer();
       if (currentPage() === "kundali") openKundaliDetails();
+      if (currentPage() === "horoscope") initHoroscope();
+      if (currentPage() === "dos") initDosDont();
+      if (livePage() === "remedy") openRemedyDetails();
     });
     global.addEventListener("saptarishi-auth-changed", () => {
       refreshHeaderAuth();

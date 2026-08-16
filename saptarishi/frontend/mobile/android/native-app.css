@@ -23,7 +23,7 @@ html.saptarishi-native-app {
   --app-radius-sm: 16px;
   --app-font: "DM Sans", "Segoe UI", system-ui, sans-serif;
   --app-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-  --app-dock-h: 7.75rem;
+  --app-dock-h: 3.65rem;
   height: 100%;
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
@@ -729,10 +729,16 @@ html.saptarishi-native-app .app-stat small {
   color: var(--app-gold-deep);
 }
 
-html.saptarishi-native-app .app-stat strong {
-  font-family: var(--app-serif);
-  font-size: 1.2rem;
-  color: var(--app-brown);
+html.saptarishi-native-app .app-stat-grid--dasha {
+  grid-template-columns: 1fr;
+}
+
+html.saptarishi-native-app .app-stat span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--app-ink-soft);
 }
 
 html.saptarishi-native-app .app-accordion {
@@ -1197,83 +1203,81 @@ html.saptarishi-native-app .app-add-chart {
   cursor: pointer;
 }
 
-/* ----- Dock: Call / Ask + bottom nav ----- */
+/* ----- Dock: full-width footer like Home / Call / Horoscope / Do's & Don't ----- */
 
 html.saptarishi-native-app .app-dock {
   position: fixed;
-  left: 0.7rem;
-  right: 0.7rem;
-  bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 50;
-  display: grid;
-  gap: 0.55rem;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html.saptarishi-native-app .app-cta-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-}
-
+html.saptarishi-native-app .app-cta-row,
 html.saptarishi-native-app .app-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: 3rem;
-  border: none;
-  border-radius: 999px;
-  color: #fff;
-  font-family: var(--app-font);
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-html.saptarishi-native-app .app-cta svg {
-  width: 1.15rem;
-  height: 1.15rem;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.9;
-}
-
-html.saptarishi-native-app .app-cta--call {
-  background: var(--app-call);
-}
-
-html.saptarishi-native-app .app-cta--ask {
-  background: var(--app-ask);
+  display: none !important;
 }
 
 html.saptarishi-native-app .app-tabbar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: center;
-  min-height: 3.15rem;
-  padding: 0.28rem;
+  align-items: stretch;
+  min-height: 3.45rem;
+  padding: 0.28rem 0 0.2rem;
   background: #fff;
-  border-radius: 999px;
-  box-shadow: 0 10px 28px rgba(61, 42, 20, 0.16);
 }
 
 html.saptarishi-native-app .app-tab {
-  display: grid;
-  place-items: center;
-  min-height: 2.55rem;
-  padding: 0.35rem 0.2rem;
-  border-radius: 999px;
-  color: var(--app-brown);
-  font-size: 0.72rem;
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.2rem 0.15rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b6b6b;
+  font-family: var(--app-font);
+  font-size: 0.68rem;
+  font-weight: 500;
   line-height: 1.15;
   text-align: center;
   text-decoration: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+html.saptarishi-native-app .app-tab__icon {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+html.saptarishi-native-app .app-tab svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 html.saptarishi-native-app .app-tab.is-on {
-  background: var(--app-brown);
-  color: #fff;
+  background: transparent;
+  color: #111;
+  font-weight: 700;
+}
+
+html.saptarishi-native-app .app-tab.is-on svg {
+  stroke-width: 2.15;
 }
 
 /* Profile page in native: keep form readable */
@@ -1308,6 +1312,23 @@ html.saptarishi-native-app body:not(.app-page--kundali) #app-kundali-houses {
 
 html.saptarishi-native-app #app-kundali-houses {
   margin: 0.4rem 0 1rem;
+}
+
+html.saptarishi-native-app #app-remedy-intro {
+  margin: 0.15rem 0 0.9rem;
+}
+
+html.saptarishi-native-app body.app-page--remedy .result-heading {
+  font-family: var(--app-serif);
+  font-size: 1.12rem;
+  color: var(--app-brown-deep);
+  margin: 1.15rem 0 0.55rem;
+}
+
+html.saptarishi-native-app body.app-page--remedy .remedy-navatara-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 html.saptarishi-native-app #app-kundali-houses .app-title {
@@ -1345,5 +1366,65 @@ html.saptarishi-native-app body.app-page--home #saptarishi.main-shell > p.lead,
 html.saptarishi-native-app body.app-page--dasha #saptarishi.main-shell > p.lead,
 html.saptarishi-native-app body.app-page--horoscope #saptarishi.main-shell > p.lead,
 html.saptarishi-native-app body.app-page--dos #saptarishi.main-shell > p.lead {
+  display: none;
+}
+
+/* House sheet: one label/value row per column so names stay readable on phone. */
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table-wrap:has(.house-planets-sheet__table.is-native-stacked) {
+  overflow-x: hidden !important;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  table-layout: auto !important;
+  border-collapse: collapse;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked thead {
+  display: none;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked tbody,
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked tr {
+  display: block;
+  width: 100%;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked tr + tr {
+  margin-top: 0.7rem;
+  padding-top: 0.35rem;
+  border-top: 2px solid rgba(139, 109, 59, 0.22);
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked td {
+  display: grid;
+  grid-template-columns: 8.4rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.4rem 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.48rem 0.85rem !important;
+  font-size: 0.86rem !important;
+  line-height: 1.4 !important;
+  text-align: left;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.08);
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked td::before {
+  content: attr(data-label);
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--app-gold-deep, #8b6d3b);
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked .kundali-table-header-with-info,
+html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked .kundali-info-btn {
   display: none;
 }
