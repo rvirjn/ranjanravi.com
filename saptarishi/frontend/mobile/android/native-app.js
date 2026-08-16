@@ -330,14 +330,25 @@
     return views[0] || null;
   }
 
+  function birthKey(view) {
+    return [
+      String(view?.name || "").trim().toLowerCase(),
+      String(view?.date || "").trim(),
+      String(view?.time || "").trim(),
+      String(view?.place || "").trim()
+    ].join("|");
+  }
+
   function setActiveChart(view) {
     if (!view) return;
-    writeJson(ACTIVE_CHART_KEY, {
+    const next = {
       name: view.name || "",
       date: view.date || "",
       time: view.time || "",
       place: view.place || ""
-    });
+    };
+    if (birthKey(readJson(ACTIVE_CHART_KEY)) === birthKey(next)) return;
+    writeJson(ACTIVE_CHART_KEY, next);
     global.dispatchEvent(new CustomEvent("saptarishi-native-chart-changed", { detail: view }));
   }
 
@@ -384,6 +395,16 @@
     const accountName = String(user?.name || "").trim();
     if (accountName) return initials(accountName);
     return "IN";
+  }
+
+  function displayChartName() {
+    const chart = getActiveChart();
+    const chartName = String(chart?.name || "").trim();
+    if (chartName) return chartName;
+    const user = AUTH && AUTH.getUser ? AUTH.getUser() : null;
+    const accountName = String(user?.name || "").trim();
+    if (accountName) return accountName;
+    return "Guest";
   }
 
   function userName() {
@@ -585,10 +606,11 @@
         <span class="app-brand">SAPTARISHI</span>
         <span style="width:2.35rem"></span>
       </header>
+      <div class="app-drawer-scroll">
       <div class="app-user-card">
-        <span class="app-avatar">${initials(chart?.name || user?.name || "IN")}</span>
+        <span class="app-avatar">${escapeHtml(avatarInitials())}</span>
         <div>
-          <strong>${user?.name || chart?.name || "Guest"}</strong>
+          <a class="app-user-card__name" href="${screenHref("home")}" id="app-drawer-home">${escapeHtml(displayChartName())}</a>
           <span>${chart ? "Active chart • explore houses" : "No chart yet • add birth details"}</span>
         </div>
       </div>
@@ -605,12 +627,18 @@
       <div class="app-menu-list">
         <a class="app-menu-item" href="${pageHref("profile.html")}">${icon("clock")}<span>Settings</span>${ICONS.chevron}</a>
       </div>
+      </div>
       <div class="app-drawer-foot">
         <strong>SAPTARISHI</strong>
         <span>Version 1.0.0</span>
       </div>
     `;
     drawer.querySelector("#app-drawer-close")?.addEventListener("click", closeDrawer);
+    drawer.querySelector("#app-drawer-home")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      closeDrawer();
+      goScreen("home");
+    });
     drawer.querySelector("#app-menu-wallet")?.addEventListener("click", () => {
       closeDrawer();
       if (AUTH?.openWalletFlow) AUTH.openWalletFlow();
@@ -628,6 +656,16 @@
     });
   }
 
+  function setNativePullRefresh(enabled) {
+    try {
+      if (global.SaptarishiAndroid && global.SaptarishiAndroid.setPullToRefreshEnabled) {
+        global.SaptarishiAndroid.setPullToRefreshEnabled(Boolean(enabled));
+      }
+    } catch {
+      /* WebView bridge not present on desktop */
+    }
+  }
+
   function setDockHidden(hidden) {
     const dock = document.querySelector(".app-dock");
     if (dock) dock.hidden = Boolean(hidden);
@@ -638,12 +676,15 @@
     const drawer = document.getElementById("app-drawer");
     if (drawer) drawer.hidden = false;
     setDockHidden(true);
+    setNativePullRefresh(false);
   }
 
   function closeDrawer() {
     const drawer = document.getElementById("app-drawer");
     if (drawer) drawer.hidden = true;
     setDockHidden(false);
+    const sheet = document.getElementById("app-sheet-mask");
+    setNativePullRefresh(!sheet || sheet.hidden);
   }
 
   function mountProfiles() {
@@ -738,6 +779,7 @@
     const mask = document.getElementById("app-sheet-mask");
     if (mask) mask.hidden = false;
     setDockHidden(true);
+    setNativePullRefresh(false);
   }
 
   function closeProfiles() {
@@ -745,6 +787,7 @@
     if (mask) mask.hidden = true;
     const drawer = document.getElementById("app-drawer");
     setDockHidden(Boolean(drawer && !drawer.hidden));
+    setNativePullRefresh(Boolean(!drawer || drawer.hidden));
   }
 
   async function loadChartPayload() {
@@ -770,6 +813,93 @@
     );
     rememberChartPayload(payload, birth);
     return payload;
+  }
+
+  function kundaliQuery() {
+    return new URLSearchParams(window.location.search || "");
+  }
+
+  function isKundaliCompareMode() {
+    return kundaliQuery().get("compare") === "1";
+  }
+
+  function isKundaliNewMode() {
+    return kundaliQuery().get("mode") === "new";
+  }
+
+  function applyKundaliChooserMode() {
+    document.body.classList.toggle("app-kundali-compare", isKundaliCompareMode());
+    document.body.classList.toggle(
+      "app-kundali-new",
+      isKundaliNewMode() && !isKundaliCompareMode()
+    );
+    if (!isKundaliCompareMode()) {
+      document.querySelectorAll(".kundali-tabs").forEach((el) => {
+        el.hidden = true;
+      });
+    }
+  }
+
+  function showKundaliEmpty(message) {
+    const form = document.getElementById("birth-form");
+    const shell = document.getElementById("saptarishi");
+    let empty = document.getElementById("app-kundali-empty");
+    if (!empty) {
+      empty = document.createElement("div");
+      empty.id = "app-kundali-empty";
+      empty.className = "app-empty";
+      if (form) form.before(empty);
+      else if (shell) shell.appendChild(empty);
+    }
+    empty.innerHTML = `<p>${escapeHtml(message || "Select a birth to open kundali details.")}</p>
+      <button type="button" class="app-add-chart" id="app-kundali-pick">Select Birth details</button>`;
+    empty.querySelector("#app-kundali-pick")?.addEventListener("click", openProfiles);
+  }
+
+  async function openKundaliDetails(options = {}) {
+    if (livePage() !== "kundali") return;
+    applyKundaliChooserMode();
+    if (isKundaliCompareMode()) return;
+    if (isKundaliNewMode()) {
+      document.getElementById("tab-new-kundali")?.click();
+      return;
+    }
+    document.getElementById("app-kundali-empty")?.remove();
+    const chart = getActiveChart();
+    if (!chart?.date || !chart?.time || !chart?.place) {
+      showKundaliEmpty();
+      return;
+    }
+    try {
+      if (global.SaptarishiKundaliPage?.showLoading) {
+        global.SaptarishiKundaliPage.showLoading();
+      }
+      const payload = await loadChartPayload();
+      if (!payload) {
+        showKundaliEmpty();
+        return;
+      }
+      const view = global.SaptarishiKundaliView;
+      if (view && typeof view.renderIntoPage === "function") {
+        view.renderIntoPage(payload);
+      }
+      const results = document.getElementById("results");
+      if (results) results.hidden = false;
+      const house = options.house || kundaliQuery().get("house");
+      if (house) {
+        window.requestAnimationFrame(() => {
+          document
+            .getElementById("house-planets-tiles")
+            ?.querySelector(`[data-house="${house}"]`)
+            ?.click();
+        });
+      }
+    } catch (err) {
+      showKundaliEmpty(err.message || "Could not open kundali details.");
+      if (AUTH?.handlePremiumRequired) {
+        AUTH.handlePremiumRequired(err).catch(() => {});
+      }
+    }
   }
 
   function dashaSnapshot(payload) {
@@ -1017,6 +1147,7 @@
   function enhanceKundaliForm() {
     const form = document.getElementById("birth-form");
     if (!form) return;
+    applyKundaliChooserMode();
     const tabOpen = document.getElementById("tab-open-kundali");
     const tabNew = document.getElementById("tab-new-kundali");
     if (tabOpen) tabOpen.textContent = "Open kundali";
@@ -1199,8 +1330,25 @@
     if (typeof view.renderIntoPage !== "function") return;
     const original = view.renderIntoPage;
     view.renderIntoPage = function nativePersist(payload, targets) {
-      rememberChartPayload(payload, getActiveChart() || global.SaptarishiKundaliPage?.getMainBirthInput?.());
-      return original.call(this, payload, targets);
+      const birth = getActiveChart() || global.SaptarishiKundaliPage?.getMainBirthInput?.();
+      rememberChartPayload(payload, birth);
+      if (birth?.name && birth?.date) setActiveChart(birth);
+      const rendered = original.call(this, payload, targets);
+      if (document.body.classList.contains("app-kundali-new")) {
+        document.body.classList.remove("app-kundali-new");
+        document.getElementById("app-kundali-empty")?.remove();
+        const query = new URLSearchParams(window.location.search);
+        if (query.get("mode") === "new") {
+          query.delete("mode");
+          const search = query.toString();
+          window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}${search ? `?${search}` : ""}${window.location.hash || "#app=kundali"}`
+          );
+        }
+      }
+      return rendered;
     };
     view.__nativePersistHooked = true;
   }
@@ -1312,6 +1460,7 @@
       if (name === "dasha") initDasha();
       if (name === "horoscope") initHoroscope();
       if (name === "dos") initDosDont();
+      if (name === "kundali") openKundaliDetails();
       return;
     }
     window.location.href = pageHref(`${name}.html`);
@@ -1341,7 +1490,12 @@
     if (page === "dasha") initDasha();
     if (page === "horoscope") initHoroscope();
     if (page === "dos") initDosDont();
-    window.addEventListener("hashchange", () => applyScreen(currentPage()));
+    if (page === "kundali") openKundaliDetails();
+    window.addEventListener("hashchange", () => {
+      const next = currentPage();
+      applyScreen(next);
+      if (next === "kundali") openKundaliDetails();
+    });
   }
 
   function start() {
@@ -1349,6 +1503,7 @@
     global.addEventListener("saptarishi-native-chart-changed", () => {
       refreshHeaderAuth();
       if (!document.getElementById("app-drawer")?.hidden) renderDrawer();
+      if (currentPage() === "kundali") openKundaliDetails();
     });
     global.addEventListener("saptarishi-auth-changed", () => {
       refreshHeaderAuth();

@@ -552,6 +552,10 @@ html.saptarishi-native-app #saptarishi.main-shell > p.lead {
 }
 
 html.saptarishi-native-app .kundali-tabs {
+  display: none !important;
+}
+
+html.saptarishi-native-app body.app-kundali-compare .kundali-tabs {
   display: flex;
   width: 100%;
   gap: 0;
@@ -585,6 +589,21 @@ html.saptarishi-native-app .privacy-collect-note {
 html.saptarishi-native-app .search-form.kundali-form {
   display: grid;
   gap: 1rem;
+}
+
+html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,
+html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #app-kundali-houses,
+html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #kundali-compare-panel {
+  display: none !important;
+}
+
+html.saptarishi-native-app body.app-kundali-new #compare-toggle-btn,
+html.saptarishi-native-app body.app-kundali-new #kundali-compare-panel {
+  display: none !important;
+}
+
+html.saptarishi-native-app #app-kundali-empty {
+  margin: 0.6rem 0 1.2rem;
 }
 
 html.saptarishi-native-app .search-form .privacy-collect-note {
@@ -811,13 +830,32 @@ html.saptarishi-native-app .app-drawer {
   position: fixed;
   inset: 0;
   z-index: 80;
-  overflow: auto;
-  padding: 0 1rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 0 calc(0.35rem + env(safe-area-inset-bottom, 0px));
   background: var(--app-bg);
 }
 
 html.saptarishi-native-app .app-drawer[hidden] {
   display: none !important;
+}
+
+html.saptarishi-native-app .app-drawer > .app-topbar {
+  flex-shrink: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+html.saptarishi-native-app .app-drawer-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 0 1rem 0.4rem;
 }
 
 html.saptarishi-native-app .app-user-card {
@@ -837,10 +875,17 @@ html.saptarishi-native-app .app-user-card .app-avatar {
   font-size: 0.9rem;
 }
 
-html.saptarishi-native-app .app-user-card strong {
+html.saptarishi-native-app .app-user-card strong,
+html.saptarishi-native-app .app-user-card__name {
   display: block;
   color: var(--app-brown);
   font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+html.saptarishi-native-app .app-user-card__name {
+  cursor: pointer;
 }
 
 html.saptarishi-native-app .app-user-card span {
@@ -976,11 +1021,11 @@ html.saptarishi-native-app .premium-modal__add-title {
   font-weight: 800;
   color: var(--app-brown);
 }
-  color: var(--app-brown);
-}
 
 html.saptarishi-native-app .app-drawer-foot {
-  margin: 1.4rem 0 0.4rem;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.85rem 1rem 0.35rem;
   text-align: center;
 }
 
