@@ -222,7 +222,7 @@
     const params = new URLSearchParams(raw.includes("=") ? raw.replace(/^app=/, "app=") : `app=${raw}`);
     const fromPair = /(?:^|&)app=([^&]*)/.exec(raw);
     const value = (fromPair ? fromPair[1] : params.get("app") || "").toLowerCase();
-    if (value === "dasha") return "horoscope";
+    if (value === "dasha" || value === "today") return "horoscope";
     if (value === "home" || value === "horoscope" || value === "dos" || value === "kundali") {
       return value;
     }
@@ -511,7 +511,7 @@
           <span class="app-tab__icon">${icon("phone")}</span>
           <span class="app-tab__label">Call</span>
         </button>
-        ${dockTabHtml("horoscope", "Horoscope", "stars", page === "horoscope")}
+        ${dockTabHtml("horoscope", "Today", "clock", page === "horoscope")}
         ${dockTabHtml("dos", "Do's &amp; Don't", "guide", page === "dos")}
       </nav>
     `;
@@ -1076,43 +1076,37 @@
     if (!root) return;
     const host = root.querySelector("#app-horoscope-body");
     if (!host) return;
-    host.innerHTML = `<p class="app-empty">Loading today’s horoscope…</p>`;
+    host.innerHTML = `<p class="app-empty">Loading your dasha…</p>`;
     try {
       const payload = await loadChartPayload();
       if (!payload) {
         host.innerHTML = needChartHtml();
         return;
       }
-      const g = fillGuidance(payload);
-      const current = g.snap?.current || {};
-      const mdRange = current.mahadashaRange || "";
-      const adRange = current.antardashaRange || "";
-      const pdRange = current.pratyantardashaRange || "";
       host.innerHTML = `
-        <article class="app-hero">
-          <p class="app-hero__kicker">${formatLongDate(new Date())}</p>
-          <h2>Today’s horoscope for you</h2>
-          <p>${g.copy.hero}</p>
-        </article>
-        <div class="app-stat-grid app-stat-grid--dasha">
-          <div class="app-stat"><small>Mahadasha</small><strong>${g.maha || "—"}</strong>${mdRange ? `<span>${mdRange}</span>` : ""}</div>
-          <div class="app-stat"><small>Antardasha</small><strong>${g.antar || "—"}</strong>${adRange ? `<span>${adRange}</span>` : ""}</div>
-          <div class="app-stat"><small>Pratyantar dasha</small><strong>${g.prat || "—"}</strong>${pdRange ? `<span>${pdRange}</span>` : ""}</div>
-        </div>
-        <div class="app-accordion">
-          <div class="app-acc-item">
-            <button type="button" class="app-acc-btn" aria-expanded="true">Why this matters today ${ICONS.up}</button>
-            <div class="app-acc-body">${g.copy.why}</div>
+        <section id="app-today-dasha-section" class="kundali-yog-section planet-active-dasha-section">
+          <div class="planet-active-dasha-header">
+            <h2 class="result-heading">Your Current Mahadasha</h2>
+            <button type="button" class="kundali-info-btn" data-qa-key="your_dasha" aria-label="What is Dasha?" aria-expanded="false" aria-controls="kundali-qa-popover" title="What is Dasha?">
+              <span class="kundali-info-btn__glyph" aria-hidden="true">i</span>
+            </button>
           </div>
-          <div class="app-acc-item">
-            <button type="button" class="app-acc-btn" aria-expanded="false">Simple action ${ICONS.down}</button>
-            <div class="app-acc-body" hidden>${g.copy.action}</div>
-          </div>
-        </div>
+          <div id="app-today-dasha-summary" class="current-dasha-summary" aria-label="Your current mahadasha"></div>
+        </section>
       `;
-      bindAccordions(host);
+      const view = global.SaptarishiKundaliView;
+      if (view && typeof view.renderCurrentDashaFromPayload === "function") {
+        view.renderCurrentDashaFromPayload(payload, {
+          section: document.getElementById("app-today-dasha-section"),
+          summaryHost: document.getElementById("app-today-dasha-summary")
+        });
+      }
+      const summary = document.getElementById("app-today-dasha-summary");
+      if (summary && !summary.childNodes.length) {
+        host.innerHTML = `<p class="app-empty">Open a kundali first to see your current mahadasha.</p>`;
+      }
     } catch (err) {
-      host.innerHTML = `<p class="app-empty">${err.message || "Could not load horoscope."}</p>`;
+      host.innerHTML = `<p class="app-empty">${err.message || "Could not load your dasha."}</p>`;
     }
   }
 
@@ -1478,27 +1472,16 @@
           <strong>Auspicious</strong>
           <span>Best birth time</span>
         </a>
-        <a class="app-service" href="${pageHref("kundali.html")}?compare=1#app=kundali">
-          <svg viewBox="0 0 24 24"><path d="M12 19.5S5.5 14.8 5.5 10.2A3.5 3.5 0 0 1 12 8.2a3.5 3.5 0 0 1 6.5 2c0 4.6-6.5 9.3-6.5 9.3z"/></svg>
-          <strong>Kundali Matching</strong>
-          <span>Compatibility check</span>
-        </a>
-        <a class="app-service app-service--wide" href="${pageHref("kundali.html")}?compare=1#app=kundali">
-          <svg viewBox="0 0 24 24"><path d="M7 8h11l-2.4-2.4"/><path d="M17 16H6l2.4 2.4"/></svg>
-          <strong>Kundali Compare</strong>
-          <span>2 or more births</span>
-        </a>
       </div>
       <div class="app-section-head">
         <h2>Astrologers</h2>
-        <a class="app-more" href="${pageHref("profile.html")}" aria-label="Astrologers"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
       </div>
       <div class="app-astrologers" id="app-astrologers"></div>
     `;
     const horoscope = document.createElement("div");
     horoscope.id = "app-horoscope";
     horoscope.className = "app-screen";
-    horoscope.innerHTML = `<span class="app-kicker">Daily guidance</span><h1 class="app-title">Horoscope</h1><p class="app-lead">Today’s horoscope, with mahadasha, antardasha, and pratyantar dasha.</p><div id="app-horoscope-body"></div>`;
+    horoscope.innerHTML = `<h1 class="app-title">Today</h1><div id="app-horoscope-body"></div>`;
     const dos = document.createElement("div");
     dos.id = "app-dos";
     dos.className = "app-screen";

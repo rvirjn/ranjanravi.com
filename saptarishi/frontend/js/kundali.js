@@ -3575,9 +3575,9 @@ async function ensureKundaliQaUi() {
   return db;
 }
 
-function renderCurrentDashaFromPayload(payload) {
-  const section = document.getElementById("planet-active-dasha-section");
-  const summaryHost = document.getElementById("current-dasha-summary");
+function renderCurrentDashaFromPayload(payload, hosts = {}) {
+  const section = hosts.section || document.getElementById("planet-active-dasha-section");
+  const summaryHost = hosts.summaryHost || document.getElementById("current-dasha-summary");
   if (!summaryHost) return;
 
   summaryHost.replaceChildren();

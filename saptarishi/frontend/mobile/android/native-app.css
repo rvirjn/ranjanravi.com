@@ -24,7 +24,9 @@ html.saptarishi-native-app {
   --app-font: "DM Sans", "Segoe UI", system-ui, sans-serif;
   --app-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --app-dock-h: 3.65rem;
-  height: 100%;
+  height: auto;
+  min-height: 100%;
+  background: var(--app-bg);
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
 }
@@ -33,9 +35,7 @@ html.saptarishi-native-app body.saptarishi-page {
   min-height: 100%;
   font-family: var(--app-font);
   color: var(--app-ink);
-  background:
-    linear-gradient(180deg, #fbf6ea 0%, var(--app-bg) 42%, var(--app-bg-deep) 100%);
-  background-attachment: scroll;
+  background: var(--app-bg) !important;
   padding: 0 0 calc(var(--app-dock-h) + env(safe-area-inset-bottom, 0px));
   overscroll-behavior-y: contain;
 }
@@ -78,7 +78,7 @@ html.saptarishi-native-app .site-header {
 
 html.saptarishi-native-app #saptarishi.main-shell,
 html.saptarishi-native-app #saptarishi.main-shell--with-chrome {
-  background: transparent;
+  background: var(--app-bg) !important;
   padding: 0.85rem 1.05rem 1.25rem;
 }
 
@@ -242,9 +242,7 @@ html.saptarishi-native-app #saptarishi.main-shell .auspicious-heading .lead {
 }
 
 html.saptarishi-native-app .app-section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: block;
   margin: 1.15rem 0 0.7rem;
 }
 
@@ -1367,6 +1365,30 @@ html.saptarishi-native-app body.app-page--dasha #saptarishi.main-shell > p.lead,
 html.saptarishi-native-app body.app-page--horoscope #saptarishi.main-shell > p.lead,
 html.saptarishi-native-app body.app-page--dos #saptarishi.main-shell > p.lead {
   display: none;
+}
+
+html.saptarishi-native-app #planet-active-dasha-section {
+  display: none !important;
+}
+
+html.saptarishi-native-app #app-horoscope .app-title {
+  margin-bottom: 0.85rem;
+}
+
+html.saptarishi-native-app #app-today-dasha-section {
+  margin: 0;
+}
+
+html.saptarishi-native-app #app-today-dasha-section .result-heading {
+  font-family: var(--app-serif);
+  font-size: 1.22rem;
+  color: var(--app-brown-deep);
+  border: none;
+  padding: 0;
+}
+
+html.saptarishi-native-app #app-today-dasha-summary {
+  margin-top: 0.35rem;
 }
 
 /* House sheet: one label/value row per column so names stay readable on phone. */
