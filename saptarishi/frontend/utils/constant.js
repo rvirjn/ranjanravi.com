@@ -22,7 +22,7 @@ const SAPTARISHI_CONSTANTS = {
   /** Public / app contact. Change these; support and phone aliases follow below. */
   CONTACT_EMAIL: "rv.saptarishi@gmail.com",
   CONTACT_PHONE: "8184046618",
-  PRIVACY_LAST_UPDATED: "15 August 2026",
+  PRIVACY_LAST_UPDATED: "27 August 2026",
   CHILDREN_PRIVACY_MIN_AGE: 13,
 
   /** Birth-form place dropdown (kundali, remedy, auspicious, compare). */

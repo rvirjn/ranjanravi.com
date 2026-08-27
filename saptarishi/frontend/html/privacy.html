@@ -18,46 +18,164 @@
     <p>
       This Privacy Policy explains how <strong id="privacy-site-name">Saptarishi</strong>
       (<a id="privacy-site-url" href="#"></a>),
-      operated by <span id="privacy-operator"></span> (“we”, “us”), collects and uses information when you use our
-      website and the Android / iOS app that loads the same service.
+      operated by <span id="privacy-operator"></span> (“we”, “us”, or “our”), collects, uses, stores, and
+      protects information when you use our website, Android / iOS app, Kundali tools, accounts, and related
+      astrology services.
+    </p>
+    <p>
+      By using Saptarishi, you agree to the practices described in this Privacy Policy.
     </p>
 
     <h2>1. Information we collect</h2>
+    <p>Depending on how you use Saptarishi, we may collect the following information.</p>
     <ul>
-      <li><strong>Account details</strong> — name, mobile number, email, and a hashed password when you register or update your profile.</li>
-      <li><strong>Birth details you enter</strong> — name, date, time, and place of birth, used to generate kundali, comparison, auspicious timing, and remedy results. For logged-in users we keep recent birth views so forms can be prefilled from Saved birth details.</li>
-      <li><strong>Place for timings</strong> — city or place you select for auspicious timing searches, converted to coordinates. We do not access device GPS or request location permission.</li>
-      <li><strong>Usage and device signals</strong> — public IP address, a guest ID stored in your browser, session tokens, and query usage counts to enforce free / premium limits and keep the service secure.</li>
-      <li><strong>Premium / coupon</strong> — when you redeem a paid plan coupon, we store plan tier, usage, and expiry on your account. We do not collect card numbers; payments are completed via UPI / QR outside our card processing.</li>
-      <li><strong>Site view counter</strong> — aggregated visit counts (not used to identify you personally).</li>
+      <li>
+        <strong>Account details</strong> — name, mobile number, email, and a hashed password when you
+        register or update your profile. Passwords are stored as one-way hashes, not in plain text.
+      </li>
+      <li>
+        <strong>Birth and astrology details you enter</strong> — name, date, time, and place of birth,
+        plus latitude, longitude, and timezone derived from that place. We use this to generate kundali,
+        comparison, auspicious timing, remedy, Nakshatra, Dasha, Yoga, Dosha, house, and divisional-chart
+        results. For logged-in users we keep recent birth views so forms can be prefilled from Saved birth details.
+      </li>
+      <li>
+        <strong>Place for timings</strong> — city or place you select for auspicious timing searches,
+        converted to coordinates. We do not access device GPS or request location permission.
+      </li>
+      <li>
+        <strong>Usage and device signals</strong> — public IP address, a guest ID stored in your browser,
+        session tokens, query usage counts, and basic service or error logs to operate the service, keep
+        it secure, and enforce free / premium limits. We do not use your public IP address to obtain your
+        precise GPS location.
+      </li>
+      <li>
+        <strong>Premium, wallet, and coupon</strong> — plan tier, usage, expiry, coupon, wallet or
+        entitlement status on your account. We do not collect card numbers; payments are completed via
+        UPI / QR outside our card processing. Where a third-party payment method is used, that provider’s
+        own privacy policy may also apply.
+      </li>
+      <li>
+        <strong>Site view counter</strong> — aggregated visit counts (not used to identify you personally).
+      </li>
     </ul>
 
     <h2>2. How we use information</h2>
     <ul>
-      <li>Provide kundali, auspicious timing, remedy, and related astrology tools.</li>
-      <li>Create and manage accounts, sessions, and premium access.</li>
-      <li>Apply free-tier limits and prevent abuse.</li>
+      <li>Create and manage accounts, sessions, and authentication.</li>
+      <li>Generate kundali and related astrology calculations from the birth details you provide.</li>
+      <li>Convert a typed place name into geographic coordinates and timezone information.</li>
+      <li>Save birth profiles where you choose to use Saved birth details.</li>
+      <li>Apply free-tier and premium usage limits and prevent abuse.</li>
+      <li>Manage purchases, premium access, wallet balances, coupons, and related entitlements.</li>
+      <li>Improve, maintain, troubleshoot, and secure the service.</li>
       <li>Send transactional messages (for example registration or support) when email is configured.</li>
       <li>Respond to support requests you send by email, WhatsApp, or phone.</li>
     </ul>
 
-    <h2>3. How we store and share information</h2>
+    <h2>3. Place lookup and geocoding</h2>
+    <p>
+      When you enter a place of birth or a place for timing calculations, we may send that place name to
+      a geocoding service to obtain latitude, longitude, timezone, country, and administrative region.
+      Our current configuration uses the <strong>Open-Meteo Geocoding API</strong> for this lookup.
+    </p>
+    <p>
+      Place lookup is used only to support location-dependent astronomical and astrology calculations.
+      It is not your live device location. We do not send your password or account credentials as part
+      of a place lookup request.
+    </p>
+
+    <h2>4. Swiss Ephemeris and astronomical calculations</h2>
+    <p>
+      Saptarishi uses the <strong>Swiss Ephemeris</strong> software library to calculate astronomical and
+      planetary positions from the birth date, time, timezone, and coordinates you provide. That includes
+      planetary longitudes, Ascendant / Lagna, houses, and lunar-node information used for Rahu and Ketu.
+    </p>
+    <p>
+      These calculations run as part of our application infrastructure. We do not share your account
+      information with a separate third-party Kundali-generation service. Our own code then applies
+      Vedic astrology rules to produce Rashi, Nakshatra, Pada, Dasha, Yogas, Doshas, house details,
+      divisional charts, and other Kundali-related results.
+    </p>
+
+    <h2>5. How we store information</h2>
     <ul>
-      <li>Account, birth views, and usage data are stored on our servers and related infrastructure (including our API at <span id="privacy-api-host"></span>). Production account data may be stored using Google Drive as our own database store, not sold to third parties.</li>
+      <li>
+        Account, birth details, usage data, and related records are stored on our servers and related
+        infrastructure (including our API at <span id="privacy-api-host"></span>).
+      </li>
+      <li>
+        Depending on deployment, this may include local application storage, MongoDB or other database
+        infrastructure, and hosting providers we configure to operate the service. The specific storage
+        technology may change as we improve the service.
+      </li>
       <li>Passwords are stored as one-way hashes, not in plain text.</li>
-      <li>Place lookup may use geocoding services to resolve a typed place name to coordinates for the chart. That is not your live device location.</li>
       <li>We do not sell your personal information.</li>
-      <li>We may disclose information if required by law or to protect the security and integrity of the service.</li>
     </ul>
 
-    <h2>4. Cookies and local storage</h2>
+    <h2>6. Cookies and local storage</h2>
     <p>
       We use browser <strong>localStorage</strong> for login sessions (so you stay signed in
       across app restarts) and for a guest ID used in free-tier tracking.
       A short-lived session flag may also use <strong>sessionStorage</strong> for site-view counting.
+      Cookies or similar technologies may be used where needed for authentication, guest identification,
+      usage tracking, or application preferences. Clearing browser storage may affect some features.
     </p>
 
-    <h2>5. Children’s privacy</h2>
+    <h2>7. Free and premium usage</h2>
+    <p>
+      Saptarishi may provide free, paid, premium, wallet-based, or coupon-based access. To manage these
+      plans we may process account identifiers, usage and query counts, premium status, coupon information,
+      wallet or service balance, and purchase or entitlement status.
+    </p>
+
+    <h2>8. How we share information</h2>
+    <p>We do not sell your personal information. We may share limited information when needed to operate the service:</p>
+    <ul>
+      <li>
+        <strong>Geocoding providers</strong> — a place name may be sent to a geocoding service such as
+        Open-Meteo to obtain coordinates and timezone.
+      </li>
+      <li>
+        <strong>Infrastructure and storage providers</strong> — information may be processed or stored
+        using databases, cloud storage, hosting, or other technical services used to operate Saptarishi.
+      </li>
+      <li>
+        <strong>Payment providers</strong> — where a third-party payment method is used, that provider
+        may process payment information under its own policy.
+      </li>
+      <li>
+        <strong>Legal and security</strong> — we may disclose information if required by law, to respond
+        to lawful requests, or to protect the security and integrity of the service and prevent fraud or abuse.
+      </li>
+    </ul>
+
+    <h2>9. Data retention</h2>
+    <p>
+      We keep account, usage, saved birth-profile, and related records while your account is active and
+      as needed to operate the service, enforce limits, maintain security, and meet legal obligations.
+      You may request deletion of your account data by contacting us. Some information may remain
+      temporarily in backups, logs, or records where reasonably necessary for security, legal, or
+      operational purposes.
+    </p>
+
+    <h2>10. Your choices</h2>
+    <ul>
+      <li>Update profile details when logged in.</li>
+      <li>Remove saved birth profiles where that feature is available.</li>
+      <li>Log out, clear browser storage, or uninstall the app at any time.</li>
+      <li>Request account or data deletion by email. We may need to verify your identity first.</li>
+    </ul>
+
+    <h2>11. Security</h2>
+    <p>
+      We use reasonable technical and organizational measures to protect data, including HTTPS, hashed
+      passwords, authentication and session controls, usage limits, and infrastructure access controls.
+      No method of transmission or storage is completely secure. You are responsible for keeping your
+      account credentials confidential.
+    </p>
+
+    <h2>12. Children’s privacy</h2>
     <p>
       Saptarishi accounts are for people aged <span id="privacy-min-age"></span> or older. We do not knowingly
       create accounts for children, and the app is not directed at children.
@@ -66,42 +184,38 @@
       or they have asked you to. If you believe a child has created an account, contact us and we will delete it.
     </p>
 
-    <h2>6. Data retention</h2>
+    <h2>13. Third-party services</h2>
     <p>
-      We keep account, usage, and related records while your account is active and as needed to
-      operate the service, enforce limits, and meet legal obligations. You may request deletion of
-      your account data by contacting us.
+      Saptarishi may rely on third-party services for technical functions, including geocoding (such as
+      Open-Meteo), database and cloud storage providers, hosting and infrastructure, payment providers
+      where applicable, and email or notification providers. Those parties may process information
+      according to their own privacy policies and agreements with us.
     </p>
 
-    <h2>7. Your choices</h2>
-    <ul>
-      <li>Update profile details when logged in.</li>
-      <li>Request account or data deletion by email.</li>
-      <li>Stop using the service and uninstall the app at any time.</li>
-    </ul>
-
-    <h2>8. Security</h2>
+    <h2>14. International processing</h2>
     <p>
-      We use reasonable technical measures (including HTTPS and hashed passwords) to protect data.
-      No method of transmission or storage is completely secure.
+      Your information may be processed or stored in locations where our servers, cloud providers,
+      database providers, or other service providers operate. By using Saptarishi, you understand that
+      information may be processed in accordance with this Privacy Policy and applicable laws.
     </p>
 
-    <h2>9. Changes</h2>
+    <h2>15. Changes</h2>
     <p>
-      We may update this policy from time to time. The “Last updated” date at the top will change
-      when we do. Continued use of the service after changes means you accept the updated policy.
+      We may update this policy from time to time as our service, technology, or legal requirements change.
+      The “Last updated” date at the top will change when we do. Continued use of the service after
+      changes means you accept the updated policy. We encourage you to review this page periodically.
     </p>
 
-    <h2>10. Contact</h2>
+    <h2>16. Contact</h2>
     <p>
-      Questions about privacy:<br>
+      Questions, concerns, or requests about privacy:<br>
       Email: <a id="privacy-email" href="mailto:"></a><br>
       WhatsApp / phone: <a id="privacy-phone" href="tel:"></a><br>
       Website: <a id="privacy-site-contact" href="#"></a>
     </p>
   </div>
 
-  <script src="../utils/constant.js?v=66"></script>
+  <script src="../utils/constant.js?v=67"></script>
   <script src="../js/auth.js?v=33"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=16"></script>
