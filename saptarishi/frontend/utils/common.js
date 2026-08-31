@@ -155,6 +155,18 @@
     return navHref("privacy.html");
   }
 
+  function appendGeoapifyCredit(note) {
+    if (!note) return;
+    note.append(document.createTextNode(" Place search "));
+    const geo = document.createElement("a");
+    geo.href = "https://www.geoapify.com/";
+    geo.target = "_blank";
+    geo.rel = "noopener noreferrer";
+    geo.textContent = "Powered by Geoapify";
+    note.appendChild(geo);
+    note.append(document.createTextNode("."));
+  }
+
   function makePrivacyNote(textBeforeLink) {
     const note = document.createElement("p");
     note.className = "privacy-collect-note";
@@ -164,6 +176,7 @@
     link.textContent = "Privacy Policy";
     note.appendChild(link);
     note.append(document.createTextNode("."));
+    appendGeoapifyCredit(note);
     return note;
   }
 
