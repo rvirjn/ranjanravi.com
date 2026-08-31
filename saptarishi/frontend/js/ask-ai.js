@@ -11,6 +11,16 @@
   const UTILS = global.SaptarishiCommonUtils;
   const MAX_Q = Number(AC.ASK_AI_MAX_QUESTION_LENGTH) || 800;
 
+  function privacyHref() {
+    if (UTILS && typeof UTILS.privacyPolicyHref === "function") {
+      return UTILS.privacyPolicyHref();
+    }
+    if (AC.PAGE_FILE_TO_PATH && AC.PAGE_FILE_TO_PATH["privacy.html"]) {
+      return AC.PAGE_FILE_TO_PATH["privacy.html"];
+    }
+    return `${AC.DEPLOY_PREFIX || ""}/privacy`;
+  }
+
   function isLoggedIn() {
     return Boolean(AUTH && AUTH.getToken && AUTH.getToken());
   }
@@ -143,7 +153,11 @@
           <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI">×</button>
         </header>
         <div class="ask-ai__log" id="ask-ai-log" role="log" aria-live="polite"></div>
-        <p class="ask-ai__hint">Not a substitute for a personal chart reading.</p>
+        <p class="ask-ai__hint">
+          Not a substitute for a personal chart reading.
+          Questions are sent to <a href="https://groq.com/" target="_blank" rel="noopener noreferrer">Groq</a>
+          to generate answers. See <a href="${privacyHref()}">Privacy Policy</a>.
+        </p>
         <form class="ask-ai__form" id="ask-ai-form">
           <label class="ask-ai__sr-only" for="ask-ai-input">Your question</label>
           <textarea

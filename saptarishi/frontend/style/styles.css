@@ -2696,6 +2696,21 @@ tbody tr:last-child td {
   min-width: 7rem;
 }
 
+.kundali-compare-form .privacy-collect-note {
+  flex: 1 1 100%;
+  width: 100%;
+  margin: 0 0 var(--space-sm);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted, var(--color-text));
+}
+
+.kundali-compare-form .privacy-collect-note a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* ---------- Site chrome (header / footer) ---------- */
 
 /* Header, main shell, and footer share the same max width and side gutters */
@@ -3258,6 +3273,23 @@ body.send-coupon-open {
 }
 
 .site-footer__privacy-link:hover {
+  text-decoration: underline;
+}
+
+.site-footer__credits {
+  margin: 0.65rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.site-footer__credits a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-footer__credits a:hover {
   text-decoration: underline;
 }
 
@@ -4764,6 +4796,16 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   padding: 0 1rem 0.35rem;
   font-size: 0.72rem;
   color: var(--color-text-muted);
+}
+
+.ask-ai__hint a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ask-ai__hint a:hover {
+  text-decoration: underline;
 }
 
 .ask-ai__form {

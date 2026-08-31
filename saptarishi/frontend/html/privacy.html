@@ -9,7 +9,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Privacy Policy — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=217">
+  <link rel="stylesheet" href="../style/styles.css?v=218">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell legal-page">
@@ -56,6 +56,11 @@
         own privacy policy may also apply.
       </li>
       <li>
+        <strong>Ask AI questions</strong> — if you are signed in and use Ask AI, the question text you type
+        is sent to our servers and then to our AI inference provider (currently Groq) to generate an answer.
+        Do not include passwords, payment details, or other secrets in Ask AI.
+      </li>
+      <li>
         <strong>Site view counter</strong> — aggregated visit counts (not used to identify you personally).
       </li>
     </ul>
@@ -70,6 +75,7 @@
       <li>Manage purchases, premium access, wallet balances, coupons, and related entitlements.</li>
       <li>Improve, maintain, troubleshoot, and secure the service.</li>
       <li>Send transactional messages (for example registration or support) when email is configured.</li>
+      <li>Answer Ask AI questions you submit while signed in.</li>
       <li>Respond to support requests you send by email, WhatsApp, or phone.</li>
     </ul>
 
@@ -77,29 +83,47 @@
     <p>
       When you enter a place of birth or a place for timing calculations, we may send that place name to
       a geocoding service to obtain latitude, longitude, timezone, country, and administrative region.
-      Our current configuration uses the <strong>Geoapify Geocoding API</strong> for this lookup
+      Our current configuration uses the <strong>Geoapify Geocoding API</strong>
       (<a href="https://www.geoapify.com/" rel="noopener noreferrer">Powered by Geoapify</a>).
+      Geoapify results are based on open geographic data, including
+      <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap</a>
+      (ODbL). Site-wide attribution is shown in the page footer as required by Geoapify’s free plan
+      and by OpenStreetMap.
     </p>
     <p>
       Place lookup is used only to support location-dependent astronomical and astrology calculations.
-      It is not your live device location. We do not send your password or account credentials as part
-      of a place lookup request.
+      It is not your live device location. We do not send your password, Ask AI questions, or account
+      credentials as part of a place lookup request.
     </p>
 
-    <h2>4. Swiss Ephemeris and astronomical calculations</h2>
+    <h2>4. Astronomical calculations</h2>
     <p>
-      Saptarishi uses the <strong>Swiss Ephemeris</strong> software library to calculate astronomical and
-      planetary positions from the birth date, time, timezone, and coordinates you provide. That includes
-      planetary longitudes, Ascendant / Lagna, houses, and lunar-node information used for Rahu and Ketu.
+      Saptarishi calculates astronomical and planetary positions from the birth date, time, timezone,
+      and coordinates you provide. That includes planetary longitudes, Ascendant / Lagna, houses, and
+      lunar-node information used for Rahu and Ketu.
     </p>
     <p>
-      These calculations run as part of our application infrastructure. We do not share your account
-      information with a separate third-party Kundali-generation service. Our own code then applies
-      Vedic astrology rules to produce Rashi, Nakshatra, Pada, Dasha, Yogas, Doshas, house details,
-      divisional charts, and other Kundali-related results.
+      These calculations run on our servers using publicly available NASA Jet Propulsion Laboratory
+      planetary ephemerides (DE440s) through the
+      <a href="https://rhodesmill.org/skyfield/" rel="noopener noreferrer">Skyfield</a> library
+      (MIT License). NASA, JPL, and Caltech do not operate, sponsor, or endorse Saptarishi.
+      We do not send your birth details to Swiss Ephemeris / Astrodienst, and we do not share your
+      account information with a separate third-party Kundali-generation service. Our own code then
+      applies Vedic astrology rules to produce Rashi, Nakshatra, Pada, Dasha, Yogas, Doshas, house
+      details, divisional charts, and other Kundali-related results.
     </p>
 
-    <h2>5. How we store information</h2>
+    <h2>5. Ask AI</h2>
+    <p>
+      Ask AI is available to signed-in users. Your question is sent from the app to our API, then
+      forwarded to <a href="https://groq.com/" rel="noopener noreferrer">Groq</a> so a language model
+      can generate a reply. Groq processes that prompt under Groq’s
+      <a href="https://console.groq.com/docs/legal/services-agreement" rel="noopener noreferrer">Services Agreement</a>
+      and related privacy terms. We do not send your password or payment details to Groq as part of
+      Ask AI. Answers are general Vedic guidance and are not a substitute for a personal consultation.
+    </p>
+
+    <h2>6. How we store information</h2>
     <ul>
       <li>
         Account, birth details, usage data, and related records are stored on our servers and related
@@ -107,14 +131,15 @@
       </li>
       <li>
         Depending on deployment, this may include local application storage, MongoDB or other database
-        infrastructure, and hosting providers we configure to operate the service. The specific storage
-        technology may change as we improve the service.
+        infrastructure, Google Drive (a service-account file we control in production), and hosting
+        providers we configure to operate the service. The specific storage technology may change as we
+        improve the service.
       </li>
       <li>Passwords are stored as one-way hashes, not in plain text.</li>
       <li>We do not sell your personal information.</li>
     </ul>
 
-    <h2>6. Cookies and local storage</h2>
+    <h2>7. Cookies and local storage</h2>
     <p>
       We use browser <strong>localStorage</strong> for login sessions (so you stay signed in
       across app restarts) and for a guest ID used in free-tier tracking.
@@ -123,23 +148,31 @@
       usage tracking, or application preferences. Clearing browser storage may affect some features.
     </p>
 
-    <h2>7. Free and premium usage</h2>
+    <h2>8. Free and premium usage</h2>
     <p>
       Saptarishi may provide free, paid, premium, wallet-based, or coupon-based access. To manage these
       plans we may process account identifiers, usage and query counts, premium status, coupon information,
       wallet or service balance, and purchase or entitlement status.
     </p>
 
-    <h2>8. How we share information</h2>
+    <h2>9. How we share information</h2>
     <p>We do not sell your personal information. We may share limited information when needed to operate the service:</p>
     <ul>
       <li>
-        <strong>Geocoding providers</strong> — a place name may be sent to a geocoding service such as
-        Geoapify to obtain coordinates and timezone.
+        <strong>Geocoding providers</strong> — a place name may be sent to Geoapify (and, through Geoapify,
+        sourced from OpenStreetMap and similar open datasets) to obtain coordinates and timezone.
+      </li>
+      <li>
+        <strong>AI inference</strong> — Ask AI question text may be sent to Groq to generate a reply.
       </li>
       <li>
         <strong>Infrastructure and storage providers</strong> — information may be processed or stored
-        using databases, cloud storage, hosting, or other technical services used to operate Saptarishi.
+        using databases, Google Drive, cloud storage, hosting, or other technical services used to
+        operate Saptarishi.
+      </li>
+      <li>
+        <strong>Email providers</strong> — transactional messages (for example registration notices) may
+        be sent through our configured mail service.
       </li>
       <li>
         <strong>Payment providers</strong> — where a third-party payment method is used, that provider
@@ -151,24 +184,27 @@
       </li>
     </ul>
 
-    <h2>9. Data retention</h2>
+    <h2>10. Data retention</h2>
     <p>
       We keep account, usage, saved birth-profile, and related records while your account is active and
       as needed to operate the service, enforce limits, maintain security, and meet legal obligations.
       You may request deletion of your account data by contacting us. Some information may remain
       temporarily in backups, logs, or records where reasonably necessary for security, legal, or
-      operational purposes.
+      operational purposes. Ask AI prompts processed by Groq are handled under Groq’s retention settings
+      for our account; we do not keep a separate long-term archive of Ask AI chats on Saptarishi unless
+      needed for security or abuse review.
     </p>
 
-    <h2>10. Your choices</h2>
+    <h2>11. Your choices</h2>
     <ul>
       <li>Update profile details when logged in.</li>
       <li>Remove saved birth profiles where that feature is available.</li>
+      <li>Stop using Ask AI if you do not want questions sent to Groq.</li>
       <li>Log out, clear browser storage, or uninstall the app at any time.</li>
       <li>Request account or data deletion by email. We may need to verify your identity first.</li>
     </ul>
 
-    <h2>11. Security</h2>
+    <h2>12. Security</h2>
     <p>
       We use reasonable technical and organizational measures to protect data, including HTTPS, hashed
       passwords, authentication and session controls, usage limits, and infrastructure access controls.
@@ -176,7 +212,7 @@
       account credentials confidential.
     </p>
 
-    <h2>12. Children’s privacy</h2>
+    <h2>13. Children’s privacy</h2>
     <p>
       Saptarishi accounts are for people aged <span id="privacy-min-age"></span> or older. We do not knowingly
       create accounts for children, and the app is not directed at children.
@@ -185,29 +221,77 @@
       or they have asked you to. If you believe a child has created an account, contact us and we will delete it.
     </p>
 
-    <h2>13. Third-party services</h2>
+    <h2>14. Third-party services</h2>
     <p>
-      Saptarishi may rely on third-party services for technical functions, including geocoding (such as
-      Geoapify), database and cloud storage providers, hosting and infrastructure, payment providers
-      where applicable, and email or notification providers. Those parties may process information
-      according to their own privacy policies and agreements with us.
+      Saptarishi relies on third-party services for technical functions. Those parties process information
+      according to their own privacy policies and our agreements with them. Current providers include:
+    </p>
+    <ul>
+      <li>
+        <a href="https://www.geoapify.com/" rel="noopener noreferrer">Geoapify</a> — place geocoding
+        (<a href="https://www.geoapify.com/privacy-policy/" rel="noopener noreferrer">privacy policy</a>).
+      </li>
+      <li>
+        <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap contributors</a>
+        — geographic data used via Geoapify (ODbL).
+      </li>
+      <li>
+        <a href="https://groq.com/" rel="noopener noreferrer">Groq</a> — Ask AI inference
+        (<a href="https://groq.com/privacy-policy/" rel="noopener noreferrer">privacy policy</a>).
+      </li>
+      <li>
+        NASA JPL ephemerides via Skyfield — planetary positions calculated on our servers (no birth
+        record is sent to NASA).
+      </li>
+      <li>
+        Hosting, database, Google Drive storage, email, and payment providers as configured to run
+        the service. The Android / iOS app may also load web fonts from Google Fonts.
+      </li>
+    </ul>
+
+    <h2>15. Acknowledgements and licenses</h2>
+    <p>
+      To stay within the licenses of the tools we use, Saptarishi displays the following credits on
+      the site (including the footer) and records them here:
+    </p>
+    <ul>
+      <li>
+        Place search <a href="https://www.geoapify.com/" rel="noopener noreferrer">Powered by Geoapify</a>
+        (required on Geoapify’s free plan).
+      </li>
+      <li>
+        Map / place data
+        <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">© OpenStreetMap contributors</a>
+        (required whenever Geoapify / OSM data is used).
+      </li>
+      <li>
+        Planetary positions from publicly available
+        <a href="https://ssd.jpl.nasa.gov/" rel="noopener noreferrer">NASA JPL</a> DE440s data via
+        <a href="https://rhodesmill.org/skyfield/" rel="noopener noreferrer">Skyfield</a> (MIT License).
+        NASA / JPL / Caltech do not endorse this product.
+      </li>
+    </ul>
+    <p>
+      Saptarishi’s own application code remains copyright ranjanravi.com. Using these libraries does
+      not place Saptarishi under AGPL or require us to publish our source code.
     </p>
 
-    <h2>14. International processing</h2>
+    <h2>16. International processing</h2>
     <p>
       Your information may be processed or stored in locations where our servers, cloud providers,
-      database providers, or other service providers operate. By using Saptarishi, you understand that
-      information may be processed in accordance with this Privacy Policy and applicable laws.
+      database providers, Geoapify, Groq, Google, or other service providers operate. By using
+      Saptarishi, you understand that information may be processed in accordance with this Privacy
+      Policy and applicable laws.
     </p>
 
-    <h2>15. Changes</h2>
+    <h2>17. Changes</h2>
     <p>
       We may update this policy from time to time as our service, technology, or legal requirements change.
       The “Last updated” date at the top will change when we do. Continued use of the service after
       changes means you accept the updated policy. We encourage you to review this page periodically.
     </p>
 
-    <h2>16. Contact</h2>
+    <h2>18. Contact</h2>
     <p>
       Questions, concerns, or requests about privacy:<br>
       Email: <a id="privacy-email" href="mailto:"></a><br>
@@ -222,7 +306,7 @@
   <script src="../js/auth-modal.js?v=16"></script>
   <script src="../js/premium-modal.js?v=11"></script>
   <script src="../js/wallet-modal.js?v=7"></script>
-  <script src="../utils/common.js?v=51"></script>
-  <script src="../js/ask-ai.js?v=4"></script>
+  <script src="../utils/common.js?v=52"></script>
+  <script src="../js/ask-ai.js?v=5"></script>
 </body>
 </html>

@@ -155,16 +155,33 @@
     return navHref("privacy.html");
   }
 
-  function appendGeoapifyCredit(note) {
-    if (!note) return;
-    note.append(document.createTextNode(" Place search "));
-    const geo = document.createElement("a");
-    geo.href = "https://www.geoapify.com/";
-    geo.target = "_blank";
-    geo.rel = "noopener noreferrer";
-    geo.textContent = "Powered by Geoapify";
-    note.appendChild(geo);
-    note.append(document.createTextNode("."));
+  function appendCreditLink(parent, href, text) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = text;
+    parent.appendChild(a);
+  }
+
+  function appendRequiredDataCredits(container, { includeEphemeris = false, leadingSpace = true } = {}) {
+    if (!container) return;
+    if (leadingSpace) container.append(document.createTextNode(" "));
+    container.append(document.createTextNode("Place search "));
+    appendCreditLink(container, "https://www.geoapify.com/", "Powered by Geoapify");
+    container.append(document.createTextNode(" · "));
+    appendCreditLink(
+      container,
+      "https://www.openstreetmap.org/copyright",
+      "© OpenStreetMap contributors"
+    );
+    if (includeEphemeris) {
+      container.append(document.createTextNode(" · Planetary positions from "));
+      appendCreditLink(container, "https://ssd.jpl.nasa.gov/", "NASA JPL");
+      container.append(document.createTextNode(" via "));
+      appendCreditLink(container, "https://rhodesmill.org/skyfield/", "Skyfield");
+    }
+    container.append(document.createTextNode("."));
   }
 
   function makePrivacyNote(textBeforeLink) {
@@ -176,7 +193,7 @@
     link.textContent = "Privacy Policy";
     note.appendChild(link);
     note.append(document.createTextNode("."));
-    appendGeoapifyCredit(note);
+    appendRequiredDataCredits(note);
     return note;
   }
 
@@ -184,7 +201,7 @@
     if (!form || form.querySelector(".privacy-collect-note")) return;
     const note = makePrivacyNote(textBeforeLink);
     const submit = form.querySelector(".form-field--submit");
-    if (submit) form.insertBefore(note, submit);
+    if (submit && submit.parentNode) submit.parentNode.insertBefore(note, submit);
     else form.appendChild(note);
   }
 
@@ -197,6 +214,10 @@
     attachPrivacyNote(document.getElementById("birth-form"), birthText);
     attachPrivacyNote(document.getElementById("remedy-form"), birthText);
     attachPrivacyNote(document.getElementById("auspicious-form"), placeText);
+    attachPrivacyNote(
+      document.getElementById("kundali-compare-form"),
+      "Names, dates, times, and places you enter for comparison are sent to our servers. See "
+    );
   }
 
   function fillPrivacyPageFromConstants() {
@@ -779,6 +800,7 @@
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
         <a class="site-footer__privacy-link" href="${navHref("privacy.html")}">Privacy Policy</a>
       </div>
+      <p class="site-footer__credits"></p>
       <div id="site-contact" class="site-footer__support" hidden>
         <a class="site-footer__support-link" href="${mailHref}">Email</a>
         <span class="site-footer__support-sep" aria-hidden="true">·</span>
@@ -787,6 +809,10 @@
         <a class="site-footer__support-link" href="tel:+${phoneIntl}">Call ${phoneDisplay}</a>
       </div>
     `;
+    appendRequiredDataCredits(footer.querySelector(".site-footer__credits"), {
+      includeEphemeris: true,
+      leadingSpace: false
+    });
     wireConnectAstrologer(footer);
     return footer;
   }
@@ -1024,7 +1050,8 @@
     fillPlacePresetSelects,
     applyFormFieldLimits,
     contactPhone,
-    contactEmail
+    contactEmail,
+    privacyPolicyHref
   };
 })(window);
 

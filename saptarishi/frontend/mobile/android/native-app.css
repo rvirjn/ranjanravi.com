@@ -54,7 +54,6 @@ html.saptarishi-native-app .web-only {
 
 /* ----- Hide website chrome pieces ----- */
 
-html.saptarishi-native-app .site-footer,
 html.saptarishi-native-app .site-header__nav,
 html.saptarishi-native-app .site-header__brand,
 html.saptarishi-native-app .site-header__usage,
@@ -64,6 +63,26 @@ html.saptarishi-native-app .site-header__logout,
 html.saptarishi-native-app .site-header__tagline,
 html.saptarishi-native-app #compare-toggle-btn {
   display: none !important;
+}
+
+html.saptarishi-native-app .site-footer {
+  display: block;
+  margin: 0;
+  padding: 0.4rem 1.05rem 5.75rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+html.saptarishi-native-app .site-footer > :not(.site-footer__credits) {
+  display: none !important;
+}
+
+html.saptarishi-native-app .site-footer__credits {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
 }
 
 html.saptarishi-native-app #saptarishi.main-shell,
