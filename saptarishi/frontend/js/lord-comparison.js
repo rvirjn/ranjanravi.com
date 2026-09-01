@@ -261,7 +261,7 @@
     const render = view.renderKundaliChart;
     if (typeof build !== "function" || typeof render !== "function") return;
     const chartData = build(column.kundali_chart);
-    render(chartData, chartHost);
+    render(chartData, chartHost, { showHouseMarks: false });
     if (typeof view.bindKundaliChartZoom === "function") {
       view.bindKundaliChartZoom(
         chartHost,

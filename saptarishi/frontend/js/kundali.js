@@ -834,48 +834,151 @@ function stylePlanetTspan(tspan, entry, strengthMax) {
   applyPlanetStrengthStyle(tspan, entry.strength_percent, strengthMax);
 }
 
+function isChartYesFlag(value) {
+  return normalizeText(value) === "yes";
+}
+
+function chartPlanetDegreeInSign(p) {
+  const phase = p?.sign_degree_phase;
+  if (phase && typeof phase === "object") {
+    const deg = phase.at_birth_degrees_in_sign;
+    if (typeof deg === "number" && Number.isFinite(deg)) return deg;
+  }
+  if (typeof p?.degree_in_rashi === "number" && Number.isFinite(p.degree_in_rashi)) {
+    return p.degree_in_rashi;
+  }
+  return null;
+}
+
+function formatChartPlanetDegree(deg) {
+  if (typeof deg !== "number" || !Number.isFinite(deg)) return "";
+  const rounded = Math.round(deg * 10) / 10;
+  const body = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return `${body}°`;
+}
+
+function chartPlanetDignityKind(entry) {
+  const dignity = normalizeText(entry?.planet_dignity);
+  if (dignity === "exalted") return "exalted";
+  if (dignity === "debilitated") return "debilitated";
+  const status = normalizeText(entry?.planet_status_in_rashi);
+  if (status === "high") return "exalted";
+  if (status === "low") return "debilitated";
+  return "";
+}
+
+function chartPlanetExponentParts(entry) {
+  const parts = [];
+  const degreeText = formatChartPlanetDegree(entry?.degree_in_sign);
+  if (degreeText) {
+    parts.push({
+      text: degreeText,
+      className: "kundali-chart-planet kundali-chart-planet-exponent kundali-chart-planet-degree",
+      colorFromPlanet: true
+    });
+  }
+  const dignity = chartPlanetDignityKind(entry);
+  if (dignity === "exalted") {
+    parts.push({
+      text: "↑",
+      className:
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--exalted"
+    });
+  } else if (dignity === "debilitated") {
+    parts.push({
+      text: "↓",
+      className:
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--debilitated"
+    });
+  }
+  if (isChartYesFlag(entry?.retrograde)) {
+    parts.push({
+      text: "2x",
+      className:
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--retro"
+    });
+  }
+  return parts;
+}
+
+const CHART_PLANET_EXPONENT_DY = "-2.05";
+const CHART_PLANET_EXPONENT_RESET_DY = "2.05";
+
+function appendChartPlanetExponent(textEl, entry) {
+  const parts = chartPlanetExponentParts(entry);
+  if (!parts.length) return;
+  parts.forEach((part, i) => {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    if (part.colorFromPlanet) {
+      applyPlanetChartColor(el, entry);
+      el.classList.add("kundali-chart-planet-exponent", "kundali-chart-planet-degree");
+    } else {
+      el.setAttribute("class", part.className);
+    }
+    if (i === 0) el.setAttribute("dy", CHART_PLANET_EXPONENT_DY);
+    el.textContent = part.text;
+    textEl.appendChild(el);
+  });
+  const reset = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+  reset.setAttribute("dy", CHART_PLANET_EXPONENT_RESET_DY);
+  reset.textContent = "\u200b";
+  textEl.appendChild(reset);
+}
+
+function appendSittingPlanetTspans(textEl, entry, prefix, layout, options) {
+  const label = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+  if (layout.x != null) label.setAttribute("x", String(layout.x));
+  if (layout.dy != null) label.setAttribute("dy", layout.dy);
+  label.textContent = prefix + entry.label;
+  stylePlanetTspan(label, entry, options.strengthMax);
+  textEl.appendChild(label);
+
+  if (!options.showHouseMarks) return;
+  appendChartPlanetExponent(textEl, entry);
+}
+
 /** Per-planet colored tspans; x/dy only on line/row starts (same layout as plain text rows). */
 function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
+  const showHouseMarks = Boolean(options.showHouseMarks);
   const {
     rowMode = false,
     firstDy = "0",
-    rowDy = "1.05em",
-    gap = " ",
+    rowDy = showHouseMarks ? "1.2em" : "1.05em",
+    gap = showHouseMarks ? "  " : " ",
     leadGap = false,
     strengthMax
   } = options;
   const list = planets || [];
   if (!list.length) return;
+  const planetOpts = { strengthMax, showHouseMarks };
 
   if (rowMode) {
     const rows = [];
     for (let i = 0; i < list.length; i += 2) rows.push(list.slice(i, i + 2));
     rows.forEach((row, ri) => {
       row.forEach((entry, pi) => {
-        const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        const layout = {};
         if (pi === 0 && anchorX != null) {
-          tspan.setAttribute("x", String(anchorX));
-          tspan.setAttribute("dy", ri === 0 ? firstDy : rowDy);
+          layout.x = anchorX;
+          layout.dy = ri === 0 ? firstDy : rowDy;
         } else if (pi === 0) {
-          tspan.setAttribute("dy", ri === 0 ? firstDy : rowDy);
+          layout.dy = ri === 0 ? firstDy : rowDy;
         }
-        tspan.textContent = (pi > 0 || (leadGap && pi === 0) ? gap : "") + entry.label;
-        stylePlanetTspan(tspan, entry, options.strengthMax);
-        textEl.appendChild(tspan);
+        const prefix = pi > 0 || (leadGap && pi === 0) ? gap : "";
+        appendSittingPlanetTspans(textEl, entry, prefix, layout, planetOpts);
       });
     });
     return;
   }
 
   list.forEach((entry, i) => {
-    const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+    const layout = {};
     if (i === 0 && anchorX != null) {
-      tspan.setAttribute("x", String(anchorX));
-      tspan.setAttribute("dy", firstDy);
+      layout.x = anchorX;
+      layout.dy = firstDy;
     }
-    tspan.textContent = (i > 0 || (leadGap && i === 0) ? gap : "") + entry.label;
-    stylePlanetTspan(tspan, entry, options.strengthMax);
-    textEl.appendChild(tspan);
+    const prefix = i > 0 || (leadGap && i === 0) ? gap : "";
+    appendSittingPlanetTspans(textEl, entry, prefix, layout, planetOpts);
   });
 }
 
@@ -1712,6 +1815,9 @@ function chartPlanetEntryFromPayloadPlanet(p, planetOrder) {
     planet_status_color: p.planet_status_color || "",
     planet_status_in_rashi:
       p.planet_status_in_rashi || p.planet_relation_with_rashi_lord,
+    planet_dignity: p.planet_dignity || "",
+    retrograde: p.retrograde,
+    degree_in_sign: chartPlanetDegreeInSign(p),
     strength_percent:
       typeof p.planet_strength === "number"
         ? p.planet_strength
@@ -2063,7 +2169,7 @@ function appendHouseAspectEyes(houseGroup, cell, planetOpts) {
 }
 
 /** Traditional North Indian chart: diagonals + diamond house regions (SVG). */
-function renderKundaliChart(chartData, chartHost = "kundali-chart") {
+function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}) {
   const host =
     typeof chartHost === "string" ? document.getElementById(chartHost) : chartHost;
   if (!host) return;
@@ -2072,8 +2178,9 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
     return;
   }
 
+  const showHouseMarks = options.showHouseMarks !== false;
   const strengthMax = chartData.strength_max;
-  const planetOpts = { strengthMax };
+  const planetOpts = { strengthMax, showHouseMarks };
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -2124,7 +2231,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
     const housePlanets = cell.planets || [];
     const rowCount = Math.ceil(housePlanets.length / 2);
     const rashiNum = rashiNumberFromCell(cell);
-    const densePlanets = rowCount > 2;
+    const densePlanets = showHouseMarks ? housePlanets.length > 2 : rowCount > 2;
 
     // Draw aspect eye first (behind), then sitting planets on top.
     appendHouseAspectEyes(g, cell, planetOpts);
@@ -2189,8 +2296,8 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
         const plEl = createPlanetTextEl(cx, cy - 3.5, "middle", densePlanets);
         appendColoredPlanetsToText(plEl, housePlanets, cx, {
           rowMode: true,
-          rowDy: "-1.05em",
-          ...planetOpts
+          ...planetOpts,
+          rowDy: showHouseMarks ? "-1.2em" : "-1.05em"
         });
         g.appendChild(plEl);
       }
@@ -2205,50 +2312,86 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart") {
         g.appendChild(signEl);
       }
     } else if (cell.house === 4) {
-      /** House 4 (middle left): sign leftmost, planets to the right on one line. */
-      const signX = cx - 3;
-      const lineEl = createChartLineTextEl(signX, cy, "start");
-      let hasLine = false;
-      if (rashiNum != null) {
-        const signTspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        signTspan.setAttribute("x", String(signX));
-        signTspan.setAttribute("dy", "0");
-        signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signTspan.textContent = String(rashiNum);
-        lineEl.appendChild(signTspan);
-        hasLine = true;
-      }
-      if (housePlanets.length) {
-        appendColoredPlanetsToText(lineEl, housePlanets, rashiNum != null ? null : signX, {
-          firstDy: "0",
-          gap: " ",
-          leadGap: rashiNum != null,
-          ...planetOpts
-        });
-        hasLine = true;
-      }
-      if (hasLine) g.appendChild(lineEl);
-    } else if (cell.house === 10) {
-      /** House 10 (middle right): planets left, sign number rightmost on one line. */
-      const signX = cx + 3;
-      const lineEl = createChartLineTextEl(signX, cy, "end");
-      let hasLine = false;
-      if (housePlanets.length) {
-        appendColoredPlanetsToText(lineEl, housePlanets, null, { firstDy: "0", gap: " ", ...planetOpts });
-        hasLine = true;
-      }
-      if (rashiNum != null) {
-        const signTspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        if (!housePlanets.length) {
-          signTspan.setAttribute("x", String(signX));
-          signTspan.setAttribute("dy", "0");
+      /** House 4 (middle left): sign up, planets below so degrees fit. */
+      const labelX = cx - 3;
+      if (showHouseMarks) {
+        if (rashiNum != null) {
+          const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          signEl.setAttribute("x", String(labelX));
+          signEl.setAttribute("y", String(cy - 2.2));
+          signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
+          signEl.setAttribute("text-anchor", "middle");
+          signEl.setAttribute("dominant-baseline", "middle");
+          signEl.textContent = String(rashiNum);
+          g.appendChild(signEl);
         }
-        signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signTspan.textContent = (housePlanets.length ? " " : "") + String(rashiNum);
-        lineEl.appendChild(signTspan);
-        hasLine = true;
+        if (housePlanets.length) {
+          const plEl = createPlanetTextEl(labelX, cy + 2.6, "middle", densePlanets);
+          appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
+          g.appendChild(plEl);
+        }
+      } else {
+        const lineEl = createChartLineTextEl(labelX, cy, "start");
+        let hasLine = false;
+        if (rashiNum != null) {
+          const signTspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          signTspan.setAttribute("x", String(labelX));
+          signTspan.setAttribute("dy", "0");
+          signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
+          signTspan.textContent = String(rashiNum);
+          lineEl.appendChild(signTspan);
+          hasLine = true;
+        }
+        if (housePlanets.length) {
+          appendColoredPlanetsToText(lineEl, housePlanets, rashiNum != null ? null : labelX, {
+            firstDy: "0",
+            gap: " ",
+            leadGap: rashiNum != null,
+            ...planetOpts
+          });
+          hasLine = true;
+        }
+        if (hasLine) g.appendChild(lineEl);
       }
-      if (hasLine) g.appendChild(lineEl);
+    } else if (cell.house === 10) {
+      /** House 10 (middle right): sign up, planets below so degrees fit. */
+      const labelX = cx + 3;
+      if (showHouseMarks) {
+        if (rashiNum != null) {
+          const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          signEl.setAttribute("x", String(labelX));
+          signEl.setAttribute("y", String(cy - 2.2));
+          signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
+          signEl.setAttribute("text-anchor", "middle");
+          signEl.setAttribute("dominant-baseline", "middle");
+          signEl.textContent = String(rashiNum);
+          g.appendChild(signEl);
+        }
+        if (housePlanets.length) {
+          const plEl = createPlanetTextEl(labelX, cy + 2.6, "middle", densePlanets);
+          appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
+          g.appendChild(plEl);
+        }
+      } else {
+        const lineEl = createChartLineTextEl(labelX, cy, "end");
+        let hasLine = false;
+        if (housePlanets.length) {
+          appendColoredPlanetsToText(lineEl, housePlanets, null, { firstDy: "0", gap: " ", ...planetOpts });
+          hasLine = true;
+        }
+        if (rashiNum != null) {
+          const signTspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          if (!housePlanets.length) {
+            signTspan.setAttribute("x", String(labelX));
+            signTspan.setAttribute("dy", "0");
+          }
+          signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
+          signTspan.textContent = (housePlanets.length ? " " : "") + String(rashiNum);
+          lineEl.appendChild(signTspan);
+          hasLine = true;
+        }
+        if (hasLine) g.appendChild(lineEl);
+      }
     } else {
       const signYOffset = rowCount > 1 ? -4 : -2.5;
       const planetsStartY = rowCount > 1 ? cy + 1.5 : cy + 3;

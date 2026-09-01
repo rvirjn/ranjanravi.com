@@ -827,7 +827,7 @@ tbody tr:last-child td {
 
 .summary-chart-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
   gap: var(--space-md);
   align-items: stretch;
   width: 100%;
@@ -841,7 +841,6 @@ tbody tr:last-child td {
   min-width: 0;
   max-width: none;
   margin-bottom: 0;
-  aspect-ratio: 1 / 1;
   height: auto;
   max-height: none;
   box-sizing: border-box;
@@ -849,6 +848,14 @@ tbody tr:last-child td {
   flex-direction: column;
   overflow: hidden;
   padding: 0.35rem 0.45rem 0.5rem;
+}
+
+.summary-chart-row__summary.table-wrap {
+  aspect-ratio: auto;
+}
+
+.summary-chart-row__chart {
+  aspect-ratio: 1 / 1;
 }
 
 .summary-chart-row__chart {
@@ -1709,6 +1716,61 @@ tbody tr:last-child td {
   font-weight: 700;
   stroke: none;
   paint-order: fill;
+}
+
+.kundali-chart-planet-exponent,
+.kundali-chart-planet-degree {
+  font-size: 1.95px;
+  font-weight: 700;
+  stroke: none;
+  paint-order: fill;
+}
+
+.kundali-chart-planet.kundali-chart-planet-degree,
+.kundali-chart-planet.kundali-chart-planet-exponent {
+  font-size: 1.95px;
+}
+
+.kundali-chart-label-planets--dense .kundali-chart-planet-exponent,
+.kundali-chart-label-planets--dense .kundali-chart-planet-degree {
+  font-size: 1.7px;
+}
+
+.kundali-chart-planet-power {
+  font-size: 2.15px;
+  font-weight: 800;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  pointer-events: none;
+}
+
+.kundali-chart-label-planets--dense .kundali-chart-planet-power {
+  font-size: 1.9px;
+}
+
+.kundali-chart-planet-power--exalted {
+  fill: var(--planet-color-green, #2e7d32);
+  stroke: var(--planet-color-green, #2e7d32);
+  stroke-width: 0.22px;
+  font-weight: 900;
+}
+
+.kundali-chart-planet-power--debilitated {
+  fill: var(--planet-color-red, #b71c1c);
+  stroke: var(--planet-color-red, #b71c1c);
+  stroke-width: 0.22px;
+  font-weight: 900;
+}
+
+.kundali-chart-planet-power--retro {
+  fill: var(--color-heading, #1f1806);
+  font-size: 1.85px;
+  font-weight: 800;
+  stroke: none;
+}
+
+.kundali-chart-label-planets--dense .kundali-chart-planet-power--retro {
+  font-size: 1.6px;
 }
 
 .kundali-chart-aspect-eye__brow {
