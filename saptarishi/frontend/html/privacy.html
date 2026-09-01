@@ -9,7 +9,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Privacy Policy — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=219">
+  <link rel="stylesheet" href="../style/styles.css?v=220">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell legal-page">
@@ -37,7 +37,8 @@
         <strong>Birth and astrology details you enter</strong> — name, date, time, and place of birth,
         plus latitude, longitude, and timezone derived from that place. We use this to generate kundali,
         comparison, auspicious timing, remedy, Nakshatra, Dasha, Yoga, Dosha, house, and divisional-chart
-        results. For logged-in users we keep recent birth views so forms can be prefilled from Saved birth details.
+        results. If you tick <strong>Save</strong> while signed in, we keep those details as Saved birth
+        details so forms can be prefilled later.
       </li>
       <li>
         <strong>Place for timings</strong> — city or place you select for auspicious timing searches,
@@ -70,7 +71,7 @@
       <li>Create and manage accounts, sessions, and authentication.</li>
       <li>Generate kundali and related astrology calculations from the birth details you provide.</li>
       <li>Convert a typed place name into geographic coordinates and timezone information.</li>
-      <li>Save birth profiles where you choose to use Saved birth details.</li>
+      <li>Save birth profiles when you tick Save on a birth-details form.</li>
       <li>Apply free-tier and premium usage limits and prevent abuse.</li>
       <li>Manage purchases, premium access, wallet balances, coupons, and related entitlements.</li>
       <li>Improve, maintain, troubleshoot, and secure the service.</li>
@@ -306,7 +307,7 @@
   <script src="../js/auth-modal.js?v=16"></script>
   <script src="../js/premium-modal.js?v=11"></script>
   <script src="../js/wallet-modal.js?v=8"></script>
-  <script src="../utils/common.js?v=55"></script>
+  <script src="../utils/common.js?v=56"></script>
   <script src="../js/ask-ai.js?v=5"></script>
 </body>
 </html>

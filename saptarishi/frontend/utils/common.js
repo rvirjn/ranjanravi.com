@@ -206,8 +206,7 @@
 
   function mountCollectionNotices() {
     const birthText =
-      "Name, date, time, and place of birth you enter are sent to our servers to generate results. " +
-      "If you are signed in, we save them as Saved birth details on your account. See ";
+      "Name, date, time, and place of birth you enter are sent to our servers to generate results. See ";
     const placeText =
       "Place you enter is sent to our servers to calculate timings. We do not use device GPS. See ";
     attachPrivacyNote(document.getElementById("birth-form"), birthText);

@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Remedy by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=219">
+  <link rel="stylesheet" href="../style/styles.css?v=220">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -67,6 +67,12 @@
         <label for="birth-time">Time</label>
         <input type="time" id="birth-time" step="1" required />
       </div>
+      <div class="form-field form-field--save" id="save-birth-wrap">
+        <label class="save-birth-label" for="save-birth">
+          <input type="checkbox" id="save-birth" class="save-birth-check" checked>
+          Save
+        </label>
+      </div>
       <div class="form-field form-field--submit">
         <button type="submit" id="submit-btn">Show</button>
       </div>
@@ -103,9 +109,9 @@
   <script src="../js/auth-modal.js?v=16"></script>
   <script src="../js/premium-modal.js?v=11"></script>
   <script src="../js/wallet-modal.js?v=8"></script>
-  <script src="../utils/common.js?v=55"></script>
+  <script src="../utils/common.js?v=56"></script>
   <script src="../js/ask-ai.js?v=5"></script>
-  <script src="../js/kundali.js?v=259"></script>
-  <script src="../js/remedy.js?v=26"></script>
+  <script src="../js/kundali.js?v=261"></script>
+  <script src="../js/remedy.js?v=27"></script>
 </body>
 </html>

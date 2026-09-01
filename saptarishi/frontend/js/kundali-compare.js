@@ -145,7 +145,11 @@
 
   function applyCompareSavedSelection(rowEl) {
     const selectEl = rowEl.querySelector(".compare-saved-birth");
+    const saveWrap = rowEl.querySelector(".compare-save-wrap");
+    const saveInput = rowEl.querySelector(".compare-save-birth");
     const key = String(selectEl?.value || "").trim();
+    if (saveWrap) saveWrap.hidden = Boolean(key);
+    if (saveInput && !key) saveInput.checked = true;
     if (!key) return;
     const view = getSavedBirthViews().find((entry) => birthViewSelectKey(entry) === key);
     if (view) applySavedBirthToCompareRow(rowEl, view);
@@ -161,15 +165,18 @@
           name: String(view.name || "").trim(),
           date: String(view.date || "").trim(),
           time: String(view.time || "").trim(),
-          place: String(view.place || "").trim()
+          place: String(view.place || "").trim(),
+          save: false
         };
       }
     }
+    const saveInput = rowEl.querySelector(".compare-save-birth");
     return {
       name: rowEl.querySelector(".compare-birth-name")?.value?.trim() || "",
       date: rowEl.querySelector(".compare-birth-date")?.value?.trim() || "",
       time: rowEl.querySelector(".compare-birth-time")?.value?.trim() || "",
-      place: getPlaceFromCompareRow(rowEl)
+      place: getPlaceFromCompareRow(rowEl),
+      save: !saveInput || saveInput.checked
     };
   }
 
@@ -288,10 +295,21 @@
     });
     removeField.appendChild(removeBtn);
 
+    const saveField = document.createElement("div");
+    saveField.className = "form-field form-field--save compare-save-wrap";
+    const saveLabel = document.createElement("label");
+    saveLabel.className = "save-birth-label";
+    const saveInput = document.createElement("input");
+    saveInput.type = "checkbox";
+    saveInput.className = "save-birth-check compare-save-birth";
+    saveInput.checked = true;
+    saveLabel.append(saveInput, document.createTextNode(" Save"));
+    saveField.appendChild(saveLabel);
+
     placeSelect.addEventListener("change", () => syncCompareCustomPlace(row));
     savedSelect.addEventListener("change", () => applyCompareSavedSelection(row));
 
-    row.append(savedField, nameField, placeField, customWrap, dateField, timeField, removeField);
+    row.append(savedField, nameField, placeField, customWrap, dateField, timeField, saveField, removeField);
     return row;
   }
 
@@ -350,7 +368,7 @@
       }
       return null;
     }
-    if (!input.name) return `Birth ${index}: enter a name for new birth details.`;
+    if (!input.name && (input.save !== false)) return `Birth ${index}: enter a name for new birth details.`;
     const preset = rowEl.querySelector(".compare-place-preset");
     if (!preset?.value) return `Birth ${index}: select a place.`;
     if (preset.value === C.PLACE_CUSTOM_VALUE && !input.place) {
@@ -372,9 +390,11 @@
       if (err) return { error: err, inputs: [] };
       const rowInput = getCompareRowBirthInput(rows[i]);
       inputs.push({
+        name: rowInput.name,
         date: rowInput.date,
         time: rowInput.time,
-        place: rowInput.place
+        place: rowInput.place,
+        save: rowInput.save !== false
       });
     }
     if (inputs.length < COMPARE_MIN_BIRTHS) {
@@ -390,9 +410,11 @@
     const path = C.API_KUNDALI_COMPARE_PATH;
     const body = JSON.stringify({
       births: births.map((input) => ({
+        name: input.name || "",
         date: input.date,
         time: normalizeCompareTime(input.time),
-        place: input.place
+        place: input.place,
+        save: input.save !== false
       })),
       house_system: C.DEFAULT_HOUSE_SYSTEM
     });

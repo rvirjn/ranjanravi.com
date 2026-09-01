@@ -598,9 +598,15 @@ html.saptarishi-native-app .kundali-tabs__item--active {
   box-shadow: inset 0 -3px 0 var(--app-brown);
 }
 
-html.saptarishi-native-app #birth-form .form-field > label,
+html.saptarishi-native-app #birth-form .form-field:not(.form-field--save) > label,
+html.saptarishi-native-app #remedy-form .form-field:not(.form-field--save) > label,
 html.saptarishi-native-app .privacy-collect-note {
   display: none !important;
+}
+
+html.saptarishi-native-app .form-field--save,
+html.saptarishi-native-app .save-birth-label {
+  display: inline-flex !important;
 }
 
 html.saptarishi-native-app .search-form.kundali-form {

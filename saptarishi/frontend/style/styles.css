@@ -374,6 +374,32 @@ body.saptarishi-page {
   text-decoration: underline;
 }
 
+.form-field--save {
+  justify-content: flex-end;
+}
+
+.save-birth-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  cursor: pointer;
+  user-select: none;
+}
+
+.search-form .save-birth-label input[type="checkbox"],
+.save-birth-label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
 .search-form .form-field {
   display: flex;
   flex-direction: column;

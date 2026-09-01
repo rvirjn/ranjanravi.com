@@ -34,6 +34,8 @@
   const birthTime = document.getElementById("birth-time");
   const birthName = document.getElementById("birth-name");
   const birthNameWrap = document.getElementById("birth-name-wrap");
+  const saveBirth = document.getElementById("save-birth");
+  const saveBirthWrap = document.getElementById("save-birth-wrap");
   const openBirthWrap = document.getElementById("open-birth-wrap");
   const savedBirthSelect = document.getElementById("saved-birth-select");
   const tabOpenBirth = document.getElementById("tab-open-birth");
@@ -113,8 +115,13 @@
     if (!isCustom && placeCustom) placeCustom.value = "";
   }
 
+  function shouldSaveBirthDetails() {
+    if (birthMode === "open") return false;
+    return !saveBirth || saveBirth.checked;
+  }
+
   function validateRemedyBirthForm(place) {
-    if (birthMode === "new" && birthName && !String(birthName.value || "").trim()) {
+    if (birthMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
       return "Enter a name to save these birth details.";
     }
     if (birthMode === "open" && savedBirthSelect && !savedBirthSelect.value) {
@@ -202,6 +209,8 @@
     }
     if (openBirthWrap) openBirthWrap.hidden = !isOpen;
     if (birthNameWrap) birthNameWrap.hidden = isOpen;
+    if (saveBirthWrap) saveBirthWrap.hidden = isOpen;
+    if (saveBirth && !isOpen) saveBirth.checked = true;
     if (isOpen) {
       refreshSavedBirthDropdown();
       applySavedBirthSelection();
@@ -769,7 +778,7 @@
 
     try {
       const [kundaliPayload, db] = await Promise.all([
-        KV.fetchJson(birthDate.value, birthTime.value, place, name),
+        KV.fetchJson(birthDate.value, birthTime.value, place, name, shouldSaveBirthDetails()),
         loadPlanetDatabase()
       ]);
 

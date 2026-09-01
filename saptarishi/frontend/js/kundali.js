@@ -21,6 +21,8 @@ const birthDate = document.getElementById("birth-date");
 const birthTime = document.getElementById("birth-time");
 const birthName = document.getElementById("birth-name");
 const birthNameWrap = document.getElementById("birth-name-wrap");
+const saveBirth = document.getElementById("save-birth");
+const saveBirthWrap = document.getElementById("save-birth-wrap");
 const openKundaliWrap = document.getElementById("open-kundali-wrap");
 const savedKundaliSelect = document.getElementById("saved-kundali-select");
 const tabOpenKundali = document.getElementById("tab-open-kundali");
@@ -4106,21 +4108,27 @@ function toggleDivisionalChartsPanel() {
   }
 }
 
+function shouldSaveBirthDetails() {
+  if (kundaliMode === "open") return false;
+  return !saveBirth || saveBirth.checked;
+}
+
 /** Build query string for GET /api/kundali from form fields. */
-function buildKundaliApiQueryParams(date, time, place, name) {
+function buildKundaliApiQueryParams(date, time, place, name, saveBirthDetails) {
   const params = {
     date,
     time,
     place,
-    house_system: C.DEFAULT_HOUSE_SYSTEM
+    house_system: C.DEFAULT_HOUSE_SYSTEM,
+    save: saveBirthDetails === false ? "0" : "1"
   };
   if (name) params.name = name;
   return new URLSearchParams(params);
 }
 
 /** Call Flask /api/kundali and return parsed JSON. */
-async function fetchKundaliJsonFromApi(date, time, place, name) {
-  const params = buildKundaliApiQueryParams(date, time, place, name);
+async function fetchKundaliJsonFromApi(date, time, place, name, saveBirthDetails) {
+  const params = buildKundaliApiQueryParams(date, time, place, name, saveBirthDetails);
   const path = `${C.API_KUNDALI_PATH}?${params}`;
   if (typeof SaptarishiAuth !== "undefined") {
     if (SaptarishiAuth.fetchKundali) {
@@ -4140,7 +4148,7 @@ async function fetchKundaliJsonFromApi(date, time, place, name) {
 
 /** Validate birth form; return error message or null if OK. */
 function validateBirthForm(place) {
-  if (kundaliMode === "new" && birthName && !String(birthName.value || "").trim()) {
+  if (kundaliMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
     return "Enter a name to save these birth details.";
   }
   if (kundaliMode === "open" && savedKundaliSelect && !savedKundaliSelect.value) {
@@ -4187,7 +4195,8 @@ async function handleBirthFormSubmit(event) {
       birthDate.value,
       birthTime.value,
       place,
-      name
+      name,
+      shouldSaveBirthDetails()
     );
     renderKundaliResponseIntoPage(kundaliPayload);
     refreshSavedKundaliDropdown();
@@ -4279,6 +4288,8 @@ function setKundaliMode(mode) {
   }
   if (openKundaliWrap) openKundaliWrap.hidden = !isOpen;
   if (birthNameWrap) birthNameWrap.hidden = isOpen;
+  if (saveBirthWrap) saveBirthWrap.hidden = isOpen;
+  if (saveBirth && !isOpen) saveBirth.checked = true;
   if (isOpen) {
     refreshSavedKundaliDropdown();
     applySavedKundaliSelection();
@@ -4369,7 +4380,8 @@ window.SaptarishiKundaliPage = {
       name: birthName?.value?.trim() || "",
       date: birthDate?.value?.trim() || "",
       time: birthTime?.value?.trim() || "",
-      place: getBirthPlaceFromKundaliForm()
+      place: getBirthPlaceFromKundaliForm(),
+      save: shouldSaveBirthDetails()
     };
   },
   validateMainBirthForm() {
