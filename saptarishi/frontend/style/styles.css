@@ -1191,14 +1191,31 @@ tbody tr:last-child td {
   cursor: default;
 }
 
+.dasha-age__line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 1.2rem 0.4rem 0.45rem;
+}
+
 .dasha-age__track {
   position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 2.4rem;
-  margin: 1.2rem 0.4rem 0.45rem;
+  margin: 0;
   background: #fffef5;
   border: 1.5px solid #b8952a;
   border-radius: 0.4rem;
   cursor: pointer;
+}
+
+.dasha-age__fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.28rem;
+  z-index: 1;
 }
 
 .dasha-age__seg {
@@ -1211,6 +1228,10 @@ tbody tr:last-child td {
   align-items: center;
   justify-content: center;
   border-right: 1px solid rgba(92, 79, 26, 0.25);
+}
+
+.dasha-age__seg--last {
+  border-right: none;
 }
 
 .dasha-age__seg em {
@@ -1260,6 +1281,10 @@ tbody tr:last-child td {
   transform: none;
   font-weight: 700;
   color: var(--color-primary, #8b6914);
+}
+
+.dasha-age__tick--end {
+  transform: translateX(-100%);
 }
 
 .dasha-age__needle {

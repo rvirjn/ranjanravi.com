@@ -3269,6 +3269,11 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const wrap = document.createElement("div");
   wrap.className = "dasha-age";
 
+  const line = document.createElement("div");
+  line.className = "dasha-age__line";
+  const yearLabel = document.createElement("span");
+  yearLabel.className = "dasha-age__row-label";
+  yearLabel.textContent = "Year";
   const track = document.createElement("div");
   track.className = "dasha-age__track";
   track.setAttribute("role", "slider");
@@ -3284,40 +3289,64 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
   track.tabIndex = 0;
 
-  mahadashas.forEach((period) => {
-    const left = (period.fromYears / DASHA_AGE_LINE_MAX) * 100;
-    const width = ((period.toYears - period.fromYears) / DASHA_AGE_LINE_MAX) * 100;
+  const fill = document.createElement("div");
+  fill.className = "dasha-age__fill";
+  const lastIndex = mahadashas.length - 1;
+  mahadashas.forEach((period, index) => {
+    const left = Math.max(0, (period.fromYears / DASHA_AGE_LINE_MAX) * 100);
+    const rawWidth = ((period.toYears - period.fromYears) / DASHA_AGE_LINE_MAX) * 100;
+    const width = index === lastIndex ? Math.max(0, 100 - left) : rawWidth;
     if (width <= 0) return;
     const kind = dashaPlanetColorKind(payload, period.planet);
     const seg = document.createElement("span");
     seg.className = kind ? `dasha-age__seg dasha-age__seg--${kind}` : "dasha-age__seg";
-    seg.style.left = `${Math.max(0, left)}%`;
-    seg.style.width = `${Math.min(100 - Math.max(0, left), width)}%`;
+    if (index === lastIndex) seg.classList.add("dasha-age__seg--last");
+    seg.style.left = `${left}%`;
+    if (index === lastIndex) {
+      seg.style.right = "0";
+      seg.style.width = "auto";
+    } else {
+      seg.style.width = `${Math.min(100 - left, width)}%`;
+    }
     seg.title = `${toTitleCaseWords(period.planet)} mahadasha`;
     applyPlanetStatusCellColorIntensity(seg);
     const label = document.createElement("em");
     label.textContent = toTitleCaseWords(period.planet);
     seg.appendChild(label);
-    track.appendChild(seg);
+    fill.appendChild(seg);
   });
+  track.appendChild(fill);
 
   const ticks = document.createElement("div");
   ticks.className = "dasha-age__ticks";
   ticks.setAttribute("aria-hidden", "true");
-  mahadashas.forEach((period, index) => {
-    const startAge = Math.max(0, Number(period.fromYears) || 0);
-    if (startAge >= DASHA_AGE_LINE_MAX) return;
-    const calYear = calendarYearFromBirthAge(birthDate, startAge);
+  const tickSpecs = mahadashas
+    .map((period) => {
+      const startAge = Math.max(0, Number(period.fromYears) || 0);
+      if (startAge >= DASHA_AGE_LINE_MAX) return null;
+      const calYear = calendarYearFromBirthAge(birthDate, startAge);
+      return {
+        period,
+        startAge,
+        pct: (clampDashaAge(startAge) / DASHA_AGE_LINE_MAX) * 100,
+        yearText: calYear == null ? String(Math.round(startAge)) : String(calYear)
+      };
+    })
+    .filter(Boolean);
+  tickSpecs.forEach((spec, index) => {
+    const closePrev = index > 0 && spec.pct - tickSpecs[index - 1].pct < 8;
+    const label = closePrev ? spec.yearText.slice(-2) : spec.yearText;
     const tick = document.createElement("span");
-    tick.className = index === 0 ? "dasha-age__tick dasha-age__tick--start" : "dasha-age__tick";
-    tick.style.left = dashaAgeLifePercent(startAge);
-    tick.textContent =
-      calYear == null
-        ? String(Math.round(startAge))
-        : index === 0
-          ? `Year ${calYear}`
-          : String(calYear);
-    tick.title = `${toTitleCaseWords(period.planet)} mahadasha`;
+    tick.className = [
+      "dasha-age__tick",
+      spec.pct < 1.2 ? "dasha-age__tick--start" : "",
+      spec.pct > 96 ? "dasha-age__tick--end" : ""
+    ]
+      .filter(Boolean)
+      .join(" ");
+    tick.style.left = dashaAgeLifePercent(spec.startAge);
+    tick.textContent = label;
+    tick.title = `${toTitleCaseWords(spec.period.planet)} mahadasha · ${spec.yearText}`;
     ticks.appendChild(tick);
   });
 
@@ -3329,26 +3358,17 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   you.style.left = dashaAgeLifePercent(liveAge);
   you.title = "Your age now";
   track.append(ticks, needle, you);
-  wrap.appendChild(track);
+  line.append(yearLabel, track);
+  wrap.appendChild(line);
 
   const yearsRow = document.createElement("div");
   yearsRow.className = "dasha-age__years-row";
   const ageLabel = document.createElement("span");
   ageLabel.className = "dasha-age__years-label";
   ageLabel.textContent = "Age";
-  const prevYear = document.createElement("button");
-  prevYear.type = "button";
-  prevYear.className = "dasha-age__step";
-  prevYear.textContent = "‹";
-  prevYear.title = "Previous year";
   const years = document.createElement("div");
   years.className = "dasha-age__years";
-  const nextYear = document.createElement("button");
-  nextYear.type = "button";
-  nextYear.className = "dasha-age__step";
-  nextYear.textContent = "›";
-  nextYear.title = "Next year";
-  yearsRow.append(ageLabel, prevYear, years, nextYear);
+  yearsRow.append(ageLabel, years);
   wrap.appendChild(yearsRow);
 
   const yearButtons = [];
@@ -3447,8 +3467,6 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     needle.style.left = dashaAgeLifePercent(selectedAge);
     track.setAttribute("aria-valuenow", String(year));
     nowBtn.disabled = Math.abs(selectedAge - liveAge) < 1 / 24;
-    prevYear.disabled = year <= 0;
-    nextYear.disabled = year >= DASHA_AGE_LINE_MAX;
     yearButtons.forEach((btn, index) => {
       btn.classList.toggle("is-on", index === year);
     });
@@ -3515,14 +3533,6 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     pick(dashaAgeFromYearMonth(nextYearValue, month));
   });
 
-  prevYear.addEventListener("click", () => {
-    const { year, month } = dashaYearMonthFromAge(selectedAge);
-    pick(dashaAgeFromYearMonth(year - 1, month));
-  });
-  nextYear.addEventListener("click", () => {
-    const { year, month } = dashaYearMonthFromAge(selectedAge);
-    pick(dashaAgeFromYearMonth(year + 1, month));
-  });
   nowBtn.addEventListener("click", () => pick(liveAge));
 
   syncUi();
