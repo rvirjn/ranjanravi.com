@@ -1589,8 +1589,8 @@ tbody tr:last-child td {
     font-size: 0;
   }
 
-  .dasha-age__tick:nth-child(even) {
-    display: none;
+  .dasha-age__tick {
+    font-size: 0.58rem;
   }
 }
 

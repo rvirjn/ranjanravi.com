@@ -3304,15 +3304,22 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const ticks = document.createElement("div");
   ticks.className = "dasha-age__ticks";
   ticks.setAttribute("aria-hidden", "true");
-  for (let age = 0; age <= DASHA_AGE_LINE_MAX; age += 10) {
+  mahadashas.forEach((period, index) => {
+    const startAge = Math.max(0, Number(period.fromYears) || 0);
+    if (startAge >= DASHA_AGE_LINE_MAX) return;
+    const calYear = calendarYearFromBirthAge(birthDate, startAge);
     const tick = document.createElement("span");
-    tick.className = age === 0 ? "dasha-age__tick dasha-age__tick--start" : "dasha-age__tick";
-    tick.style.left = dashaAgeLifePercent(age);
-    const calYear = calendarYearFromBirthAge(birthDate, age);
+    tick.className = index === 0 ? "dasha-age__tick dasha-age__tick--start" : "dasha-age__tick";
+    tick.style.left = dashaAgeLifePercent(startAge);
     tick.textContent =
-      calYear == null ? (age === 0 ? "Age 0" : String(age)) : age === 0 ? `Year ${calYear}` : String(calYear);
+      calYear == null
+        ? String(Math.round(startAge))
+        : index === 0
+          ? `Year ${calYear}`
+          : String(calYear);
+    tick.title = `${toTitleCaseWords(period.planet)} mahadasha`;
     ticks.appendChild(tick);
-  }
+  });
 
   const needle = document.createElement("span");
   needle.className = "dasha-age__needle";
