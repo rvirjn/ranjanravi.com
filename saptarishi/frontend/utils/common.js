@@ -193,7 +193,6 @@
     link.textContent = "Privacy Policy";
     note.appendChild(link);
     note.append(document.createTextNode("."));
-    appendRequiredDataCredits(note);
     return note;
   }
 
@@ -802,7 +801,7 @@
       </div>
       <p class="site-footer__credits"></p>
       <div id="site-contact" class="site-footer__support" hidden>
-        <a class="site-footer__support-link" href="${mailHref}">Email</a>
+        <a class="site-footer__support-link" href="${mailHref}">Email: ${email}</a>
         <span class="site-footer__support-sep" aria-hidden="true">·</span>
         <a class="site-footer__support-link" href="${waHref}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <span class="site-footer__support-sep" aria-hidden="true">·</span>
