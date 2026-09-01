@@ -3250,6 +3250,12 @@ function dashaAgeFromYearMonth(year, month) {
   return clampDashaAge(year + month / 12);
 }
 
+function calendarYearFromBirthAge(birthDate, ageYears) {
+  const date = dateFromBirthAgeYears(birthDate, ageYears);
+  if (!date || Number.isNaN(date.getTime())) return null;
+  return date.getFullYear();
+}
+
 function mahadashaContainingAge(mahadashas, ageYears) {
   const age = clampDashaAge(ageYears);
   return mahadashas.find((period) => age >= period.fromYears && age < period.toYears) || null;
@@ -3266,7 +3272,14 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const track = document.createElement("div");
   track.className = "dasha-age__track";
   track.setAttribute("role", "slider");
-  track.setAttribute("aria-label", "Life line from age 0 to 120");
+  const birthYear = calendarYearFromBirthAge(birthDate, 0);
+  const endYear = calendarYearFromBirthAge(birthDate, DASHA_AGE_LINE_MAX);
+  track.setAttribute(
+    "aria-label",
+    birthYear && endYear
+      ? `Life line from year ${birthYear} to ${endYear}`
+      : "Life line from age 0 to 120"
+  );
   track.setAttribute("aria-valuemin", "0");
   track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
   track.tabIndex = 0;
@@ -3295,7 +3308,9 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     const tick = document.createElement("span");
     tick.className = age === 0 ? "dasha-age__tick dasha-age__tick--start" : "dasha-age__tick";
     tick.style.left = dashaAgeLifePercent(age);
-    tick.textContent = age === 0 ? "Age 0" : String(age);
+    const calYear = calendarYearFromBirthAge(birthDate, age);
+    tick.textContent =
+      calYear == null ? (age === 0 ? "Age 0" : String(age)) : age === 0 ? `Year ${calYear}` : String(calYear);
     ticks.appendChild(tick);
   }
 
@@ -3311,6 +3326,9 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
 
   const yearsRow = document.createElement("div");
   yearsRow.className = "dasha-age__years-row";
+  const ageLabel = document.createElement("span");
+  ageLabel.className = "dasha-age__years-label";
+  ageLabel.textContent = "Age";
   const prevYear = document.createElement("button");
   prevYear.type = "button";
   prevYear.className = "dasha-age__step";
@@ -3323,7 +3341,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   nextYear.className = "dasha-age__step";
   nextYear.textContent = "›";
   nextYear.title = "Next year";
-  yearsRow.append(prevYear, years, nextYear);
+  yearsRow.append(ageLabel, prevYear, years, nextYear);
   wrap.appendChild(yearsRow);
 
   const yearButtons = [];
@@ -3347,9 +3365,10 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
 
   const months = document.createElement("div");
   months.className = "dasha-age__months";
-  const monthYear = document.createElement("span");
-  monthYear.className = "dasha-age__month-year";
-  months.appendChild(monthYear);
+  const monthsLabel = document.createElement("span");
+  monthsLabel.className = "dasha-age__row-label";
+  monthsLabel.textContent = "Months";
+  months.appendChild(monthsLabel);
   const monthButtons = DASHA_MONTH_LABELS.map((label, monthIndex) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -3358,8 +3377,18 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     btn.addEventListener("click", () => {
       const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
       const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : new Date().getFullYear();
-      const atMonth = new Date(calYear, monthIndex, 1);
-      pick(clampDashaAge(ageYearsBetween(birthDate, atMonth) || 0));
+      const day = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getDate() : 1;
+      const last = new Date(calYear, monthIndex + 1, 0).getDate();
+      const atDate = new Date(calYear, monthIndex, Math.min(day, last));
+      if (birthDate && !Number.isNaN(birthDate.getTime())) {
+        atDate.setHours(
+          birthDate.getHours(),
+          birthDate.getMinutes(),
+          birthDate.getSeconds(),
+          birthDate.getMilliseconds()
+        );
+      }
+      pick(clampDashaAge(ageYearsBetween(birthDate, atDate) || 0));
     });
     months.appendChild(btn);
     return btn;
@@ -3372,6 +3401,40 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   months.appendChild(nowBtn);
   wrap.appendChild(months);
 
+  const days = document.createElement("div");
+  days.className = "dasha-age__days";
+  const dateLabel = document.createElement("span");
+  dateLabel.className = "dasha-age__row-label";
+  dateLabel.textContent = "Date";
+  days.appendChild(dateLabel);
+  const dayButtons = [];
+  for (let day = 1; day <= 31; day += 1) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dasha-day";
+    btn.textContent = String(day);
+    btn.addEventListener("click", () => {
+      const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
+      const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : new Date().getFullYear();
+      const calMonth = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getMonth() : 0;
+      const last = new Date(calYear, calMonth + 1, 0).getDate();
+      if (day > last) return;
+      const atDate = new Date(calYear, calMonth, day);
+      if (birthDate && !Number.isNaN(birthDate.getTime())) {
+        atDate.setHours(
+          birthDate.getHours(),
+          birthDate.getMinutes(),
+          birthDate.getSeconds(),
+          birthDate.getMilliseconds()
+        );
+      }
+      pick(clampDashaAge(ageYearsBetween(birthDate, atDate) || 0));
+    });
+    days.appendChild(btn);
+    dayButtons.push(btn);
+  }
+  wrap.appendChild(days);
+
   function syncUi() {
     const { year } = dashaYearMonthFromAge(selectedAge);
     needle.style.left = dashaAgeLifePercent(selectedAge);
@@ -3383,11 +3446,18 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
       btn.classList.toggle("is-on", index === year);
     });
     const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
-    const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : "";
     const calMonth = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getMonth() : 0;
-    monthYear.textContent = calYear ? String(calYear) : "";
+    const calDay = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getDate() : 1;
+    const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : new Date().getFullYear();
+    const lastDay = new Date(calYear, calMonth + 1, 0).getDate();
     monthButtons.forEach((btn, index) => {
       btn.classList.toggle("is-on", index === calMonth);
+    });
+    dayButtons.forEach((btn, index) => {
+      const day = index + 1;
+      btn.hidden = day > lastDay;
+      btn.disabled = day > lastDay;
+      btn.classList.toggle("is-on", day === calDay && day <= lastDay);
     });
     pendingYearCenter = true;
     centerSelectedYear();

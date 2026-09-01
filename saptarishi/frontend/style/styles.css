@@ -1302,9 +1302,18 @@ tbody tr:last-child td {
 
 .dasha-age__years-row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 0.22rem;
   margin: 0.45rem 0.4rem 0.4rem;
+}
+
+.dasha-age__years-label,
+.dasha-age__row-label {
+  flex: 0 0 auto;
+  min-width: 3.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary, #8b6914);
 }
 
 .dasha-age__years {
@@ -1317,7 +1326,8 @@ tbody tr:last-child td {
 }
 
 .dasha-year,
-.dasha-month {
+.dasha-month,
+.dasha-day {
   --planet-strength: 0.72;
   flex: 0 0 auto;
   padding: 0.06rem 0.14rem;
@@ -1338,7 +1348,8 @@ tbody tr:last-child td {
 }
 
 .dasha-year.is-on,
-.dasha-month.is-on {
+.dasha-month.is-on,
+.dasha-day.is-on {
   box-shadow: inset 0 0 0 2px #5c4f1a;
 }
 
@@ -1350,19 +1361,13 @@ tbody tr:last-child td {
   box-shadow: inset 0 0 0 2px #5c4f1a, inset 0 -3px 0 #8b6914;
 }
 
-.dasha-age__months {
+.dasha-age__months,
+.dasha-age__days {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.12rem;
   margin: 0 0.4rem 0.3rem;
-}
-
-.dasha-age__month-year {
-  min-width: 2.1rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--color-primary, #8b6914);
 }
 
 .dasha-age__months .dasha-age__tool {
@@ -1376,6 +1381,16 @@ tbody tr:last-child td {
   min-width: 1.55rem;
   min-height: 1.3rem;
   font-size: 0.62rem;
+}
+
+.dasha-day {
+  min-width: 1.3rem;
+  min-height: 1.3rem;
+  font-size: 0.62rem;
+}
+
+.dasha-day[hidden] {
+  display: none;
 }
 
 .dasha-age__hint,
