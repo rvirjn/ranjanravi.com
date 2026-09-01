@@ -1437,17 +1437,25 @@ tbody tr:last-child td {
 
 .dasha-path {
   --planet-strength: 0.72;
-  --dasha-indent: 0;
   position: relative;
-  margin-left: var(--dasha-indent);
-}
-
-.dasha-path--mid-tiles {
-  position: static;
+  box-sizing: border-box;
+  padding: 0.4rem 0.55rem 0.45rem 0.45rem;
+  background: #fffef5;
+  border: 1.5px solid #b8952a;
+  border-radius: var(--radius-sm);
 }
 
 .dasha-path__main {
   min-width: 0;
+}
+
+.dasha-path__nest {
+  margin-top: 0.35rem;
+}
+
+.dasha-path__nest:empty {
+  display: none;
+  margin: 0;
 }
 
 .dasha-path__btn {
@@ -1456,13 +1464,13 @@ tbody tr:last-child td {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.25rem 0.55rem;
-  padding: 0.4rem 0.65rem;
+  padding: 0.12rem 0.15rem 0.2rem;
   text-align: left;
   font: inherit;
   color: inherit;
-  background: #fffef5;
-  border: 1.5px solid #b8952a;
-  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  border-radius: 0.2rem;
   cursor: pointer;
 }
 
@@ -1494,20 +1502,15 @@ tbody tr:last-child td {
 
 .dasha-path__houses {
   position: absolute;
-  left: 100%;
+  left: calc(100% + 1rem);
   top: 0;
-  z-index: 4;
+  z-index: 8;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 0.35rem;
-  margin-left: 0.5rem;
-}
-
-.dasha-path--mid-tiles .dasha-path__houses {
-  top: 50%;
-  transform: translateY(-50%);
+  margin-left: 0;
 }
 
 .dasha-path__houses[hidden] {
@@ -1551,9 +1554,17 @@ tbody tr:last-child td {
   box-shadow: inset 0 0 0 1px rgba(154, 123, 26, 0.45);
 }
 
-.dasha-path--high .dasha-path__btn,
-.dasha-path--own .dasha-path__btn,
-.dasha-path--friend .dasha-path__btn,
+.dasha-path--high,
+.dasha-path--own,
+.dasha-path--friend {
+  background: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
+  );
+  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.55);
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
 .dasha-sib--high,
 .dasha-sib--own,
 .dasha-sib--friend,
@@ -1568,8 +1579,16 @@ tbody tr:last-child td {
   color: var(--planet-color-green_text, #1b5e20);
 }
 
-.dasha-path--low .dasha-path__btn,
-.dasha-path--enemy .dasha-path__btn,
+.dasha-path--low,
+.dasha-path--enemy {
+  background: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
+  );
+  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.55);
+  color: var(--planet-color-red_text, #6d1010);
+}
+
 .dasha-sib--low,
 .dasha-sib--enemy,
 .dasha-year--low,
@@ -1811,6 +1830,17 @@ tbody tr:last-child td {
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--retro {
   font-size: 1.6px;
+}
+
+.kundali-chart-planet-power--combust {
+  fill: var(--planet-color-red, #b71c1c);
+  stroke: none;
+  font-weight: 700;
+  font-size: 2.35px;
+}
+
+.kundali-chart-label-planets--dense .kundali-chart-planet-power--combust {
+  font-size: 2.05px;
 }
 
 .kundali-chart-aspect-eye__brow {

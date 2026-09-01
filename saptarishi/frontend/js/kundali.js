@@ -838,6 +838,13 @@ function isChartYesFlag(value) {
   return normalizeText(value) === "yes";
 }
 
+function isChartPlanetCombust(entry) {
+  if (isChartYesFlag(entry?.combustion) || isChartYesFlag(entry?.combust)) return true;
+  const items = entry?.strength_adjustments?.by_column?.degree;
+  if (!Array.isArray(items)) return false;
+  return items.some((item) => normalizeText(item?.rule) === "combustion");
+}
+
 function chartPlanetDegreeInSign(p) {
   const phase = p?.sign_degree_phase;
   if (phase && typeof phase === "object") {
@@ -896,6 +903,13 @@ function chartPlanetExponentParts(entry) {
       text: "2x",
       className:
         "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--retro"
+    });
+  }
+  if (isChartPlanetCombust(entry)) {
+    parts.push({
+      text: "⊙",
+      className:
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--combust"
     });
   }
   return parts;
@@ -1817,6 +1831,8 @@ function chartPlanetEntryFromPayloadPlanet(p, planetOrder) {
       p.planet_status_in_rashi || p.planet_relation_with_rashi_lord,
     planet_dignity: p.planet_dignity || "",
     retrograde: p.retrograde,
+    combustion: p.combustion || p.combust || "",
+    strength_adjustments: p.strength_adjustments,
     degree_in_sign: chartPlanetDegreeInSign(p),
     strength_percent:
       typeof p.planet_strength === "number"
@@ -3618,18 +3634,38 @@ function renderDashaLordHouseTiles(container, planetName, payload) {
   });
 }
 
+function positionDashaHouseTiles(row, housesHost) {
+  const stack = row?.closest?.(".dasha-life__stack");
+  if (!stack || !housesHost || housesHost.hidden) return;
+  if (housesHost.parentElement !== stack) stack.appendChild(housesHost);
+  const outer = stack.querySelector(":scope > .dasha-path") || stack;
+  const stackRect = stack.getBoundingClientRect();
+  const outerRect = outer.getBoundingClientRect();
+  const rowRect = row.getBoundingClientRect();
+  if (!(outerRect.width > 0) || !(rowRect.width > 0)) return;
+  housesHost.style.position = "absolute";
+  housesHost.style.left = `${Math.round(outerRect.right - stackRect.left + 16)}px`;
+  housesHost.style.top = `${Math.round(rowRect.top - stackRect.top)}px`;
+  housesHost.style.marginLeft = "0";
+  housesHost.style.transform = "none";
+  housesHost.style.zIndex = "8";
+}
+
 function closeOtherDashaPathTiles(keepRow) {
   const root = keepRow?.closest?.(".dasha-life") || keepRow?.closest?.(".dasha-life__stack");
   if (!root) return;
+  const keepKey = keepRow?.dataset?.dashaPath || "";
   root.querySelectorAll(".dasha-path").forEach((other) => {
     if (other === keepRow) return;
     other.classList.remove("is-expanded");
-    const houses = other.querySelector(":scope > .dasha-path__houses");
-    const sibs = other.querySelector(":scope .dasha-path__sibs");
-    const otherBtn = other.querySelector(":scope .dasha-path__btn");
-    if (houses) houses.hidden = true;
+    const sibs = other.querySelector(":scope > .dasha-path__main > .dasha-path__sibs");
+    const otherBtn = other.querySelector(":scope > .dasha-path__main > .dasha-path__btn");
     if (sibs) sibs.hidden = true;
     if (otherBtn) otherBtn.setAttribute("aria-expanded", "false");
+  });
+  root.querySelectorAll(".dasha-path__houses").forEach((houses) => {
+    if (keepKey && houses.dataset.dashaHousesFor === keepKey) return;
+    houses.hidden = true;
   });
 }
 
@@ -3645,8 +3681,7 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
 
   const row = document.createElement("div");
   row.className = "dasha-path";
-  row.style.setProperty("--dasha-indent", `${levelIndex * 1.15}rem`);
-  if (levelIndex >= 3) row.classList.add("dasha-path--mid-tiles");
+  row.dataset.dashaPath = `${levelIndex}-${period.planet}-${period.fromYears}`;
   if (kind) row.classList.add(`dasha-path--${kind}`);
   applyPlanetStatusCellColorIntensity(row);
 
@@ -3673,6 +3708,7 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
 
   const housesHost = document.createElement("div");
   housesHost.className = "dasha-path__houses";
+  housesHost.dataset.dashaHousesFor = row.dataset.dashaPath;
   housesHost.hidden = true;
 
   const main = document.createElement("div");
@@ -3686,6 +3722,9 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
     sibs.hidden = true;
     main.appendChild(sibs);
   }
+  const nest = document.createElement("div");
+  nest.className = "dasha-path__nest";
+  main.appendChild(nest);
   row.append(housesHost, main);
 
   let housesFilled = false;
@@ -3726,6 +3765,11 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
       });
       sibsFilled = true;
     }
+    if (open) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => positionDashaHouseTiles(row, housesHost));
+      });
+    }
   });
   return row;
 }
@@ -3741,8 +3785,12 @@ function renderDashaAgeStack(host, ageYears, payload, ctx) {
     host.appendChild(empty);
     return;
   }
+  let nestHost = host;
   path.forEach((row) => {
-    host.appendChild(createDashaPathRow(row.levelIndex, row.period, payload, ctx));
+    const el = createDashaPathRow(row.levelIndex, row.period, payload, ctx);
+    nestHost.appendChild(el);
+    const nest = el.querySelector(":scope > .dasha-path__main > .dasha-path__nest");
+    if (nest) nestHost = nest;
   });
 }
 
