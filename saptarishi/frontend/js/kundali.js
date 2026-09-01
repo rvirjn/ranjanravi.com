@@ -3309,6 +3309,100 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   return { wrap, pick, setNeedle };
 }
 
+function planetTableRowByName(rows, planetName) {
+  const want = normalizeText(planetName);
+  if (!want) return null;
+  return (Array.isArray(rows) ? rows : []).find((row) => normalizeText(row?.planet) === want) || null;
+}
+
+function houseLordNameFromRow(row) {
+  const lord = row?.house_lord;
+  if (lord && typeof lord === "object") return String(lord.name || "").trim();
+  return String(lord || "").trim();
+}
+
+/** Houses whose rashi lord is this planet; Rahu/Ketu fall back to the house they sit in. */
+function housesGovernedByPlanet(planetsTable, planetName) {
+  const want = normalizeText(planetName);
+  if (!want) return [];
+  const byHouse = groupPlanetsTableRowsByHouse(planetsTable);
+  const governed = [];
+  for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
+    const sample = (byHouse[houseNum] || [])[0];
+    if (sample && normalizeText(houseLordNameFromRow(sample)) === want) {
+      governed.push(houseNum);
+    }
+  }
+  if (governed.length) return governed;
+  const occupy = planetTableRowByName(planetsTable, planetName);
+  const houseNum = Number(houseFromTableRow(occupy || {}).number);
+  return houseNum >= 1 && houseNum <= 12 ? [houseNum] : [];
+}
+
+function renderDashaLordHouseTiles(container, planetName, payload) {
+  if (!container) return;
+  container.replaceChildren();
+  const planetsTable = payload?.planets_table || [];
+  const houseNums = housesGovernedByPlanet(planetsTable, planetName);
+  if (!houseNums.length) return;
+
+  const byHouse = groupPlanetsTableRowsByHouse(planetsTable);
+
+  houseNums.forEach((houseNum) => {
+    const houseRows = byHouse[houseNum] || [];
+    const sampleRow = houseRows[0];
+    if (!sampleRow) return;
+    const { number: num, for: forRaw } = houseFromTableRow(sampleRow);
+    const forText = formatHouseForList(forRaw);
+    const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
+
+    const representativeRow = pickHouseTileRepresentativeRow(houseRows);
+    const tileStrength = formatHouseTileStrengthPercent(houseRows);
+    const tile = document.createElement("div");
+    tile.className = "house-planets-tile-btn";
+    tile.title = [houseLabel, forText, tileStrength].filter(Boolean).join(" · ");
+    applyHousePlanetsTileStyle(tile, representativeRow);
+    tile.classList.add("dasha-path__house-tile");
+    tile.style.removeProperty("--planet-strength");
+
+    const numEl = document.createElement("span");
+    numEl.className = "house-planets-tile-btn__num";
+    numEl.textContent = houseLabel;
+    tile.appendChild(numEl);
+
+    if (forText) {
+      const forEl = document.createElement("span");
+      forEl.className = "house-planets-tile-btn__for";
+      forEl.textContent = forText;
+      tile.appendChild(forEl);
+    }
+
+    if (tileStrength && tileStrength !== "—") {
+      const pctEl = document.createElement("span");
+      pctEl.className = "house-planets-tile-btn__pct";
+      pctEl.textContent = tileStrength;
+      tile.appendChild(pctEl);
+    }
+
+    container.appendChild(tile);
+  });
+}
+
+function closeOtherDashaPathTiles(keepRow) {
+  const root = keepRow?.closest?.(".dasha-life") || keepRow?.closest?.(".dasha-life__stack");
+  if (!root) return;
+  root.querySelectorAll(".dasha-path").forEach((other) => {
+    if (other === keepRow) return;
+    other.classList.remove("is-expanded");
+    const houses = other.querySelector(":scope > .dasha-path__houses");
+    const sibs = other.querySelector(":scope .dasha-path__sibs");
+    const otherBtn = other.querySelector(":scope .dasha-path__btn");
+    if (houses) houses.hidden = true;
+    if (sibs) sibs.hidden = true;
+    if (otherBtn) otherBtn.setAttribute("aria-expanded", "false");
+  });
+}
+
 function createDashaPathRow(levelIndex, period, payload, ctx) {
   const levels = dashaTreeLevels();
   const level = levels[levelIndex];
@@ -3322,6 +3416,7 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
   const row = document.createElement("div");
   row.className = "dasha-path";
   row.style.setProperty("--dasha-indent", `${levelIndex * 1.15}rem`);
+  if (levelIndex >= 3) row.classList.add("dasha-path--mid-tiles");
   if (kind) row.classList.add(`dasha-path--${kind}`);
   applyPlanetStatusCellColorIntensity(row);
 
@@ -3329,7 +3424,6 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
   btn.type = "button";
   btn.className = "dasha-path__btn";
   btn.setAttribute("aria-expanded", "false");
-  if (!hasChildren) btn.disabled = true;
 
   const levelEl = document.createElement("span");
   levelEl.className = "dasha-path__level";
@@ -3346,21 +3440,39 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
     rangeEl.textContent = range;
     btn.appendChild(rangeEl);
   }
-  row.appendChild(btn);
 
-  if (!hasChildren) return row;
+  const housesHost = document.createElement("div");
+  housesHost.className = "dasha-path__houses";
+  housesHost.hidden = true;
 
-  const extra = document.createElement("div");
-  extra.className = "dasha-path__sibs";
-  extra.hidden = true;
-  row.appendChild(extra);
+  const main = document.createElement("div");
+  main.className = "dasha-path__main";
+  main.appendChild(btn);
+
+  let sibs = null;
+  if (hasChildren) {
+    sibs = document.createElement("div");
+    sibs.className = "dasha-path__sibs";
+    sibs.hidden = true;
+    main.appendChild(sibs);
+  }
+  row.append(housesHost, main);
+
+  let housesFilled = false;
+  let sibsFilled = false;
 
   btn.addEventListener("click", () => {
-    const open = extra.hidden;
-    extra.hidden = !open;
+    const open = housesHost.hidden;
+    if (open) closeOtherDashaPathTiles(row);
+    housesHost.hidden = !open;
+    if (sibs) sibs.hidden = !open;
     row.classList.toggle("is-expanded", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
-    if (open && !extra.childNodes.length) {
+    if (open && !housesFilled) {
+      renderDashaLordHouseTiles(housesHost, period.planet, payload);
+      housesFilled = true;
+    }
+    if (open && hasChildren && sibs && !sibsFilled) {
       dashaChildPeriods(levelIndex + 1, period, ctx).forEach((child) => {
         const sibKind = dashaPlanetColorKind(payload, child.planet);
         const sib = document.createElement("button");
@@ -3380,8 +3492,9 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
           event.stopPropagation();
           ctx.onPickAge(child.fromYears + 1e-4);
         });
-        extra.appendChild(sib);
+        sibs.appendChild(sib);
       });
+      sibsFilled = true;
     }
   });
   return row;
