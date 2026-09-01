@@ -3052,6 +3052,7 @@ function dashaTreeLevels() {
 }
 
 const DASHA_AGE_LINE_MAX = 120;
+const DASHA_MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function dashaChildPeriods(levelIndex, parentPeriod, ctx) {
   if (levelIndex <= 0) return listMahadashaPeriods(ctx.planets);
@@ -3079,23 +3080,50 @@ function dashaPathAtAge(ageYears, planets) {
   ].filter((row) => row.period);
 }
 
-function dashaAgePercent(ageYears) {
-  return `${Math.min(100, Math.max(0, (ageYears / DASHA_AGE_LINE_MAX) * 100))}%`;
+function clampDashaAge(ageYears) {
+  return Math.min(DASHA_AGE_LINE_MAX, Math.max(0, Number(ageYears) || 0));
+}
+
+function dashaAgeLifePercent(ageYears) {
+  return `${Math.min(100, Math.max(0, (clampDashaAge(ageYears) / DASHA_AGE_LINE_MAX) * 100))}%`;
+}
+
+function dashaYearMonthFromAge(ageYears) {
+  const clamped = clampDashaAge(ageYears);
+  let year = Math.floor(clamped + 1e-9);
+  let month = Math.round((clamped - year) * 12);
+  if (month >= 12) {
+    year += 1;
+    month = 0;
+  }
+  if (year > DASHA_AGE_LINE_MAX) {
+    year = DASHA_AGE_LINE_MAX;
+    month = 0;
+  }
+  return { year, month };
+}
+
+function dashaAgeFromYearMonth(year, month) {
+  return clampDashaAge(year + month / 12);
+}
+
+function mahadashaContainingAge(mahadashas, ageYears) {
+  const age = clampDashaAge(ageYears);
+  return mahadashas.find((period) => age >= period.fromYears && age < period.toYears) || null;
 }
 
 function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
+  let selectedAge = clampDashaAge(liveAge);
+  const liveParts = dashaYearMonthFromAge(liveAge);
+  const birthDate = parseBirthDateFromKundaliPayload(payload);
+
   const wrap = document.createElement("div");
   wrap.className = "dasha-age";
-
-  const caption = document.createElement("p");
-  caption.className = "dasha-age__caption";
-  caption.textContent = "Age";
-  wrap.appendChild(caption);
 
   const track = document.createElement("div");
   track.className = "dasha-age__track";
   track.setAttribute("role", "slider");
-  track.setAttribute("aria-label", "Choose age from 0 to 120");
+  track.setAttribute("aria-label", "Life line from age 0 to 120");
   track.setAttribute("aria-valuemin", "0");
   track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
   track.tabIndex = 0;
@@ -3122,64 +3150,162 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   ticks.setAttribute("aria-hidden", "true");
   for (let age = 0; age <= DASHA_AGE_LINE_MAX; age += 10) {
     const tick = document.createElement("span");
-    tick.className = "dasha-age__tick";
-    tick.style.left = dashaAgePercent(age);
-    tick.textContent = String(age);
+    tick.className = age === 0 ? "dasha-age__tick dasha-age__tick--start" : "dasha-age__tick";
+    tick.style.left = dashaAgeLifePercent(age);
+    tick.textContent = age === 0 ? "Age 0" : String(age);
     ticks.appendChild(tick);
   }
 
   const needle = document.createElement("span");
   needle.className = "dasha-age__needle";
   needle.setAttribute("aria-hidden", "true");
-
   const you = document.createElement("span");
   you.className = "dasha-age__you";
-  you.style.left = dashaAgePercent(liveAge);
+  you.style.left = dashaAgeLifePercent(liveAge);
   you.title = "Your age now";
-
   track.append(ticks, needle, you);
   wrap.appendChild(track);
 
-  const picked = document.createElement("p");
-  picked.className = "dasha-age__picked";
-  wrap.appendChild(picked);
+  const yearsRow = document.createElement("div");
+  yearsRow.className = "dasha-age__years-row";
+  const prevYear = document.createElement("button");
+  prevYear.type = "button";
+  prevYear.className = "dasha-age__step";
+  prevYear.textContent = "‹";
+  prevYear.title = "Previous year";
+  const years = document.createElement("div");
+  years.className = "dasha-age__years";
+  const nextYear = document.createElement("button");
+  nextYear.type = "button";
+  nextYear.className = "dasha-age__step";
+  nextYear.textContent = "›";
+  nextYear.title = "Next year";
+  yearsRow.append(prevYear, years, nextYear);
+  wrap.appendChild(yearsRow);
 
-  function setNeedle(ageYears) {
-    needle.style.left = dashaAgePercent(ageYears);
-    track.setAttribute("aria-valuenow", String(Math.round(ageYears)));
-    const round = Math.round(ageYears);
-    const isNow = Math.abs(ageYears - liveAge) < 0.5;
-    picked.textContent = isNow ? `Age ${round} · now` : `Age ${round}`;
+  const yearButtons = [];
+  for (let year = 0; year <= DASHA_AGE_LINE_MAX; year += 1) {
+    const period = mahadashaContainingAge(mahadashas, year + 0.05);
+    const kind = period ? dashaPlanetColorKind(payload, period.planet) : "";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = kind ? `dasha-year dasha-year--${kind}` : "dasha-year";
+    btn.textContent = String(year);
+    btn.dataset.year = String(year);
+    if (kind) applyPlanetStatusCellColorIntensity(btn);
+    if (year === liveParts.year) btn.classList.add("is-live");
+    btn.addEventListener("click", () => {
+      const { month } = dashaYearMonthFromAge(selectedAge);
+      pick(dashaAgeFromYearMonth(year, month));
+    });
+    years.appendChild(btn);
+    yearButtons.push(btn);
   }
 
-  function ageFromPointer(event) {
-    const rect = track.getBoundingClientRect();
-    if (!(rect.width > 0)) return 0;
-    const x = (event.clientX - rect.left) / rect.width;
-    return Math.min(DASHA_AGE_LINE_MAX, Math.max(0, x * DASHA_AGE_LINE_MAX));
+  const months = document.createElement("div");
+  months.className = "dasha-age__months";
+  const monthYear = document.createElement("span");
+  monthYear.className = "dasha-age__month-year";
+  months.appendChild(monthYear);
+  const monthButtons = DASHA_MONTH_LABELS.map((label, monthIndex) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "dasha-month";
+    btn.textContent = label;
+    btn.addEventListener("click", () => {
+      const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
+      const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : new Date().getFullYear();
+      const atMonth = new Date(calYear, monthIndex, 1);
+      pick(clampDashaAge(ageYearsBetween(birthDate, atMonth) || 0));
+    });
+    months.appendChild(btn);
+    return btn;
+  });
+  const nowBtn = document.createElement("button");
+  nowBtn.type = "button";
+  nowBtn.className = "dasha-age__tool";
+  nowBtn.textContent = "Now";
+  nowBtn.title = "Jump to your age now";
+  months.appendChild(nowBtn);
+  wrap.appendChild(months);
+
+  function syncUi() {
+    const { year } = dashaYearMonthFromAge(selectedAge);
+    needle.style.left = dashaAgeLifePercent(selectedAge);
+    track.setAttribute("aria-valuenow", String(year));
+    nowBtn.disabled = Math.abs(selectedAge - liveAge) < 1 / 24;
+    prevYear.disabled = year <= 0;
+    nextYear.disabled = year >= DASHA_AGE_LINE_MAX;
+    yearButtons.forEach((btn, index) => {
+      btn.classList.toggle("is-on", index === year);
+    });
+    const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
+    const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : "";
+    const calMonth = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getMonth() : 0;
+    monthYear.textContent = calYear ? String(calYear) : "";
+    monthButtons.forEach((btn, index) => {
+      btn.classList.toggle("is-on", index === calMonth);
+    });
+    pendingYearCenter = true;
+    centerSelectedYear();
+  }
+
+  let pendingYearCenter = true;
+  function centerSelectedYear() {
+    const { year } = dashaYearMonthFromAge(selectedAge);
+    const activeYear = yearButtons[year];
+    if (!activeYear || !years.clientWidth) return;
+    pendingYearCenter = false;
+    const left = activeYear.offsetLeft - years.clientWidth / 2 + activeYear.offsetWidth / 2;
+    years.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }
+
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(() => {
+      if (pendingYearCenter) centerSelectedYear();
+    }).observe(years);
   }
 
   function pick(ageYears) {
-    setNeedle(ageYears);
-    onPickAge(ageYears);
+    selectedAge = clampDashaAge(ageYears);
+    syncUi();
+    onPickAge(selectedAge);
+  }
+
+  function setNeedle(ageYears) {
+    selectedAge = clampDashaAge(ageYears);
+    syncUi();
   }
 
   track.addEventListener("click", (event) => {
-    pick(ageFromPointer(event));
+    const rect = track.getBoundingClientRect();
+    if (!(rect.width > 0)) return;
+    const x = (event.clientX - rect.left) / rect.width;
+    pick(clampDashaAge(x * DASHA_AGE_LINE_MAX));
   });
   track.addEventListener("keydown", (event) => {
-    const now = Number(track.getAttribute("aria-valuenow") || "0");
-    let next = now;
-    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(DASHA_AGE_LINE_MAX, now + 1);
-    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(0, now - 1);
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = DASHA_AGE_LINE_MAX;
+    const { year, month } = dashaYearMonthFromAge(selectedAge);
+    let nextYearValue = year;
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") nextYearValue = year + 1;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") nextYearValue = year - 1;
+    else if (event.key === "Home") nextYearValue = 0;
+    else if (event.key === "End") nextYearValue = DASHA_AGE_LINE_MAX;
     else return;
     event.preventDefault();
-    pick(next);
+    pick(dashaAgeFromYearMonth(nextYearValue, month));
   });
 
-  setNeedle(liveAge);
+  prevYear.addEventListener("click", () => {
+    const { year, month } = dashaYearMonthFromAge(selectedAge);
+    pick(dashaAgeFromYearMonth(year - 1, month));
+  });
+  nextYear.addEventListener("click", () => {
+    const { year, month } = dashaYearMonthFromAge(selectedAge);
+    pick(dashaAgeFromYearMonth(year + 1, month));
+  });
+  nowBtn.addEventListener("click", () => pick(liveAge));
+
+  syncUi();
   return { wrap, pick, setNeedle };
 }
 
@@ -3299,22 +3425,16 @@ function createDashaExplorer(payload, snapshot) {
 
   const stack = document.createElement("div");
   stack.className = "dasha-life__stack";
-  stack.hidden = true;
-
-  const hint = document.createElement("p");
-  hint.className = "dasha-age__hint";
-  hint.textContent = "Click an age on the line to see dashas.";
 
   function showAt(ageYears) {
-    hint.hidden = true;
-    stack.hidden = false;
     renderDashaAgeStack(stack, ageYears, payload, ctx);
   }
 
   ctx.onPickAge = showAt;
   const line = createDashaAgeLine(mahadashas, payload, liveAge, showAt);
   ctx.onPickAge = (ageYears) => line.pick(ageYears);
-  root.append(line.wrap, hint, stack);
+  root.append(line.wrap, stack);
+  line.pick(liveAge);
   return root;
 }
 

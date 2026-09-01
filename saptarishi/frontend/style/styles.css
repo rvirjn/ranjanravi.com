@@ -1156,19 +1156,37 @@ tbody tr:last-child td {
   margin: 0 0 0.85rem;
 }
 
-.dasha-age__caption {
-  margin: 0 0 0.35rem;
-  font-size: 0.78rem;
+.dasha-age__tool,
+.dasha-age__step {
+  padding: 0.2rem 0.55rem;
+  font: inherit;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--color-primary, #8b6914);
+  background: #fffef5;
+  border: 1px solid #b8952a;
+  border-radius: 0.28rem;
+  cursor: pointer;
+}
+
+.dasha-age__step {
+  flex: 0 0 auto;
+  min-width: 1.25rem;
+  min-height: 1.3rem;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.dasha-age__tool:disabled,
+.dasha-age__step:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .dasha-age__track {
   position: relative;
   height: 2.4rem;
-  margin: 0 0.4rem 1.35rem;
+  margin: 1.2rem 0.4rem 0.45rem;
   background: #fffef5;
   border: 1.5px solid #b8952a;
   border-radius: 0.4rem;
@@ -1217,23 +1235,29 @@ tbody tr:last-child td {
   position: absolute;
   left: 0;
   right: 0;
-  top: 100%;
-  height: 1.2rem;
+  bottom: 100%;
+  height: 1.15rem;
   pointer-events: none;
 }
 
 .dasha-age__tick {
   position: absolute;
-  top: 0.15rem;
+  bottom: 0.12rem;
   transform: translateX(-50%);
   font-size: 0.68rem;
   color: var(--color-text-muted, #5c4f1a);
 }
 
+.dasha-age__tick--start {
+  transform: none;
+  font-weight: 700;
+  color: var(--color-primary, #8b6914);
+}
+
 .dasha-age__needle {
   position: absolute;
-  top: -0.35rem;
-  bottom: -0.35rem;
+  top: 0;
+  bottom: 0;
   width: 2px;
   margin-left: -1px;
   background: #5c4f1a;
@@ -1244,7 +1268,7 @@ tbody tr:last-child td {
 .dasha-age__needle::before {
   content: "";
   position: absolute;
-  top: -0.28rem;
+  top: -0.22rem;
   left: 50%;
   width: 0.7rem;
   height: 0.7rem;
@@ -1256,22 +1280,94 @@ tbody tr:last-child td {
 
 .dasha-age__you {
   position: absolute;
-  top: -0.45rem;
+  top: auto;
+  bottom: -0.45rem;
   width: 0;
   height: 0;
   margin-left: -0.28rem;
   border-left: 0.28rem solid transparent;
   border-right: 0.28rem solid transparent;
-  border-top: 0.4rem solid #8b6914;
+  border-bottom: 0.4rem solid #8b6914;
   pointer-events: none;
   z-index: 3;
 }
 
-.dasha-age__picked {
-  margin: 0.15rem 0.4rem 0;
-  font-size: 0.92rem;
+.dasha-age__years-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.22rem;
+  margin: 0.45rem 0.4rem 0.4rem;
+}
+
+.dasha-age__years {
+  display: flex;
+  gap: 0.12rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 0.06rem 0 0.16rem;
+  scrollbar-width: thin;
+}
+
+.dasha-year,
+.dasha-month {
+  --planet-strength: 0.72;
+  flex: 0 0 auto;
+  padding: 0.06rem 0.14rem;
+  font: inherit;
   font-weight: 700;
   color: var(--color-heading, #1f1806);
+  background: #fffef5;
+  border: 1px solid #b8952a;
+  border-radius: 0.18rem;
+  cursor: pointer;
+  scroll-snap-align: center;
+}
+
+.dasha-year {
+  min-width: 1.3rem;
+  min-height: 1.3rem;
+  font-size: 0.68rem;
+}
+
+.dasha-year.is-on,
+.dasha-month.is-on {
+  box-shadow: inset 0 0 0 2px #5c4f1a;
+}
+
+.dasha-year.is-live {
+  box-shadow: inset 0 -3px 0 #8b6914;
+}
+
+.dasha-year.is-on.is-live {
+  box-shadow: inset 0 0 0 2px #5c4f1a, inset 0 -3px 0 #8b6914;
+}
+
+.dasha-age__months {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.12rem;
+  margin: 0 0.4rem 0.3rem;
+}
+
+.dasha-age__month-year {
+  min-width: 2.1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary, #8b6914);
+}
+
+.dasha-age__months .dasha-age__tool {
+  margin-left: auto;
+  min-height: 1.3rem;
+  padding: 0.06rem 0.4rem;
+  font-size: 0.62rem;
+}
+
+.dasha-month {
+  min-width: 1.55rem;
+  min-height: 1.3rem;
+  font-size: 0.62rem;
 }
 
 .dasha-age__hint,
@@ -1362,7 +1458,10 @@ tbody tr:last-child td {
 .dasha-path--friend > .dasha-path__btn,
 .dasha-sib--high,
 .dasha-sib--own,
-.dasha-sib--friend {
+.dasha-sib--friend,
+.dasha-year--high,
+.dasha-year--own,
+.dasha-year--friend {
   background: rgba(
     var(--planet-color-green-rgb, 46, 125, 50),
     calc(0.28 + var(--planet-strength, 0.72) * 0.5)
@@ -1374,7 +1473,9 @@ tbody tr:last-child td {
 .dasha-path--low > .dasha-path__btn,
 .dasha-path--enemy > .dasha-path__btn,
 .dasha-sib--low,
-.dasha-sib--enemy {
+.dasha-sib--enemy,
+.dasha-year--low,
+.dasha-year--enemy {
   background: rgba(
     var(--planet-color-red-rgb, 183, 28, 28),
     calc(0.24 + var(--planet-strength, 0.72) * 0.45)
