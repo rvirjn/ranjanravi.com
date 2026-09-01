@@ -283,6 +283,18 @@
     });
   }
 
+  function formatDateTimeLabel(value) {
+    if (!value) return "";
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString(undefined, {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
   function formatLongDate(value) {
     const date = value instanceof Date ? value : new Date(value || Date.now());
     if (Number.isNaN(date.getTime())) return "";
@@ -1016,9 +1028,11 @@
     const maha = dashaPlanetLabel(current.mahadashaName);
     const antar = dashaPlanetLabel(current.antardashaName);
     const prat = dashaPlanetLabel(current.pratyantardashaName);
-    const until = snap?.nextChangeDate ? formatDateLabel(snap.nextChangeDate) : "—";
+    const sook = dashaPlanetLabel(current.sookshmadashaName);
+    const prana = dashaPlanetLabel(current.pranadashaName);
+    const until = snap?.nextChangeDate ? formatDateTimeLabel(snap.nextChangeDate) : "—";
     const copy = copyForPlanet(antar || maha);
-    return { snap, maha, antar, prat, until, copy };
+    return { snap, maha, antar, prat, sook, prana, until, copy };
   }
 
   async function initDasha() {
@@ -1040,7 +1054,9 @@
         moonSign ? `Moon in ${moonSign}` : "",
         g.maha ? `${g.maha} mahadasha` : "",
         g.antar ? `${g.antar} antardasha` : "",
-        g.prat ? `${g.prat} pratyantar` : ""
+        g.prat ? `${g.prat} pratyantar` : "",
+        g.sook ? `${g.sook} sookshma` : "",
+        g.prana ? `${g.prana} prana` : ""
       ].filter(Boolean);
       const activeLead = activeBits.length ? `${activeBits.join(" • ")}.` : "Open a kundali to compute dasha.";
       host.innerHTML = `
@@ -1048,6 +1064,8 @@
           <div class="app-stat"><small>Mahadasha</small><strong>${g.maha || "—"}</strong></div>
           <div class="app-stat"><small>Antardasha</small><strong>${g.antar || "—"}</strong></div>
           <div class="app-stat"><small>Pratyantardasha</small><strong>${g.prat || "—"}</strong></div>
+          <div class="app-stat"><small>Sookshmadasha</small><strong>${g.sook || "—"}</strong></div>
+          <div class="app-stat"><small>Prana</small><strong>${g.prana || "—"}</strong></div>
           <div class="app-stat"><small>Until</small><strong>${g.until}</strong></div>
         </div>
         <div class="app-accordion">

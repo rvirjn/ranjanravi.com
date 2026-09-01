@@ -67,12 +67,12 @@
     }
   }
 
-  function paidPlanFooterNote() {
+  function paidPlanNote() {
     const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
     return (
-      `Paid plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries ` +
-      `or ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
+      `Basic Plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries\n` +
+      `Advance Plans: ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
     );
   }
 
@@ -771,7 +771,6 @@
     footer.className = "site-footer";
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ${AC.OPERATOR_NAME} · ${AC.SITE_NAME}</p>
-      <p class="site-footer__note">${paidPlanFooterNote()}</p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
@@ -1049,6 +1048,7 @@
     applyFormFieldLimits,
     contactPhone,
     contactEmail,
+    paidPlanNote,
     privacyPolicyHref
   };
 })(window);

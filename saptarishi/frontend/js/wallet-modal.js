@@ -25,6 +25,26 @@
     return digits ? `+91-${digits}` : String(raw || "");
   }
 
+  function paidPlanNote() {
+    if (CU && CU.paidPlanNote) return CU.paidPlanNote();
+    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
+    const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    return (
+      `Basic Plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries\n` +
+      `Advance Plans: ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
+    );
+  }
+
+  function setCurrentPlanLine(el, detail) {
+    if (!el) return;
+    el.replaceChildren();
+    el.append("Your current Plan: ");
+    const value = document.createElement("span");
+    value.className = "profile-summary__plan-value";
+    value.textContent = detail;
+    el.appendChild(value);
+  }
+
   let overlay = null;
   let resolvePending = null;
   let statusEl = null;
@@ -135,6 +155,7 @@
           <div class="profile-summary__actions">
             <button type="button" id="wallet-modal-add-btn" class="btn-secondary">Add money to wallet</button>
           </div>
+          <p id="wallet-modal-plans-note" class="paid-plans-note"></p>
         </div>
         <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
           <button type="button" class="premium-modal__back" id="wallet-modal-back">← Wallet</button>
@@ -206,6 +227,8 @@
     successPanel = overlay.querySelector("#wallet-modal-success-panel");
     paymentPanel = overlay.querySelector("#wallet-modal-payment-panel");
     planPickerEl = overlay.querySelector("#wallet-modal-plan-picker");
+    const plansNoteEl = overlay.querySelector("#wallet-modal-plans-note");
+    if (plansNoteEl) plansNoteEl.textContent = paidPlanNote();
 
     overlay.querySelector("#wallet-modal-close").addEventListener("click", () => close(false));
     overlay.querySelector("#wallet-modal-done").addEventListener("click", () => close(true));
@@ -297,32 +320,35 @@
               day: "numeric"
             })
           : "";
-        planLineEl.textContent = until
-          ? `Plan: Unlimited · active until ${until}`
-          : "Plan: Unlimited (1 month)";
+        setCurrentPlanLine(
+          planLineEl,
+          until ? `Unlimited · active until ${until}` : "Unlimited (1 month)"
+        );
       } else if (isPaid && tier === "pack_299") {
         const limit = usage.query_limit ?? packQueries;
         const used = usage.queries_used ?? 0;
-        planLineEl.textContent = `Plan: ${limit}-query pack · ${used}/${limit} used`;
+        setCurrentPlanLine(planLineEl, `${limit}-query pack · ${used}/${limit} used`);
       } else if (remediesUnlocked) {
-        planLineEl.textContent =
-          `Plan: Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`;
+        setCurrentPlanLine(
+          planLineEl,
+          `Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`
+        );
       } else {
-        planLineEl.textContent = "Plan: No plan active";
+        setCurrentPlanLine(planLineEl, "No plan active");
       }
     }
 
     if (balanceEl) {
       const addedPart = added > 0 ? ` · Added ₹${added}` : "";
       if (isUnlimited) {
-        balanceEl.textContent = `Wallet: ₹${bal}${addedPart}`;
+        balanceEl.textContent = `Wallet Balance: ₹${bal}${addedPart}`;
       } else if (remediesUnlocked) {
         balanceEl.textContent =
-          `Wallet: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
+          `Wallet Balance: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
           (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
       } else {
         balanceEl.textContent =
-          `Wallet: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
+          `Wallet Balance: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
       }
     }
 

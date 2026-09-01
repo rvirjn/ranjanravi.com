@@ -1145,211 +1145,224 @@ tbody tr:last-child td {
 }
 
 .dasha-stage {
+  display: block;
+}
+
+.dasha-life {
+  width: 100%;
+}
+
+.dasha-age {
+  margin: 0 0 0.85rem;
+}
+
+.dasha-age__caption {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary, #8b6914);
+}
+
+.dasha-age__track {
+  position: relative;
+  height: 2.4rem;
+  margin: 0 0.4rem 1.35rem;
+  background: #fffef5;
+  border: 1.5px solid #b8952a;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.dasha-age__seg {
+  --planet-strength: 0.72;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: clamp(1rem, 3vw, 2rem);
+  border-right: 1px solid rgba(92, 79, 26, 0.25);
 }
 
-.dasha-dial-wrap {
-  flex: 1 1 16rem;
-  max-width: 22rem;
-}
-
-.dasha-dial__maha-out {
-  text-align: center;
-  margin: 0 0 0.45rem;
-  line-height: 1.2;
-}
-
-.dasha-dial__maha-out strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: var(--dasha-maha-title, 1.12rem);
+.dasha-age__seg em {
+  font-style: normal;
+  font-size: 0.62rem;
   font-weight: 700;
+  white-space: nowrap;
   color: var(--color-heading, #1f1806);
-}
-
-.dasha-dial__maha-out span {
-  display: block;
-  margin-top: 0.12rem;
-  font-size: var(--dasha-maha-range, 0.82rem);
-  color: var(--color-text-muted, #5c4f1a);
-}
-
-.dasha-dial {
-  position: relative;
-}
-
-.dasha-dial__svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.dasha-dial__rim {
-  fill: none;
-  stroke: #9a7b1a;
-  stroke-width: 2.4;
-}
-
-/* Unused ring remainder — cream white, not pink/reddish */
-.dasha-dial__track {
-  fill: #fffef5;
-  stroke: #b8952a;
-  stroke-width: 1.35;
-}
-
-.dasha-dial__svg {
-  --planet-strength: 0.72;
-}
-
-/* Same light greens/reds as Mahadasha on Age table cells */
-.dasha-dial__fill--high {
-  fill: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.28 + var(--planet-strength, 0.72) * 0.5)
-  );
-}
-
-.dasha-dial__fill--own {
-  fill: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.26 + var(--planet-strength, 0.72) * 0.5)
-  );
-}
-
-.dasha-dial__fill--friend {
-  fill: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
-  );
-}
-
-.dasha-dial__fill--low {
-  fill: rgba(
-    var(--planet-color-red-rgb, 183, 28, 28),
-    calc(0.24 + var(--planet-strength, 0.72) * 0.45)
-  );
-}
-
-.dasha-dial__fill--enemy {
-  fill: rgba(
-    var(--planet-color-red-rgb, 183, 28, 28),
-    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
-  );
-}
-
-/* White / untinted Mahadasha on Age → light greenish so progress is visible */
-.dasha-dial__fill--cream {
-  fill: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.2);
-}
-
-.dasha-dial__tick {
-  stroke: #5c4f1a;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-}
-
-.dasha-dial__tick-dot {
-  fill: #5c4f1a;
-}
-
-.dasha-dial__disc {
-  fill: #fffef5;
-  stroke: #9a7b1a;
-  stroke-width: 1.8;
-}
-
-.dasha-dial__ring-label {
-  position: absolute;
-  left: 50%;
-  width: 68%;
-  transform: translateX(-50%);
-  text-align: center;
   pointer-events: none;
-  line-height: 1.15;
-  z-index: 1;
 }
 
-.dasha-dial__ring-label--antar {
-  top: 16.5%;
+.dasha-age__seg--high,
+.dasha-age__seg--own,
+.dasha-age__seg--friend {
+  background: rgba(
+    var(--planet-color-green-rgb, 46, 125, 50),
+    calc(0.28 + var(--planet-strength, 0.72) * 0.45)
+  );
 }
 
-.dasha-dial__ring-label strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: var(--dasha-antar-title, 0.78rem);
+.dasha-age__seg--low,
+.dasha-age__seg--enemy {
+  background: rgba(
+    var(--planet-color-red-rgb, 183, 28, 28),
+    calc(0.22 + var(--planet-strength, 0.72) * 0.4)
+  );
+}
+
+.dasha-age__ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 1.2rem;
+  pointer-events: none;
+}
+
+.dasha-age__tick {
+  position: absolute;
+  top: 0.15rem;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: var(--color-text-muted, #5c4f1a);
+}
+
+.dasha-age__needle {
+  position: absolute;
+  top: -0.35rem;
+  bottom: -0.35rem;
+  width: 2px;
+  margin-left: -1px;
+  background: #5c4f1a;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dasha-age__needle::before {
+  content: "";
+  position: absolute;
+  top: -0.28rem;
+  left: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #c9a227;
+  border: 2px solid #5c4f1a;
+  transform: translateX(-50%);
+}
+
+.dasha-age__you {
+  position: absolute;
+  top: -0.45rem;
+  width: 0;
+  height: 0;
+  margin-left: -0.28rem;
+  border-left: 0.28rem solid transparent;
+  border-right: 0.28rem solid transparent;
+  border-top: 0.4rem solid #8b6914;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.dasha-age__picked {
+  margin: 0.15rem 0.4rem 0;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--color-heading, #1f1806);
 }
 
-.dasha-dial__ring-label span {
-  display: block;
-  font-size: var(--dasha-antar-range, 0.66rem);
+.dasha-age__hint,
+.dasha-age__empty {
+  margin: 0.65rem 0.4rem 0;
+  font-size: 0.88rem;
   color: var(--color-text-muted, #5c4f1a);
 }
 
-.dasha-dial__center {
-  position: absolute;
-  inset: 27%;
+.dasha-life__stack {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  max-width: 36rem;
 }
 
-.dasha-dial__level {
-  font-family: var(--font-display);
-  font-size: var(--dasha-pd-level, 0.72rem);
+.dasha-path {
+  --planet-strength: 0.72;
+  --dasha-indent: 0;
+  margin-left: var(--dasha-indent);
+}
+
+.dasha-path__btn {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.55rem;
+  padding: 0.4rem 0.65rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: #fffef5;
+  border: 1.5px solid #b8952a;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.dasha-path__btn:disabled {
+  cursor: default;
+}
+
+.dasha-path__level {
+  font-size: 0.72rem;
   letter-spacing: 0.03em;
   color: var(--color-text-muted, #5c4f1a);
 }
 
-.dasha-dial__planet {
-  margin: 0.15rem 0 0;
+.dasha-path__planet {
   font-family: var(--font-display);
-  font-size: var(--dasha-pd-planet, 1.05rem);
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-heading, #1f1806);
-  line-height: 1.1;
 }
 
-.dasha-dial__rule {
-  display: block;
-  width: 2.4rem;
-  height: 1px;
-  margin: 0.4rem 0 0.35rem;
-  background: var(--color-accent, #c9a227);
-}
-
-.dasha-dial__range {
-  font-size: var(--dasha-pd-range, 0.7rem);
-  line-height: 1.3;
+.dasha-path__range {
+  font-size: 0.78rem;
   color: var(--color-text-muted, #5c4f1a);
 }
 
-.dasha-side {
-  flex: 1 1 14rem;
-  max-width: 22rem;
+.dasha-path__sibs {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin: 0.35rem 0 0 0.15rem;
 }
 
-.dasha-next {
+.dasha-sib {
   --planet-strength: 0.72;
-  padding: 1rem 1.15rem 1.05rem;
-  background: #fffef5;
-  border: 1.5px solid #b8952a;
-  border-radius: var(--radius-md);
+  padding: 0.22rem 0.5rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-heading, #1f1806);
+  background: #fff;
+  border: 1px solid #b8952a;
+  border-radius: 0.28rem;
+  cursor: pointer;
 }
 
-/* Same light cell tint as Mahadasha on Age */
-.dasha-next--high {
+.dasha-sib.is-on {
+  box-shadow: inset 0 0 0 1px rgba(154, 123, 26, 0.45);
+}
+
+.dasha-path--high > .dasha-path__btn,
+.dasha-path--own > .dasha-path__btn,
+.dasha-path--friend > .dasha-path__btn,
+.dasha-sib--high,
+.dasha-sib--own,
+.dasha-sib--friend {
   background: rgba(
     var(--planet-color-green-rgb, 46, 125, 50),
     calc(0.28 + var(--planet-strength, 0.72) * 0.5)
@@ -1358,25 +1371,10 @@ tbody tr:last-child td {
   color: var(--planet-color-green_text, #1b5e20);
 }
 
-.dasha-next--own {
-  background: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.26 + var(--planet-strength, 0.72) * 0.5)
-  );
-  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.55);
-  color: var(--planet-color-green_text, #1b5e20);
-}
-
-.dasha-next--friend {
-  background: rgba(
-    var(--planet-color-green-rgb, 46, 125, 50),
-    calc(0.2 + var(--planet-strength, 0.72) * 0.45)
-  );
-  border-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.5);
-  color: var(--planet-color-green_text, #1b5e20);
-}
-
-.dasha-next--low {
+.dasha-path--low > .dasha-path__btn,
+.dasha-path--enemy > .dasha-path__btn,
+.dasha-sib--low,
+.dasha-sib--enemy {
   background: rgba(
     var(--planet-color-red-rgb, 183, 28, 28),
     calc(0.24 + var(--planet-strength, 0.72) * 0.45)
@@ -1385,184 +1383,47 @@ tbody tr:last-child td {
   color: var(--planet-color-red_text, #6d1010);
 }
 
-.dasha-next--enemy {
-  background: rgba(
-    var(--planet-color-red-rgb, 183, 28, 28),
-    calc(0.18 + var(--planet-strength, 0.72) * 0.4)
-  );
-  border-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.5);
-  color: var(--planet-color-red_text, #6d1010);
-}
-
-.dasha-next__kicker {
-  margin: 0 0 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-primary, #8b6914);
-}
-
-.dasha-next--high .dasha-next__kicker,
-.dasha-next--own .dasha-next__kicker,
-.dasha-next--friend .dasha-next__kicker {
+.dasha-path--high .dasha-path__level,
+.dasha-path--high .dasha-path__range,
+.dasha-path--own .dasha-path__level,
+.dasha-path--own .dasha-path__range,
+.dasha-path--friend .dasha-path__level,
+.dasha-path--friend .dasha-path__range {
   color: var(--planet-color-green_text, #1b5e20);
 }
 
-.dasha-next--low .dasha-next__kicker,
-.dasha-next--enemy .dasha-next__kicker {
+.dasha-path--low .dasha-path__level,
+.dasha-path--low .dasha-path__range,
+.dasha-path--enemy .dasha-path__level,
+.dasha-path--enemy .dasha-path__range {
   color: var(--planet-color-red_text, #6d1010);
 }
 
-.dasha-next__planet {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 700;
-  line-height: 1.15;
-  color: var(--color-heading, #1f1806);
-}
-
-.dasha-next--high .dasha-next__planet,
-.dasha-next--own .dasha-next__planet,
-.dasha-next--friend .dasha-next__planet {
+.dasha-path--high .dasha-path__planet,
+.dasha-path--own .dasha-path__planet,
+.dasha-path--friend .dasha-path__planet {
   color: var(--planet-color-green_text, #1b5e20);
 }
 
-.dasha-next--low .dasha-next__planet,
-.dasha-next--enemy .dasha-next__planet {
+.dasha-path--low .dasha-path__planet,
+.dasha-path--enemy .dasha-path__planet {
   color: var(--planet-color-red_text, #6d1010);
 }
 
-.dasha-next__level,
-.dasha-next__range,
-.dasha-next__eta {
-  margin: 0.2rem 0 0;
-  font-size: 0.88rem;
-  color: var(--color-text-muted, #5c4f1a);
-}
+@media (max-width: 720px) {
+  .dasha-age__seg em {
+    font-size: 0;
+  }
 
-.dasha-next--high .dasha-next__level,
-.dasha-next--high .dasha-next__range,
-.dasha-next--high .dasha-next__eta,
-.dasha-next--own .dasha-next__level,
-.dasha-next--own .dasha-next__range,
-.dasha-next--own .dasha-next__eta,
-.dasha-next--friend .dasha-next__level,
-.dasha-next--friend .dasha-next__range,
-.dasha-next--friend .dasha-next__eta {
-  color: var(--planet-color-green_text, #1b5e20);
-}
-
-.dasha-next--low .dasha-next__level,
-.dasha-next--low .dasha-next__range,
-.dasha-next--low .dasha-next__eta,
-.dasha-next--enemy .dasha-next__level,
-.dasha-next--enemy .dasha-next__range,
-.dasha-next--enemy .dasha-next__eta {
-  color: var(--planet-color-red_text, #6d1010);
-}
-
-.dasha-next__eta {
-  margin-top: 0.7rem;
-  padding-top: 0.65rem;
-  border-top: 1.5px dotted #9a7b1a;
-  font-size: 0.82rem;
-}
-
-.dasha-next--high .dasha-next__eta,
-.dasha-next--own .dasha-next__eta,
-.dasha-next--friend .dasha-next__eta {
-  border-top-color: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.4);
-}
-
-.dasha-next--low .dasha-next__eta,
-.dasha-next--enemy .dasha-next__eta {
-  border-top-color: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.4);
-}
-
-.dasha-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.dasha-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.75rem;
-  background: #fff;
-  border: 1.5px solid #b8952a;
-  border-radius: var(--radius-sm);
-}
-
-.dasha-chip__mark {
-  flex: 0 0 2rem;
-  width: 2rem;
-  height: 2rem;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--color-primary, #8b6914);
-  background: #fff9e8;
-  border: 1.5px solid #b8952a;
-}
-
-.dasha-chip__mark--cream {
-  color: var(--color-text-muted, #5c4f1a);
-  background: #fffef5;
-}
-
-.dasha-chip__mark--high,
-.dasha-chip__mark--own,
-.dasha-chip__mark--friend {
-  color: var(--planet-color-green_text, #1b5e20);
-  background: rgba(var(--planet-color-green-rgb, 46, 125, 50), 0.22);
-}
-
-.dasha-chip__mark--low,
-.dasha-chip__mark--enemy {
-  color: var(--planet-color-red_text, #6d1010);
-  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.18);
-}
-
-.dasha-chip__body {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.dasha-chip__title {
-  font-size: 0.92rem;
-  color: var(--color-heading, #1f1806);
-}
-
-.dasha-chip__status {
-  font-size: 0.78rem;
-  color: var(--color-text-muted, #5c4f1a);
+  .dasha-age__tick:nth-child(even) {
+    display: none;
+  }
 }
 
 .current-dasha-empty {
   margin: 0;
   font-size: 0.95rem;
   color: var(--color-muted, #5a6a7a);
-}
-
-@media (max-width: 720px) {
-  .dasha-stage {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .dasha-dial-wrap,
-  .dasha-side {
-    width: 100%;
-    max-width: min(22rem, 92vw);
-  }
 }
 
 .divisional-charts-lead {
@@ -3029,9 +2890,18 @@ tbody tr:last-child td {
   margin-bottom: 0;
 }
 
+.profile-summary__plan-details {
+  margin: 0 0 0.35rem;
+}
+
 .profile-summary__plan {
+  margin: 0;
   font-weight: 700;
   color: var(--color-heading);
+}
+
+.profile-summary__plan-value {
+  font-weight: 400;
 }
 
 .profile-summary__plan--premium {
@@ -3284,11 +3154,6 @@ body.send-coupon-open {
   margin: 0 0 0.35rem;
   font-weight: 600;
   color: var(--color-heading);
-}
-
-.site-footer__note {
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
 }
 
 .site-footer__privacy-link {
@@ -3932,6 +3797,19 @@ body.premium-modal-open {
 .premium-modal__wallet-summary .profile-summary__wallet,
 .premium-modal__wallet-summary .profile-summary__meta {
   margin: 0 0 0.4rem;
+}
+
+.paid-plans-note {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.profile-summary__plan-details .paid-plans-note {
+  margin: 0.25rem 0 0;
 }
 
 .premium-modal__back {

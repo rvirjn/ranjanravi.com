@@ -2565,6 +2565,42 @@ function formatDashaDayMonthYearRange(fromDate, toDate) {
   return `${from} ${fromDate.getFullYear()} – ${to} ${toDate.getFullYear()}`;
 }
 
+function formatDashaClock(date) {
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function formatDashaDayTimeRange(fromDate, toDate) {
+  if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "";
+  }
+  const fromClock = formatDashaClock(fromDate);
+  const toClock = formatDashaClock(toDate);
+  const sameDay =
+    fromDate.getFullYear() === toDate.getFullYear() &&
+    fromDate.getMonth() === toDate.getMonth() &&
+    fromDate.getDate() === toDate.getDate();
+  if (sameDay) {
+    return `${pad2(fromDate.getDate())} ${dashaMonthShort(fromDate)} ${fromDate.getFullYear()}, ${fromClock} – ${toClock}`;
+  }
+  const fromDay = `${pad2(fromDate.getDate())} ${dashaMonthShort(fromDate)}`;
+  const toDay = `${pad2(toDate.getDate())} ${dashaMonthShort(toDate)}`;
+  if (fromDate.getFullYear() === toDate.getFullYear()) {
+    return `${fromDay} ${fromClock} – ${toDay} ${toClock} ${toDate.getFullYear()}`;
+  }
+  return `${fromDay} ${fromDate.getFullYear()} ${fromClock} – ${toDay} ${toDate.getFullYear()} ${toClock}`;
+}
+
+function formatDashaSookshmaRange(fromDate, toDate) {
+  if (!fromDate || !toDate || Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+    return "";
+  }
+  const spanMs = toDate.getTime() - fromDate.getTime();
+  if (spanMs <= 3 * 24 * 60 * 60 * 1000) {
+    return formatDashaDayTimeRange(fromDate, toDate);
+  }
+  return formatDashaDayMonthYearRange(fromDate, toDate);
+}
+
 function dashaSpanProgress(ageYears, fromYears, toYears) {
   if (!Number.isFinite(ageYears) || !Number.isFinite(fromYears) || !Number.isFinite(toYears)) {
     return 0;
@@ -2574,7 +2610,24 @@ function dashaSpanProgress(ageYears, fromYears, toYears) {
   return Math.min(1, Math.max(0, (ageYears - fromYears) / span));
 }
 
-function formatDashaEta(days) {
+function formatDashaEta(snapshot) {
+  const nextChangeDate = snapshot?.nextChangeDate;
+  const asOfDate = snapshot?.asOfDate;
+  if (nextChangeDate && asOfDate && !Number.isNaN(nextChangeDate.getTime())) {
+    const ms = nextChangeDate.getTime() - asOfDate.getTime();
+    if (ms <= 0) return "now";
+    const minutes = Math.round(ms / 60000);
+    if (minutes < 90) {
+      return minutes <= 1 ? "in 1 minute" : `in ${minutes} minutes`;
+    }
+    const hours = Math.round(ms / 3600000);
+    if (hours < 36) {
+      return hours === 1 ? "in 1 hour" : `in ${hours} hours`;
+    }
+    const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+    return days === 1 ? "in 1 day" : `in ${days} days`;
+  }
+  const days = snapshot?.daysUntilNext;
   if (!Number.isFinite(days)) return "";
   if (days <= 0) return "today";
   if (days === 1) return "in 1 day";
@@ -2599,11 +2652,27 @@ function dashaChangeLevel(current, next) {
       range: next.antardashaRange
     };
   }
+  if (current.pratyantardashaKey !== next.pratyantardashaKey) {
+    return {
+      level: "Pratyantardasha",
+      key: next.pratyantardashaKey,
+      name: next.pratyantardashaName,
+      range: next.pratyantardashaRange
+    };
+  }
+  if (current.sookshmadashaKey !== next.sookshmadashaKey) {
+    return {
+      level: "Sookshmadasha",
+      key: next.sookshmadashaKey,
+      name: next.sookshmadashaName,
+      range: next.sookshmadashaRange
+    };
+  }
   return {
-    level: "Pratyantar dasha",
-    key: next.pratyantardashaKey,
-    name: next.pratyantardashaName,
-    range: next.pratyantardashaRange
+    level: "Prana dasha",
+    key: next.pranadashaKey,
+    name: next.pranadashaName,
+    range: next.pranadashaRange
   };
 }
 
@@ -2719,131 +2788,196 @@ function buildSubPeriodAtOffset(options) {
   return null;
 }
 
-/**
- * Next dasha moment: advance pratyantardasha first; if that was the last
- * pratyantar in the antardasha, advance antardasha; if that was the last
- * antar in the mahadasha, advance mahadasha.
- */
-function findNextDashaMoment(mahadasha, ageYears, planets) {
-  if (!mahadasha) return null;
+function listSubPeriods(options) {
+  const { startLord, parentFromYears, parentDurationYears, durations, sequence } = options;
+  if (!startLord || !sequence.length || !(parentDurationYears > 0) || !Number.isFinite(parentFromYears)) {
+    return [];
+  }
+  const startIdx = sequence.indexOf(startLord);
+  if (startIdx < 0) return [];
+  const periods = [];
+  let cursor = 0;
+  for (let i = 0; i < sequence.length; i += 1) {
+    const lord = sequence[(startIdx + i) % sequence.length];
+    const lordYears = Number(durations[lord] || 0);
+    if (!(lordYears > 0)) continue;
+    const duration = (lordYears / VIMSHOTTARI_TOTAL_YEARS) * parentDurationYears;
+    periods.push({
+      planet: lord,
+      fromOffset: cursor,
+      toOffset: cursor + duration,
+      fromYears: parentFromYears + cursor,
+      toYears: parentFromYears + cursor + duration,
+      durationYears: duration
+    });
+    cursor += duration;
+  }
+  return periods;
+}
+
+function withDashaAbsoluteYears(period, parentFromYears) {
+  if (!period || !Number.isFinite(parentFromYears)) return null;
+  return {
+    ...period,
+    fromYears: parentFromYears + period.fromOffset,
+    toYears: parentFromYears + period.toOffset
+  };
+}
+
+function nestVimshottariDashaLevels(mahadasha, ageYears, planets) {
+  if (!mahadasha) {
+    return { antar: null, pratyantar: null, sookshma: null, prana: null };
+  }
   const sequence = vimshottariSequence();
   const durations = planetMahadashaYearsMap(planets);
   const mdDuration = mahadasha.toYears - mahadasha.fromYears;
   const mdOffset = Math.max(0, ageYears - mahadasha.fromYears);
-  const eps = 1e-8;
 
-  const antardasha = buildSubPeriodAtOffset({
-    startLord: mahadasha.planet,
-    parentDurationYears: mdDuration,
-    ageOffsetYears: mdOffset,
-    durations,
-    sequence
-  });
-
-  if (antardasha) {
-    const pratyantardasha = buildSubPeriodAtOffset({
-      startLord: antardasha.planet,
-      parentDurationYears: antardasha.durationYears,
-      ageOffsetYears: Math.max(0, mdOffset - antardasha.fromOffset),
+  const antar = withDashaAbsoluteYears(
+    buildSubPeriodAtOffset({
+      startLord: mahadasha.planet,
+      parentDurationYears: mdDuration,
+      ageOffsetYears: mdOffset,
       durations,
       sequence
-    });
-    const adEndAge = mahadasha.fromYears + antardasha.toOffset;
+    }),
+    mahadasha.fromYears
+  );
+  const pratyantar = antar
+    ? withDashaAbsoluteYears(
+        buildSubPeriodAtOffset({
+          startLord: antar.planet,
+          parentDurationYears: antar.durationYears,
+          ageOffsetYears: Math.max(0, ageYears - antar.fromYears),
+          durations,
+          sequence
+        }),
+        antar.fromYears
+      )
+    : null;
+  const sookshma = pratyantar
+    ? withDashaAbsoluteYears(
+        buildSubPeriodAtOffset({
+          startLord: pratyantar.planet,
+          parentDurationYears: pratyantar.durationYears,
+          ageOffsetYears: Math.max(0, ageYears - pratyantar.fromYears),
+          durations,
+          sequence
+        }),
+        pratyantar.fromYears
+      )
+    : null;
+  const prana = sookshma
+    ? withDashaAbsoluteYears(
+        buildSubPeriodAtOffset({
+          startLord: sookshma.planet,
+          parentDurationYears: sookshma.durationYears,
+          ageOffsetYears: Math.max(0, ageYears - sookshma.fromYears),
+          durations,
+          sequence
+        }),
+        sookshma.fromYears
+      )
+    : null;
+  return { antar, pratyantar, sookshma, prana };
+}
 
-    if (pratyantardasha) {
-      const pdEndAge =
-        mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset;
-      // Next pratyantardasha within the same antardasha.
-      if (pdEndAge < adEndAge - eps) {
-        return { ageYears: pdEndAge + eps, mahadasha };
-      }
-    }
+/**
+ * Next dasha moment: advance the finest level first (prana → sookshma →
+ * pratyantar → antar → maha).
+ */
+function findNextDashaMoment(mahadasha, ageYears, planets) {
+  if (!mahadasha) return null;
+  const nested = nestVimshottariDashaLevels(mahadasha, ageYears, planets);
+  const eps = 1e-8;
+  const { antar, pratyantar, sookshma, prana } = nested;
 
-    // Last pratyantardasha (or none) → next antardasha in this mahadasha.
-    if (adEndAge < mahadasha.toYears - eps) {
-      return { ageYears: adEndAge + eps, mahadasha };
-    }
+  if (prana && sookshma && prana.toYears < sookshma.toYears - eps) {
+    return { ageYears: prana.toYears + eps, mahadasha };
+  }
+  if (sookshma && pratyantar && sookshma.toYears < pratyantar.toYears - eps) {
+    return { ageYears: sookshma.toYears + eps, mahadasha };
+  }
+  if (pratyantar && antar && pratyantar.toYears < antar.toYears - eps) {
+    return { ageYears: pratyantar.toYears + eps, mahadasha };
+  }
+  if (antar && antar.toYears < mahadasha.toYears - eps) {
+    return { ageYears: antar.toYears + eps, mahadasha };
   }
 
-  // Last antardasha → next mahadasha.
   const nextMahadasha = findNextMahadashaPeriod(planets, mahadasha);
   if (!nextMahadasha) return null;
   return { ageYears: nextMahadasha.fromYears, mahadasha: nextMahadasha };
 }
 
+function dashaSnapshotLevelFields(birthDate, ageYears, period, nameKey, rangeKey, yearsKey, progressKey, formatRange) {
+  const fromDate = period ? dateFromBirthAgeYears(birthDate, period.fromYears) : null;
+  const toDate = period ? dateFromBirthAgeYears(birthDate, period.toYears) : null;
+  return {
+    [nameKey]: period ? toTitleCaseWords(period.planet) : "—",
+    [rangeKey]: period && formatRange ? formatRange(fromDate, toDate) : "",
+    [yearsKey]: period?.durationYears || 0,
+    [progressKey]: dashaSpanProgress(ageYears, period?.fromYears, period?.toYears)
+  };
+}
+
 function buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets) {
   if (!birthDate || !mahadasha) return null;
-  const sequence = vimshottariSequence();
-  const durations = planetMahadashaYearsMap(planets);
+  const nested = nestVimshottariDashaLevels(mahadasha, ageYears, planets);
   const mdDuration = mahadasha.toYears - mahadasha.fromYears;
-  const mdOffset = Math.max(0, ageYears - mahadasha.fromYears);
-  const antardasha = buildSubPeriodAtOffset({
-    startLord: mahadasha.planet,
-    parentDurationYears: mdDuration,
-    ageOffsetYears: mdOffset,
-    durations,
-    sequence
-  });
-
-  let pratyantardasha = null;
-  if (antardasha) {
-    pratyantardasha = buildSubPeriodAtOffset({
-      startLord: antardasha.planet,
-      parentDurationYears: antardasha.durationYears,
-      ageOffsetYears: Math.max(0, mdOffset - antardasha.fromOffset),
-      durations,
-      sequence
-    });
-  }
-
-  const adFromYears = antardasha ? mahadasha.fromYears + antardasha.fromOffset : null;
-  const adToYears = antardasha ? mahadasha.fromYears + antardasha.toOffset : null;
-  const pdFromYears =
-    antardasha && pratyantardasha
-      ? mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.fromOffset
-      : null;
-  const pdToYears =
-    antardasha && pratyantardasha
-      ? mahadasha.fromYears + antardasha.fromOffset + pratyantardasha.toOffset
-      : null;
-
   const mdFromDate = dateFromBirthAgeYears(birthDate, mahadasha.fromYears);
   const mdToDate = dateFromBirthAgeYears(birthDate, mahadasha.toYears);
-  const adFromDate = Number.isFinite(adFromYears)
-    ? dateFromBirthAgeYears(birthDate, adFromYears)
-    : null;
-  const adToDate = Number.isFinite(adToYears)
-    ? dateFromBirthAgeYears(birthDate, adToYears)
-    : null;
-  const pdFromDate = Number.isFinite(pdFromYears)
-    ? dateFromBirthAgeYears(birthDate, pdFromYears)
-    : null;
-  const pdToDate = Number.isFinite(pdToYears)
-    ? dateFromBirthAgeYears(birthDate, pdToYears)
-    : null;
 
   return {
     mahadashaName: toTitleCaseWords(mahadasha.planet),
     mahadashaRange: formatDashaYearRange(mdFromDate, mdToDate),
-    antardashaName: antardasha ? toTitleCaseWords(antardasha.planet) : "—",
-    antardashaRange: antardasha
-      ? formatDashaMonthYearRange(adFromDate, adToDate)
-      : "",
-    pratyantardashaName: pratyantardasha
-      ? toTitleCaseWords(pratyantardasha.planet)
-      : "—",
-    pratyantardashaRange: pratyantardasha
-      ? formatDashaDayMonthYearRange(pdFromDate, pdToDate)
-      : "",
     mahadashaKey: mahadasha.planet,
-    antardashaKey: antardasha?.planet || "",
-    pratyantardashaKey: pratyantardasha?.planet || "",
     mahadashaYears: mdDuration,
-    antardashaYears: antardasha?.durationYears || 0,
-    pratyantardashaYears: pratyantardasha?.durationYears || 0,
     mahadashaProgress: dashaSpanProgress(ageYears, mahadasha.fromYears, mahadasha.toYears),
-    antardashaProgress: dashaSpanProgress(ageYears, adFromYears, adToYears),
-    pratyantardashaProgress: dashaSpanProgress(ageYears, pdFromYears, pdToYears)
+    antardashaKey: nested.antar?.planet || "",
+    pratyantardashaKey: nested.pratyantar?.planet || "",
+    sookshmadashaKey: nested.sookshma?.planet || "",
+    pranadashaKey: nested.prana?.planet || "",
+    ...dashaSnapshotLevelFields(
+      birthDate,
+      ageYears,
+      nested.antar,
+      "antardashaName",
+      "antardashaRange",
+      "antardashaYears",
+      "antardashaProgress",
+      formatDashaMonthYearRange
+    ),
+    ...dashaSnapshotLevelFields(
+      birthDate,
+      ageYears,
+      nested.pratyantar,
+      "pratyantardashaName",
+      "pratyantardashaRange",
+      "pratyantardashaYears",
+      "pratyantardashaProgress",
+      formatDashaDayMonthYearRange
+    ),
+    ...dashaSnapshotLevelFields(
+      birthDate,
+      ageYears,
+      nested.sookshma,
+      "sookshmadashaName",
+      "sookshmadashaRange",
+      "sookshmadashaYears",
+      "sookshmadashaProgress",
+      formatDashaSookshmaRange
+    ),
+    ...dashaSnapshotLevelFields(
+      birthDate,
+      ageYears,
+      nested.prana,
+      "pranadashaName",
+      "pranadashaRange",
+      "pranadashaYears",
+      "pranadashaProgress",
+      formatDashaDayTimeRange
+    )
   };
 }
 
@@ -2907,400 +3041,281 @@ function dashaPlanetColorKind(payload, planetKey) {
   return kind;
 }
 
-function dashaFillClass(kind) {
-  return kind
-    ? `dasha-dial__fill dasha-dial__fill--${kind}`
-    : "dasha-dial__fill dasha-dial__fill--cream";
+function dashaTreeLevels() {
+  return [
+    { label: "Mahadasha", formatRange: formatDashaYearRange },
+    { label: "Antardasha", formatRange: formatDashaMonthYearRange },
+    { label: "Pratyantardasha", formatRange: formatDashaDayMonthYearRange },
+    { label: "Sookshmadasha", formatRange: formatDashaSookshmaRange },
+    { label: "Prana", formatRange: formatDashaDayTimeRange }
+  ];
 }
 
-function dashaDurationWeight(years) {
-  return Math.pow(Math.max(Number(years) || 0, 0.03), 0.38);
-}
+const DASHA_AGE_LINE_MAX = 120;
 
-/** Ring thickness + type scale from Maha / Antar / Pratyantar duration. */
-function dashaDurationLayout(snapshot) {
-  const size = 440;
-  const cx = size / 2;
-  const cy = size / 2;
-  const outer = 208;
-  const discMin = 78;
-  const gap = 4;
-  const budget = outer - discMin - gap * 2;
-  const mw = dashaDurationWeight(snapshot.mahadashaYears);
-  const aw = dashaDurationWeight(snapshot.antardashaYears);
-  const pw = dashaDurationWeight(snapshot.pratyantardashaYears);
-  const sum = mw + aw + pw || 1;
-  const fracM = mw / sum;
-  const fracA = aw / sum;
-  const fracP = pw / sum;
-  let maha = fracM * budget;
-  let antar = fracA * budget;
-  let pd = fracP * budget;
-  maha = Math.max(36, maha);
-  antar = Math.max(18, antar);
-  pd = Math.max(11, pd);
-  const total = maha + antar + pd;
-  if (total > budget) {
-    const scale = budget / total;
-    maha *= scale;
-    antar *= scale;
-    pd *= scale;
-  }
-  maha = Math.round(maha);
-  antar = Math.round(antar);
-  pd = Math.round(pd);
-  const mahaOuter = outer;
-  const mahaInner = mahaOuter - maha;
-  const antarOuter = mahaInner - gap;
-  const antarInner = antarOuter - antar;
-  const pdOuter = antarInner - gap;
-  const pdInner = pdOuter - pd;
-  const discR = Math.max(70, pdInner - 3);
-  const antarMid = (antarOuter + antarInner) / 2;
-  return {
-    size,
-    cx,
-    cy,
-    maha,
-    antar,
-    pratyantar: pd,
-    mahaOuter,
-    mahaInner,
-    antarOuter,
-    antarInner,
-    pdOuter,
-    pdInner,
-    discR,
-    antarLabelTop: ((cy - antarMid) / size) * 100 - 2.2,
-    centerInset: ((cy - discR) / size) * 100,
-    fonts: {
-      mahaTitle: `${(0.92 + fracM * 0.42).toFixed(3)}rem`,
-      mahaRange: `${(0.72 + fracM * 0.22).toFixed(3)}rem`,
-      antarTitle: `${(0.68 + fracA * 0.38).toFixed(3)}rem`,
-      antarRange: `${(0.6 + fracA * 0.22).toFixed(3)}rem`,
-      pdLevel: `${(0.66 + fracP * 0.22).toFixed(3)}rem`,
-      pdPlanet: `${(0.92 + fracP * 0.55).toFixed(3)}rem`,
-      pdRange: `${(0.62 + fracP * 0.22).toFixed(3)}rem`
-    }
-  };
-}
-
-function dashaAnnularRingPath(cx, cy, innerR, outerR) {
-  return (
-    `M ${cx} ${cy - outerR} A ${outerR} ${outerR} 0 1 1 ${cx} ${cy + outerR} ` +
-    `A ${outerR} ${outerR} 0 1 1 ${cx} ${cy - outerR} Z ` +
-    `M ${cx} ${cy - innerR} A ${innerR} ${innerR} 0 1 0 ${cx} ${cy + innerR} ` +
-    `A ${innerR} ${innerR} 0 1 0 ${cx} ${cy - innerR} Z`
-  );
-}
-
-function dashaAnnularSectorPath(cx, cy, innerR, outerR, startRad, endRad) {
-  const sweep = endRad - startRad;
-  if (sweep <= 0) return "";
-  if (sweep >= Math.PI * 2 - 1e-6) return dashaAnnularRingPath(cx, cy, innerR, outerR);
-  const x0o = cx + outerR * Math.cos(startRad);
-  const y0o = cy + outerR * Math.sin(startRad);
-  const x1o = cx + outerR * Math.cos(endRad);
-  const y1o = cy + outerR * Math.sin(endRad);
-  const x0i = cx + innerR * Math.cos(startRad);
-  const y0i = cy + innerR * Math.sin(startRad);
-  const x1i = cx + innerR * Math.cos(endRad);
-  const y1i = cy + innerR * Math.sin(endRad);
-  const large = sweep > Math.PI ? 1 : 0;
-  return (
-    `M ${x0o} ${y0o} A ${outerR} ${outerR} 0 ${large} 1 ${x1o} ${y1o} ` +
-    `L ${x1i} ${y1i} A ${innerR} ${innerR} 0 ${large} 0 ${x0i} ${y0i} Z`
-  );
-}
-
-function appendDashaBand(svg, svgNS, options) {
-  const { cx, cy, innerR, outerR, progress, trackClass, progressClass } = options;
-  const track = document.createElementNS(svgNS, "path");
-  track.setAttribute("d", dashaAnnularRingPath(cx, cy, innerR, outerR));
-  track.setAttribute("class", trackClass);
-  track.setAttribute("fill-rule", "evenodd");
-  svg.appendChild(track);
-
-  const frac = Math.min(1, Math.max(0, Number(progress) || 0));
-  if (frac <= 0.004) return;
-  const start = -Math.PI / 2;
-  const end = start + frac * Math.PI * 2;
-  const sector = document.createElementNS(svgNS, "path");
-  sector.setAttribute("d", dashaAnnularSectorPath(cx, cy, innerR, outerR, start, end));
-  sector.setAttribute("class", progressClass);
-  svg.appendChild(sector);
-}
-
-function appendDashaStartMark(svg, svgNS, cx, cy, outerR, innerR) {
-  const line = document.createElementNS(svgNS, "line");
-  line.setAttribute("x1", String(cx));
-  line.setAttribute("y1", String(cy - outerR));
-  line.setAttribute("x2", String(cx));
-  line.setAttribute("y2", String(cy - innerR));
-  line.setAttribute("class", "dasha-dial__tick");
-  svg.appendChild(line);
-  const dot = document.createElementNS(svgNS, "circle");
-  dot.setAttribute("cx", String(cx));
-  dot.setAttribute("cy", String(cy - outerR));
-  dot.setAttribute("r", "3.2");
-  dot.setAttribute("class", "dasha-dial__tick-dot");
-  svg.appendChild(dot);
-}
-
-function createDashaDialSvg(snapshot, payload, layout) {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const { size, cx, cy } = layout;
-  const mahaColor = dashaPlanetColorKind(payload, snapshot.mahadashaKey);
-  const antarColor = dashaPlanetColorKind(payload, snapshot.antardashaKey);
-  const pdColor = dashaPlanetColorKind(payload, snapshot.pratyantardashaKey);
-
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-  svg.setAttribute("class", "dasha-dial__svg");
-  svg.setAttribute("role", "img");
-  svg.setAttribute(
-    "aria-label",
-    `Mahadasha ${snapshot.mahadashaName}, Antardasha ${snapshot.antardashaName}, Pratyantar ${snapshot.pratyantardashaName}`
-  );
-  applyPlanetStatusCellColorIntensity(svg);
-
-  const defs = document.createElementNS(svgNS, "defs");
-  const filter = document.createElementNS(svgNS, "filter");
-  filter.setAttribute("id", "dasha-disc-shadow");
-  filter.setAttribute("x", "-25%");
-  filter.setAttribute("y", "-25%");
-  filter.setAttribute("width", "150%");
-  filter.setAttribute("height", "150%");
-  const shadow = document.createElementNS(svgNS, "feDropShadow");
-  shadow.setAttribute("dx", "0");
-  shadow.setAttribute("dy", "3");
-  shadow.setAttribute("stdDeviation", "5");
-  shadow.setAttribute("flood-color", "#5c4f1a");
-  shadow.setAttribute("flood-opacity", "0.14");
-  filter.appendChild(shadow);
-  defs.appendChild(filter);
-  svg.appendChild(defs);
-
-  const rim = document.createElementNS(svgNS, "circle");
-  rim.setAttribute("cx", String(cx));
-  rim.setAttribute("cy", String(cy));
-  rim.setAttribute("r", String(layout.mahaOuter + 6));
-  rim.setAttribute("class", "dasha-dial__rim");
-  svg.appendChild(rim);
-
-  appendDashaBand(svg, svgNS, {
-    cx,
-    cy,
-    innerR: layout.mahaInner,
-    outerR: layout.mahaOuter,
-    progress: snapshot.mahadashaProgress,
-    trackClass: "dasha-dial__track",
-    progressClass: dashaFillClass(mahaColor)
+function dashaChildPeriods(levelIndex, parentPeriod, ctx) {
+  if (levelIndex <= 0) return listMahadashaPeriods(ctx.planets);
+  if (!parentPeriod) return [];
+  return listSubPeriods({
+    startLord: parentPeriod.planet,
+    parentFromYears: parentPeriod.fromYears,
+    parentDurationYears: parentPeriod.toYears - parentPeriod.fromYears,
+    durations: ctx.durations,
+    sequence: ctx.sequence
   });
-  appendDashaBand(svg, svgNS, {
-    cx,
-    cy,
-    innerR: layout.antarInner,
-    outerR: layout.antarOuter,
-    progress: snapshot.antardashaProgress,
-    trackClass: "dasha-dial__track",
-    progressClass: dashaFillClass(antarColor)
-  });
-  appendDashaBand(svg, svgNS, {
-    cx,
-    cy,
-    innerR: layout.pdInner,
-    outerR: layout.pdOuter,
-    progress: snapshot.pratyantardashaProgress,
-    trackClass: "dasha-dial__track",
-    progressClass: dashaFillClass(pdColor)
-  });
-  appendDashaStartMark(svg, svgNS, cx, cy, layout.mahaOuter, layout.pdInner);
-
-  const disc = document.createElementNS(svgNS, "circle");
-  disc.setAttribute("cx", String(cx));
-  disc.setAttribute("cy", String(cy));
-  disc.setAttribute("r", String(layout.discR));
-  disc.setAttribute("class", "dasha-dial__disc");
-  disc.setAttribute("filter", "url(#dasha-disc-shadow)");
-  svg.appendChild(disc);
-  return svg;
 }
 
-function appendDashaRingLabel(host, extraClass, title, range, styleVars) {
-  const label = document.createElement("div");
-  label.className = extraClass;
-  if (styleVars) {
-    Object.entries(styleVars).forEach(([key, value]) => {
-      if (value != null && value !== "") label.style.setProperty(key, String(value));
-    });
-  }
-  const strong = document.createElement("strong");
-  strong.textContent = title;
-  label.appendChild(strong);
-  if (range) {
-    const span = document.createElement("span");
-    span.textContent = range;
-    label.appendChild(span);
-  }
-  host.appendChild(label);
-  return label;
+function dashaPathAtAge(ageYears, planets) {
+  const lookupAge = Math.min(Math.max(ageYears, 0), DASHA_AGE_LINE_MAX - 1e-6);
+  const maha = findMahadashaPeriodAtAge(planets, lookupAge);
+  if (!maha) return [];
+  const nested = nestVimshottariDashaLevels(maha, lookupAge, planets);
+  return [
+    { levelIndex: 0, period: maha },
+    { levelIndex: 1, period: nested.antar },
+    { levelIndex: 2, period: nested.pratyantar },
+    { levelIndex: 3, period: nested.sookshma },
+    { levelIndex: 4, period: nested.prana }
+  ].filter((row) => row.period);
 }
 
-function createDashaDial(snapshot, payload) {
-  const layout = dashaDurationLayout(snapshot);
+function dashaAgePercent(ageYears) {
+  return `${Math.min(100, Math.max(0, (ageYears / DASHA_AGE_LINE_MAX) * 100))}%`;
+}
+
+function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const wrap = document.createElement("div");
-  wrap.className = "dasha-dial-wrap";
-  wrap.style.setProperty("--dasha-maha-title", layout.fonts.mahaTitle);
-  wrap.style.setProperty("--dasha-maha-range", layout.fonts.mahaRange);
-  wrap.style.setProperty("--dasha-antar-title", layout.fonts.antarTitle);
-  wrap.style.setProperty("--dasha-antar-range", layout.fonts.antarRange);
-  wrap.style.setProperty("--dasha-pd-level", layout.fonts.pdLevel);
-  wrap.style.setProperty("--dasha-pd-planet", layout.fonts.pdPlanet);
-  wrap.style.setProperty("--dasha-pd-range", layout.fonts.pdRange);
+  wrap.className = "dasha-age";
 
-  appendDashaRingLabel(
-    wrap,
-    "dasha-dial__maha-out",
-    `Maha · ${snapshot.mahadashaName || "—"}`,
-    snapshot.mahadashaRange
-  );
+  const caption = document.createElement("p");
+  caption.className = "dasha-age__caption";
+  caption.textContent = "Age";
+  wrap.appendChild(caption);
 
-  const dial = document.createElement("div");
-  dial.className = "dasha-dial";
-  dial.appendChild(createDashaDialSvg(snapshot, payload, layout));
-  const antarLabel = appendDashaRingLabel(
-    dial,
-    "dasha-dial__ring-label dasha-dial__ring-label--antar",
-    `Antar · ${snapshot.antardashaName || "—"}`,
-    snapshot.antardashaRange
-  );
-  antarLabel.style.top = `${layout.antarLabelTop}%`;
+  const track = document.createElement("div");
+  track.className = "dasha-age__track";
+  track.setAttribute("role", "slider");
+  track.setAttribute("aria-label", "Choose age from 0 to 120");
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
+  track.tabIndex = 0;
 
-  const center = document.createElement("div");
-  center.className = "dasha-dial__center";
-  center.style.inset = `${layout.centerInset}%`;
+  mahadashas.forEach((period) => {
+    const left = (period.fromYears / DASHA_AGE_LINE_MAX) * 100;
+    const width = ((period.toYears - period.fromYears) / DASHA_AGE_LINE_MAX) * 100;
+    if (width <= 0) return;
+    const kind = dashaPlanetColorKind(payload, period.planet);
+    const seg = document.createElement("span");
+    seg.className = kind ? `dasha-age__seg dasha-age__seg--${kind}` : "dasha-age__seg";
+    seg.style.left = `${Math.max(0, left)}%`;
+    seg.style.width = `${Math.min(100 - Math.max(0, left), width)}%`;
+    seg.title = `${toTitleCaseWords(period.planet)} mahadasha`;
+    applyPlanetStatusCellColorIntensity(seg);
+    const label = document.createElement("em");
+    label.textContent = toTitleCaseWords(period.planet);
+    seg.appendChild(label);
+    track.appendChild(seg);
+  });
 
-  const level = document.createElement("span");
-  level.className = "dasha-dial__level";
-  level.textContent = "Pratyantar";
-  center.appendChild(level);
-
-  const planet = document.createElement("strong");
-  planet.className = "dasha-dial__planet";
-  planet.textContent = snapshot.pratyantardashaName || "—";
-  center.appendChild(planet);
-
-  if (snapshot.pratyantardashaRange) {
-    const rule = document.createElement("span");
-    rule.className = "dasha-dial__rule";
-    rule.setAttribute("aria-hidden", "true");
-    center.appendChild(rule);
-
-    const range = document.createElement("span");
-    range.className = "dasha-dial__range";
-    range.textContent = snapshot.pratyantardashaRange;
-    center.appendChild(range);
+  const ticks = document.createElement("div");
+  ticks.className = "dasha-age__ticks";
+  ticks.setAttribute("aria-hidden", "true");
+  for (let age = 0; age <= DASHA_AGE_LINE_MAX; age += 10) {
+    const tick = document.createElement("span");
+    tick.className = "dasha-age__tick";
+    tick.style.left = dashaAgePercent(age);
+    tick.textContent = String(age);
+    ticks.appendChild(tick);
   }
-  dial.appendChild(center);
-  wrap.appendChild(dial);
-  return wrap;
+
+  const needle = document.createElement("span");
+  needle.className = "dasha-age__needle";
+  needle.setAttribute("aria-hidden", "true");
+
+  const you = document.createElement("span");
+  you.className = "dasha-age__you";
+  you.style.left = dashaAgePercent(liveAge);
+  you.title = "Your age now";
+
+  track.append(ticks, needle, you);
+  wrap.appendChild(track);
+
+  const picked = document.createElement("p");
+  picked.className = "dasha-age__picked";
+  wrap.appendChild(picked);
+
+  function setNeedle(ageYears) {
+    needle.style.left = dashaAgePercent(ageYears);
+    track.setAttribute("aria-valuenow", String(Math.round(ageYears)));
+    const round = Math.round(ageYears);
+    const isNow = Math.abs(ageYears - liveAge) < 0.5;
+    picked.textContent = isNow ? `Age ${round} · now` : `Age ${round}`;
+  }
+
+  function ageFromPointer(event) {
+    const rect = track.getBoundingClientRect();
+    if (!(rect.width > 0)) return 0;
+    const x = (event.clientX - rect.left) / rect.width;
+    return Math.min(DASHA_AGE_LINE_MAX, Math.max(0, x * DASHA_AGE_LINE_MAX));
+  }
+
+  function pick(ageYears) {
+    setNeedle(ageYears);
+    onPickAge(ageYears);
+  }
+
+  track.addEventListener("click", (event) => {
+    pick(ageFromPointer(event));
+  });
+  track.addEventListener("keydown", (event) => {
+    const now = Number(track.getAttribute("aria-valuenow") || "0");
+    let next = now;
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(DASHA_AGE_LINE_MAX, now + 1);
+    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(0, now - 1);
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = DASHA_AGE_LINE_MAX;
+    else return;
+    event.preventDefault();
+    pick(next);
+  });
+
+  setNeedle(liveAge);
+  return { wrap, pick, setNeedle };
 }
 
-function createDashaChip(label, name, running, toneClass) {
-  const chip = document.createElement("div");
-  chip.className = "dasha-chip";
+function createDashaPathRow(levelIndex, period, payload, ctx) {
+  const levels = dashaTreeLevels();
+  const level = levels[levelIndex];
+  const kind = dashaPlanetColorKind(payload, period.planet);
+  const name = toTitleCaseWords(period.planet);
+  const fromDate = dateFromBirthAgeYears(ctx.birthDate, period.fromYears);
+  const toDate = dateFromBirthAgeYears(ctx.birthDate, period.toYears);
+  const range = level.formatRange(fromDate, toDate);
+  const hasChildren = levelIndex < levels.length - 1;
 
-  const mark = document.createElement("span");
-  mark.className = toneClass ? `dasha-chip__mark ${toneClass}` : "dasha-chip__mark";
-  mark.setAttribute("aria-hidden", "true");
-  mark.textContent = String(name || "?").trim().charAt(0).toUpperCase() || "•";
-  chip.appendChild(mark);
+  const row = document.createElement("div");
+  row.className = "dasha-path";
+  row.style.setProperty("--dasha-indent", `${levelIndex * 1.15}rem`);
+  if (kind) row.classList.add(`dasha-path--${kind}`);
+  applyPlanetStatusCellColorIntensity(row);
 
-  const body = document.createElement("div");
-  body.className = "dasha-chip__body";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "dasha-path__btn";
+  btn.setAttribute("aria-expanded", "false");
+  if (!hasChildren) btn.disabled = true;
 
-  const title = document.createElement("strong");
-  title.className = "dasha-chip__title";
-  title.textContent = `${label} ${name || "—"}`;
-  body.appendChild(title);
+  const levelEl = document.createElement("span");
+  levelEl.className = "dasha-path__level";
+  levelEl.textContent = level.label;
 
-  const status = document.createElement("span");
-  status.className = "dasha-chip__status";
-  status.textContent = running ? "still running" : "changes next";
-  body.appendChild(status);
+  const planetEl = document.createElement("strong");
+  planetEl.className = "dasha-path__planet";
+  planetEl.textContent = name || "—";
 
-  chip.appendChild(body);
-  return chip;
+  btn.append(levelEl, planetEl);
+  if (range) {
+    const rangeEl = document.createElement("span");
+    rangeEl.className = "dasha-path__range";
+    rangeEl.textContent = range;
+    btn.appendChild(rangeEl);
+  }
+  row.appendChild(btn);
+
+  if (!hasChildren) return row;
+
+  const extra = document.createElement("div");
+  extra.className = "dasha-path__sibs";
+  extra.hidden = true;
+  row.appendChild(extra);
+
+  btn.addEventListener("click", () => {
+    const open = extra.hidden;
+    extra.hidden = !open;
+    row.classList.toggle("is-expanded", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open && !extra.childNodes.length) {
+      dashaChildPeriods(levelIndex + 1, period, ctx).forEach((child) => {
+        const sibKind = dashaPlanetColorKind(payload, child.planet);
+        const sib = document.createElement("button");
+        sib.type = "button";
+        sib.className = sibKind ? `dasha-sib dasha-sib--${sibKind}` : "dasha-sib";
+        applyPlanetStatusCellColorIntensity(sib);
+        const childLevel = levels[levelIndex + 1];
+        const childFrom = dateFromBirthAgeYears(ctx.birthDate, child.fromYears);
+        const childTo = dateFromBirthAgeYears(ctx.birthDate, child.toYears);
+        const childRange = childLevel ? childLevel.formatRange(childFrom, childTo) : "";
+        sib.textContent = childRange
+          ? `${toTitleCaseWords(child.planet)} · ${childRange}`
+          : toTitleCaseWords(child.planet);
+        const active = dashaPeriodIsCurrent(child, ctx.selectedAge);
+        if (active) sib.classList.add("is-on");
+        sib.addEventListener("click", (event) => {
+          event.stopPropagation();
+          ctx.onPickAge(child.fromYears + 1e-4);
+        });
+        extra.appendChild(sib);
+      });
+    }
+  });
+  return row;
 }
 
-function createDashaNextCard(snapshot, payload) {
-  const change = dashaChangeLevel(snapshot.current, snapshot.next);
-  if (!change) return null;
+function renderDashaAgeStack(host, ageYears, payload, ctx) {
+  host.replaceChildren();
+  ctx.selectedAge = ageYears;
+  const path = dashaPathAtAge(ageYears, ctx.planets);
+  if (!path.length) {
+    const empty = document.createElement("p");
+    empty.className = "dasha-age__empty";
+    empty.textContent = "No dasha at this age.";
+    host.appendChild(empty);
+    return;
+  }
+  path.forEach((row) => {
+    host.appendChild(createDashaPathRow(row.levelIndex, row.period, payload, ctx));
+  });
+}
 
-  const side = document.createElement("div");
-  side.className = "dasha-side";
+function createDashaExplorer(payload, snapshot) {
+  const birthDate = parseBirthDateFromKundaliPayload(payload);
+  const planets = Array.isArray(payload?.planets) ? payload.planets : [];
+  const liveAge = Math.min(
+    DASHA_AGE_LINE_MAX,
+    Math.max(0, ageYearsBetween(birthDate, snapshot.asOfDate) || 0)
+  );
+  const mahadashas = listMahadashaPeriods(planets);
+  const ctx = {
+    birthDate,
+    planets,
+    durations: planetMahadashaYearsMap(planets),
+    sequence: vimshottariSequence(),
+    selectedAge: liveAge,
+    onPickAge: () => {}
+  };
 
-  const card = document.createElement("div");
-  const nextKind = dashaPlanetColorKind(payload, change.key);
-  card.className = nextKind ? `dasha-next dasha-next--${nextKind}` : "dasha-next";
-  if (nextKind) applyPlanetStatusCellColorIntensity(card);
+  const root = document.createElement("div");
+  root.className = "dasha-life";
 
-  const kicker = document.createElement("p");
-  kicker.className = "dasha-next__kicker";
-  kicker.textContent = "Next change";
-  card.appendChild(kicker);
+  const stack = document.createElement("div");
+  stack.className = "dasha-life__stack";
+  stack.hidden = true;
 
-  const planet = document.createElement("p");
-  planet.className = "dasha-next__planet";
-  planet.textContent = change.name || "—";
-  card.appendChild(planet);
+  const hint = document.createElement("p");
+  hint.className = "dasha-age__hint";
+  hint.textContent = "Click an age on the line to see dashas.";
 
-  const level = document.createElement("p");
-  level.className = "dasha-next__level";
-  level.textContent = change.level;
-  card.appendChild(level);
-
-  if (change.range) {
-    const range = document.createElement("p");
-    range.className = "dasha-next__range";
-    range.textContent = change.range;
-    card.appendChild(range);
+  function showAt(ageYears) {
+    hint.hidden = true;
+    stack.hidden = false;
+    renderDashaAgeStack(stack, ageYears, payload, ctx);
   }
 
-  const etaText = formatDashaEta(snapshot.daysUntilNext);
-  if (etaText) {
-    const eta = document.createElement("p");
-    eta.className = "dasha-next__eta";
-    eta.textContent = etaText;
-    card.appendChild(eta);
-  }
-  side.appendChild(card);
-
-  const chips = document.createElement("div");
-  chips.className = "dasha-chips";
-  const mahaRunning = snapshot.current.mahadashaKey === snapshot.next.mahadashaKey;
-  const antarRunning = snapshot.current.antardashaKey === snapshot.next.antardashaKey;
-  const mahaKind = dashaPlanetColorKind(payload, snapshot.current.mahadashaKey);
-  const antarKind = dashaPlanetColorKind(payload, snapshot.current.antardashaKey);
-  chips.appendChild(
-    createDashaChip(
-      "Maha",
-      snapshot.current.mahadashaName,
-      mahaRunning,
-      mahaKind ? `dasha-chip__mark--${mahaKind}` : "dasha-chip__mark--cream"
-    )
-  );
-  chips.appendChild(
-    createDashaChip(
-      "Antar",
-      snapshot.current.antardashaName,
-      antarRunning,
-      antarKind ? `dasha-chip__mark--${antarKind}` : "dasha-chip__mark--cream"
-    )
-  );
-  side.appendChild(chips);
-  return side;
+  ctx.onPickAge = showAt;
+  const line = createDashaAgeLine(mahadashas, payload, liveAge, showAt);
+  ctx.onPickAge = (ageYears) => line.pick(ageYears);
+  root.append(line.wrap, hint, stack);
+  return root;
 }
 
 const KUNDALI_QA_POPOVER_ID = "kundali-qa-popover";
@@ -3596,9 +3611,7 @@ function renderCurrentDashaFromPayload(payload, hosts = {}) {
 
   const layout = document.createElement("div");
   layout.className = "dasha-stage";
-  layout.appendChild(createDashaDial(snapshot.current, payload));
-  const nextCard = createDashaNextCard(snapshot, payload);
-  if (nextCard) layout.appendChild(nextCard);
+  layout.appendChild(createDashaExplorer(payload, snapshot));
   summaryHost.appendChild(layout);
 }
 

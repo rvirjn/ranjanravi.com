@@ -22,6 +22,7 @@
   const summaryEl = document.getElementById("profile-summary");
   const statusEl = document.getElementById("profile-status");
   const planEl = document.getElementById("profile-plan");
+  const plansNoteEl = document.getElementById("profile-plans-note");
   const walletEl = document.getElementById("profile-wallet");
   const usageEl = document.getElementById("profile-usage");
   const memberEl = document.getElementById("profile-member-since");
@@ -40,6 +41,16 @@
   let couponUsers = [];
   let couponPlans = [];
   let lastCouponEmailFile = null;
+
+  function setCurrentPlanLine(el, detail) {
+    if (!el) return;
+    el.replaceChildren();
+    el.append("Your current Plan: ");
+    const value = document.createElement("span");
+    value.className = "profile-summary__plan-value";
+    value.textContent = detail;
+    el.appendChild(value);
+  }
 
   function showStatus(message, isError) {
     if (!statusEl) return;
@@ -217,17 +228,21 @@
               day: "numeric"
             })
           : "";
-        planEl.textContent = until
-          ? `Plan: Unlimited · active until ${until}`
-          : "Plan: Unlimited (1 month)";
+        setCurrentPlanLine(
+          planEl,
+          until ? `Unlimited · active until ${until}` : "Unlimited (1 month)"
+        );
       } else if (isPaid && tier === "pack_299") {
         const limit = usage?.query_limit ?? packQueries;
         const used = usage?.queries_used ?? 0;
-        planEl.textContent = `Plan: ${limit}-query pack · ${used}/${limit} used`;
+        setCurrentPlanLine(planEl, `${limit}-query pack · ${used}/${limit} used`);
       } else if (remediesUnlocked) {
-        planEl.textContent = `Plan: Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`;
+        setCurrentPlanLine(
+          planEl,
+          `Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`
+        );
       } else {
-        planEl.textContent = "Plan: No plan active";
+        setCurrentPlanLine(planEl, "No plan active");
       }
       planEl.classList.toggle(
         "profile-summary__plan--premium",
@@ -235,17 +250,30 @@
       );
     }
 
+    if (plansNoteEl) {
+      const CU = global.SaptarishiCommonUtils;
+      if (CU && CU.paidPlanNote) {
+        plansNoteEl.textContent = CU.paidPlanNote();
+      } else {
+        const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 1;
+        const monthLabel = months === 1 ? "1 month" : `${months} months`;
+        plansNoteEl.textContent =
+          `Basic Plans: ₹${packAmount} for ${packQueries} queries\n` +
+          `Advance Plans: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
+      }
+    }
+
     if (walletEl) {
       const addedPart = added > 0 ? ` · Added ₹${added}` : "";
       if (isUnlimited) {
-        walletEl.textContent = `Wallet: ₹${bal}${addedPart}`;
+        walletEl.textContent = `Wallet Balance: ₹${bal}${addedPart}`;
       } else if (remediesUnlocked) {
         walletEl.textContent =
-          `Wallet: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
+          `Wallet Balance: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
           (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
       } else {
         walletEl.textContent =
-          `Wallet: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
+          `Wallet Balance: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
       }
       walletEl.hidden = false;
     }
