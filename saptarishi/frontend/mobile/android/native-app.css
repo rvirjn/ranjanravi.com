@@ -1006,7 +1006,8 @@ html.saptarishi-native-app .premium-modal__lead[hidden] {
   display: none !important;
 }
 
-html.saptarishi-native-app .premium-modal__wallet-info {
+html.saptarishi-native-app .premium-modal__wallet-info,
+html.saptarishi-native-app .premium-modal__wallet-summary {
   margin: 0 0 1rem;
   padding: 0.95rem 1.05rem;
   border: 1px solid rgba(184, 134, 11, 0.2);

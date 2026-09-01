@@ -428,7 +428,7 @@
             : Number(displayUsage?.wallet_balance_inr) || 0;
         walletBtn.textContent = `₹${bal}`;
         walletBtn.hidden = false;
-        walletBtn.title = "Wallet — add money";
+        walletBtn.title = "Wallet";
       } else {
         walletBtn.hidden = true;
       }

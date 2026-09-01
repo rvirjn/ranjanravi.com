@@ -19,13 +19,6 @@
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
-  function isNativeApp() {
-    return (
-      document.documentElement.classList.contains("saptarishi-native-app") ||
-      /SaptarishiNativeApp/i.test(navigator.userAgent || "")
-    );
-  }
-
   function formatContactPhoneDisplay(raw) {
     if (CU && CU.formatIndiaPhoneDisplay) return CU.formatIndiaPhoneDisplay(raw);
     const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
@@ -41,10 +34,16 @@
   let contactPhoneEl = null;
   let leadEl = null;
   let balanceEl = null;
-  let extraEl = null;
   let successPanel = null;
   let paymentPanel = null;
+  let summaryPanel = null;
+  let planLineEl = null;
+  let memberEl = null;
+  let addMoneyBtn = null;
+  let backBtn = null;
+  let titleEl = null;
   let planPickerEl = null;
+  let openedFromSummary = false;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
   let selectedPlanId = plans[0]?.id || "wallet_299";
@@ -124,24 +123,22 @@
     overlay.className = "premium-modal-overlay";
     overlay.hidden = true;
     overlay.setAttribute("role", "presentation");
-    const native = isNativeApp();
-    const headerHtml = native
-      ? `<h2 id="wallet-modal-title" class="premium-modal__title">Wallet</h2>
-        <p id="wallet-modal-lead" class="premium-modal__lead" hidden></p>
-        <div id="wallet-modal-info" class="premium-modal__wallet-info">
-          <p class="premium-modal__info-kicker">Current balance</p>
-          <p id="wallet-modal-balance" class="premium-modal__info-balance">₹0</p>
-          <p id="wallet-modal-info-extra" class="premium-modal__info-extra"></p>
-        </div>`
-      : `<h2 id="wallet-modal-title" class="premium-modal__title">Add money to wallet</h2>
-        <p id="wallet-modal-lead" class="premium-modal__lead"></p>
-        <p id="wallet-modal-balance" class="premium-modal__plan-summary"></p>`;
     overlay.innerHTML = `
       <div class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
         <button type="button" class="premium-modal__close" id="wallet-modal-close" aria-label="Close">&times;</button>
-        ${headerHtml}
-        <div id="wallet-modal-payment-panel" class="premium-modal__panel">
-          ${native ? '<h3 class="premium-modal__add-title">Add money</h3>' : ""}
+        <h2 id="wallet-modal-title" class="premium-modal__title">Wallet</h2>
+        <p id="wallet-modal-lead" class="premium-modal__lead" hidden></p>
+        <div id="wallet-modal-summary-panel" class="premium-modal__wallet-summary">
+          <p id="wallet-modal-plan" class="profile-summary__plan"></p>
+          <p id="wallet-modal-balance" class="profile-summary__wallet"></p>
+          <p id="wallet-modal-member" class="profile-summary__meta"></p>
+          <div class="profile-summary__actions">
+            <button type="button" id="wallet-modal-add-btn" class="btn-secondary">Add money to wallet</button>
+          </div>
+        </div>
+        <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
+          <button type="button" class="premium-modal__back" id="wallet-modal-back">← Wallet</button>
+          <h3 class="premium-modal__add-title">Add money to wallet</h3>
           <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose amount"></div>
           <div class="premium-modal__qr-wrap">
             <img
@@ -195,8 +192,13 @@
 
     statusEl = overlay.querySelector("#wallet-modal-status");
     leadEl = overlay.querySelector("#wallet-modal-lead");
+    titleEl = overlay.querySelector("#wallet-modal-title");
+    planLineEl = overlay.querySelector("#wallet-modal-plan");
     balanceEl = overlay.querySelector("#wallet-modal-balance");
-    extraEl = overlay.querySelector("#wallet-modal-info-extra");
+    memberEl = overlay.querySelector("#wallet-modal-member");
+    summaryPanel = overlay.querySelector("#wallet-modal-summary-panel");
+    addMoneyBtn = overlay.querySelector("#wallet-modal-add-btn");
+    backBtn = overlay.querySelector("#wallet-modal-back");
     form = overlay.querySelector("#wallet-modal-form");
     amountEl = overlay.querySelector("#wallet-modal-amount");
     planSummaryEl = overlay.querySelector("#wallet-modal-plan-summary");
@@ -207,6 +209,12 @@
 
     overlay.querySelector("#wallet-modal-close").addEventListener("click", () => close(false));
     overlay.querySelector("#wallet-modal-done").addEventListener("click", () => close(true));
+    if (addMoneyBtn) {
+      addMoneyBtn.addEventListener("click", () => showAddMoneyView({ fromSummary: true }));
+    }
+    if (backBtn) {
+      backBtn.addEventListener("click", () => showSummaryView());
+    }
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) close(false);
     });
@@ -245,56 +253,121 @@
     renderPlanPicker();
   }
 
+  function formatMemberSince(iso) {
+    if (!iso) return "";
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  }
+
   function renderWalletSummary(source) {
     const usage = source || AUTH.getUsage() || AUTH.getUser() || {};
+    const user = AUTH.getUser() || {};
     const bal =
       source && source.wallet_balance_inr != null
         ? Math.max(0, Math.floor(Number(source.wallet_balance_inr) || 0))
-        : AUTH.getWalletBalance();
-
-    if (!isNativeApp()) {
-      if (balanceEl) balanceEl.textContent = `Current balance: ₹${bal}`;
-      return;
-    }
-
+        : AUTH.getWalletBalance
+          ? AUTH.getWalletBalance(usage)
+          : Math.max(0, Math.floor(Number(usage.wallet_balance_inr) || 0));
     const packAmount = AC.PREMIUM_PACK_AMOUNT_INR ?? 299;
     const packQueries = AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
     const unlimitedAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     const queryCharge = AC.QUERY_CHARGE_INR ?? 51;
     const added = AUTH.getWalletCreditedTotal
       ? AUTH.getWalletCreditedTotal(usage)
-      : 0;
+      : Math.max(0, Math.floor(Number(usage.wallet_credited_total_inr) || 0));
     const queriesLeft = queryCharge > 0 ? Math.floor(bal / queryCharge) : 0;
-    const isPaid = Boolean(usage.is_premium);
-    const tier = usage.premium_tier;
+    const isPaid = Boolean(usage.is_premium || user.is_premium);
+    const tier = usage.premium_tier || user.premium_tier;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
+    const remediesUnlocked = Boolean(
+      usage.remedy_unlocked || user.remedy_unlocked || isUnlimited || bal >= queryCharge
+    );
+
+    if (planLineEl) {
+      if (isUnlimited) {
+        const until = usage.premium_expires_at
+          ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+            })
+          : "";
+        planLineEl.textContent = until
+          ? `Plan: Unlimited · active until ${until}`
+          : "Plan: Unlimited (1 month)";
+      } else if (isPaid && tier === "pack_299") {
+        const limit = usage.query_limit ?? packQueries;
+        const used = usage.queries_used ?? 0;
+        planLineEl.textContent = `Plan: ${limit}-query pack · ${used}/${limit} used`;
+      } else if (remediesUnlocked) {
+        planLineEl.textContent =
+          `Plan: Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`;
+      } else {
+        planLineEl.textContent = "Plan: No plan active";
+      }
+    }
 
     if (balanceEl) {
-      balanceEl.textContent = `₹${bal}`;
+      const addedPart = added > 0 ? ` · Added ₹${added}` : "";
+      if (isUnlimited) {
+        balanceEl.textContent = `Wallet: ₹${bal}${addedPart}`;
+      } else if (remediesUnlocked) {
+        balanceEl.textContent =
+          `Wallet: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
+          (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
+      } else {
+        balanceEl.textContent =
+          `Wallet: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
+      }
     }
-    if (!extraEl) return;
 
-    const bits = [];
-    if (added > 0) bits.push(`Added so far ₹${added}`);
-    if (isUnlimited) {
-      const until = usage.premium_expires_at
-        ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-          })
-        : "";
-      bits.push(until ? `Unlimited until ${until}` : "Unlimited plan active");
-    } else if (isPaid && tier === "pack_299") {
-      const limit = usage.query_limit ?? packQueries;
-      const used = usage.queries_used ?? 0;
-      bits.push(`${limit}-query pack · ${used}/${limit} used`);
-    } else {
-      bits.push(`₹${queryCharge} per query`);
-      if (queriesLeft > 0) bits.push(`~${queriesLeft} queries left`);
-      else if (bal <= 0) bits.push(`Add ₹${packAmount} or ₹${unlimitedAmount} for unlimited`);
+    if (memberEl) {
+      const joined = formatMemberSince(user.created_at || usage.created_at);
+      memberEl.textContent = joined ? `Member since ${joined}` : "";
+      memberEl.hidden = !joined;
     }
-    extraEl.textContent = bits.join(" · ");
+  }
+
+  function wantsAddMoney(options) {
+    return Boolean(
+      options.addMoney ||
+        options.message ||
+        options.suggestedAmountInr != null ||
+        options.selectedPlanId
+    );
+  }
+
+  function showSummaryView() {
+    openedFromSummary = false;
+    if (titleEl) titleEl.textContent = "Wallet";
+    if (leadEl) {
+      leadEl.textContent = "";
+      leadEl.hidden = true;
+    }
+    if (summaryPanel) summaryPanel.hidden = false;
+    if (paymentPanel) paymentPanel.hidden = true;
+    if (successPanel) successPanel.hidden = true;
+    renderWalletSummary();
+  }
+
+  function showAddMoneyView({ fromSummary = false, message = "" } = {}) {
+    openedFromSummary = Boolean(fromSummary);
+    if (titleEl) titleEl.textContent = "Add money to wallet";
+    if (leadEl) {
+      leadEl.textContent =
+        message || "Select an amount, scan the QR, pay, then enter your coupon code.";
+      leadEl.hidden = !leadEl.textContent;
+    }
+    if (summaryPanel) summaryPanel.hidden = true;
+    if (paymentPanel) paymentPanel.hidden = false;
+    if (successPanel) successPanel.hidden = true;
+    if (backBtn) backBtn.hidden = !openedFromSummary;
+    renderPlanPicker();
   }
 
   async function loadWalletInfo() {
@@ -376,6 +449,7 @@
   }
 
   function showSuccess(message) {
+    if (summaryPanel) summaryPanel.hidden = true;
     if (paymentPanel) paymentPanel.hidden = true;
     if (successPanel) {
       successPanel.hidden = false;
@@ -395,7 +469,6 @@
   }
 
   function resetPanels() {
-    if (paymentPanel) paymentPanel.hidden = false;
     if (successPanel) successPanel.hidden = true;
     if (form) form.reset();
     showStatus("");
@@ -427,35 +500,22 @@
       selectedPlanId = closestPlanIdForAmount(options.suggestedAmountInr);
     }
     renderPlanPicker();
+    renderWalletSummary();
 
-    if (isNativeApp()) {
-      if (leadEl) {
-        const message = options.message || "";
-        leadEl.textContent = message;
-        leadEl.hidden = !message;
-      }
-      renderWalletSummary();
-      overlay.hidden = false;
-      document.body.classList.add("premium-modal-open");
-      const dialog = overlay.querySelector(".premium-modal");
-      if (dialog) dialog.scrollTop = 0;
-      loadWalletInfo();
-    } else {
-      if (leadEl) {
-        leadEl.textContent =
-          options.message ||
-          "Select an amount, scan the QR, pay, then enter your coupon code.";
-      }
-      if (balanceEl) {
-        balanceEl.textContent = `Current balance: ₹${AUTH.getWalletBalance()}`;
-      }
-      overlay.hidden = false;
-      document.body.classList.add("premium-modal-open");
-      loadWalletInfo();
+    overlay.hidden = false;
+    document.body.classList.add("premium-modal-open");
+    const dialog = overlay.querySelector(".premium-modal");
+    if (dialog) dialog.scrollTop = 0;
+    loadWalletInfo();
+
+    if (wantsAddMoney(options)) {
+      showAddMoneyView({ fromSummary: false, message: options.message || "" });
       const couponInput = overlay.querySelector("#wallet-modal-coupon");
       if (couponInput) {
         window.requestAnimationFrame(() => couponInput.focus());
       }
+    } else {
+      showSummaryView();
     }
 
     return new Promise((resolve) => {

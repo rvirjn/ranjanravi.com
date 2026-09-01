@@ -274,6 +274,12 @@ body.saptarishi-page {
   color: #5c3d1e;
 }
 
+.profile-summary__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
 .profile-summary__actions {
   display: flex;
   flex-wrap: wrap;
@@ -3889,6 +3895,39 @@ body.premium-modal-open {
   text-align: center;
   font-size: 0.92em;
   opacity: 0.85;
+}
+
+.premium-modal__wallet-summary {
+  text-align: left;
+  margin: 0 0 0.35rem;
+}
+
+.premium-modal__wallet-summary .profile-summary__plan,
+.premium-modal__wallet-summary .profile-summary__wallet,
+.premium-modal__wallet-summary .profile-summary__meta {
+  margin: 0 0 0.4rem;
+}
+
+.premium-modal__back {
+  display: inline-block;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.premium-modal__back:hover {
+  text-decoration: underline;
+}
+
+.premium-modal__add-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
 }
 
 .premium-modal__amount {
