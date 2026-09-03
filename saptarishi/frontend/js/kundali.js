@@ -238,12 +238,6 @@ function formatDashaAgeDisplay(ageOrText) {
   return `${start}-${end >= start ? end : start}`;
 }
 
-/** Degree-phase / default starting strength for one planet row. */
-function getPlanetStrengthBase(rowData) {
-  const base = rowData?.strength_adjustments?.base;
-  return typeof base === "number" && Number.isFinite(base) ? base : null;
-}
-
 /** Tooltip listing every rule line: ``100 (base) +50 (friend) ... = -190``. */
 function formatPlanetStrengthVerificationTitle(rowData) {
   const adj = rowData?.strength_adjustments;
@@ -446,6 +440,15 @@ function planetsTableCellText(key, rowData) {
   if (key === "house_lord") {
     return rowData.house_lord ?? rowData[key] ?? "";
   }
+  if (key === "house_lord_strength") {
+    if (rowData.house_lord_strength != null && String(rowData.house_lord_strength).trim()) {
+      return rowData.house_lord_strength;
+    }
+    if (typeof rowData.house_lord_strength_percent === "number") {
+      return `${rowData.house_lord_strength_percent}%`;
+    }
+    return "";
+  }
   if (key === "house_rashi") {
     const flat = rowData.house_rashi ?? rowData.rashi;
     if (flat != null && String(flat).trim()) {
@@ -495,6 +498,7 @@ function formatTableCellForDisplay(key, cell) {
   }
   if (
     key === "strength" ||
+    key === "house_lord_strength" ||
     key === "house_lord" ||
     key === "house_rashi" ||
     key === "degree" ||
@@ -829,6 +833,43 @@ function applyPlanetChartColor(tspan, entry) {
   );
 }
 
+/** Color birth-chart rashi numbers from that house's lord strength. */
+function applyChartHouseLordColor(el, cell) {
+  if (!el) return;
+  const raw = String(cell?.house_lord_status_color || "").trim();
+  if (isCssHexColor(raw)) {
+    el.style.fill = raw;
+  }
+}
+
+function appendChartRashiNumber(parent, x, y, rashiNum, cell) {
+  const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  signEl.setAttribute("x", String(x));
+  signEl.setAttribute("y", String(y));
+  signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
+  signEl.setAttribute("text-anchor", "middle");
+  signEl.setAttribute("dominant-baseline", "middle");
+  signEl.textContent = String(rashiNum);
+  applyChartHouseLordColor(signEl, cell);
+  parent.appendChild(signEl);
+  return signEl;
+}
+
+function planetByNameFromPayload(payload, name) {
+  const want = normalizeText(name);
+  if (!want) return null;
+  return (payload?.planets || []).find((p) => normalizeText(p?.name) === want) || null;
+}
+
+function houseLordStatusColorFromPayload(payload, rashiIndex) {
+  const lords = C.RASHI_SIGN_LORD_IN_EN || [];
+  if (typeof rashiIndex !== "number" || rashiIndex < 0 || rashiIndex >= lords.length) {
+    return "";
+  }
+  const lord = planetByNameFromPayload(payload, lords[rashiIndex]);
+  return String(lord?.planet_status_color || "").trim();
+}
+
 function stylePlanetTspan(tspan, entry, strengthMax) {
   applyPlanetChartColor(tspan, entry);
   applyPlanetStrengthStyle(tspan, entry.strength_percent, strengthMax);
@@ -1047,8 +1088,6 @@ function appendPlanetsPlanetCell(tr, rowData, cellStyles) {
   const nameEl = document.createElement("div");
   nameEl.className = "planets-planet-name";
   nameEl.textContent = formatTableCellForDisplay("planet", rowData.planet);
-  const base = getPlanetStrengthBase(rowData);
-  if (base != null) appendStrengthPercentChangeLabel(nameEl, base);
   td.appendChild(nameEl);
   applyPlanetTableCellStyle(td, cellStyles?.planet || "", "planet");
   tr.appendChild(td);
@@ -1103,7 +1142,7 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
 }
 
-/** Planets-table columns that show rule +/- (excluding base on Planet and total on Planet Strength). */
+/** Planets-table columns that show rule +/- (excluding total on Planet Strength). */
 const KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN = {
   planet_status_in_rashi: "planet_status_in_rashi",
   is_planet_lagna_lord_enemy: null,
@@ -1123,6 +1162,7 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { type: "aspected_by", header: "Aspected By" },
   { key: "house_rashi", header: "House Rashi" },
   { key: "house_lord", header: "House Lord" },
+  { key: "house_lord_strength", header: "House Lord Strength" },
   { key: "planet_status_in_rashi", header: "Rashi Status" },
   { key: "is_planet_lagna_lord_enemy", header: "Lagna Lord Enemy" },
   { key: "nakshatra", header: "Nakshatra", qaKey: "nakshatra" },
@@ -1189,6 +1229,28 @@ function planetsTableStrengthCellText(rowData) {
   return "—";
 }
 
+/** House Lord Strength from the row, or the lord planet's Planet Strength. */
+function houseLordStrengthCellText(rowData, allRows) {
+  const direct = formatTableCellForDisplay(
+    "house_lord_strength",
+    planetsTableCellText("house_lord_strength", rowData)
+  );
+  if (direct && direct !== "—") return direct;
+  if (typeof rowData?.house_lord_strength_percent === "number") {
+    return `${rowData.house_lord_strength_percent}%`;
+  }
+  const lordRow = planetTableRowByName(allRows, houseLordNameFromRow(rowData));
+  return lordRow ? planetsTableStrengthCellText(lordRow) : "—";
+}
+
+/** Color kind for House Lord Strength (same palette as Planet Strength). */
+function houseLordStrengthColorKind(rowData, allRows) {
+  const direct = rowData?.cell_styles?.house_lord_strength;
+  if (direct) return direct;
+  const lordRow = planetTableRowByName(allRows, houseLordNameFromRow(rowData));
+  return lordRow?.cell_styles?.strength || "";
+}
+
 /** Row that drives tile tint: first planet in this house, else the empty-house table row. */
 function pickHouseTileRepresentativeRow(houseRows) {
   if (!Array.isArray(houseRows) || !houseRows.length) return null;
@@ -1219,6 +1281,9 @@ function planetsTableRowDisplayForColumn(rowData, col) {
   if (col.key === "strength") {
     return planetsTableStrengthCellText(rowData);
   }
+  if (col.key === "house_lord_strength") {
+    return houseLordStrengthCellText(rowData);
+  }
   const key = col.key;
   const displayValue = planetsTableCellText(key, rowData);
   return formatTableCellForDisplay(key, displayValue);
@@ -1245,6 +1310,10 @@ function houseColumnDisplayForRows(houseRows, col) {
       })
       .join("\n");
   }
+  if (col.key === "house_lord_strength") {
+    const sample = sourceRows[0];
+    return sample ? houseLordStrengthCellText(sample, rows) : "—";
+  }
   const values = sourceRows
     .map((row) => planetsTableRowDisplayForColumn(row, col))
     .filter((value) => value && value !== "—");
@@ -1252,22 +1321,16 @@ function houseColumnDisplayForRows(houseRows, col) {
   return [...new Set(values)].join(", ");
 }
 
-function formatHouseTileStrengthPercent(houseRows) {
-  const planetRows = housePlanetTableRows(houseRows);
-  if (!planetRows.length) return "—";
-  if (planetRows.length === 1) return planetsTableStrengthCellText(planetRows[0]);
-  return planetRows
-    .map((row) => {
-      const name = formatTableCellForDisplay("planet", row.planet);
-      return `${name} ${planetsTableStrengthCellText(row)}`;
-    })
-    .join(" · ");
+function formatHouseTileStrengthPercent(houseRows, allRows) {
+  const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
+  if (!sample) return "—";
+  return houseLordStrengthCellText(sample, allRows || houseRows);
 }
 
-/** Apply planet-table tint classes onto a house tile button. */
-function applyHousePlanetsTileStyle(btn, representativeRow) {
+/** Apply house-lord strength tint onto a house tile button. */
+function applyHousePlanetsTileStyle(btn, representativeRow, allRows) {
   if (!btn || !representativeRow) return;
-  const colorKind = representativeRow?.cell_styles?.strength || "";
+  const colorKind = houseLordStrengthColorKind(representativeRow, allRows);
   applyPlanetTableCellStyle(btn, colorKind, "strength");
 }
 
@@ -1524,7 +1587,10 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   }
   thead.appendChild(headerRow);
   const tbody = document.createElement("tbody");
-  renderPlanetsTableWithColors(tbody, houseRows, { hideHouseColumn: true });
+  renderPlanetsTableWithColors(tbody, houseRows, {
+    hideHouseColumn: true,
+    allRows: options.allRows
+  });
   table.append(thead, tbody);
   tableWrap.appendChild(table);
 
@@ -1542,7 +1608,7 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   return sheet;
 }
 
-/** Render 12 house tiles (heading from In House; tint/% from Planet Strength). */
+/** Render 12 house tiles (heading from In House; tint/% from House Lord Strength). */
 function renderHousePlanetsTiles(container, rows, options = {}) {
   if (!container) return;
   container.innerHTML = "";
@@ -1574,7 +1640,7 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     const { number: num, for: forRaw } = houseFromTableRow(sampleRow);
     const forText = formatHouseForList(forRaw);
     const representativeRow = pickHouseTileRepresentativeRow(houseRows);
-    const strengthText = formatHouseTileStrengthPercent(houseRows);
+    const strengthText = formatHouseTileStrengthPercent(houseRows, allRows);
     const planetNames = houseColumnDisplayForRows(houseRows, { key: "planet" });
     const displayPlanetNames = planetNames && planetNames !== "—" ? planetNames : "";
     const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
@@ -1589,7 +1655,7 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     btn.setAttribute("aria-pressed", "false");
     btn.setAttribute("aria-expanded", "false");
     btn.title = [houseLabel, forText, strengthText].filter(Boolean).join(" · ");
-    applyHousePlanetsTileStyle(btn, representativeRow);
+    applyHousePlanetsTileStyle(btn, representativeRow, allRows);
 
     const numEl = document.createElement("span");
     numEl.className = "house-planets-tile-btn__num";
@@ -1621,11 +1687,11 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
         displayPlanetNames,
         houseRows,
         descriptions,
-        { divisionalCharts, strengthMax }
+        { divisionalCharts, strengthMax, allRows }
       )
     );
 
-    if (housePlanetsTileIsAdverse(houseRows, representativeRow)) {
+    if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
       applyAdverseHouseTileContentLock(btn, panel);
     }
 
@@ -1658,6 +1724,7 @@ function renderPlanetsTableWithColors(tbody, rows, options = {}) {
     ? KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT_HOUSE
     : KUNDALI_PLANETS_TABLE_COLUMNS;
   const sortedRows = Array.isArray(rows) ? rows : [];
+  const lookupRows = Array.isArray(options.allRows) ? options.allRows : sortedRows;
   for (const rowData of sortedRows) {
     const tr = document.createElement("tr");
     const cellStyles = rowData.cell_styles || {};
@@ -1680,6 +1747,16 @@ function renderPlanetsTableWithColors(tbody, rows, options = {}) {
       }
       const key = col.key;
       const td = document.createElement("td");
+      if (key === "house_lord_strength") {
+        td.textContent = houseLordStrengthCellText(rowData, lookupRows);
+        applyPlanetTableCellStyle(
+          td,
+          houseLordStrengthColorKind(rowData, lookupRows),
+          "strength"
+        );
+        tr.appendChild(td);
+        continue;
+      }
       const displayValue = planetsTableCellText(key, rowData);
       const deltaKey = KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN[key];
       const formatted = formatTableCellForDisplay(key, displayValue);
@@ -1935,6 +2012,7 @@ function buildNorthIndianChartFromPayload(payload) {
       cx,
       cy,
       rashi_number: rashiNumber,
+      house_lord_status_color: houseLordStatusColorFromPayload(payload, ri),
       planets: planetsByHouse[house] || [],
       aspecting_planets: aspectingByHouse[house] || [],
       is_lagna_house: house === 1
@@ -2256,15 +2334,8 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
     /** Houses 1, 2, 12 (top row): sign number up, planets below. */
     if (cell.house === 1 || cell.house === 2 || cell.house === 12) {
       if (rashiNum != null) {
-        const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        signEl.setAttribute("x", String(cx));
         const signUp = cell.house === 1 ? 4 : 5;
-        signEl.setAttribute("y", String(cy - signUp));
-        signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signEl.setAttribute("text-anchor", "middle");
-        signEl.setAttribute("dominant-baseline", "middle");
-        signEl.textContent = String(rashiNum);
-        g.appendChild(signEl);
+        appendChartRashiNumber(g, cx, cy - signUp, rashiNum, cell);
       }
       if (housePlanets.length) {
         const planetsDown = cell.house === 1 ? 2.5 : 2;
@@ -2276,14 +2347,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
       /** Houses 6 & 8: sign up, planets down; 6 left, 8 right. */
       const labelX = cell.house === 6 ? cx - 3 : cx + 3;
       if (rashiNum != null) {
-        const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        signEl.setAttribute("x", String(labelX));
-        signEl.setAttribute("y", String(cy - 1));
-        signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signEl.setAttribute("text-anchor", "middle");
-        signEl.setAttribute("dominant-baseline", "middle");
-        signEl.textContent = String(rashiNum);
-        g.appendChild(signEl);
+        appendChartRashiNumber(g, labelX, cy - 1, rashiNum, cell);
       }
       if (housePlanets.length) {
         const plEl = createPlanetTextEl(labelX, cy + 5, "middle", densePlanets);
@@ -2293,14 +2357,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
     } else if (cell.house === 3 || cell.house === 11) {
       /** Houses 3 & 11 (upper sides): sign high, planets below. */
       if (rashiNum != null) {
-        const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        signEl.setAttribute("x", String(cx));
-        signEl.setAttribute("y", String(cy - 8));
-        signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signEl.setAttribute("text-anchor", "middle");
-        signEl.setAttribute("dominant-baseline", "middle");
-        signEl.textContent = String(rashiNum);
-        g.appendChild(signEl);
+        appendChartRashiNumber(g, cx, cy - 8, rashiNum, cell);
       }
       if (housePlanets.length) {
         const plEl = createPlanetTextEl(cx, cy + 0.5, "middle", densePlanets);
@@ -2319,14 +2376,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         g.appendChild(plEl);
       }
       if (rashiNum != null) {
-        const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        signEl.setAttribute("x", String(cx));
-        signEl.setAttribute("y", String(cy + 3));
-        signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signEl.setAttribute("text-anchor", "middle");
-        signEl.setAttribute("dominant-baseline", "middle");
-        signEl.textContent = String(rashiNum);
-        g.appendChild(signEl);
+        appendChartRashiNumber(g, cx, cy + 3, rashiNum, cell);
       }
     } else if (cell.house === 4) {
       /** House 4 (middle left): a little above the diamond midline so labels stay inside the taper. */
@@ -2335,14 +2385,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         const planetY = housePlanets.length > 1 ? cy - 3.4 : cy - 1.2;
         const signY = planetY - 4.4;
         if (rashiNum != null) {
-          const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          signEl.setAttribute("x", String(labelX));
-          signEl.setAttribute("y", String(signY));
-          signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-          signEl.setAttribute("text-anchor", "middle");
-          signEl.setAttribute("dominant-baseline", "middle");
-          signEl.textContent = String(rashiNum);
-          g.appendChild(signEl);
+          appendChartRashiNumber(g, labelX, signY, rashiNum, cell);
         }
         if (housePlanets.length) {
           const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
@@ -2362,6 +2405,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
           signTspan.setAttribute("dy", "0");
           signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
           signTspan.textContent = String(rashiNum);
+          applyChartHouseLordColor(signTspan, cell);
           lineEl.appendChild(signTspan);
           hasLine = true;
         }
@@ -2383,14 +2427,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         const planetY = housePlanets.length > 1 ? cy - 3.4 : cy - 1.2;
         const signY = planetY - 4.4;
         if (rashiNum != null) {
-          const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          signEl.setAttribute("x", String(labelX));
-          signEl.setAttribute("y", String(signY));
-          signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-          signEl.setAttribute("text-anchor", "middle");
-          signEl.setAttribute("dominant-baseline", "middle");
-          signEl.textContent = String(rashiNum);
-          g.appendChild(signEl);
+          appendChartRashiNumber(g, labelX, signY, rashiNum, cell);
         }
         if (housePlanets.length) {
           const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
@@ -2416,6 +2453,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
           }
           signTspan.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
           signTspan.textContent = (housePlanets.length ? " " : "") + String(rashiNum);
+          applyChartHouseLordColor(signTspan, cell);
           lineEl.appendChild(signTspan);
           hasLine = true;
         }
@@ -2426,14 +2464,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
       const planetsStartY = rowCount > 1 ? cy + 1.5 : cy + 3;
 
       if (rashiNum != null) {
-        const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        signEl.setAttribute("x", String(cx));
-        signEl.setAttribute("y", String(cy + signYOffset));
-        signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
-        signEl.setAttribute("text-anchor", "middle");
-        signEl.setAttribute("dominant-baseline", "middle");
-        signEl.textContent = String(rashiNum);
-        g.appendChild(signEl);
+        appendChartRashiNumber(g, cx, cy + signYOffset, rashiNum, cell);
       }
 
       if (housePlanets.length) {
@@ -3616,11 +3647,11 @@ function renderDashaLordHouseTiles(container, planetName, payload) {
     const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
 
     const representativeRow = pickHouseTileRepresentativeRow(houseRows);
-    const tileStrength = formatHouseTileStrengthPercent(houseRows);
+    const tileStrength = formatHouseTileStrengthPercent(houseRows, planetsTable);
     const tile = document.createElement("div");
     tile.className = "house-planets-tile-btn";
     tile.title = [houseLabel, forText, tileStrength].filter(Boolean).join(" · ");
-    applyHousePlanetsTileStyle(tile, representativeRow);
+    applyHousePlanetsTileStyle(tile, representativeRow, planetsTable);
     tile.classList.add("dasha-path__house-tile");
     tile.style.removeProperty("--planet-strength");
 
@@ -4390,24 +4421,15 @@ function isAdversePlanetColorKind(kind) {
   return k === "low" || k === "enemy";
 }
 
-function rowHasNegativePlanetStrength(row) {
-  if (!row) return false;
-  if (typeof row.strength_percent === "number" && row.strength_percent < 0) return true;
-  const total = row?.strength_adjustments?.total;
-  if (typeof total === "number" && total < 0) return true;
-  const pct = strengthPercentFromRow(row);
-  return typeof pct === "number" && pct < 0;
-}
-
-/** True when a house tile is red or any planet in it has negative strength. */
-function housePlanetsTileIsAdverse(houseRows, representativeRow) {
-  const planetRows = housePlanetTableRows(houseRows);
-  const rows = planetRows.length ? planetRows : [representativeRow].filter(Boolean);
-  for (const row of rows) {
-    if (isAdversePlanetColorKind(row?.cell_styles?.strength)) return true;
-    if (rowHasNegativePlanetStrength(row)) return true;
-  }
-  return isAdversePlanetColorKind(representativeRow?.cell_styles?.strength);
+/** True when a house tile is red or house lord strength is negative. */
+function housePlanetsTileIsAdverse(houseRows, representativeRow, allRows) {
+  const sample = representativeRow || (Array.isArray(houseRows) ? houseRows[0] : null);
+  if (!sample) return false;
+  const lookup = allRows || houseRows;
+  if (isAdversePlanetColorKind(houseLordStrengthColorKind(sample, lookup))) return true;
+  const text = houseLordStrengthCellText(sample, lookup);
+  const n = Number.parseInt(String(text).replace(/%/g, ""), 10);
+  return Number.isFinite(n) && n < 0;
 }
 
 function applyAdverseHouseTileContentLock(btn, panel) {
