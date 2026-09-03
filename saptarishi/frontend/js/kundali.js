@@ -967,8 +967,9 @@ function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
   const planetOpts = { strengthMax, showHouseMarks };
 
   if (rowMode) {
+    const perRow = Math.max(1, Number(options.perRow) || 2);
     const rows = [];
-    for (let i = 0; i < list.length; i += 2) rows.push(list.slice(i, i + 2));
+    for (let i = 0; i < list.length; i += perRow) rows.push(list.slice(i, i + perRow));
     rows.forEach((row, ri) => {
       row.forEach((entry, pi) => {
         const layout = {};
@@ -2328,13 +2329,15 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         g.appendChild(signEl);
       }
     } else if (cell.house === 4) {
-      /** House 4 (middle left): sign up, planets below so degrees fit. */
-      const labelX = cx - 3;
+      /** House 4 (middle left): a little above the diamond midline so labels stay inside the taper. */
+      const labelX = cx + 1;
       if (showHouseMarks) {
+        const planetY = housePlanets.length > 1 ? cy - 3.4 : cy - 1.2;
+        const signY = planetY - 4.4;
         if (rashiNum != null) {
           const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
           signEl.setAttribute("x", String(labelX));
-          signEl.setAttribute("y", String(cy - 2.2));
+          signEl.setAttribute("y", String(signY));
           signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
           signEl.setAttribute("text-anchor", "middle");
           signEl.setAttribute("dominant-baseline", "middle");
@@ -2342,12 +2345,16 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
           g.appendChild(signEl);
         }
         if (housePlanets.length) {
-          const plEl = createPlanetTextEl(labelX, cy + 2.6, "middle", densePlanets);
-          appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
+          const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
+          appendColoredPlanetsToText(plEl, housePlanets, labelX, {
+            rowMode: true,
+            perRow: 1,
+            ...planetOpts
+          });
           g.appendChild(plEl);
         }
       } else {
-        const lineEl = createChartLineTextEl(labelX, cy, "start");
+        const lineEl = createChartLineTextEl(labelX, cy - 2, "start");
         let hasLine = false;
         if (rashiNum != null) {
           const signTspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
@@ -2370,13 +2377,15 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         if (hasLine) g.appendChild(lineEl);
       }
     } else if (cell.house === 10) {
-      /** House 10 (middle right): sign up, planets below so degrees fit. */
-      const labelX = cx + 3;
+      /** House 10 (middle right): a little above the diamond midline; pull left so LTR degrees stay inside. */
+      const labelX = showHouseMarks ? cx - 6 : cx + 3;
       if (showHouseMarks) {
+        const planetY = housePlanets.length > 1 ? cy - 3.4 : cy - 1.2;
+        const signY = planetY - 4.4;
         if (rashiNum != null) {
           const signEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
           signEl.setAttribute("x", String(labelX));
-          signEl.setAttribute("y", String(cy - 2.2));
+          signEl.setAttribute("y", String(signY));
           signEl.setAttribute("class", "kundali-chart-label kundali-chart-label-rashi");
           signEl.setAttribute("text-anchor", "middle");
           signEl.setAttribute("dominant-baseline", "middle");
@@ -2384,12 +2393,16 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
           g.appendChild(signEl);
         }
         if (housePlanets.length) {
-          const plEl = createPlanetTextEl(labelX, cy + 2.6, "middle", densePlanets);
-          appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
+          const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
+          appendColoredPlanetsToText(plEl, housePlanets, labelX, {
+            rowMode: true,
+            perRow: 1,
+            ...planetOpts
+          });
           g.appendChild(plEl);
         }
       } else {
-        const lineEl = createChartLineTextEl(labelX, cy, "end");
+        const lineEl = createChartLineTextEl(labelX, cy - 2, "end");
         let hasLine = false;
         if (housePlanets.length) {
           appendColoredPlanetsToText(lineEl, housePlanets, null, { firstDy: "0", gap: " ", ...planetOpts });
