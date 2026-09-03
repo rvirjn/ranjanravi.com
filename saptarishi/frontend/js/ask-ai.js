@@ -47,8 +47,30 @@
     log.scrollTop = log.scrollHeight;
   }
 
+  function getCurrentBirthDetails() {
+    const page = window.SaptarishiKundaliPage;
+    if (page && typeof page.getMainBirthInput === "function") {
+      const input = page.getMainBirthInput();
+      if (input && input.date && input.time && input.place) return input;
+    }
+    if (AUTH && typeof AUTH.getDefaultBirth === "function") {
+      return AUTH.getDefaultBirth() || null;
+    }
+    return null;
+  }
+
   async function postAsk(question) {
-    const body = JSON.stringify({ question: question.slice(0, MAX_Q) });
+    const payload = { question: question.slice(0, MAX_Q) };
+    const birth = getCurrentBirthDetails();
+    if (birth) {
+      payload.birth_details = {
+        name: birth.name || "",
+        date: birth.date || "",
+        time: birth.time || "",
+        place: birth.place || "",
+      };
+    }
+    const body = JSON.stringify(payload);
     if (AUTH && typeof AUTH.apiFetch === "function") {
       return AUTH.apiFetch(AC.API_ASK_PATH, {
         method: "POST",
