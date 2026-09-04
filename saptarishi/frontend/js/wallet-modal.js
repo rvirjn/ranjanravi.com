@@ -29,9 +29,11 @@
     if (CU && CU.paidPlanNote) return CU.paidPlanNote();
     const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    const basicAmount = AC.QUERY_CHARGE_INR ?? 51;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     return (
-      `Basic Plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries\n` +
-      `Advance Plans: ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
+      `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
+      `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
     );
   }
 
@@ -144,18 +146,22 @@
     overlay.hidden = true;
     overlay.setAttribute("role", "presentation");
     overlay.innerHTML = `
-      <div class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
+      <div class="premium-modal premium-modal--wallet" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
         <button type="button" class="premium-modal__close" id="wallet-modal-close" aria-label="Close">&times;</button>
         <h2 id="wallet-modal-title" class="premium-modal__title">Wallet</h2>
         <p id="wallet-modal-lead" class="premium-modal__lead" hidden></p>
-        <div id="wallet-modal-summary-panel" class="premium-modal__wallet-summary">
-          <p id="wallet-modal-plan" class="profile-summary__plan"></p>
-          <p id="wallet-modal-balance" class="profile-summary__wallet"></p>
-          <p id="wallet-modal-member" class="profile-summary__meta"></p>
-          <div class="profile-summary__actions">
-            <button type="button" id="wallet-modal-add-btn" class="btn-secondary">Add money to wallet</button>
+        <div id="wallet-modal-summary-panel" class="premium-modal__wallet-summary profile-summary__grid">
+          <div class="profile-summary__left">
+            <p id="wallet-modal-balance" class="profile-summary__wallet"></p>
+            <p id="wallet-modal-plan" class="profile-summary__plan"></p>
+            <p id="wallet-modal-member" class="profile-summary__meta"></p>
           </div>
-          <p id="wallet-modal-plans-note" class="paid-plans-note"></p>
+          <div class="profile-summary__right">
+            <p id="wallet-modal-plans-note" class="paid-plans-note"></p>
+            <div class="profile-summary__actions">
+              <button type="button" id="wallet-modal-add-btn" class="btn-secondary">Add money to wallet</button>
+            </div>
+          </div>
         </div>
         <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
           <button type="button" class="premium-modal__back" id="wallet-modal-back">← Wallet</button>
@@ -296,14 +302,7 @@
         : AUTH.getWalletBalance
           ? AUTH.getWalletBalance(usage)
           : Math.max(0, Math.floor(Number(usage.wallet_balance_inr) || 0));
-    const packAmount = AC.PREMIUM_PACK_AMOUNT_INR ?? 299;
-    const packQueries = AC.PREMIUM_PACK_QUERY_LIMIT ?? 6;
-    const unlimitedAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     const queryCharge = AC.QUERY_CHARGE_INR ?? 51;
-    const added = AUTH.getWalletCreditedTotal
-      ? AUTH.getWalletCreditedTotal(usage)
-      : Math.max(0, Math.floor(Number(usage.wallet_credited_total_inr) || 0));
-    const queriesLeft = queryCharge > 0 ? Math.floor(bal / queryCharge) : 0;
     const isPaid = Boolean(usage.is_premium || user.is_premium);
     const tier = usage.premium_tier || user.premium_tier;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
@@ -313,43 +312,16 @@
 
     if (planLineEl) {
       if (isUnlimited) {
-        const until = usage.premium_expires_at
-          ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric"
-            })
-          : "";
-        setCurrentPlanLine(
-          planLineEl,
-          until ? `Unlimited · active until ${until}` : "Unlimited (1 month)"
-        );
-      } else if (isPaid && tier === "pack_299") {
-        const limit = usage.query_limit ?? packQueries;
-        const used = usage.queries_used ?? 0;
-        setCurrentPlanLine(planLineEl, `${limit}-query pack · ${used}/${limit} used`);
-      } else if (remediesUnlocked) {
-        setCurrentPlanLine(
-          planLineEl,
-          `Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`
-        );
+        setCurrentPlanLine(planLineEl, "Advance Plan");
+      } else if ((isPaid && tier === "pack_299") || remediesUnlocked) {
+        setCurrentPlanLine(planLineEl, "Basic Plan");
       } else {
         setCurrentPlanLine(planLineEl, "No plan active");
       }
     }
 
     if (balanceEl) {
-      const addedPart = added > 0 ? ` · Added ₹${added}` : "";
-      if (isUnlimited) {
-        balanceEl.textContent = `Wallet Balance: ₹${bal}${addedPart}`;
-      } else if (remediesUnlocked) {
-        balanceEl.textContent =
-          `Wallet Balance: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
-          (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
-      } else {
-        balanceEl.textContent =
-          `Wallet Balance: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
-      }
+      balanceEl.textContent = `Wallet Balance: ₹${bal}`;
     }
 
     if (memberEl) {

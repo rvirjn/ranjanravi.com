@@ -70,9 +70,11 @@
   function paidPlanNote() {
     const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    const basicAmount = AC.QUERY_CHARGE_INR ?? 51;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     return (
-      `Basic Plans: ₹${AC.PREMIUM_PACK_AMOUNT_INR} for ${AC.PREMIUM_PACK_QUERY_LIMIT} queries\n` +
-      `Advance Plans: ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR} for unlimited access for ${monthLabel}.`
+      `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
+      `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
     );
   }
 

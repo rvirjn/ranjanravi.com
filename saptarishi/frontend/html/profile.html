@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>My profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=268">
+  <link rel="stylesheet" href="../style/styles.css?v=270">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -16,16 +16,20 @@
     <p class="lead">View and update your account details.</p>
 
     <div id="profile-summary" class="profile-summary" hidden>
-      <div class="profile-summary__plan-details">
-        <p id="profile-plan" class="profile-summary__plan"></p>
-        <p id="profile-plans-note" class="paid-plans-note"></p>
-      </div>
-      <p id="profile-wallet" class="profile-summary__wallet"></p>
-      <p id="profile-usage" class="profile-summary__usage"></p>
-      <p id="profile-member-since" class="profile-summary__meta"></p>
-      <div class="profile-summary__actions">
-        <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
-        <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
+      <div class="profile-summary__grid">
+        <div class="profile-summary__left">
+          <p id="profile-wallet" class="profile-summary__wallet"></p>
+          <p id="profile-plan" class="profile-summary__plan"></p>
+          <p id="profile-usage" class="profile-summary__usage"></p>
+          <p id="profile-member-since" class="profile-summary__meta"></p>
+        </div>
+        <div class="profile-summary__right">
+          <p id="profile-plans-note" class="paid-plans-note"></p>
+          <div class="profile-summary__actions">
+            <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
+            <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -144,9 +148,9 @@
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=16"></script>
   <script src="../js/premium-modal.js?v=11"></script>
-  <script src="../js/wallet-modal.js?v=11"></script>
+  <script src="../js/wallet-modal.js?v=13"></script>
   <script src="../js/profile.js?v=18"></script>
-  <script src="../utils/common.js?v=58"></script>
+  <script src="../utils/common.js?v=59"></script>
   <script src="../js/ask-ai.js?v=5"></script>
 </body>
 </html>

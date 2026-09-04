@@ -199,19 +199,12 @@
     summaryEl.hidden = false;
 
     const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
-    const packAmount = C?.PREMIUM_PACK_AMOUNT_INR ?? 299;
-    const packQueries = C?.PREMIUM_PACK_QUERY_LIMIT ?? 6;
     const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     const queryCharge = C?.QUERY_CHARGE_INR ?? 51;
     const bal =
       AUTH.getWalletBalance
         ? AUTH.getWalletBalance(usage || profile)
         : Number(profile.wallet_balance_inr || usage?.wallet_balance_inr) || 0;
-    const added =
-      AUTH.getWalletCreditedTotal
-        ? AUTH.getWalletCreditedTotal(usage || profile)
-        : Number(profile.wallet_credited_total_inr || usage?.wallet_credited_total_inr) || 0;
-    const queriesLeft = queryCharge > 0 ? Math.floor(bal / queryCharge) : 0;
     const tier = profile.premium_tier || usage?.premium_tier;
     const isPaid = profile.is_premium || usage?.is_premium;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
@@ -221,26 +214,9 @@
 
     if (planEl) {
       if (isUnlimited) {
-        const until = usage?.premium_expires_at
-          ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric"
-            })
-          : "";
-        setCurrentPlanLine(
-          planEl,
-          until ? `Unlimited · active until ${until}` : "Unlimited (1 month)"
-        );
-      } else if (isPaid && tier === "pack_299") {
-        const limit = usage?.query_limit ?? packQueries;
-        const used = usage?.queries_used ?? 0;
-        setCurrentPlanLine(planEl, `${limit}-query pack · ${used}/${limit} used`);
-      } else if (remediesUnlocked) {
-        setCurrentPlanLine(
-          planEl,
-          `Pay per query (₹${queryCharge}) · ${queriesLeft} left from balance`
-        );
+        setCurrentPlanLine(planEl, "Advance Plan");
+      } else if ((isPaid && tier === "pack_299") || remediesUnlocked) {
+        setCurrentPlanLine(planEl, "Basic Plan");
       } else {
         setCurrentPlanLine(planEl, "No plan active");
       }
@@ -258,23 +234,13 @@
         const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 1;
         const monthLabel = months === 1 ? "1 month" : `${months} months`;
         plansNoteEl.textContent =
-          `Basic Plans: ₹${packAmount} for ${packQueries} queries\n` +
-          `Advance Plans: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
+          `Basic Plan: ₹${queryCharge} for 1 birth details\n` +
+          `Advance Plan: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
       }
     }
 
     if (walletEl) {
-      const addedPart = added > 0 ? ` · Added ₹${added}` : "";
-      if (isUnlimited) {
-        walletEl.textContent = `Wallet Balance: ₹${bal}${addedPart}`;
-      } else if (remediesUnlocked) {
-        walletEl.textContent =
-          `Wallet Balance: ₹${bal}${addedPart} — ₹${queryCharge} per query` +
-          (queriesLeft > 0 ? ` · ~${queriesLeft} queries left` : "");
-      } else {
-        walletEl.textContent =
-          `Wallet Balance: ₹${bal}${addedPart} — Add ₹${packAmount} (~${packQueries} queries at ₹${queryCharge} each), or ₹${unlimitedAmount} for unlimited`;
-      }
+      walletEl.textContent = `Wallet Balance: ₹${bal}`;
       walletEl.hidden = false;
     }
 
