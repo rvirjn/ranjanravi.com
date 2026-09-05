@@ -11,7 +11,7 @@
   const DEFAULT_PLANS = Array.isArray(AC.WALLET_TOPUP_DEFAULTS)
     ? AC.WALLET_TOPUP_DEFAULTS.slice()
     : [
-        { id: "wallet_299", amount_inr: 299, credit_inr: 299 },
+        { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
         { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
         { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
       ];
@@ -71,7 +71,7 @@
   let openedFromSummary = false;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
-  let selectedPlanId = plans[0]?.id || "wallet_299";
+  let selectedPlanId = plans[0]?.id || "wallet_99";
 
   function scannerImageUrl() {
     const rel = AC.PREMIUM_SCANNER_IMAGE;
@@ -201,7 +201,7 @@
                 required
                 minlength="${AC.COUPON_CODE_MIN_LENGTH || 4}"
                 maxlength="${AC.COUPON_CODE_MAX_LENGTH || 32}"
-                placeholder="e.g. ${(AC.WALLET_COUPON_PREFIX_BY_AMOUNT && AC.WALLET_COUPON_PREFIX_BY_AMOUNT[AC.PREMIUM_PACK_AMOUNT_INR]) || "WL29"}-XXXX"
+                placeholder="e.g. ${(AC.WALLET_COUPON_PREFIX_BY_AMOUNT && AC.WALLET_COUPON_PREFIX_BY_AMOUNT[(AC.WALLET_TOPUP_DEFAULTS && AC.WALLET_TOPUP_DEFAULTS[0] && AC.WALLET_TOPUP_DEFAULTS[0].amount_inr) || 99]) || "WL09"}-XXXX"
                 autocapitalize="characters"
                 spellcheck="false"
               />

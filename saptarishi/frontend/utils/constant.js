@@ -50,7 +50,7 @@ const SAPTARISHI_CONSTANTS = {
   COUPON_CODE_MIN_LENGTH: 4,
   COUPON_CODE_MAX_LENGTH: 32,
   WALLET_COUPON_PREFIX_BY_AMOUNT: {
-    299: "WL29",
+    99: "WL09",
     500: "WL50",
     1899: "WL18"
   },
@@ -125,7 +125,7 @@ const SAPTARISHI_CONSTANTS = {
   ASTROLOGER_ASK_RATE_INR_PER_MIN: 21,
   ASTROLOGER_MIN_BALANCE_INR: 21,
   WALLET_TOPUP_DEFAULTS: [
-    { id: "wallet_299", amount_inr: 299, credit_inr: 299 },
+    { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
     { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
     { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
   ],

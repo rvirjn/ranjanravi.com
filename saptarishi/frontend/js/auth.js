@@ -1034,7 +1034,7 @@
       suggestedAmountInr:
         options.suggestedAmountInr != null
           ? options.suggestedAmountInr
-          : Math.max(charge, Number(AC.PREMIUM_PACK_AMOUNT_INR) || 299),
+          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 99),
       message:
         options.message ||
         `Free plan used. Add at least ₹${charge} to unlock this birth (charged once; reopen is free).`

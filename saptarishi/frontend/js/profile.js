@@ -40,7 +40,39 @@
 
   let couponUsers = [];
   let couponPlans = [];
+  let unavailableCouponKeys = new Set();
   let lastCouponEmailFile = null;
+
+  function normalizeCouponKey(value) {
+    return String(value || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s\-]+/g, "");
+  }
+
+  function applyWalletCouponPayload(walletPayload) {
+    couponPlans = walletPayload?.wallet?.topup_plans || [];
+    const used = new Set();
+    for (const raw of walletPayload?.unavailable_coupon_codes || []) {
+      const key = normalizeCouponKey(raw);
+      if (key) used.add(key);
+    }
+    // Plans from API should already exclude used codes; keep a local set anyway.
+    unavailableCouponKeys = used;
+  }
+
+  function unusedCouponCodes(plan) {
+    const prefix = expectedCouponPrefix(plan?.amount_inr);
+    let codes = Array.isArray(plan?.coupon_codes) ? plan.coupon_codes.slice() : [];
+    codes = codes.filter((c) => {
+      const display = String(c || "").trim().toUpperCase();
+      if (!display) return false;
+      if (unavailableCouponKeys.has(normalizeCouponKey(display))) return false;
+      if (prefix && !display.startsWith(prefix)) return false;
+      return true;
+    });
+    return codes;
+  }
 
   function setCurrentPlanLine(el, detail) {
     if (!el) return;
@@ -420,9 +452,9 @@
   }
 
   function populateAmountOptions() {
-    const plansWithCodes = (couponPlans || []).filter(
-      (p) => Array.isArray(p.coupon_codes) && p.coupon_codes.length > 0
-    );
+    const plansWithCodes = (couponPlans || [])
+      .map((p) => ({ ...p, coupon_codes: unusedCouponCodes(p) }))
+      .filter((p) => Array.isArray(p.coupon_codes) && p.coupon_codes.length > 0);
     fillSelect(
       amountSelect,
       "Select amount…",
@@ -439,14 +471,7 @@
   function populateCouponCodes() {
     const amount = Number(amountSelect?.value || 0);
     const plan = (couponPlans || []).find((p) => Number(p.amount_inr) === amount);
-    const prefix = expectedCouponPrefix(amount);
-    let codes = Array.isArray(plan?.coupon_codes) ? plan.coupon_codes.slice() : [];
-    // Strict filter: only codes for this top-up amount (never mix 299/500/1899).
-    if (prefix) {
-      codes = codes.filter((c) => String(c || "").toUpperCase().startsWith(prefix));
-    } else {
-      codes = [];
-    }
+    const codes = unusedCouponCodes(plan);
     fillSelect(
       codeSelect,
       amount ? `Select ₹${amount} coupon…` : "Select coupon…",
@@ -472,7 +497,7 @@
         AUTH.fetchDbWallet()
       ]);
       couponUsers = usersPayload.users || [];
-      couponPlans = walletPayload.wallet?.topup_plans || [];
+      applyWalletCouponPayload(walletPayload);
       fillSelect(
         nameSelect,
         "Select name…",
@@ -714,7 +739,7 @@
         }
         // Refresh unused coupon list after send.
         const walletPayload = await AUTH.fetchDbWallet();
-        couponPlans = walletPayload.wallet?.topup_plans || [];
+        applyWalletCouponPayload(walletPayload);
         populateAmountOptions();
         if (amountSelect) {
           amountSelect.value = String(amountInr);
