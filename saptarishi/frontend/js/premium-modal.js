@@ -46,7 +46,7 @@
     if (!plan) return "";
     if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
     const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
-    return `${limit} queries · ₹${plan.amount_inr}`;
+    return `${limit} births · ₹${plan.amount_inr}`;
   }
 
   function currentBalance() {

@@ -233,7 +233,22 @@
       }
       showAuspiciousStatus(formatted.text, true, formatted.limitReached);
       if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
-        await SaptarishiAuth.handlePremiumRequired(err);
+        const ready = await SaptarishiAuth.handlePremiumRequired(err);
+        if (ready && SaptarishiAuth.requireAuth && SaptarishiAuth.requireAuth()) {
+          showAuspiciousLoading();
+          try {
+            const payload = await fetchAuspiciousJsonFromApi(
+              dateFrom.value,
+              dateTo.value,
+              place
+            );
+            renderAuspiciousResponseIntoPage(payload);
+            return;
+          } catch (retryErr) {
+            const retryFormatted = formatAuspiciousLoadError(retryErr);
+            showAuspiciousStatus(retryFormatted.text, true, retryFormatted.limitReached);
+          }
+        }
       }
     }
   }

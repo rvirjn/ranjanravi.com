@@ -108,8 +108,12 @@ const SAPTARISHI_CONSTANTS = {
   PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
   PREMIUM_UNLIMITED_MONTHS: 1,
   PREMIUM_AMOUNT_INR: 1899,
-  /** Per kundali/auspicious query when remedies are unlocked via wallet (not unlimited). */
-  QUERY_CHARGE_INR: 51,
+  /** Per named birth: first kundali load unlocks remedies for that birth. */
+  BIRTH_CHARGE_INR: 21,
+  /** Legacy alias for BIRTH_CHARGE_INR. */
+  QUERY_CHARGE_INR: 21,
+  /** Logged-in Free plan: first N births unlock with no wallet debit. */
+  FREE_BIRTHS_PER_USER: 2,
   SUPPORT_WHATSAPP_MESSAGE: "Hi, I need support with Saptarishi.",
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
   SUPPORT_EMAIL_BODY: "Hi,\n\nI need help with Saptarishi.\n\n",
@@ -249,9 +253,9 @@ const SAPTARISHI_CONSTANTS = {
     { key: "mantra_to_chant", header: "Mantra to chant" },
     { key: "number_of_count_to_chant", header: "Chant count" },
     { key: "how_to_do_mantra_chant", header: "How to chant" },
-    { key: "things_to_donate", header: "things to donate" },
+    { key: "things_to_donate", header: "Things to donate" },
     { key: "whom_to_respect_most", header: "Whom to respect most" },
-    { key: "feed_to_animal", header: "feed to animal" }
+    { key: "feed_to_animal", header: "Feed to animal" }
   ],
   /** Nakshatra remedy detail table headers (nava-tara panel). */
   REMEDY_NAKSHATRA_TABLE_HEADERS: [

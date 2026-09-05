@@ -27,7 +27,8 @@
           ...usage,
           is_premium: true,
           premium_tier: "pack_299",
-          remedy_unlocked: remaining > 0 || Boolean(usage.remedy_unlocked),
+          // Unlock is per paid birth; do not treat pack remaining as global unlock.
+          remedy_unlocked: Boolean(usage.remedy_unlocked),
           query_limit: limit,
           queries_used: used,
           queries_remaining: remaining,
@@ -568,15 +569,10 @@
     return hasUnlimitedPremium();
   }
 
-  function isGuestScanLimitReached(scanType) {
-    const usage = normalizeUsage(getUsage());
-    if (usage?.is_premium) {
-      if (usage.premium_tier === "pack_299") {
-        return (Number(usage.queries_remaining) || 0) <= 0;
-      }
-      return false;
-    }
+  function isGuestScanLimitReached(_scanType) {
+    // Guest free-scan cap only. Logged-in users unlock births via wallet / plans.
     if (requireAuth()) return false;
+    const usage = normalizeUsage(getUsage());
     if (!usage) return false;
     const remaining = usage.queries_remaining;
     return remaining != null && Number(remaining) <= 0;
@@ -616,24 +612,15 @@
   }
 
   function createLimitError() {
-    const usage = normalizeUsage(getUsage());
-    let message;
-    if (usage?.is_premium && usage.premium_tier === "pack_299") {
-      const limit = Number(usage.query_limit) || Number(AC.PREMIUM_PACK_QUERY_LIMIT) || 6;
-      const used = Number(usage.queries_used);
-      const usedLabel = Number.isFinite(used) && used > 0 ? used : limit;
-      message =
-        `Paid query limit reached (${usedLabel} of ${limit} scans used). ` +
-        "Upgrade to Unlimited for unlimited kundali and auspicious scans.";
-    } else {
-      const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
-      message =
-        `Free query limit reached (${limit} queries per device). ` +
-        "Sign in for unlimited scans. Buy Premium to unlock remedy details.";
-    }
+    const freeBirths = Number(AC.FREE_BIRTHS_PER_USER) || 2;
+    const limit = AC.MAX_FREE_QUERIES_PER_GUEST || AC.MAX_FREE_QUERIES_PER_USER || 2;
+    const message =
+      `Free query limit reached (${limit} queries per device). ` +
+      `Sign in for Free plan (${freeBirths} birth details included).`;
     const err = new Error(message);
     err.premiumRequired = true;
     err.status = 403;
+    err.guestLimit = true;
     return err;
   }
 
@@ -842,6 +829,37 @@
     return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
   }
 
+  function getFreeBirthsRemaining(usage) {
+    const u = usage || getUsage() || getUser();
+    if (!u || typeof u !== "object") {
+      return Number(AC.FREE_BIRTHS_PER_USER) || 2;
+    }
+    if (u.free_births_remaining != null) {
+      return Math.max(0, Math.floor(Number(u.free_births_remaining) || 0));
+    }
+    const limit =
+      u.free_births_limit != null
+        ? Math.max(0, Math.floor(Number(u.free_births_limit) || 0))
+        : Number(AC.FREE_BIRTHS_PER_USER) || 2;
+    const used = Math.max(0, Math.floor(Number(u.free_births_used) || 0));
+    return Math.max(0, limit - used);
+  }
+
+  function hasAdvancePlan(usage) {
+    if (hasUnlimitedPremium()) return true;
+    const advanceMin = Number(AC.PREMIUM_UNLIMITED_AMOUNT_INR) || 1899;
+    return getWalletBalance(usage) >= advanceMin;
+  }
+
+  function canUnlockBirthWithoutWallet(usage) {
+    if (hasAdvancePlan(usage)) return true;
+    const bal = getWalletBalance(usage);
+    // Free births only apply on Free plan (₹0 balance).
+    if (bal === 0 && getFreeBirthsRemaining(usage) > 0) return true;
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+    return bal >= charge;
+  }
+
   function getWalletCreditedTotal(usage) {
     const u = usage || getUsage() || getUser();
     if (!u || typeof u !== "object") return 0;
@@ -853,12 +871,23 @@
     if (label && typeof label === "object" && !Array.isArray(label)) {
       const date = String(label.date || "").trim();
       if (!date) return null;
-      return {
+      const entry = {
         name: String(label.name || "").trim(),
         date,
         time: String(label.time || "").trim(),
         place: String(label.place || "").trim()
       };
+      if (
+        label.paid === true ||
+        label.paid === 1 ||
+        label.paid === "1" ||
+        label.paid === "true" ||
+        label.paid === "True" ||
+        label.paid === "yes"
+      ) {
+        entry.paid = true;
+      }
+      return entry;
     }
     const text = String(label || "").trim();
     if (!text) return null;
@@ -881,6 +910,32 @@
     const date = chunks[0];
     const time = chunks.length > 1 ? chunks.slice(1).join(" ") : "";
     return { name, date, time, place };
+  }
+
+  function isBirthPaid(birthName, usage) {
+    const key = String(birthName || "")
+      .trim()
+      .toLowerCase();
+    if (!key) return false;
+    if (hasAdvancePlan(usage)) return true;
+    const views = getBirthViews(usage);
+    const hit = views.find(
+      (view) =>
+        String(view.name || "")
+          .trim()
+          .toLowerCase() === key
+    );
+    return Boolean(hit && hit.paid);
+  }
+
+  function canViewBirthRemedies(birthName, usage) {
+    const u = normalizeUsage(usage || getUsage());
+    if (!u) return false;
+    if (u.is_guest) return false;
+    if (hasAdvancePlan(u)) return true;
+    if (u.remedy_unlocked === true && u.birth_paid === true) return true;
+    if (u.birth_paid === true) return true;
+    return isBirthPaid(birthName, u);
   }
 
   /** Prefill birth form from latest saved birth (logged-in users). */
@@ -946,15 +1001,45 @@
 
   async function handlePremiumRequired(err, options = {}) {
     if (!err || (!err.premiumRequired && err.status !== 403)) return false;
-    await openPremiumFlow({
-      tab: options.tab || "login",
+
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+
+    if (!getToken()) {
+      const ok = await ensureAuth({
+        tab: options.tab || "login",
+        required: true,
+        reason: options.reason || "limit",
+        message:
+          options.loginMessage ||
+          `Sign in to continue. Free plan includes ${AC.FREE_BIRTHS_PER_USER || 2} birth details.`
+      });
+      if (!ok) return false;
+      try {
+        await refreshMe();
+      } catch {
+        /* use session from login */
+      }
+    }
+
+    if (hasUnlimitedPremium()) return true;
+    if (hasAdvancePlan()) return true;
+
+    // Free plan births or wallet credit — caller should retry the scan.
+    if (canUnlockBirthWithoutWallet()) return true;
+
+    // Need credit for this birth — open wallet, not Buy Premium pack.
+    await openWalletFlow({
       required: true,
+      addMoney: true,
+      suggestedAmountInr:
+        options.suggestedAmountInr != null
+          ? options.suggestedAmountInr
+          : Math.max(charge, Number(AC.PREMIUM_PACK_AMOUNT_INR) || 299),
       message:
-        err.message ||
         options.message ||
-        "Your scan limit is used. Add money to your wallet, then buy a Premium plan."
+        `Free plan used. Add at least ₹${charge} to unlock this birth (charged once; reopen is free).`
     });
-    return true;
+    return canUnlockBirthWithoutWallet();
   }
 
   global.SaptarishiAuth = {
@@ -994,6 +1079,7 @@
     updateUserFromApiPayload,
     normalizeUsage,
     hasUnlimitedPremium,
+    hasAdvancePlan,
     isPremiumActive,
     activatePremium,
     fetchWalletInfo,
@@ -1006,7 +1092,11 @@
     getDefaultBirth,
     getBirthViews,
     birthViewKey,
+    isBirthPaid,
+    canViewBirthRemedies,
     getWalletBalance,
+    getFreeBirthsRemaining,
+    canUnlockBirthWithoutWallet,
     getWalletCreditedTotal,
     parseBirthViewLabel,
     applyDefaultBirthToForm,

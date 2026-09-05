@@ -200,29 +200,44 @@
 
     const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
     const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
-    const queryCharge = C?.QUERY_CHARGE_INR ?? 51;
+    const queryCharge = C?.BIRTH_CHARGE_INR ?? C?.QUERY_CHARGE_INR ?? 21;
+    const freeLimit = C?.FREE_BIRTHS_PER_USER ?? 2;
     const bal =
       AUTH.getWalletBalance
         ? AUTH.getWalletBalance(usage || profile)
         : Number(profile.wallet_balance_inr || usage?.wallet_balance_inr) || 0;
+    const freeLeft = AUTH.getFreeBirthsRemaining
+      ? AUTH.getFreeBirthsRemaining(usage || profile)
+      : Math.max(
+          0,
+          freeLimit - (Number(usage?.free_births_used ?? profile.free_births_used) || 0)
+        );
     const tier = profile.premium_tier || usage?.premium_tier;
     const isPaid = profile.is_premium || usage?.is_premium;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
+    const isAdvance = Boolean(isUnlimited || bal >= unlimitedAmount);
     const remediesUnlocked = Boolean(
-      usage?.remedy_unlocked || profile?.remedy_unlocked || isUnlimited || bal >= queryCharge
+      usage?.remedy_unlocked ||
+        profile?.remedy_unlocked ||
+        isAdvance ||
+        freeLeft > 0 ||
+        bal >= queryCharge
     );
 
     if (planEl) {
-      if (isUnlimited) {
+      if (isAdvance) {
         setCurrentPlanLine(planEl, "Advance Plan");
-      } else if ((isPaid && tier === "pack_299") || remediesUnlocked) {
-        setCurrentPlanLine(planEl, "Basic Plan");
+      } else if (bal === 0 && freeLeft > 0) {
+        setCurrentPlanLine(
+          planEl,
+          `Free Plan · ${freeLeft} of ${freeLimit} birth${freeLimit === 1 ? "" : "s"} left`
+        );
       } else {
-        setCurrentPlanLine(planEl, "No plan active");
+        setCurrentPlanLine(planEl, "Basic Plan");
       }
       planEl.classList.toggle(
         "profile-summary__plan--premium",
-        Boolean(isUnlimited || remediesUnlocked)
+        Boolean(isAdvance || remediesUnlocked || (bal === 0 && freeLeft > 0))
       );
     }
 
@@ -234,6 +249,7 @@
         const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 1;
         const monthLabel = months === 1 ? "1 month" : `${months} months`;
         plansNoteEl.textContent =
+          `Free Plan: ${freeLimit} birth details free\n` +
           `Basic Plan: ₹${queryCharge} for 1 birth details\n` +
           `Advance Plan: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
       }

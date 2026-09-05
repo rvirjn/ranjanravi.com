@@ -70,9 +70,11 @@
   function paidPlanNote() {
     const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
-    const basicAmount = AC.QUERY_CHARGE_INR ?? 51;
+    const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
+    const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     return (
+      `Free Plan: ${freeBirths} birth details free\n` +
       `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
       `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
     );
@@ -376,7 +378,6 @@
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
         <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden title="Wallet">₹0</button>
-        <button type="button" id="site-unlock-remedies-btn" class="site-header__premium" hidden>Unlock remedies</button>
         <div class="site-header__account" id="site-account-menu" hidden>
           <button type="button" id="site-account-btn" class="site-header__account-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="site-account-dropdown">
             <span id="site-account-name">Account</span>
@@ -409,17 +410,12 @@
     const displayUsage = usage || resolvedUser || (AUTH ? AUTH.getUsage() : null);
     const usageEl = header.querySelector(".site-header__usage");
     const walletBtn = header.querySelector("#site-wallet-btn");
-    const unlockRemediesBtn = header.querySelector("#site-unlock-remedies-btn");
     const accountMenu = header.querySelector("#site-account-menu");
     const accountBtn = header.querySelector("#site-account-btn");
     const accountName = header.querySelector("#site-account-name");
     const accountDropdown = header.querySelector("#site-account-dropdown");
     const registerBtn = header.querySelector("#site-register-btn");
     const loginBtn = header.querySelector("#site-login-btn");
-
-    const showUnlockRemedies = Boolean(
-      resolvedUser && displayUsage && displayUsage.remedy_unlocked !== true
-    );
 
     if (walletBtn) {
       if (resolvedUser) {
@@ -433,10 +429,6 @@
       } else {
         walletBtn.hidden = true;
       }
-    }
-
-    if (unlockRemediesBtn) {
-      unlockRemediesBtn.hidden = !showUnlockRemedies;
     }
 
     if (resolvedUser) {
@@ -684,26 +676,11 @@
     const walletBtn = header.querySelector("#site-wallet-btn");
     const accountMenu = header.querySelector("#site-account-menu");
     const accountBtn = header.querySelector("#site-account-btn");
-    const unlockRemediesBtn = header.querySelector("#site-unlock-remedies-btn");
 
     if (walletBtn) {
       walletBtn.addEventListener("click", () => {
         if (AUTH.openWalletFlow) {
           AUTH.openWalletFlow({ required: true });
-          return;
-        }
-        const modal = global.SaptarishiWalletModal;
-        if (modal && modal.open) modal.open();
-      });
-    }
-
-    if (unlockRemediesBtn) {
-      unlockRemediesBtn.addEventListener("click", () => {
-        if (AUTH.openWalletFlow) {
-          AUTH.openWalletFlow({
-            required: true,
-            message: "Add money to your wallet to unlock remedies."
-          });
           return;
         }
         const modal = global.SaptarishiWalletModal;

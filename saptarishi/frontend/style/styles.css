@@ -60,7 +60,7 @@
   --radius-md: 14px;
   --radius-lg: 18px;
 
-  --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-ui: "Segoe UI", "Nirmala UI", "Mangal", system-ui, -apple-system, sans-serif;
   --font-display: Georgia, "Times New Roman", serif;
 }
 
@@ -2372,6 +2372,15 @@ tbody tr:last-child td {
 :is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-remedy,
 :is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-mantra {
   min-width: 5.5rem;
+}
+
+.remedy-mantra-value,
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-th-mantra,
+:is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) .nakshatra-td-mantra,
+#results table.kundali-table thead th.nakshatra-th-mantra,
+#results table.kundali-table tbody td.nakshatra-td-mantra {
+  color: var(--planet-color-red, #b71c1c);
+  font-weight: 700;
 }
 
 :is(#nakshatra-table, #slot-nakshatra-table, #remedy-table, .remedy-table) tbody tr.navatara-row--helpful td {
@@ -4750,6 +4759,12 @@ body.premium-modal-open {
 .remedy-planet-detail-table td {
   vertical-align: top;
   white-space: normal;
+}
+
+.remedy-planet-detail-table td.remedy-mantra-value,
+.remedy-planet-detail-table .remedy-mantra-value {
+  color: var(--planet-color-red, #b71c1c);
+  font-weight: 700;
 }
 
 .remedy-text-cell--locked {

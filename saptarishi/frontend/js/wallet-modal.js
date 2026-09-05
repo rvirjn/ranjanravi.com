@@ -29,9 +29,11 @@
     if (CU && CU.paidPlanNote) return CU.paidPlanNote();
     const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
-    const basicAmount = AC.QUERY_CHARGE_INR ?? 51;
+    const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
+    const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
     return (
+      `Free Plan: ${freeBirths} birth details free\n` +
       `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
       `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
     );
@@ -65,6 +67,7 @@
   let backBtn = null;
   let titleEl = null;
   let planPickerEl = null;
+  let plansNoteEl = null;
   let openedFromSummary = false;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
@@ -233,7 +236,7 @@
     successPanel = overlay.querySelector("#wallet-modal-success-panel");
     paymentPanel = overlay.querySelector("#wallet-modal-payment-panel");
     planPickerEl = overlay.querySelector("#wallet-modal-plan-picker");
-    const plansNoteEl = overlay.querySelector("#wallet-modal-plans-note");
+    plansNoteEl = overlay.querySelector("#wallet-modal-plans-note");
     if (plansNoteEl) plansNoteEl.textContent = paidPlanNote();
 
     overlay.querySelector("#wallet-modal-close").addEventListener("click", () => close(false));
@@ -302,26 +305,35 @@
         : AUTH.getWalletBalance
           ? AUTH.getWalletBalance(usage)
           : Math.max(0, Math.floor(Number(usage.wallet_balance_inr) || 0));
-    const queryCharge = AC.QUERY_CHARGE_INR ?? 51;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const freeLimit = AC.FREE_BIRTHS_PER_USER ?? 2;
+    const freeLeft = AUTH.getFreeBirthsRemaining
+      ? AUTH.getFreeBirthsRemaining(usage)
+      : Math.max(0, freeLimit - (Number(usage.free_births_used) || 0));
     const isPaid = Boolean(usage.is_premium || user.is_premium);
     const tier = usage.premium_tier || user.premium_tier;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
-    const remediesUnlocked = Boolean(
-      usage.remedy_unlocked || user.remedy_unlocked || isUnlimited || bal >= queryCharge
-    );
+    const isAdvance = Boolean(isUnlimited || bal >= advanceAmount);
 
     if (planLineEl) {
-      if (isUnlimited) {
+      if (isAdvance) {
         setCurrentPlanLine(planLineEl, "Advance Plan");
-      } else if ((isPaid && tier === "pack_299") || remediesUnlocked) {
-        setCurrentPlanLine(planLineEl, "Basic Plan");
+      } else if (bal === 0 && freeLeft > 0) {
+        setCurrentPlanLine(
+          planLineEl,
+          `Free Plan · ${freeLeft} of ${freeLimit} birth${freeLimit === 1 ? "" : "s"} left`
+        );
       } else {
-        setCurrentPlanLine(planLineEl, "No plan active");
+        setCurrentPlanLine(planLineEl, "Basic Plan");
       }
     }
 
     if (balanceEl) {
       balanceEl.textContent = `Wallet Balance: ₹${bal}`;
+    }
+
+    if (plansNoteEl) {
+      plansNoteEl.textContent = paidPlanNote();
     }
 
     if (memberEl) {

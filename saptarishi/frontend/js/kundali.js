@@ -4366,20 +4366,33 @@ function renderDivisionalChartsFromPayload(payload) {
  */
 function canViewLockedPremiumContent() {
   if (typeof SaptarishiAuth === "undefined") return false;
+  if (typeof SaptarishiAuth.hasAdvancePlan === "function" && SaptarishiAuth.hasAdvancePlan()) {
+    return true;
+  }
+  if (typeof SaptarishiAuth.hasUnlimitedPremium === "function" && SaptarishiAuth.hasUnlimitedPremium()) {
+    return true;
+  }
+  const name = birthName ? String(birthName.value || "").trim() : "";
+  if (typeof SaptarishiAuth.canViewBirthRemedies === "function") {
+    return Boolean(SaptarishiAuth.canViewBirthRemedies(name));
+  }
   const usage = SaptarishiAuth.getUsage ? SaptarishiAuth.getUsage() : null;
   if (usage && usage.remedy_unlocked === true) return true;
-  if (usage && usage.remedy_unlocked === false) return false;
-  if (typeof SaptarishiAuth.isPremiumActive === "function") {
-    return Boolean(SaptarishiAuth.isPremiumActive());
+  if (typeof SaptarishiAuth.isBirthPaid === "function" && name) {
+    return Boolean(SaptarishiAuth.isBirthPaid(name, usage));
   }
   return false;
 }
 
 function openUnlockWalletFromBlur() {
+  const charge =
+    (typeof SAPTARISHI_CONSTANTS !== "undefined" &&
+      (SAPTARISHI_CONSTANTS.BIRTH_CHARGE_INR || SAPTARISHI_CONSTANTS.QUERY_CHARGE_INR)) ||
+    21;
   if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
     SaptarishiAuth.openWalletFlow({
       required: true,
-      message: "Add money to your wallet to unlock full details."
+      message: `Add money to your wallet to unlock this birth (₹${charge} once).`
     });
     return;
   }
@@ -4766,7 +4779,25 @@ async function handleBirthFormSubmit(event) {
     }
     showStatusMessage(formatted.text, true, formatted.limitReached);
     if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
-      await SaptarishiAuth.handlePremiumRequired(err);
+      const ready = await SaptarishiAuth.handlePremiumRequired(err);
+      if (ready && SaptarishiAuth.requireAuth && SaptarishiAuth.requireAuth()) {
+        showKundaliLoadingStatus();
+        try {
+          const kundaliPayload = await fetchKundaliJsonFromApi(
+            birthDate.value,
+            birthTime.value,
+            place,
+            name,
+            shouldSaveBirthDetails()
+          );
+          renderKundaliResponseIntoPage(kundaliPayload);
+          refreshSavedKundaliDropdown();
+          return;
+        } catch (retryErr) {
+          const retryFormatted = formatKundaliApiError(retryErr);
+          showStatusMessage(retryFormatted.text, true, retryFormatted.limitReached);
+        }
+      }
     }
   }
 }

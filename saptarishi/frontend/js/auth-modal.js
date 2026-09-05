@@ -11,8 +11,9 @@
     "After that, sign in or register for premium access.";
 
   const PREMIUM_LEAD =
-    `Your free limit is used. Sign in, pay via the QR, and verify your coupon code ` +
-    `(₹${AC.PREMIUM_PACK_AMOUNT_INR || 299} for ${AC.PREMIUM_PACK_QUERY_LIMIT || 6} queries ` +
+    `Your free limit is used. Sign in for a Free plan (${AC.FREE_BIRTHS_PER_USER || 2} births), ` +
+    `then ₹${AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR || 21} per birth, ` +
+    `₹${AC.PREMIUM_PACK_AMOUNT_INR || 299} for ${AC.PREMIUM_PACK_QUERY_LIMIT || 6} births, ` +
     `or ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR || 1899} for unlimited).`;
 
   const FORGOT_LEAD =

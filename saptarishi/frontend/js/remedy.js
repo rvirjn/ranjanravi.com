@@ -305,23 +305,85 @@
     return String(value).trim();
   }
 
-  /** Premium unlocks readable remedy text; logged-in users still get unlimited scans. */
+  function isMantraColumn(col) {
+    const key = String(col?.key || "").toLowerCase();
+    return key === "mantra_to_chant" || key === "mantra";
+  }
+
+  function looksLikeQuotedMantra(quoted) {
+    const inner = String(quoted || "")
+      .replace(/^["“”']+|["“”']+$/g, "")
+      .trim();
+    return /^om\b/i.test(inner);
+  }
+
+  function appendQuotedMantraText(parent, text) {
+    const parts = String(text).split(/((?:["“”])[^"“”]+(?:["“”]))/g);
+    for (const part of parts) {
+      if (!part) continue;
+      if (looksLikeQuotedMantra(part)) {
+        const strong = document.createElement("strong");
+        strong.className = "remedy-mantra-value";
+        strong.textContent = part;
+        parent.appendChild(strong);
+      } else {
+        parent.appendChild(document.createTextNode(part));
+      }
+    }
+  }
+
+  function fillRemedyValueCell(td, col, cellText, locked) {
+    if (!td) return;
+    const text = String(cellText || "");
+    if (locked || col.key !== "how_to_do_mantra_chant") {
+      td.textContent = text;
+      if (locked) blurLockedRemedyValueCell(td, text);
+      return;
+    }
+    td.textContent = "";
+    td.classList.add("remedy-how-to-chant");
+    const sections = text.split(/(?=For personal daily)/);
+    sections.forEach((section, index) => {
+      const chunk = section.trim();
+      if (!chunk) return;
+      if (index > 0) {
+        td.appendChild(document.createElement("br"));
+        td.appendChild(document.createElement("br"));
+      }
+      appendQuotedMantraText(td, chunk);
+    });
+  }
+
+  /** Remedies unlock per paid birth, Free/Basic wallet, or Advance (₹1899+). */
   function canViewRemedyDetails() {
     if (typeof SaptarishiAuth === "undefined") return false;
+    if (typeof SaptarishiAuth.hasAdvancePlan === "function" && SaptarishiAuth.hasAdvancePlan()) {
+      return true;
+    }
+    if (typeof SaptarishiAuth.hasUnlimitedPremium === "function" && SaptarishiAuth.hasUnlimitedPremium()) {
+      return true;
+    }
+    const name = birthName ? String(birthName.value || "").trim() : "";
+    if (typeof SaptarishiAuth.canViewBirthRemedies === "function") {
+      return Boolean(SaptarishiAuth.canViewBirthRemedies(name));
+    }
     const usage = SaptarishiAuth.getUsage ? SaptarishiAuth.getUsage() : null;
     if (usage && usage.remedy_unlocked === true) return true;
-    if (usage && usage.remedy_unlocked === false) return false;
-    if (typeof SaptarishiAuth.isPremiumActive === "function") {
-      return Boolean(SaptarishiAuth.isPremiumActive());
+    if (typeof SaptarishiAuth.isBirthPaid === "function" && name) {
+      return Boolean(SaptarishiAuth.isBirthPaid(name, usage));
     }
     return false;
   }
 
   function openRemedyUnlock() {
+    const charge =
+      (typeof SAPTARISHI_CONSTANTS !== "undefined" &&
+        (SAPTARISHI_CONSTANTS.BIRTH_CHARGE_INR || SAPTARISHI_CONSTANTS.QUERY_CHARGE_INR)) ||
+      21;
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
       SaptarishiAuth.openWalletFlow({
         required: true,
-        message: "Add money to your wallet to unlock full remedy details."
+        message: `Add money to your wallet to unlock this birth (₹${charge} once).`
       });
       return;
     }
@@ -395,9 +457,11 @@
       th.scope = "row";
       th.textContent = String(col.header || col.key || "");
       const td = document.createElement("td");
+      if (isMantraColumn(col)) {
+        td.classList.add("remedy-mantra-value");
+      }
       const cellText = formatRemedyCellValue(source[col.key]) || "—";
-      td.textContent = cellText;
-      if (locked) blurLockedRemedyValueCell(td, cellText);
+      fillRemedyValueCell(td, col, cellText, locked);
       tr.appendChild(th);
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -636,6 +700,9 @@
     for (const label of REMEDY_TABLE_HEADERS) {
       const th = document.createElement("th");
       th.textContent = label;
+      if (normalizeText(label) === "mantra") {
+        th.classList.add("nakshatra-th-mantra");
+      }
       headRow.appendChild(th);
     }
     thead.appendChild(headRow);
@@ -798,7 +865,34 @@
       }
       showRemedyStatus(formatted.text, true, formatted.limitReached);
       if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
-        await SaptarishiAuth.handlePremiumRequired(err);
+        const ready = await SaptarishiAuth.handlePremiumRequired(err);
+        if (ready && SaptarishiAuth.requireAuth && SaptarishiAuth.requireAuth()) {
+          showRemedyLoadingStatus();
+          try {
+            const [kundaliPayload, db] = await Promise.all([
+              KV.fetchJson(
+                birthDate.value,
+                birthTime.value,
+                place,
+                name,
+                shouldSaveBirthDetails()
+              ),
+              loadPlanetDatabase()
+            ]);
+            planetRemedyByName = buildPlanetRemedyLookup(db);
+            cachedNakshatraRows = kundaliPayload.nakshatras || [];
+            renderPlanetRemedyTables(kundaliPayload);
+            renderDoshRemedyTiles(kundaliPayload);
+            renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
+            refreshSavedBirthDropdown();
+            if (resultsEl) resultsEl.hidden = false;
+            showRemedyStatus("");
+            return;
+          } catch (retryErr) {
+            const retryFormatted = formatLoadError(retryErr);
+            showRemedyStatus(retryFormatted.text, true, retryFormatted.limitReached);
+          }
+        }
       }
     }
   }
