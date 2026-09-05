@@ -2025,6 +2025,7 @@ tbody tr:last-child td {
   #results .table-wrap:has(> #planets-table),
   #results .table-wrap:has(> #slot-planets-table),
   #results .table-wrap:has(> #planet-remedy-table),
+  #results .house-planets-sheet__table-wrap,
   #lord-comparison-section .table-wrap {
     overflow-x: auto;
     overflow-y: visible;
@@ -2034,7 +2035,8 @@ tbody tr:last-child td {
   #planets-table.kundali-table,
   #slot-planets-table.kundali-table,
   #planet-remedy-table.kundali-table,
-  #lord-comparison-table.kundali-table {
+  #lord-comparison-table.kundali-table,
+  #results .house-planets-sheet__table.kundali-table {
     width: max-content;
     min-width: 62rem;
     max-width: none;
@@ -2052,7 +2054,9 @@ tbody tr:last-child td {
   #planet-remedy-table.kundali-table th,
   #planet-remedy-table.kundali-table td,
   #lord-comparison-table.kundali-table th,
-  #lord-comparison-table.kundali-table td {
+  #lord-comparison-table.kundali-table td,
+  #results .house-planets-sheet__table.kundali-table th,
+  #results .house-planets-sheet__table.kundali-table td {
     font-size: 0.72rem;
     line-height: 1.25;
     padding: 0.35rem 0.45rem;
@@ -4127,6 +4131,7 @@ body.premium-modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   padding: var(--space-md);
   background: rgba(20, 16, 8, 0.55);
   backdrop-filter: blur(2px);
@@ -4138,9 +4143,12 @@ body.premium-modal-open {
 
 .premium-modal {
   position: relative;
+  box-sizing: border-box;
   width: min(100%, 420px);
+  min-height: 0;
   max-height: min(92vh, 720px);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   padding: var(--space-lg);
   border-radius: var(--radius-md);
   background: var(--color-surface, #fff);
@@ -4159,6 +4167,64 @@ body.premium-modal-open {
 @media (max-width: 520px) {
   .premium-modal--wallet .premium-modal__wallet-summary.profile-summary__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Phone WebView: overlay is the scroller so QR + coupon + Verify stay reachable. */
+@media (max-width: 720px) {
+  .premium-modal-overlay,
+  .auth-modal-overlay,
+  .send-coupon-overlay,
+  .kundali-chart-zoom-overlay {
+    display: block;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    padding: 0.7rem 0.7rem 1.5rem;
+  }
+
+  .premium-modal,
+  .premium-modal--wallet,
+  .auth-modal,
+  .send-coupon-modal,
+  .kundali-chart-zoom {
+    box-sizing: border-box;
+    max-height: none;
+    max-width: 100%;
+    width: 100%;
+    overflow: visible;
+    margin: 0 auto;
+    padding: 1rem 0.9rem 1.2rem;
+  }
+
+  .premium-modal__steps,
+  .premium-modal__steps strong,
+  .premium-modal__lead,
+  .premium-modal__form,
+  .auth-modal,
+  .send-coupon-modal {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .premium-modal input,
+  .premium-modal button,
+  .premium-modal select,
+  .auth-modal input,
+  .auth-modal button,
+  .send-coupon-modal input,
+  .send-coupon-modal button,
+  .send-coupon-modal select {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .premium-modal__qr {
+    width: min(200px, 58vw);
   }
 }
 
@@ -4301,6 +4367,7 @@ body.premium-modal-open {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .premium-modal__form .form-field {
