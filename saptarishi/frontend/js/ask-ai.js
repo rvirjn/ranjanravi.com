@@ -224,7 +224,10 @@
           );
           log.dataset.greeted = "1";
         }
-        input.focus();
+        input.focus({ preventScroll: false });
+        window.setTimeout(() => {
+          input.scrollIntoView({ block: "end", inline: "nearest" });
+        }, 250);
       }
     }
 
@@ -249,6 +252,24 @@
     });
 
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
+
+    function pinAboveKeyboard() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      root.style.setProperty("--ask-ai-keyboard", `${covered}px`);
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", pinAboveKeyboard);
+      window.visualViewport.addEventListener("scroll", pinAboveKeyboard);
+      pinAboveKeyboard();
+    }
+    input.addEventListener("focus", () => {
+      window.setTimeout(() => {
+        pinAboveKeyboard();
+        input.scrollIntoView({ block: "end", inline: "nearest" });
+      }, 300);
+    });
   }
 
   if (document.readyState === "loading") {

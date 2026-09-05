@@ -367,10 +367,13 @@
     const header = document.createElement("header");
     header.className = "site-header";
     header.innerHTML = `
+      <button type="button" class="site-header__menu-btn" id="site-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-header-nav">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
       <div class="site-header__brand">
         <a href="${navHref("kundali.html")}" class="site-header__logo">Saptarishi</a>
       </div>
-      <nav class="site-header__nav" aria-label="Main">
+      <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
         <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
@@ -393,6 +396,7 @@
     `;
     updateHeaderAuth(header, user, usage);
     wireHeaderAuthButtons(header);
+    wireHeaderMenu(header);
     return header;
   }
 
@@ -460,6 +464,38 @@
         usageEl.hidden = true;
       }
     }
+  }
+
+  function setHeaderMenuOpen(header, open) {
+    if (!header) return;
+    const menuBtn = header.querySelector("#site-menu-btn");
+    header.classList.toggle("site-header--menu-open", open);
+    if (menuBtn) {
+      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+    if (open) setAccountMenuOpen(header, false);
+  }
+
+  function wireHeaderMenu(header) {
+    const menuBtn = header.querySelector("#site-menu-btn");
+    const nav = header.querySelector("#site-header-nav");
+    if (!menuBtn || !nav || header.dataset.menuWired === "1") return;
+    header.dataset.menuWired = "1";
+
+    menuBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setHeaderMenuOpen(header, !header.classList.contains("site-header--menu-open"));
+    });
+    document.addEventListener("click", (event) => {
+      if (!header.contains(event.target)) setHeaderMenuOpen(header, false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setHeaderMenuOpen(header, false);
+    });
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setHeaderMenuOpen(header, false));
+    });
   }
 
   function setAccountMenuOpen(header, open) {
@@ -704,6 +740,7 @@
       accountBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         const open = accountBtn.getAttribute("aria-expanded") !== "true";
+        if (open) setHeaderMenuOpen(header, false);
         setAccountMenuOpen(header, open);
       });
       document.addEventListener("click", (event) => {

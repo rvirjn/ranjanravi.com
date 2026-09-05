@@ -2020,6 +2020,48 @@ tbody tr:last-child td {
 #planets-table.kundali-table thead th:nth-child(17),
 #slot-planets-table.kundali-table thead th:nth-child(17) { width: 6%; }
 
+/* Phone: wide kundali tables scroll sideways instead of stacking one letter per line. */
+@media (max-width: 900px) {
+  #results .table-wrap:has(> #planets-table),
+  #results .table-wrap:has(> #slot-planets-table),
+  #results .table-wrap:has(> #planet-remedy-table),
+  #lord-comparison-section .table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #planets-table.kundali-table,
+  #slot-planets-table.kundali-table,
+  #planet-remedy-table.kundali-table,
+  #lord-comparison-table.kundali-table {
+    width: max-content;
+    min-width: 62rem;
+    max-width: none;
+    table-layout: auto;
+  }
+
+  #planet-remedy-table.kundali-table {
+    min-width: 40rem;
+  }
+
+  #planets-table.kundali-table th,
+  #planets-table.kundali-table td,
+  #slot-planets-table.kundali-table th,
+  #slot-planets-table.kundali-table td,
+  #planet-remedy-table.kundali-table th,
+  #planet-remedy-table.kundali-table td,
+  #lord-comparison-table.kundali-table th,
+  #lord-comparison-table.kundali-table td {
+    font-size: 0.72rem;
+    line-height: 1.25;
+    padding: 0.35rem 0.45rem;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+}
+
 :is(#planets-table, #slot-planets-table, .house-planets-sheet__table) tbody td.planets-td-planet {
   font-weight: 700;
 }
@@ -2896,6 +2938,7 @@ tbody tr:last-child td {
 }
 
 .site-header {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -2956,6 +2999,94 @@ tbody tr:last-child td {
 .site-header__link--active {
   background: var(--color-surface);
   box-shadow: inset 0 0 0 1px var(--color-surface-border);
+}
+
+.site-header__menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-heading);
+  cursor: pointer;
+}
+
+.site-header__menu-btn svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+}
+
+.site-header__menu-btn:hover,
+.site-header__menu-btn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 720px) {
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.35rem 0.5rem;
+    margin-top: 0;
+    border-radius: 0;
+  }
+
+  .site-header__menu-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .site-header__logo {
+    font-size: 1.15rem;
+  }
+
+  .site-header__nav {
+    display: none;
+    position: absolute;
+    top: calc(100% - 1px);
+    left: var(--page-margin-inline);
+    z-index: 210;
+    min-width: 12.5rem;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.15rem;
+    padding: 0.4rem;
+    background: var(--color-header-bg);
+    border: 1px solid var(--color-surface-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 24px rgba(74, 47, 20, 0.16);
+  }
+
+  .site-header--menu-open .site-header__nav {
+    display: flex;
+  }
+
+  .site-header__nav .site-header__link {
+    display: block;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .site-header__meta {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  .site-header__account,
+  .site-header__account-btn {
+    max-width: 7.25rem;
+  }
 }
 
 .site-header__meta {
@@ -4929,7 +5060,7 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 .ask-ai {
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  bottom: max(1rem, env(safe-area-inset-bottom), var(--ask-ai-keyboard, 0px));
   z-index: 1100;
   font-family: var(--font-ui);
 }
@@ -5158,9 +5289,31 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 }
 
 @media (max-width: 480px) {
+  .ask-ai {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+  }
+
   .ask-ai__panel {
-    width: calc(100vw - 1.5rem);
-    max-height: min(70vh, 28rem);
+    width: 100%;
+    max-height: min(52dvh, 22rem);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .ask-ai__log {
+    min-height: 0;
+  }
+
+  .ask-ai__header,
+  .ask-ai__hint,
+  .ask-ai__form {
+    flex-shrink: 0;
+  }
+
+  .ask-ai__input {
+    font-size: 16px;
   }
 }
 
