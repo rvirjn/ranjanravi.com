@@ -363,11 +363,129 @@
     return "";
   }
 
+  function drawerIcon(paths) {
+    return `<svg class="site-drawer__icon" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+  }
+
+  function avatarInitials(user) {
+    const source = String((user && (user.name || user.mobile)) || "Saptarishi").trim();
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    return source.slice(0, 2).toUpperCase();
+  }
+
+  function updateDrawerAuth(user, usage) {
+    const drawer = document.getElementById("site-drawer");
+    if (!drawer) return;
+    const nameEl = drawer.querySelector("#site-drawer-name");
+    const metaEl = drawer.querySelector("#site-drawer-meta");
+    const avatarEl = drawer.querySelector("#site-drawer-avatar");
+    const loginLink = drawer.querySelector("#site-drawer-login");
+    const logoutBtn = drawer.querySelector("#site-drawer-logout");
+    if (nameEl) nameEl.textContent = user ? user.name || user.mobile || "Account" : "Guest";
+    if (avatarEl) avatarEl.textContent = avatarInitials(user);
+    if (metaEl) {
+      if (user) {
+        const bal =
+          AUTH && AUTH.getWalletBalance
+            ? AUTH.getWalletBalance(usage || user)
+            : Number(usage?.wallet_balance_inr) || 0;
+        metaEl.textContent = `Wallet ₹${bal}`;
+      } else {
+        metaEl.textContent = "Sign in to save charts";
+      }
+    }
+    if (loginLink) loginLink.hidden = Boolean(user);
+    if (logoutBtn) logoutBtn.hidden = !user;
+  }
+
+  function ensureSiteDrawer(header) {
+    if (isNativeAppShell() || !header) return null;
+    let drawer = document.getElementById("site-drawer");
+    if (drawer) return drawer;
+
+    drawer = document.createElement("div");
+    drawer.id = "site-drawer";
+    drawer.className = "site-drawer";
+    drawer.setAttribute("aria-hidden", "true");
+    drawer.innerHTML = `
+      <button type="button" class="site-drawer__backdrop" id="site-drawer-backdrop" tabindex="-1" aria-label="Close menu"></button>
+      <div class="site-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
+        <div class="site-drawer__user">
+          <span class="site-drawer__avatar" id="site-drawer-avatar">S</span>
+          <div class="site-drawer__user-text">
+            <strong class="site-drawer__user-name" id="site-drawer-name">Guest</strong>
+            <span class="site-drawer__user-meta" id="site-drawer-meta">Sign in to save charts</span>
+          </div>
+        </div>
+        <nav class="site-drawer__nav" aria-label="Pages">
+          <a href="${navHref("kundali.html")}" class="site-drawer__link" data-page="kundali">
+            ${drawerIcon('<circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18"></path>')}
+            <span>Kundali</span>
+          </a>
+          <a href="${navHref("remedy.html")}" class="site-drawer__link" data-page="remedy">
+            ${drawerIcon('<path d="M5 19c8-1 14-8 14-15-7 1-14 6-14 15z"></path><path d="M8 14c2.2-2 5.2-4.2 9-5.2"></path>')}
+            <span>Remedy</span>
+          </a>
+          <a href="${navHref("auspicious.html")}" class="site-drawer__link" data-page="auspicious">
+            ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
+            <span>Auspicious</span>
+          </a>
+        </nav>
+        <nav class="site-drawer__nav" aria-label="Account">
+          <a href="${navHref("profile.html")}" class="site-drawer__link" data-page="profile">
+            ${drawerIcon('<circle cx="12" cy="8" r="3.2"></circle><path d="M5 19.2c.8-3.4 3.4-5.1 7-5.1s6.2 1.7 7 5.1"></path>')}
+            <span>Profile</span>
+          </a>
+          <a href="${navHref("privacy.html")}" class="site-drawer__link" data-page="privacy">
+            ${drawerIcon('<path d="M12 3l8 4v6c0 5-3.4 8.4-8 9.4C7.4 21.4 4 18 4 13V7z"></path>')}
+            <span>Privacy</span>
+          </a>
+          <button type="button" class="site-drawer__link" id="site-drawer-login">
+            ${drawerIcon('<path d="M10 17l5-5-5-5M15 12H4"></path><path d="M20 4v16"></path>')}
+            <span>Login</span>
+          </button>
+          <button type="button" class="site-drawer__link" id="site-drawer-logout" hidden>
+            ${drawerIcon('<path d="M10 17l-5-5 5-5M5 12h11"></path><path d="M20 4v16"></path>')}
+            <span>Logout</span>
+          </button>
+        </nav>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+
+    drawer.querySelector("#site-drawer-backdrop").addEventListener("click", () => {
+      setHeaderMenuOpen(header, false);
+    });
+    drawer.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setHeaderMenuOpen(header, false));
+    });
+    const loginLink = drawer.querySelector("#site-drawer-login");
+    if (loginLink) {
+      loginLink.addEventListener("click", () => {
+        setHeaderMenuOpen(header, false);
+        const loginBtn = header.querySelector("#site-login-btn");
+        if (loginBtn) loginBtn.click();
+      });
+    }
+    const logoutBtn = drawer.querySelector("#site-drawer-logout");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        setHeaderMenuOpen(header, false);
+        const headerLogout = header.querySelector("#site-logout-btn");
+        if (headerLogout) headerLogout.click();
+      });
+    }
+    return drawer;
+  }
+
   function buildHeader(user, viewCount, usage) {
     const header = document.createElement("header");
     header.className = "site-header";
     header.innerHTML = `
-      <button type="button" class="site-header__menu-btn" id="site-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-header-nav">
+      <button type="button" class="site-header__menu-btn" id="site-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-drawer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <div class="site-header__brand">
@@ -464,12 +582,19 @@
         usageEl.hidden = true;
       }
     }
+    updateDrawerAuth(resolvedUser, displayUsage);
   }
 
   function setHeaderMenuOpen(header, open) {
     if (!header) return;
     const menuBtn = header.querySelector("#site-menu-btn");
+    const drawer = ensureSiteDrawer(header);
     header.classList.toggle("site-header--menu-open", open);
+    document.body.classList.toggle("site-drawer-open", open);
+    if (drawer) {
+      drawer.classList.toggle("site-drawer--open", open);
+      drawer.setAttribute("aria-hidden", open ? "false" : "true");
+    }
     if (menuBtn) {
       menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
       menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
@@ -479,22 +604,22 @@
 
   function wireHeaderMenu(header) {
     const menuBtn = header.querySelector("#site-menu-btn");
-    const nav = header.querySelector("#site-header-nav");
-    if (!menuBtn || !nav || header.dataset.menuWired === "1") return;
+    if (!menuBtn || header.dataset.menuWired === "1") return;
     header.dataset.menuWired = "1";
+    const drawer = ensureSiteDrawer(header);
+    updateDrawerAuth(resolveHeaderUser(), AUTH ? AUTH.getUsage() : null);
 
     menuBtn.addEventListener("click", (event) => {
       event.stopPropagation();
       setHeaderMenuOpen(header, !header.classList.contains("site-header--menu-open"));
     });
-    document.addEventListener("click", (event) => {
-      if (!header.contains(event.target)) setHeaderMenuOpen(header, false);
-    });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") setHeaderMenuOpen(header, false);
     });
-    nav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => setHeaderMenuOpen(header, false));
+    document.addEventListener("click", (event) => {
+      if (header.contains(event.target)) return;
+      if (drawer && drawer.contains(event.target)) return;
+      setHeaderMenuOpen(header, false);
     });
   }
 
@@ -869,10 +994,11 @@
     wireFooterContact(footer);
 
     const path = normalizePath(window.location.pathname);
-    body.querySelectorAll(".site-header__nav .site-header__link").forEach((link) => {
+    body.querySelectorAll(".site-header__nav .site-header__link, .site-drawer__link[data-page]").forEach((link) => {
       const href = normalizePath(link.getAttribute("href"));
-      if (path === href) {
+      if (href && path === href) {
         link.classList.add("site-header__link--active");
+        link.classList.add("site-drawer__link--active");
       }
     });
 
