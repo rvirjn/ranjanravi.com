@@ -220,7 +220,7 @@
           appendBubble(
             log,
             "assistant",
-            "Hi — ask a short astrology question. For a precise chart answer, include birth date, time, and place."
+            "Hi — ask a short astrology question."
           );
           log.dataset.greeted = "1";
         }
