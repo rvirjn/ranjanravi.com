@@ -599,7 +599,10 @@
       menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
       menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
     }
-    if (open) setAccountMenuOpen(header, false);
+    if (open) {
+      setAccountMenuOpen(header, false);
+      updateDrawerAuth(resolveHeaderUser(), AUTH ? AUTH.getUsage() : null);
+    }
   }
 
   function wireHeaderMenu(header) {

@@ -3203,6 +3203,10 @@ body.site-drawer-open {
   cursor: pointer;
 }
 
+.site-drawer__link[hidden] {
+  display: none !important;
+}
+
 .site-drawer__nav .site-drawer__link:last-child {
   border-bottom: 0;
 }
