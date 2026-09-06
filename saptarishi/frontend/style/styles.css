@@ -1176,7 +1176,7 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin: 1.2rem 0.4rem 0.45rem;
+  margin: 0.35rem 0.4rem 0.45rem;
 }
 
 .dasha-age__track {
@@ -1351,6 +1351,12 @@ tbody tr:last-child td {
   min-width: 1.3rem;
   min-height: 1.3rem;
   font-size: 0.68rem;
+}
+
+.dasha-year--cal {
+  min-width: 2.45rem;
+  padding: 0.06rem 0.22rem;
+  white-space: nowrap;
 }
 
 .dasha-year.is-on,
@@ -1612,10 +1618,6 @@ tbody tr:last-child td {
 @media (max-width: 720px) {
   .dasha-age__seg em {
     font-size: 0;
-  }
-
-  .dasha-age__tick {
-    font-size: 0.58rem;
   }
 }
 

@@ -3333,7 +3333,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   line.className = "dasha-age__line";
   const yearLabel = document.createElement("span");
   yearLabel.className = "dasha-age__row-label";
-  yearLabel.textContent = "Year";
+  yearLabel.textContent = "Planet";
   const track = document.createElement("div");
   track.className = "dasha-age__track";
   track.setAttribute("role", "slider");
@@ -3342,8 +3342,8 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   track.setAttribute(
     "aria-label",
     birthYear && endYear
-      ? `Life line from year ${birthYear} to ${endYear}`
-      : "Life line from age 0 to 120"
+      ? `Planet dasha line from year ${birthYear} to ${endYear}`
+      : "Planet dasha line from age 0 to 120"
   );
   track.setAttribute("aria-valuemin", "0");
   track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
@@ -3377,39 +3377,6 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   });
   track.appendChild(fill);
 
-  const ticks = document.createElement("div");
-  ticks.className = "dasha-age__ticks";
-  ticks.setAttribute("aria-hidden", "true");
-  const tickSpecs = mahadashas
-    .map((period) => {
-      const startAge = Math.max(0, Number(period.fromYears) || 0);
-      if (startAge >= DASHA_AGE_LINE_MAX) return null;
-      const calYear = calendarYearFromBirthAge(birthDate, startAge);
-      return {
-        period,
-        startAge,
-        pct: (clampDashaAge(startAge) / DASHA_AGE_LINE_MAX) * 100,
-        yearText: calYear == null ? String(Math.round(startAge)) : String(calYear)
-      };
-    })
-    .filter(Boolean);
-  tickSpecs.forEach((spec, index) => {
-    const closePrev = index > 0 && spec.pct - tickSpecs[index - 1].pct < 8;
-    const label = closePrev ? spec.yearText.slice(-2) : spec.yearText;
-    const tick = document.createElement("span");
-    tick.className = [
-      "dasha-age__tick",
-      spec.pct < 1.2 ? "dasha-age__tick--start" : "",
-      spec.pct > 96 ? "dasha-age__tick--end" : ""
-    ]
-      .filter(Boolean)
-      .join(" ");
-    tick.style.left = dashaAgeLifePercent(spec.startAge);
-    tick.textContent = label;
-    tick.title = `${toTitleCaseWords(spec.period.planet)} mahadasha · ${spec.yearText}`;
-    ticks.appendChild(tick);
-  });
-
   const needle = document.createElement("span");
   needle.className = "dasha-age__needle";
   needle.setAttribute("aria-hidden", "true");
@@ -3417,9 +3384,40 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   you.className = "dasha-age__you";
   you.style.left = dashaAgeLifePercent(liveAge);
   you.title = "Your age now";
-  track.append(ticks, needle, you);
+  track.append(needle, you);
   line.append(yearLabel, track);
   wrap.appendChild(line);
+
+  const calYearsRow = document.createElement("div");
+  calYearsRow.className = "dasha-age__years-row";
+  const calYearLabel = document.createElement("span");
+  calYearLabel.className = "dasha-age__years-label";
+  calYearLabel.textContent = "Year";
+  const calYears = document.createElement("div");
+  calYears.className = "dasha-age__years";
+  calYearsRow.append(calYearLabel, calYears);
+  wrap.appendChild(calYearsRow);
+
+  const calYearButtons = [];
+  for (let year = 0; year <= DASHA_AGE_LINE_MAX; year += 1) {
+    const period = mahadashaContainingAge(mahadashas, year + 0.05);
+    const kind = period ? dashaPlanetColorKind(payload, period.planet) : "";
+    const calYear = calendarYearFromBirthAge(birthDate, year);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = kind ? `dasha-year dasha-year--cal dasha-year--${kind}` : "dasha-year dasha-year--cal";
+    btn.textContent = calYear == null ? String(year) : String(calYear);
+    btn.dataset.year = String(year);
+    btn.title = calYear == null ? `Age ${year}` : `${calYear} · age ${year}`;
+    if (kind) applyPlanetStatusCellColorIntensity(btn);
+    if (year === liveParts.year) btn.classList.add("is-live");
+    btn.addEventListener("click", () => {
+      const { month } = dashaYearMonthFromAge(selectedAge);
+      pick(dashaAgeFromYearMonth(year, month));
+    });
+    calYears.appendChild(btn);
+    calYearButtons.push(btn);
+  }
 
   const yearsRow = document.createElement("div");
   yearsRow.className = "dasha-age__years-row";
@@ -3530,6 +3528,9 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     yearButtons.forEach((btn, index) => {
       btn.classList.toggle("is-on", index === year);
     });
+    calYearButtons.forEach((btn, index) => {
+      btn.classList.toggle("is-on", index === year);
+    });
     const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
     const calMonth = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getMonth() : 0;
     const calDay = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getDate() : 1;
@@ -3552,16 +3553,24 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   function centerSelectedYear() {
     const { year } = dashaYearMonthFromAge(selectedAge);
     const activeYear = yearButtons[year];
-    if (!activeYear || !years.clientWidth) return;
-    pendingYearCenter = false;
-    const left = activeYear.offsetLeft - years.clientWidth / 2 + activeYear.offsetWidth / 2;
-    years.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    if (activeYear && years.clientWidth) {
+      pendingYearCenter = false;
+      const left = activeYear.offsetLeft - years.clientWidth / 2 + activeYear.offsetWidth / 2;
+      years.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    }
+    const activeCal = calYearButtons[year];
+    if (activeCal && calYears.clientWidth) {
+      const left = activeCal.offsetLeft - calYears.clientWidth / 2 + activeCal.offsetWidth / 2;
+      calYears.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    }
   }
 
   if (typeof ResizeObserver === "function") {
-    new ResizeObserver(() => {
+    const recenter = () => {
       if (pendingYearCenter) centerSelectedYear();
-    }).observe(years);
+    };
+    new ResizeObserver(recenter).observe(years);
+    new ResizeObserver(recenter).observe(calYears);
   }
 
   function pick(ageYears) {
