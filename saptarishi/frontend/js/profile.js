@@ -270,10 +270,10 @@
       .replace(/"/g, "&quot;");
   }
 
-  function kundaliNewHref() {
+  function kundaliHref(query = "") {
     const file = "kundali.html";
     const prefix = C?.DEPLOY_PREFIX || "";
-    const qs = "?mode=new";
+    const qs = query;
     const hash = document.documentElement.classList.contains("saptarishi-native-app")
       ? "#app=kundali"
       : "";
@@ -282,6 +282,10 @@
     }
     if (C?.PAGE_FILE_TO_PATH?.[file]) return `${C.PAGE_FILE_TO_PATH[file]}${qs}${hash}`;
     return `${file}${qs}${hash}`;
+  }
+
+  function kundaliNewHref() {
+    return kundaliHref("?mode=new");
   }
 
   function birthDetailLine(view) {
@@ -360,7 +364,7 @@
     } catch (err) {
       if (err.status === 401) {
         AUTH.clearSession();
-        window.location.href = "/kundali?auth=login";
+        window.location.href = kundaliHref("?auth=login");
         return;
       }
       showStatus(err.message || "Could not load profile", true);
@@ -458,7 +462,7 @@
   async function initializeProfilePage() {
     const authed = await ensureLoggedIn();
     if (!authed) {
-      window.location.href = "/kundali?auth=login";
+      window.location.href = kundaliHref("?auth=login");
       return;
     }
     await loadProfileData();
@@ -518,7 +522,7 @@
         );
         passwordForm.reset();
         window.setTimeout(() => {
-          window.location.href = "/kundali?auth=login";
+          window.location.href = kundaliHref("?auth=login");
         }, 1200);
       } catch (err) {
         showFieldStatus(passwordStatusEl, err.message || "Could not update password", true);
@@ -546,7 +550,7 @@
         const payload = await AUTH.deleteAccount(password);
         showFieldStatus(deleteStatusEl, payload.message || "Account deleted.", false);
         window.setTimeout(() => {
-          window.location.href = "/kundali";
+          window.location.href = kundaliHref();
         }, 1000);
       } catch (err) {
         showFieldStatus(deleteStatusEl, err.message || "Could not delete account", true);
