@@ -52,7 +52,7 @@ const SAPTARISHI_CONSTANTS = {
   WALLET_COUPON_PREFIX_BY_AMOUNT: {
     99: "WL09",
     500: "WL50",
-    1899: "WL18"
+    599: "WL59"
   },
 
   // --- Frontend routes ---
@@ -105,9 +105,9 @@ const SAPTARISHI_CONSTANTS = {
   // --- Premium / support ---
   PREMIUM_PACK_AMOUNT_INR: 299,
   PREMIUM_PACK_QUERY_LIMIT: 6,
-  PREMIUM_UNLIMITED_AMOUNT_INR: 1899,
+  PREMIUM_UNLIMITED_AMOUNT_INR: 599,
   PREMIUM_UNLIMITED_MONTHS: 1,
-  PREMIUM_AMOUNT_INR: 1899,
+  PREMIUM_AMOUNT_INR: 599,
   /** Per named birth: first kundali load unlocks remedies for that birth. */
   BIRTH_CHARGE_INR: 21,
   /** Legacy alias for BIRTH_CHARGE_INR. */
@@ -127,7 +127,7 @@ const SAPTARISHI_CONSTANTS = {
   WALLET_TOPUP_DEFAULTS: [
     { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
     { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
-    { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
+    { id: "wallet_599", amount_inr: 599, credit_inr: 599 }
   ],
 
   // --- UI messages / display ---

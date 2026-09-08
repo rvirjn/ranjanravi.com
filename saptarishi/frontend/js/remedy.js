@@ -438,7 +438,7 @@
     if (locked) blurLockedRemedyValueCell(td);
   }
 
-  /** Remedies unlock per paid birth, Free/Basic wallet, or Advance (₹1899+). */
+  /** Remedies unlock per paid birth, Free/Basic wallet, or Advance (₹599+). */
   function canViewRemedyDetails() {
     if (typeof SaptarishiAuth === "undefined") return false;
     if (typeof SaptarishiAuth.hasAdvancePlan === "function" && SaptarishiAuth.hasAdvancePlan()) {

@@ -165,7 +165,7 @@
     summaryEl.hidden = false;
 
     const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
-    const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     const queryCharge = C?.BIRTH_CHARGE_INR ?? C?.QUERY_CHARGE_INR ?? 21;
     const freeLimit = C?.FREE_BIRTHS_PER_USER ?? 2;
     const bal =

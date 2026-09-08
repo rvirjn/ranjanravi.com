@@ -13,7 +13,7 @@
     : [
         { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
         { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
-        { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
+        { id: "wallet_599", amount_inr: 599, credit_inr: 599 }
       ];
 
   const LOADING = global.SaptarishiLoading;
@@ -31,7 +31,7 @@
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     return (
       `Free Plan: ${freeBirths} birth details free\n` +
       `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
@@ -305,7 +305,7 @@
         : AUTH.getWalletBalance
           ? AUTH.getWalletBalance(usage)
           : Math.max(0, Math.floor(Number(usage.wallet_balance_inr) || 0));
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     const freeLimit = AC.FREE_BIRTHS_PER_USER ?? 2;
     const freeLeft = AUTH.getFreeBirthsRemaining
       ? AUTH.getFreeBirthsRemaining(usage)

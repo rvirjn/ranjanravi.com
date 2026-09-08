@@ -847,7 +847,7 @@
 
   function hasAdvancePlan(usage) {
     if (hasUnlimitedPremium()) return true;
-    const advanceMin = Number(AC.PREMIUM_UNLIMITED_AMOUNT_INR) || 1899;
+    const advanceMin = Number(AC.PREMIUM_UNLIMITED_AMOUNT_INR) || 599;
     return getWalletBalance(usage) >= advanceMin;
   }
 

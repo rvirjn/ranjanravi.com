@@ -72,7 +72,7 @@
     const monthLabel = months === 1 ? "1 month" : `${months} months`;
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 1899;
+    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     return (
       `Free Plan: ${freeBirths} birth details free\n` +
       `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
