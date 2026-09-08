@@ -1335,8 +1335,8 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { type: "aspected_by", header: "Aspected By" },
   { key: "nakshatra", header: "Nakshatra", qaKey: "nakshatra" },
   { type: "house", header: "In House" },
-  { key: "house_rashi", header: "House Rashi" },
-  { key: "house_lord", header: "House Lord" },
+  { key: "house_rashi", header: "In House Rashi" },
+  { key: "house_lord", header: "In House Lord" },
   { key: "dasha_age", header: "Mahadasha on Age" },
   { key: "karakwaqt", header: "Karakwaqt", qaKey: "karakwaqt" },
   { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12", qaKey: "malefic_6_8_12" },
@@ -1812,9 +1812,32 @@ function createPlanetsViewSwitchElement(idPrefix) {
   return switchEl;
 }
 
-function renderStatusGridDescriptionSections(descEl, entry) {
+function createHouseSheetPlanetTableElement(rowData, allRows) {
+  if (!rowData) return null;
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "table-wrap house-planets-sheet__table-wrap";
+  const table = document.createElement("table");
+  table.className = "navatara-data-table kundali-table house-planets-sheet__table";
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  for (const label of KUNDALI_PLANETS_GRID_TABLE_HEADERS) {
+    headerRow.appendChild(createPlanetsTableHeaderCell(label));
+  }
+  thead.appendChild(headerRow);
+  const tbody = document.createElement("tbody");
+  renderPlanetsTableWithColors(tbody, [rowData], {
+    hideHouseColumn: true,
+    allRows: Array.isArray(allRows) ? allRows : []
+  });
+  table.append(thead, tbody);
+  tableWrap.appendChild(table);
+  return tableWrap;
+}
+
+function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
   if (!entry || typeof entry !== "object") return false;
   const sections = Array.isArray(entry.sections) ? entry.sections : [];
+  const allRows = Array.isArray(options.allRows) ? options.allRows : [];
   if (sections.length) {
     for (const section of sections) {
       if (!section || typeof section !== "object") continue;
@@ -1825,6 +1848,12 @@ function renderStatusGridDescriptionSections(descEl, entry) {
         title.className = "house-planets-sheet__planet-read-title";
         title.textContent = String(section.title || "").trim();
         if (title.textContent) wrap.appendChild(title);
+        // One-row table for planets sitting in this house, after status title / before Pros-Cons.
+        if (normalizeText(section.role) === "sitting in this house") {
+          const planetRow = planetTableRowByName(allRows, section.planet);
+          const tableEl = createHouseSheetPlanetTableElement(planetRow, allRows);
+          if (tableEl) wrap.appendChild(tableEl);
+        }
         appendHouseDescriptionLabeledList(wrap, "Pros:", section.pros);
         appendHouseDescriptionLabeledList(wrap, "Cons:", section.cons);
         if (wrap.children.length) descEl.appendChild(wrap);
@@ -1901,10 +1930,10 @@ function appendHouseDescriptionLabeledList(parent, label, items) {
   parent.appendChild(wrap);
 }
 
-function renderHouseGridDescription(descEl, descriptions, houseNum) {
+function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}) {
   const entry = houseGridDescriptionEntry(descriptions, houseNum);
   if (!entry) return false;
-  if (renderStatusGridDescriptionSections(descEl, entry)) return true;
+  if (renderStatusGridDescriptionSections(descEl, entry, options)) return true;
   const paragraphs = houseGridDescriptionParagraphs({ [String(houseNum)]: entry }, houseNum);
   for (const text of paragraphs) {
     const p = document.createElement("p");
@@ -1981,6 +2010,7 @@ function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
 function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descriptions, options = {}) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet";
+  const allRows = Array.isArray(options.allRows) ? options.allRows : [];
 
   const head = document.createElement("div");
   head.className = "house-planets-sheet__head";
@@ -1999,30 +2029,22 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
     head.appendChild(pct);
   }
 
-  const tableWrap = document.createElement("div");
-  tableWrap.className = "table-wrap house-planets-sheet__table-wrap";
-  const table = document.createElement("table");
-  table.className = "navatara-data-table kundali-table house-planets-sheet__table";
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-  for (const label of KUNDALI_PLANETS_GRID_TABLE_HEADERS) {
-    headerRow.appendChild(createPlanetsTableHeaderCell(label));
-  }
-  thead.appendChild(headerRow);
-  const tbody = document.createElement("tbody");
-  renderPlanetsTableWithColors(tbody, houseRows, {
-    hideHouseColumn: true,
-    allRows: options.allRows
-  });
-  table.append(thead, tbody);
-  tableWrap.appendChild(table);
+  sheet.appendChild(head);
 
-  sheet.append(head, tableWrap);
+  // First table: house lord planet (single row).
+  const sampleRow = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
+  const lordRow = planetTableRowByName(allRows, houseLordNameFromRow(sampleRow));
+  const lordTable = createHouseSheetPlanetTableElement(lordRow, allRows);
+  if (lordTable) sheet.appendChild(lordTable);
 
   const desc = document.createElement("div");
   desc.className = "house-planets-sheet__desc";
   desc.setAttribute("aria-label", `House ${houseNum} reading`);
-  if (renderHouseGridDescription(desc, descriptions, houseNum)) {
+  if (
+    renderHouseGridDescription(desc, descriptions, houseNum, {
+      allRows
+    })
+  ) {
     sheet.appendChild(desc);
   }
 

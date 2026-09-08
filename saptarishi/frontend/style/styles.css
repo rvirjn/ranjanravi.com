@@ -1985,7 +1985,7 @@ tbody tr:last-child td {
 }
 
 /* Planets table columns (13): Planet (+ strength), Aspected, Nakshatra (+ status),
-   House, House Rashi (+ status), House Lord (+ strength), Mahadasha on Age,
+   House, In House Rashi (+ status), In House Lord (+ strength), Mahadasha on Age,
    Karakwaqt, Malefic, Navatara, Degree, Death Degree, Lagna Lord Enemy —
    keep % sum ≈ 100 for table-layout:fixed. */
 #planets-table.kundali-table thead th:nth-child(1),
@@ -4935,6 +4935,10 @@ body.premium-modal-open {
 
 .house-planets-sheet__planet-read {
   margin: 0 0 0.95rem;
+}
+
+.house-planets-sheet__planet-read .house-planets-sheet__table-wrap {
+  margin: 0 0 0.55rem;
 }
 
 .house-planets-sheet__planet-read-title {
