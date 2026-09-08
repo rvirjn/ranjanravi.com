@@ -1094,6 +1094,7 @@
       return;
     }
 
+    if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
     showRemedyLoadingStatus();
     if (resultsEl) resultsEl.hidden = true;
 
@@ -1119,9 +1120,11 @@
         SaptarishiAuth.clearSession();
       }
       showRemedyStatus(formatted.text, true, formatted.limitReached);
+      if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);
       if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
         const ready = await SaptarishiAuth.handlePremiumRequired(err);
         if (ready && SaptarishiAuth.requireAuth && SaptarishiAuth.requireAuth()) {
+          if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
           showRemedyLoadingStatus();
           try {
             const [kundaliPayload, db] = await Promise.all([

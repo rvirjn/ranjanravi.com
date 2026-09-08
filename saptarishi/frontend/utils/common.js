@@ -1782,6 +1782,27 @@
     refreshBirthChooserDisplays(form);
   }
 
+  function setBirthEntryHidden(hidden) {
+    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form").forEach((el) => {
+      el.hidden = hidden;
+    });
+    const changeBtn = document.getElementById("change-birth-details-btn");
+    if (changeBtn) changeBtn.hidden = !hidden;
+    if (hidden) {
+      const compare = document.getElementById("kundali-compare-panel");
+      if (compare) compare.hidden = true;
+      closeBirthPicker();
+      closeBirthPlacePicker();
+    }
+  }
+
+  function bindBirthEntryToggle() {
+    const changeBtn = document.getElementById("change-birth-details-btn");
+    if (!changeBtn || changeBtn.dataset.bound === "1") return;
+    changeBtn.dataset.bound = "1";
+    changeBtn.addEventListener("click", () => setBirthEntryHidden(false));
+  }
+
   function hookBirthChooserRefresh() {
     if (!AUTH || typeof AUTH.applyDefaultBirthToForm !== "function") return;
     if (AUTH.applyDefaultBirthToForm.__birthChooserHooked) return;
@@ -1807,6 +1828,7 @@
     enhanceBirthChooser(document.getElementById("birth-form"));
     enhanceBirthChooser(document.getElementById("remedy-form"));
     hookBirthChooserRefresh();
+    bindBirthEntryToggle();
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       closeBirthPicker();
@@ -1863,7 +1885,8 @@
     contactEmail,
     paidPlanNote,
     privacyPolicyHref,
-    refreshBirthChooserDisplays
+    refreshBirthChooserDisplays,
+    setBirthEntryHidden
   };
 })(window);
 

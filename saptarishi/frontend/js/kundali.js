@@ -5334,6 +5334,7 @@ async function handleBirthFormSubmit(event) {
     return;
   }
 
+  if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
   showKundaliLoadingStatus();
   if (resultsEl) resultsEl.hidden = true;
   const lordSection = document.getElementById("lord-comparison-section");
@@ -5358,9 +5359,11 @@ async function handleBirthFormSubmit(event) {
       SaptarishiAuth.clearSession();
     }
     showStatusMessage(formatted.text, true, formatted.limitReached);
+    if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);
     if (formatted.limitReached && typeof SaptarishiAuth !== "undefined") {
       const ready = await SaptarishiAuth.handlePremiumRequired(err);
       if (ready && SaptarishiAuth.requireAuth && SaptarishiAuth.requireAuth()) {
+        if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
         showKundaliLoadingStatus();
         try {
           const kundaliPayload = await fetchKundaliJsonFromApi(

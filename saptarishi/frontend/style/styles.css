@@ -218,6 +218,31 @@ body.saptarishi-page {
   box-shadow: inset 0 -3px 0 #c9a227;
 }
 
+.birth-change-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.birth-change-btn:hover {
+  text-decoration: underline;
+}
+
+.kundali-tabs[hidden],
+.search-form[hidden],
+#birth-form[hidden],
+#remedy-form[hidden] {
+  display: none !important;
+}
+
 #new-kundali-fields,
 #new-birth-fields {
   display: contents;
