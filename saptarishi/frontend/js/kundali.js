@@ -1598,14 +1598,6 @@ function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   const planetName = formatTableCellForDisplay("planet", rowData?.planet) || "Planet";
   planetLabel.textContent = planetName;
   title.appendChild(planetLabel);
-
-  const subtitle = formatPlanetStatusTileSubtitle(rowData);
-  if (subtitle) {
-    const forEl = document.createElement("span");
-    forEl.className = "house-planets-sheet__for";
-    forEl.textContent = subtitle;
-    title.appendChild(forEl);
-  }
   head.appendChild(title);
 
   const strengthText = planetsTableStrengthCellText(rowData);
@@ -1622,12 +1614,12 @@ function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   table.className = "navatara-data-table kundali-table house-planets-sheet__table";
   const thead = document.createElement("thead");
   const headerRow = document.createElement("tr");
-  for (const col of KUNDALI_PLANETS_TABLE_COLUMNS) {
-    headerRow.appendChild(createPlanetsTableHeaderCell(col.header, col.qaKey));
+  for (const label of KUNDALI_PLANETS_GRID_TABLE_HEADERS) {
+    headerRow.appendChild(createPlanetsTableHeaderCell(label));
   }
   thead.appendChild(headerRow);
   const tbody = document.createElement("tbody");
-  renderPlanetsTableWithColors(tbody, [rowData], { allRows });
+  renderPlanetsTableWithColors(tbody, [rowData], { allRows, hideHouseColumn: true });
   table.append(thead, tbody);
   tableWrap.appendChild(table);
 
@@ -1986,7 +1978,7 @@ function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
   sheet.appendChild(wrap);
 }
 
-function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetNames, houseRows, descriptions, options = {}) {
+function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descriptions, options = {}) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet";
 
@@ -1998,18 +1990,6 @@ function createHousePlanetsSheetElement(houseNum, forText, strengthText, planetN
   const houseLabel = document.createElement("strong");
   houseLabel.textContent = `House ${houseNum}`;
   title.appendChild(houseLabel);
-  if (forText) {
-    const forEl = document.createElement("span");
-    forEl.className = "house-planets-sheet__for";
-    forEl.textContent = forText;
-    title.appendChild(forEl);
-  }
-  if (planetNames) {
-    const planetsEl = document.createElement("span");
-    planetsEl.className = "house-planets-sheet__planets";
-    planetsEl.textContent = planetNames;
-    title.appendChild(planetsEl);
-  }
   head.appendChild(title);
 
   if (strengthText && strengthText !== "—") {
@@ -2123,15 +2103,11 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     panel.className = "house-planets-tile-panel";
     panel.hidden = true;
     panel.appendChild(
-      createHousePlanetsSheetElement(
-        houseLabel,
-        forText,
-        strengthText,
-        displayPlanetNames,
-        houseRows,
-        descriptions,
-        { divisionalCharts, strengthMax, allRows }
-      )
+      createHousePlanetsSheetElement(houseLabel, strengthText, houseRows, descriptions, {
+        divisionalCharts,
+        strengthMax,
+        allRows
+      })
     );
 
     if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
