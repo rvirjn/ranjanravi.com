@@ -1917,7 +1917,10 @@ function appendHouseDescriptionLabeledList(parent, label, items) {
   const wrap = document.createElement("div");
   wrap.className = "house-planets-sheet__pc";
   const heading = document.createElement("strong");
+  const kind = normalizeText(label).replace(/:$/, "");
   heading.className = "house-planets-sheet__pc-label";
+  if (kind === "pros") heading.classList.add("house-planets-sheet__pc-label--pros");
+  if (kind === "cons") heading.classList.add("house-planets-sheet__pc-label--cons");
   heading.textContent = label;
   const list = document.createElement("ol");
   list.className = "house-planets-sheet__pc-list";

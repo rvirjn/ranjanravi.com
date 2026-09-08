@@ -4957,9 +4957,17 @@ body.premium-modal-open {
   display: block;
   margin: 0.35rem 0 0.15rem;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
   color: var(--color-text-muted, #5a6578);
+}
+
+.house-planets-sheet__pc-label--pros {
+  color: #1b7a3d;
+}
+
+.house-planets-sheet__pc-label--cons {
+  color: #c62828;
 }
 
 .house-planets-sheet__pc-list {
