@@ -1340,6 +1340,7 @@
     document.getElementById("app-remedy-empty")?.remove();
     document.getElementById("app-remedy-grid")?.remove();
     const form = document.getElementById("remedy-form");
+    if (form?.dataset.remedyAutoRun === "1") return;
     if (!fillActiveBirthIntoForm() || !form) {
       showRemedyEmpty();
       return;

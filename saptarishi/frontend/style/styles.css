@@ -5031,6 +5031,53 @@ body.premium-modal-open {
   display: none !important;
 }
 
+.house-planets-sheet__remedy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem 1rem;
+  margin: 0;
+  padding: 0.85rem 0.95rem 1rem;
+  border-top: 1px solid rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.22);
+  background: rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.05);
+}
+
+.house-planets-sheet__remedy-text {
+  margin: 0;
+  flex: 1 1 14rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--planet-color-red_text, #6d1010);
+}
+
+.house-planets-sheet__remedy-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.48rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary, #1e3a5f);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.house-planets-sheet__remedy-btn:hover {
+  background: var(--color-primary-hover, #163054);
+}
+
+.kundali-yog-panel .house-planets-sheet__remedy {
+  margin-top: 0.7rem;
+  border-radius: var(--radius-sm);
+}
+
 .planets-status-divisional {
   margin-top: 0.85rem;
 }
@@ -5074,6 +5121,15 @@ body.premium-modal-open {
 
   .house-planets-sheet__list {
     grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  }
+
+  .house-planets-sheet__remedy {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .house-planets-sheet__remedy-btn {
+    width: 100%;
   }
 }
 

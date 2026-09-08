@@ -51,6 +51,8 @@
     dosh: ""
   };
   let planetRemedyByName = {};
+  let pendingFocusPlanet = "";
+  let pendingFocusDosh = "";
 
   function normalizeText(value) {
     if (KV && KV.normalizeText) return KV.normalizeText(value);
@@ -681,6 +683,110 @@
     });
   }
 
+  function focusPendingRemedyPlanet() {
+    const planetKey = normalizeText(pendingFocusPlanet);
+    const doshKey = normalizeText(pendingFocusDosh);
+    pendingFocusPlanet = "";
+    pendingFocusDosh = "";
+
+    if (doshKey && doshRemedyButtons) {
+      const btn = Array.from(doshRemedyButtons.querySelectorAll("[data-dosh-key]")).find(
+        (el) =>
+          normalizeText(el.getAttribute("data-dosh-key")) === doshKey ||
+          normalizeText(el.textContent) === doshKey
+      );
+      const item = btn && btn.closest(".remedy-navatara-item");
+      if (item) {
+        showRemedyTileDetail({
+          groupKey: "dosh",
+          itemKey: doshKey,
+          itemEl: item,
+          buttonsHost: doshRemedyButtons
+        });
+        return;
+      }
+    }
+
+    if (!planetKey) return;
+    const groups = [
+      { groupKey: "dusthana", host: dusthanaRemedyButtons },
+      { groupKey: "debilitated", host: debilitatedRemedyButtons }
+    ];
+    for (const { groupKey, host } of groups) {
+      if (!host) continue;
+      const btn = Array.from(host.querySelectorAll("[data-planet-key]")).find(
+        (el) => normalizeText(el.getAttribute("data-planet-key")) === planetKey
+      );
+      const item = btn && btn.closest(".remedy-navatara-item");
+      if (!item) continue;
+      showRemedyTileDetail({
+        groupKey,
+        itemKey: planetKey,
+        itemEl: item,
+        buttonsHost: host
+      });
+      return;
+    }
+  }
+
+  function readRemedyHandoffFromQuery() {
+    const params = new URLSearchParams(window.location.search || "");
+    const date = String(params.get("date") || "").trim();
+    const time = String(params.get("time") || "").trim();
+    const place = String(params.get("place") || "").trim();
+    const name = String(params.get("name") || "").trim();
+    const planet = String(params.get("planet") || "").trim();
+    const dosh = String(params.get("dosh") || "").trim();
+    const save = String(params.get("save") || "").trim() === "1";
+    if (!date || !time || !place) return null;
+    return { date, time, place, name, planet, dosh, save };
+  }
+
+  function applyRemedyBirthHandoff(handoff) {
+    if (!handoff) return false;
+    setBirthMode("new");
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.applyDefaultBirthToForm) {
+      SaptarishiAuth.applyDefaultBirthToForm(
+        {
+          placePreset,
+          placeCustom,
+          customWrap,
+          birthDate,
+          birthTime,
+          birthName,
+          placeCustomValue: C.PLACE_CUSTOM_VALUE
+        },
+        handoff
+      );
+    } else {
+      if (birthDate) birthDate.value = handoff.date || "";
+      if (birthTime) birthTime.value = handoff.time || "";
+      if (birthName && handoff.name) birthName.value = handoff.name;
+      syncCustomPlaceFieldVisibility();
+    }
+    if (saveBirth) saveBirth.checked = Boolean(handoff.save);
+    pendingFocusPlanet = handoff.planet || "";
+    pendingFocusDosh = handoff.dosh || "";
+    return true;
+  }
+
+  function clearRemedyHandoffQuery() {
+    const params = new URLSearchParams(window.location.search || "");
+    if (!params.has("date") && !params.has("run") && !params.has("planet") && !params.has("dosh")) return;
+    const clean = window.location.pathname + (window.location.hash || "");
+    window.history.replaceState({}, "", clean);
+  }
+
+  function consumeRemedyHandoffAndRun() {
+    const handoff = readRemedyHandoffFromQuery();
+    if (!handoff || !form) return false;
+    if (!applyRemedyBirthHandoff(handoff)) return false;
+    form.dataset.remedyAutoRun = "1";
+    clearRemedyHandoffQuery();
+    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    return true;
+  }
+
   function renderDoshRemedyTiles(kundaliPayload) {
     if (!doshRemedyButtons) return;
     doshRemedyButtons.innerHTML = "";
@@ -936,6 +1042,7 @@
       renderDoshRemedyTiles(kundaliPayload);
       renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
       refreshSavedBirthDropdown();
+      focusPendingRemedyPlanet();
 
       if (resultsEl) resultsEl.hidden = false;
       showRemedyStatus("");
@@ -966,6 +1073,7 @@
             renderDoshRemedyTiles(kundaliPayload);
             renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
             refreshSavedBirthDropdown();
+            focusPendingRemedyPlanet();
             if (resultsEl) resultsEl.hidden = false;
             showRemedyStatus("");
             return;
@@ -994,4 +1102,5 @@
   setBirthMode("new");
   refreshRemedySavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);
+  consumeRemedyHandoffAndRun();
 })();

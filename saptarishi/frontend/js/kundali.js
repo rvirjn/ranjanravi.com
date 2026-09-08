@@ -1585,6 +1585,91 @@ function planetStatusTileIsAdverse(rowData) {
   return Number.isFinite(n) && n < 0;
 }
 
+function remedyPageHref() {
+  if (window.SaptarishiNativeApp?.pageHref) {
+    return window.SaptarishiNativeApp.pageHref("remedy.html");
+  }
+  const prefix = C.DEPLOY_PREFIX || "";
+  if (/\/frontend\/html\//i.test(window.location.pathname)) {
+    return `${prefix}/frontend/html/remedy.html`;
+  }
+  return (C.PAGE_FILE_TO_PATH && C.PAGE_FILE_TO_PATH["remedy.html"]) || `${prefix}/frontend/html/remedy.html`;
+}
+
+function getCurrentBirthDetailsForRemedy() {
+  if (typeof window.SaptarishiKundaliPage?.getMainBirthInput === "function") {
+    const input = window.SaptarishiKundaliPage.getMainBirthInput();
+    if (input && (input.date || input.time || input.place || input.name)) return input;
+  }
+  return {
+    name: birthName?.value?.trim() || "",
+    date: birthDate?.value?.trim() || "",
+    time: birthTime?.value?.trim() || "",
+    place: getBirthPlaceFromKundaliForm(),
+    save: false
+  };
+}
+
+function openRemedyForCurrentBirth(options = {}) {
+  const birth = getCurrentBirthDetailsForRemedy();
+  if (window.SaptarishiNativeApp?.setActiveChart && birth?.date && birth?.time && birth?.place) {
+    window.SaptarishiNativeApp.setActiveChart(birth);
+  }
+  const params = new URLSearchParams();
+  if (birth?.date) params.set("date", birth.date);
+  if (birth?.time) params.set("time", birth.time);
+  if (birth?.place) params.set("place", birth.place);
+  if (birth?.name) params.set("name", birth.name);
+  params.set("save", "0");
+  params.set("run", "1");
+  const planet = String(options.planet || "").trim();
+  const house = String(options.house || "").trim();
+  const dosh = String(options.dosh || "").trim();
+  if (planet) params.set("planet", planet);
+  if (house) params.set("house", house);
+  if (dosh) params.set("dosh", dosh);
+  const qs = params.toString();
+  window.location.href = qs ? `${remedyPageHref()}?${qs}` : remedyPageHref();
+}
+
+function appendAdverseSheetRemedyHint(sheet, options = {}) {
+  if (!sheet) return;
+  const kind = String(options.kind || "").trim().toLowerCase();
+  const label = String(options.label || "").trim();
+  const wrap = document.createElement("div");
+  wrap.className = "house-planets-sheet__remedy";
+
+  const text = document.createElement("p");
+  text.className = "house-planets-sheet__remedy-text";
+  if (kind === "planet" && label) {
+    text.textContent = `${label} is under strain. Refer to remedy for ways to reduce its negative impact.`;
+  } else if (kind === "house") {
+    text.textContent = `${label || "This house"} is under strain. Refer to remedy for ways to reduce its negative impact.`;
+  } else if (kind === "dosh" && label) {
+    text.textContent = `${label} is present. Refer to remedy for ways to reduce its negative impact.`;
+  } else {
+    text.textContent = "Refer to remedy for ways to reduce its negative impact.";
+  }
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "house-planets-sheet__remedy-btn";
+  btn.textContent = "Open Remedy";
+  btn.setAttribute("aria-label", "Open Remedy with these birth details");
+  btn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openRemedyForCurrentBirth({
+      planet: options.planet || "",
+      house: options.house || "",
+      dosh: options.dosh || ""
+    });
+  });
+
+  wrap.append(text, btn);
+  sheet.appendChild(wrap);
+}
+
 function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet planet-status-sheet";
@@ -1696,7 +1781,15 @@ function renderPlanetStatusTiles(container, rows, options = {}) {
     const panel = document.createElement("div");
     panel.className = "house-planets-tile-panel";
     panel.hidden = true;
-    panel.appendChild(createPlanetStatusSheetElement(rowData, allRows, descriptions));
+    const sheet = createPlanetStatusSheetElement(rowData, allRows, descriptions);
+    if (planetStatusTileIsAdverse(rowData)) {
+      appendAdverseSheetRemedyHint(sheet, {
+        kind: "planet",
+        label: planetName,
+        planet: planetKey
+      });
+    }
+    panel.appendChild(sheet);
 
     if (planetStatusTileIsAdverse(rowData)) {
       applyAdverseHouseTileContentLock(btn, panel);
@@ -2122,13 +2215,27 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     const panel = document.createElement("div");
     panel.className = "house-planets-tile-panel";
     panel.hidden = true;
-    panel.appendChild(
-      createHousePlanetsSheetElement(houseLabel, strengthText, houseRows, descriptions, {
-        divisionalCharts,
-        strengthMax,
-        allRows
-      })
-    );
+    const sheet = createHousePlanetsSheetElement(houseLabel, strengthText, houseRows, descriptions, {
+      divisionalCharts,
+      strengthMax,
+      allRows
+    });
+    if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
+      const lordRaw = houseLordNameFromRow(representativeRow);
+      const lordName =
+        formatTableCellForDisplay(
+          "house_lord",
+          planetsTableCellText("house_lord", representativeRow)
+        ) || toTitleCaseWords(lordRaw);
+      const hasLord = Boolean(lordName && lordName !== "—");
+      appendAdverseSheetRemedyHint(sheet, {
+        kind: "house",
+        label: hasLord ? `House ${houseLabel} Lord ${lordName}` : `House ${houseLabel}`,
+        house: houseNum,
+        planet: hasLord ? normalizeText(lordRaw || lordName) : ""
+      });
+    }
+    panel.appendChild(sheet);
 
     if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
       applyAdverseHouseTileContentLock(btn, panel);
@@ -4947,7 +5054,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     buttonClassName,
     isBadItem,
     blurPanelText,
-    blurAdverseTiles
+    blurAdverseTiles,
+    showRemedyHint
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -5086,6 +5194,14 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       blurMatchTileButtonLabel(btn);
     }
 
+    if (showRemedyHint) {
+      appendAdverseSheetRemedyHint(panel, {
+        kind: "dosh",
+        label: String(item.name || item.key || ariaItemKind || headingLabel).trim(),
+        dosh: String(item.key || item.name || "").trim()
+      });
+    }
+
     btn.addEventListener("click", () => showItemDetail(item, wrap));
     wrap.appendChild(btn);
     wrap.appendChild(panel);
@@ -5124,7 +5240,8 @@ function renderKundaliDoshasFromPayload(payload) {
     ariaItemKind: "Dosha",
     buttonClassName: "remedy-navatara-btn--dosh",
     blurPanelText: true,
-    blurAdverseTiles: true
+    blurAdverseTiles: true,
+    showRemedyHint: true
   });
 }
 
