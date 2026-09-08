@@ -1844,12 +1844,13 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
       if (section.kind === "planet") {
         const wrap = document.createElement("div");
         wrap.className = "house-planets-sheet__planet-read";
+        const role = normalizeText(section.role);
         const title = document.createElement("p");
         title.className = "house-planets-sheet__planet-read-title";
         title.textContent = String(section.title || "").trim();
         if (title.textContent) wrap.appendChild(title);
-        // One-row table for planets sitting in this house, after status title / before Pros-Cons.
-        if (normalizeText(section.role) === "sitting in this house") {
+        // One-row table after status title / before Pros-Cons (house lord + sitting planets).
+        if (role === "house lord" || role === "sitting in this house") {
           const planetRow = planetTableRowByName(allRows, section.planet);
           const tableEl = createHouseSheetPlanetTableElement(planetRow, allRows);
           if (tableEl) wrap.appendChild(tableEl);
@@ -2030,12 +2031,6 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   }
 
   sheet.appendChild(head);
-
-  // First table: house lord planet (single row).
-  const sampleRow = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
-  const lordRow = planetTableRowByName(allRows, houseLordNameFromRow(sampleRow));
-  const lordTable = createHouseSheetPlanetTableElement(lordRow, allRows);
-  if (lordTable) sheet.appendChild(lordTable);
 
   const desc = document.createElement("div");
   desc.className = "house-planets-sheet__desc";
