@@ -13,6 +13,8 @@
   const passwordForm = document.getElementById("password-form");
   const passwordStatusEl = document.getElementById("password-status");
   const deleteForm = document.getElementById("delete-account-form");
+  const deleteStartBtn = document.getElementById("profile-delete-start-btn");
+  const profileLogoutBtn = document.getElementById("profile-logout-btn");
   const deleteStatusEl = document.getElementById("delete-status");
   const birthsEl = document.getElementById("profile-births");
   const birthListEl = document.getElementById("profile-birth-list");
@@ -212,8 +214,15 @@
       if (CU && CU.paidPlanNote) {
         plansNoteEl.textContent = CU.paidPlanNote();
       } else {
-        const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 1;
-        const monthLabel = months === 1 ? "1 month" : `${months} months`;
+        const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 12;
+        const monthLabel =
+          months % 12 === 0
+            ? months / 12 === 1
+              ? "1 year"
+              : `${months / 12} years`
+            : months === 1
+              ? "1 month"
+              : `${months} months`;
         plansNoteEl.textContent =
           `Free Plan: ${freeLimit} birth details free\n` +
           `Basic Plan: ₹${queryCharge} for 1 birth details\n` +
@@ -534,13 +543,30 @@
     });
   }
 
+  if (profileLogoutBtn) {
+    profileLogoutBtn.addEventListener("click", () => {
+      const headerLogout = document.getElementById("site-logout-btn");
+      if (headerLogout) {
+        headerLogout.click();
+        return;
+      }
+      AUTH.logout().finally(() => {
+        window.location.replace(kundaliHref());
+      });
+    });
+  }
+
+  if (deleteStartBtn && deleteForm) {
+    deleteStartBtn.addEventListener("click", () => {
+      deleteForm.hidden = false;
+      const passwordInput = document.getElementById("profile-delete-password");
+      if (passwordInput) passwordInput.focus();
+    });
+  }
+
   if (deleteForm) {
     deleteForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const confirmed = window.confirm(
-        "Delete your Saptarishi account permanently? This cannot be undone."
-      );
-      if (!confirmed) return;
       const password = document.getElementById("profile-delete-password").value;
       deleteForm.querySelectorAll("input, button").forEach((el) => {
         el.disabled = true;

@@ -44,7 +44,14 @@
 
   function planLabel(plan) {
     if (!plan) return "";
-    if (plan.id === "unlimited") return `Unlimited (1 month) · ₹${plan.amount_inr}`;
+    if (plan.id === "unlimited") {
+      const utils = global.SaptarishiCommonUtils;
+      const duration =
+        utils && utils.unlimitedAccessDurationLabel
+          ? utils.unlimitedAccessDurationLabel(AC.PREMIUM_UNLIMITED_MONTHS)
+          : "1 year";
+      return `Unlimited (${duration}) · ₹${plan.amount_inr}`;
+    }
     const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
     return `${limit} births · ₹${plan.amount_inr}`;
   }

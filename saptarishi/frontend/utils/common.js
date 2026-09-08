@@ -67,16 +67,25 @@
     }
   }
 
+  function unlimitedAccessDurationLabel(months) {
+    const value = Number(months);
+    const count = Number.isFinite(value) && value > 0 ? value : 12;
+    if (count % 12 === 0) {
+      const years = count / 12;
+      return years === 1 ? "1 year" : `${years} years`;
+    }
+    return count === 1 ? "1 month" : `${count} months`;
+  }
+
   function paidPlanNote() {
-    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
-    const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    const duration = unlimitedAccessDurationLabel(AC.PREMIUM_UNLIMITED_MONTHS);
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     return (
       `Free Plan: ${freeBirths} birth details free\n` +
       `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
-      `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
+      `Advance Plan: ₹${advanceAmount} for unlimited access for ${duration}.`
     );
   }
 
@@ -383,7 +392,6 @@
     const metaEl = drawer.querySelector("#site-drawer-meta");
     const avatarEl = drawer.querySelector("#site-drawer-avatar");
     const loginLink = drawer.querySelector("#site-drawer-login");
-    const logoutBtn = drawer.querySelector("#site-drawer-logout");
     if (nameEl) nameEl.textContent = user ? user.name || user.mobile || "Account" : "Guest";
     if (avatarEl) avatarEl.textContent = avatarInitials(user);
     if (metaEl) {
@@ -398,7 +406,6 @@
       }
     }
     if (loginLink) loginLink.hidden = Boolean(user);
-    if (logoutBtn) logoutBtn.hidden = !user;
   }
 
   function ensureSiteDrawer(header) {
@@ -413,13 +420,13 @@
     drawer.innerHTML = `
       <button type="button" class="site-drawer__backdrop" id="site-drawer-backdrop" tabindex="-1" aria-label="Close menu"></button>
       <div class="site-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
-        <div class="site-drawer__user">
+        <a class="site-drawer__user" id="site-drawer-user" href="${navHref("profile.html")}">
           <span class="site-drawer__avatar" id="site-drawer-avatar">S</span>
           <div class="site-drawer__user-text">
             <strong class="site-drawer__user-name" id="site-drawer-name">Guest</strong>
             <span class="site-drawer__user-meta" id="site-drawer-meta">Sign in to save charts</span>
           </div>
-        </div>
+        </a>
         <nav class="site-drawer__nav" aria-label="Pages">
           <a href="${navHref("kundali.html")}" class="site-drawer__link" data-page="kundali">
             ${drawerIcon('<circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18"></path>')}
@@ -447,10 +454,6 @@
             ${drawerIcon('<path d="M10 17l5-5-5-5M15 12H4"></path><path d="M20 4v16"></path>')}
             <span>Login</span>
           </button>
-          <button type="button" class="site-drawer__link" id="site-drawer-logout" hidden>
-            ${drawerIcon('<path d="M10 17l-5-5 5-5M5 12h11"></path><path d="M20 4v16"></path>')}
-            <span>Logout</span>
-          </button>
         </nav>
       </div>
     `;
@@ -462,20 +465,22 @@
     drawer.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => setHeaderMenuOpen(header, false));
     });
+    const drawerUser = drawer.querySelector("#site-drawer-user");
+    if (drawerUser) {
+      drawerUser.addEventListener("click", (event) => {
+        if (AUTH && AUTH.getUser()) return;
+        event.preventDefault();
+        setHeaderMenuOpen(header, false);
+        const loginBtn = header.querySelector("#site-login-btn");
+        if (loginBtn) loginBtn.click();
+      });
+    }
     const loginLink = drawer.querySelector("#site-drawer-login");
     if (loginLink) {
       loginLink.addEventListener("click", () => {
         setHeaderMenuOpen(header, false);
         const loginBtn = header.querySelector("#site-login-btn");
         if (loginBtn) loginBtn.click();
-      });
-    }
-    const logoutBtn = drawer.querySelector("#site-drawer-logout");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        setHeaderMenuOpen(header, false);
-        const headerLogout = header.querySelector("#site-logout-btn");
-        if (headerLogout) headerLogout.click();
       });
     }
     return drawer;
@@ -500,13 +505,10 @@
         <span class="site-header__usage" hidden></span>
         <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden title="Wallet">₹0</button>
         <div class="site-header__account" id="site-account-menu" hidden>
-          <button type="button" id="site-account-btn" class="site-header__account-btn" aria-expanded="false" aria-haspopup="menu" aria-controls="site-account-dropdown">
+          <a href="${navHref("profile.html")}" id="site-account-btn" class="site-header__account-btn" title="Profile">
             <span id="site-account-name">Account</span>
-          </button>
-          <div class="site-header__account-menu" id="site-account-dropdown" role="menu" hidden>
-            <a href="${navHref("profile.html")}" class="site-header__account-item" role="menuitem" id="site-account-profile">Profile</a>
-            <button type="button" class="site-header__account-item" role="menuitem" id="site-logout-btn">Logout</button>
-          </div>
+          </a>
+          <button type="button" id="site-logout-btn" class="site-header__account-item" hidden>Logout</button>
         </div>
         <button type="button" id="site-register-btn" class="site-header__premium">Register</button>
         <button type="button" id="site-login-btn" class="site-header__login">Login</button>
@@ -535,7 +537,6 @@
     const accountMenu = header.querySelector("#site-account-menu");
     const accountBtn = header.querySelector("#site-account-btn");
     const accountName = header.querySelector("#site-account-name");
-    const accountDropdown = header.querySelector("#site-account-dropdown");
     const registerBtn = header.querySelector("#site-register-btn");
     const loginBtn = header.querySelector("#site-login-btn");
 
@@ -559,16 +560,12 @@
         accountName.textContent = resolvedUser.name || resolvedUser.mobile || "Account";
       }
       if (accountBtn) {
-        accountBtn.title = resolvedUser.name || resolvedUser.mobile || "Account menu";
+        accountBtn.title = resolvedUser.name || resolvedUser.mobile || "Profile";
       }
       if (registerBtn) registerBtn.hidden = true;
       if (loginBtn) loginBtn.hidden = true;
     } else {
       if (accountMenu) accountMenu.hidden = true;
-      if (accountDropdown) {
-        accountDropdown.hidden = true;
-      }
-      if (accountBtn) accountBtn.setAttribute("aria-expanded", "false");
       if (registerBtn) registerBtn.hidden = false;
       if (loginBtn) loginBtn.hidden = false;
     }
@@ -861,23 +858,6 @@
     if (loginBtn) {
       loginBtn.addEventListener("click", () => {
         if (MODAL) MODAL.open({ tab: "login", required: false });
-      });
-    }
-
-    if (accountBtn && accountMenu) {
-      accountBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const open = accountBtn.getAttribute("aria-expanded") !== "true";
-        if (open) setHeaderMenuOpen(header, false);
-        setAccountMenuOpen(header, open);
-      });
-      document.addEventListener("click", (event) => {
-        if (!accountMenu.contains(event.target)) {
-          setAccountMenuOpen(header, false);
-        }
-      });
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") setAccountMenuOpen(header, false);
       });
     }
 
@@ -1793,7 +1773,18 @@
       if (compare) compare.hidden = true;
       closeBirthPicker();
       closeBirthPlacePicker();
+      return;
     }
+    const results = document.getElementById("results");
+    if (results) results.hidden = true;
+    const status = document.getElementById("status");
+    if (status) {
+      status.hidden = true;
+      status.textContent = "";
+    }
+    const lord = document.getElementById("lord-comparison-section");
+    if (lord) lord.hidden = true;
+    window.scrollTo(0, 0);
   }
 
   function bindBirthEntryToggle() {
@@ -1883,6 +1874,7 @@
     applyFormFieldLimits,
     contactPhone,
     contactEmail,
+    unlimitedAccessDurationLabel,
     paidPlanNote,
     privacyPolicyHref,
     refreshBirthChooserDisplays,

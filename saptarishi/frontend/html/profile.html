@@ -7,13 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
-  <title>My profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=283">
+  <title>Profile — Saptarishi</title>
+  <link rel="stylesheet" href="../style/styles.css?v=306">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
-    <h1>My profile</h1>
-    <p class="lead">View and update your account details.</p>
 
     <div id="profile-summary" class="profile-summary" hidden>
       <div class="profile-summary__grid">
@@ -84,9 +82,11 @@
       <p id="password-status" class="status" role="status" aria-live="polite" hidden></p>
 
       <div class="profile-danger" id="delete-account">
-        <h2 class="profile-danger__title">Delete account</h2>
-        <p class="profile-danger__lead">This permanently removes your account from Saptarishi. This cannot be undone.</p>
-        <form id="delete-account-form" class="auth-form profile-form" autocomplete="off">
+        <div class="profile-account-actions">
+          <button type="button" id="profile-logout-btn" class="btn-secondary">Logout</button>
+          <button type="button" id="profile-delete-start-btn" class="btn-danger">Delete account</button>
+        </div>
+        <form id="delete-account-form" class="auth-form profile-form" autocomplete="off" hidden>
           <div class="form-field">
             <label for="profile-delete-password">Confirm with your password</label>
             <input type="password" id="profile-delete-password" name="delete-password" autocomplete="current-password" required minlength="4" />
@@ -140,14 +140,14 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=74"></script>
+  <script src="../utils/constant.js?v=75"></script>
   <script src="../js/auth.js?v=39"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=21"></script>
-  <script src="../js/premium-modal.js?v=12"></script>
-  <script src="../js/wallet-modal.js?v=19"></script>
-  <script src="../js/profile.js?v=26"></script>
-  <script src="../utils/common.js?v=70"></script>
+  <script src="../js/premium-modal.js?v=13"></script>
+  <script src="../js/wallet-modal.js?v=20"></script>
+  <script src="../js/profile.js?v=28"></script>
+  <script src="../utils/common.js?v=73"></script>
   <script src="../js/ask-ai.js?v=6"></script>
 </body>
 </html>

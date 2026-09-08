@@ -27,8 +27,15 @@
 
   function paidPlanNote() {
     if (CU && CU.paidPlanNote) return CU.paidPlanNote();
-    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 1;
-    const monthLabel = months === 1 ? "1 month" : `${months} months`;
+    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 12;
+    const monthLabel =
+      months % 12 === 0
+        ? months / 12 === 1
+          ? "1 year"
+          : `${months / 12} years`
+        : months === 1
+          ? "1 month"
+          : `${months} months`;
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
