@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=283">
+  <link rel="stylesheet" href="../style/styles.css?v=293">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -147,7 +147,7 @@
             data-planets-view="grid"
             aria-pressed="true"
           >
-            Grid view
+            House Status
           </button>
           <button
             type="button"
@@ -155,7 +155,7 @@
             data-planets-view="full"
             aria-pressed="false"
           >
-            Table view
+            Planet Status
           </button>
         </div>
       </div>
@@ -170,23 +170,19 @@
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
-              <th>Mahadasha on Age</th>
               <th>Planet</th>
-              <th>Planet Strength</th>
-              <th>In House</th>
               <th>Aspected By</th>
+              <th>Nakshatra</th>
+              <th>In House</th>
               <th>House Rashi</th>
               <th>House Lord</th>
-              <th>House Lord Strength</th>
-              <th>Rashi Status</th>
-              <th>Lagna Lord Enemy</th>
-              <th>Nakshatra</th>
-              <th>Nakshatra Status</th>
+              <th>Mahadasha on Age</th>
               <th>Karakwaqt</th>
               <th>Malefic 6/8/12</th>
               <th>Nakshatra navatara</th>
               <th>Degree</th>
               <th>Death Degree</th>
+              <th>Lagna Lord Enemy</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -244,7 +240,7 @@
   <script src="../js/wallet-modal.js?v=19"></script>
   <script src="../utils/common.js?v=66"></script>
   <script src="../js/ask-ai.js?v=6"></script>
-  <script src="../js/kundali.js?v=311"></script>
+  <script src="../js/kundali.js?v=323"></script>
   <script src="../js/lord-comparison.js?v=19"></script>
   <script src="../js/kundali-compare.js?v=13"></script>
 </body>
