@@ -8,12 +8,10 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=299">
+  <link rel="stylesheet" href="../style/styles.css?v=303">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
-    <p class="lead">Enter birth details</p>
-
     <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
       <button
         type="button"
@@ -38,15 +36,16 @@
     </div>
 
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
-      <div class="form-field" id="open-kundali-wrap" hidden>
-        <label for="saved-kundali-select">Saved birth details</label>
-        <select id="saved-kundali-select">
+      <div class="form-field birth-open-list-wrap" id="open-kundali-wrap" hidden>
+        <select id="saved-kundali-select" hidden aria-hidden="true">
           <option value="">Select saved name…</option>
         </select>
+        <div id="saved-kundali-list" class="birth-open-list" role="listbox" aria-label="Saved birth details"></div>
       </div>
+      <div id="new-kundali-fields">
       <div class="form-field" id="birth-name-wrap">
         <label for="birth-name">Name</label>
-        <input type="text" id="birth-name" maxlength="120" placeholder="Enter name" />
+        <input type="text" id="birth-name" maxlength="120" placeholder="Enter Name" aria-label="Name" />
       </div>
       <div class="form-field">
         <label for="place-preset">Place</label>
@@ -78,6 +77,7 @@
           <button type="submit" id="submit-btn">Show</button>
           <button type="button" id="compare-toggle-btn">Kundali compare</button>
         </div>
+      </div>
       </div>
     </form>
 
@@ -239,15 +239,15 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=73"></script>
+  <script src="../utils/constant.js?v=74"></script>
   <script src="../js/auth.js?v=39"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=21"></script>
   <script src="../js/premium-modal.js?v=12"></script>
   <script src="../js/wallet-modal.js?v=19"></script>
-  <script src="../utils/common.js?v=66"></script>
+  <script src="../utils/common.js?v=69"></script>
   <script src="../js/ask-ai.js?v=6"></script>
-  <script src="../js/kundali.js?v=336"></script>
+  <script src="../js/kundali.js?v=337"></script>
   <script src="../js/lord-comparison.js?v=19"></script>
   <script src="../js/kundali-compare.js?v=13"></script>
 </body>

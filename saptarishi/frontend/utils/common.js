@@ -1135,6 +1135,666 @@
     );
   }
 
+  const BIRTH_MONTHS_SHORT = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  const BIRTH_MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
+  const BIRTH_PLACE_GEO = {
+    "New Delhi, India": { lat: 28.6139, lon: 77.209, tz: "+5.5" },
+    "Mumbai, India": { lat: 19.076, lon: 72.8777, tz: "+5.5" },
+    "Kolkata, India": { lat: 22.5726, lon: 88.3639, tz: "+5.5" },
+    "Bengaluru, India": { lat: 12.9716, lon: 77.5946, tz: "+5.5" },
+    "Patna, India": { lat: 25.5941, lon: 85.1376, tz: "+5.5" },
+    "Motihari, India": { lat: 26.643, lon: 84.904, tz: "+5.5" }
+  };
+
+  function padBirthNum(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function todayBirthDateValue() {
+    const d = new Date();
+    return `${d.getFullYear()}-${padBirthNum(d.getMonth() + 1)}-${padBirthNum(d.getDate())}`;
+  }
+
+  function nowBirthTimeValue() {
+    const d = new Date();
+    return `${padBirthNum(d.getHours())}:${padBirthNum(d.getMinutes())}:${padBirthNum(d.getSeconds())}`;
+  }
+
+  function formatBirthDateLabel(iso) {
+    const match = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return "Select date";
+    return `${match[3]} - ${BIRTH_MONTHS_SHORT[Number(match[2]) - 1] || match[2]} - ${match[1]}`;
+  }
+
+  function formatBirthDateTitle(iso) {
+    const match = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return "";
+    const month = BIRTH_MONTHS_LONG[Number(match[2]) - 1] || match[2];
+    return `${month} ${Number(match[3])}, ${match[1]}`;
+  }
+
+  function parseBirthTimeParts(value) {
+    const match = String(value || "").match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (!match) return { hours24: 0, minutes: 0, seconds: 0 };
+    return {
+      hours24: Math.min(23, Number(match[1]) || 0),
+      minutes: Math.min(59, Number(match[2]) || 0),
+      seconds: Math.min(59, Number(match[3]) || 0)
+    };
+  }
+
+  function formatBirthTimeLabel(value, withSeconds) {
+    const parts = parseBirthTimeParts(value);
+    const ampm = parts.hours24 >= 12 ? "PM" : "AM";
+    let hour = parts.hours24 % 12;
+    if (hour === 0) hour = 12;
+    const core = `${padBirthNum(hour)}:${padBirthNum(parts.minutes)}`;
+    if (!withSeconds) return `${core} ${ampm}`;
+    return `${core}:${padBirthNum(parts.seconds)} ${ampm}`;
+  }
+
+  function toBirthTimeInputValue(hour12, minutes, seconds, ampm) {
+    let hour = Number(hour12);
+    const isPm = String(ampm).toUpperCase() === "PM";
+    if (hour === 12) hour = isPm ? 12 : 0;
+    else if (isPm) hour += 12;
+    return `${padBirthNum(hour)}:${padBirthNum(minutes)}:${padBirthNum(seconds)}`;
+  }
+
+  function formatBirthCoordPart(value, pos, neg) {
+    const abs = Math.abs(Number(value) || 0);
+    let deg = Math.floor(abs);
+    let min = Math.round((abs - deg) * 60);
+    if (min === 60) {
+      deg += 1;
+      min = 0;
+    }
+    return `${deg}${value >= 0 ? pos : neg}${padBirthNum(min)}`;
+  }
+
+  function formatBirthPlaceMeta(place) {
+    const geo = BIRTH_PLACE_GEO[place];
+    if (!geo) return "";
+    return `( ${formatBirthCoordPart(geo.lat, "N", "S")}, ${formatBirthCoordPart(geo.lon, "E", "W")} ${geo.tz} )`;
+  }
+
+  function splitBirthPlaceLabel(place) {
+    const value = String(place || "").trim();
+    if (!value) return { title: "Select place…", meta: "" };
+    const idx = value.lastIndexOf(",");
+    if (idx > 0) {
+      return {
+        title: value.slice(0, idx).trim(),
+        meta: value.slice(idx + 1).trim()
+      };
+    }
+    return { title: value, meta: "" };
+  }
+
+  function birthChooserForms() {
+    return ["birth-form", "remedy-form"]
+      .map((id) => document.getElementById(id))
+      .filter((form) => form && form.classList.contains("kundali-form--chooser"));
+  }
+
+  function refreshBirthChooserDisplays(root) {
+    const forms = root ? [root] : birthChooserForms();
+    forms.forEach((form) => {
+      const dateInput = form.querySelector("#birth-date");
+      const timeInput = form.querySelector("#birth-time");
+      const placeSelect = form.querySelector("#place-preset");
+      const placeCustom = form.querySelector("#place-custom");
+      const dateBox = form.querySelector("[data-birth-open='date']");
+      const timeBox = form.querySelector("[data-birth-open='time']");
+      const placeTitle = form.querySelector("[data-birth-place-title]");
+      const placeMeta = form.querySelector("[data-birth-place-meta]");
+      if (dateBox) dateBox.textContent = formatBirthDateLabel(dateInput && dateInput.value);
+      if (timeBox) timeBox.textContent = formatBirthTimeLabel(timeInput && timeInput.value, false);
+      if (!placeTitle) return;
+      const customVal = AC.PLACE_CUSTOM_VALUE || "__custom__";
+      const selected = placeSelect ? String(placeSelect.value || "").trim() : "";
+      const custom = placeCustom ? String(placeCustom.value || "").trim() : "";
+      const place = selected === customVal ? custom : selected;
+      if (!place) {
+        placeTitle.textContent = "Select place…";
+        if (placeMeta) placeMeta.textContent = "";
+        return;
+      }
+      const coords = formatBirthPlaceMeta(place);
+      if (coords) {
+        placeTitle.textContent = splitBirthPlaceLabel(place).title;
+        if (placeMeta) placeMeta.textContent = coords;
+        return;
+      }
+      const parts = splitBirthPlaceLabel(place);
+      placeTitle.textContent = parts.title;
+      if (placeMeta) placeMeta.textContent = parts.meta;
+    });
+  }
+
+  function iconSvg(paths) {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+  }
+
+  function ensureBirthPickerOverlay() {
+    let overlay = document.getElementById("birth-picker-overlay");
+    if (overlay) return overlay;
+    overlay = document.createElement("div");
+    overlay.id = "birth-picker-overlay";
+    overlay.className = "birth-picker";
+    overlay.hidden = true;
+    overlay.innerHTML = `
+      <button type="button" class="birth-picker__backdrop" aria-label="Close"></button>
+      <div class="birth-picker__dialog" role="dialog" aria-modal="true">
+        <div class="birth-picker__head">
+          <span class="birth-picker__icon"></span>
+          <strong class="birth-picker__title"></strong>
+        </div>
+        <div class="birth-picker__wheels"></div>
+        <div class="birth-picker__actions">
+          <button type="button" class="birth-picker__cancel">Cancel</button>
+          <button type="button" class="birth-picker__set">Set</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".birth-picker__backdrop").addEventListener("click", closeBirthPicker);
+    overlay.querySelector(".birth-picker__cancel").addEventListener("click", closeBirthPicker);
+    overlay.querySelector(".birth-picker__set").addEventListener("click", commitBirthPicker);
+    return overlay;
+  }
+
+  function ensureBirthPlaceOverlay() {
+    let overlay = document.getElementById("birth-place-overlay");
+    if (overlay) return overlay;
+    overlay = document.createElement("div");
+    overlay.id = "birth-place-overlay";
+    overlay.className = "birth-place-picker";
+    overlay.hidden = true;
+    overlay.innerHTML = `
+      <div class="birth-place-picker__head">
+        <button type="button" class="birth-place-picker__back" aria-label="Back">‹</button>
+        <h2>Search Place</h2>
+      </div>
+      <div class="birth-place-picker__tabs" role="tablist">
+        <button type="button" data-place-tab="search" class="is-on">City search</button>
+        <button type="button" data-place-tab="custom">Custom city</button>
+      </div>
+      <div data-place-pane="search">
+        <label class="birth-place-picker__search">
+          ${iconSvg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/>')}
+          <input type="search" id="birth-place-search" placeholder="Search Place (Min. 3 char.)" autocomplete="off" />
+        </label>
+        <div class="birth-place-picker__list" id="birth-place-list"></div>
+      </div>
+      <div data-place-pane="custom" hidden>
+        <div class="birth-place-picker__custom">
+          <input type="text" id="birth-place-custom-input" maxlength="240" placeholder="City, Country" />
+          <button type="button" id="birth-place-custom-set">Set</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".birth-place-picker__back").addEventListener("click", closeBirthPlacePicker);
+    overlay.querySelectorAll("[data-place-tab]").forEach((tab) => {
+      tab.addEventListener("click", () => setBirthPlaceTab(tab.getAttribute("data-place-tab")));
+    });
+    overlay.querySelector("#birth-place-search").addEventListener("input", renderBirthPlaceList);
+    overlay.querySelector("#birth-place-custom-set").addEventListener("click", commitBirthPlaceCustom);
+    return overlay;
+  }
+
+  let birthPickerState = null;
+  let birthPlaceForm = null;
+
+  function setBirthOverlayOpen(open) {
+    document.body.classList.toggle("birth-overlay-open", open);
+  }
+
+  function closeBirthPicker() {
+    const overlay = document.getElementById("birth-picker-overlay");
+    if (overlay) overlay.hidden = true;
+    birthPickerState = null;
+    if (document.getElementById("birth-place-overlay")?.hidden !== false) setBirthOverlayOpen(false);
+  }
+
+  function closeBirthPlacePicker() {
+    const overlay = document.getElementById("birth-place-overlay");
+    if (overlay) overlay.hidden = true;
+    birthPlaceForm = null;
+    if (document.getElementById("birth-picker-overlay")?.hidden !== false) setBirthOverlayOpen(false);
+  }
+
+  function wheelSelectedValue(scroller) {
+    const items = [...scroller.querySelectorAll(".birth-wheel__item")];
+    if (!items.length) return "";
+    const mid = scroller.getBoundingClientRect().top + scroller.clientHeight / 2;
+    let best = items[0];
+    let bestDist = Infinity;
+    items.forEach((item) => {
+      const rect = item.getBoundingClientRect();
+      const dist = Math.abs(rect.top + rect.height / 2 - mid);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = item;
+      }
+    });
+    items.forEach((item) => item.classList.toggle("is-on", item === best));
+    return best.getAttribute("data-value") || "";
+  }
+
+  function scrollWheelToValue(scroller, value) {
+    const item = [...scroller.querySelectorAll(".birth-wheel__item")].find(
+      (el) => el.getAttribute("data-value") === String(value)
+    );
+    if (!item) return;
+    const top = item.offsetTop - scroller.clientHeight / 2 + item.offsetHeight / 2;
+    scroller.scrollTop = Math.max(0, top);
+    wheelSelectedValue(scroller);
+  }
+
+  function makeWheelColumn(label, values, selected) {
+    const col = document.createElement("div");
+    col.className = "birth-wheel__col";
+    const caption = document.createElement("div");
+    caption.className = "birth-wheel__label";
+    caption.textContent = label || "\u00a0";
+    const scroller = document.createElement("div");
+    scroller.className = "birth-wheel__scroller";
+    const padTop = document.createElement("div");
+    padTop.className = "birth-wheel__pad";
+    const padBottom = document.createElement("div");
+    padBottom.className = "birth-wheel__pad";
+    scroller.appendChild(padTop);
+    values.forEach((item) => {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "birth-wheel__item";
+      el.setAttribute("data-value", item.value);
+      el.textContent = item.label;
+      el.addEventListener("click", () => scrollWheelToValue(scroller, item.value));
+      scroller.appendChild(el);
+    });
+    scroller.appendChild(padBottom);
+    let snapTimer = 0;
+    scroller.addEventListener("scroll", () => {
+      window.clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(() => wheelSelectedValue(scroller), 80);
+    });
+    col.append(caption, scroller);
+    requestAnimationFrame(() => scrollWheelToValue(scroller, selected));
+    return { col, scroller };
+  }
+
+  function daysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+  }
+
+  function rebuildBirthDayWheel(host, year, month, day) {
+    const max = daysInMonth(year, month);
+    const selected = Math.min(Number(day) || 1, max);
+    const values = [];
+    for (let i = 1; i <= max; i += 1) values.push({ value: String(i), label: padBirthNum(i) });
+    const next = makeWheelColumn("Day", values, String(selected));
+    const old = host.querySelector("[data-wheel='day']");
+    next.col.setAttribute("data-wheel", "day");
+    if (old) old.replaceWith(next.col);
+    else host.prepend(next.col);
+    return next.scroller;
+  }
+
+  function openBirthDatePicker(form) {
+    const dateInput = form.querySelector("#birth-date");
+    if (!dateInput) return;
+    if (!dateInput.value) dateInput.value = todayBirthDateValue();
+    const match = String(dateInput.value).match(/^(\d{4})-(\d{2})-(\d{2})/) || [];
+    const year = Number(match[1]) || new Date().getFullYear();
+    const month = Number(match[2]) || new Date().getMonth() + 1;
+    const day = Number(match[3]) || new Date().getDate();
+    const overlay = ensureBirthPickerOverlay();
+    overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
+      '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
+    );
+    overlay.querySelector(".birth-picker__title").textContent = formatBirthDateTitle(dateInput.value);
+    const wheels = overlay.querySelector(".birth-picker__wheels");
+    wheels.className = "birth-picker__wheels birth-wheel birth-wheel--date";
+    wheels.replaceChildren();
+    const thisYear = new Date().getFullYear();
+    const years = [];
+    for (let y = thisYear + 1; y >= 1900; y -= 1) years.push({ value: String(y), label: String(y) });
+    const months = BIRTH_MONTHS_SHORT.map((label, idx) => ({ value: String(idx + 1), label }));
+    const dayScroller = { current: null };
+    const monthCol = makeWheelColumn("Month", months, String(month));
+    const yearCol = makeWheelColumn("Year", years, String(year));
+    monthCol.col.setAttribute("data-wheel", "month");
+    yearCol.col.setAttribute("data-wheel", "year");
+    wheels.append(monthCol.col, yearCol.col);
+    dayScroller.current = rebuildBirthDayWheel(wheels, year, month, day);
+    const refreshTitle = () => {
+      const y = Number(wheelSelectedValue(yearCol.scroller));
+      const m = Number(wheelSelectedValue(monthCol.scroller));
+      const dayCount = wheels.querySelectorAll("[data-wheel='day'] .birth-wheel__item").length;
+      if (dayCount !== daysInMonth(y, m)) {
+        dayScroller.current = rebuildBirthDayWheel(
+          wheels,
+          y,
+          m,
+          Number(wheelSelectedValue(dayScroller.current))
+        );
+      }
+      const d = Number(wheelSelectedValue(dayScroller.current));
+      overlay.querySelector(".birth-picker__title").textContent = formatBirthDateTitle(
+        `${y}-${padBirthNum(m)}-${padBirthNum(d)}`
+      );
+    };
+    monthCol.scroller.addEventListener("scroll", () => {
+      window.clearTimeout(monthCol.scroller._birthTimer);
+      monthCol.scroller._birthTimer = window.setTimeout(refreshTitle, 120);
+    });
+    yearCol.scroller.addEventListener("scroll", () => {
+      window.clearTimeout(yearCol.scroller._birthTimer);
+      yearCol.scroller._birthTimer = window.setTimeout(refreshTitle, 120);
+    });
+    birthPickerState = {
+      kind: "date",
+      form,
+      read() {
+        const y = Number(wheelSelectedValue(yearCol.scroller));
+        const m = Number(wheelSelectedValue(monthCol.scroller));
+        const d = Number(wheelSelectedValue(wheels.querySelector("[data-wheel='day'] .birth-wheel__scroller")));
+        return `${y}-${padBirthNum(m)}-${padBirthNum(Math.min(d, daysInMonth(y, m)))}`;
+      }
+    };
+    overlay.hidden = false;
+    setBirthOverlayOpen(true);
+  }
+
+  function openBirthTimePicker(form) {
+    const timeInput = form.querySelector("#birth-time");
+    if (!timeInput) return;
+    if (!timeInput.value) timeInput.value = nowBirthTimeValue();
+    const parts = parseBirthTimeParts(timeInput.value);
+    const converted = parts.hours24 % 12 === 0 ? 12 : parts.hours24 % 12;
+    const ampm = parts.hours24 >= 12 ? "PM" : "AM";
+    const overlay = ensureBirthPickerOverlay();
+    overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
+      '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'
+    );
+    overlay.querySelector(".birth-picker__title").textContent = formatBirthTimeLabel(timeInput.value, true);
+    const wheels = overlay.querySelector(".birth-picker__wheels");
+    wheels.className = "birth-picker__wheels birth-wheel birth-wheel--time";
+    wheels.replaceChildren();
+    const hours = [];
+    const minutes = [];
+    const seconds = [];
+    for (let i = 1; i <= 12; i += 1) hours.push({ value: String(i), label: padBirthNum(i) });
+    for (let i = 0; i <= 59; i += 1) {
+      minutes.push({ value: String(i), label: padBirthNum(i) });
+      seconds.push({ value: String(i), label: padBirthNum(i) });
+    }
+    const hourCol = makeWheelColumn("Hours", hours, String(converted));
+    const minCol = makeWheelColumn("Minutes", minutes, String(parts.minutes));
+    const secCol = makeWheelColumn("Seconds", seconds, String(parts.seconds));
+    const amCol = makeWheelColumn("\u00a0", [
+      { value: "AM", label: "AM" },
+      { value: "PM", label: "PM" }
+    ], ampm);
+    wheels.append(hourCol.col, minCol.col, secCol.col, amCol.col);
+    const refreshTitle = () => {
+      overlay.querySelector(".birth-picker__title").textContent = formatBirthTimeLabel(
+        toBirthTimeInputValue(
+          wheelSelectedValue(hourCol.scroller),
+          wheelSelectedValue(minCol.scroller),
+          wheelSelectedValue(secCol.scroller),
+          wheelSelectedValue(amCol.scroller)
+        ),
+        true
+      );
+    };
+    [hourCol, minCol, secCol, amCol].forEach((col) => {
+      col.scroller.addEventListener("scroll", () => {
+        window.clearTimeout(col.scroller._birthTimer);
+        col.scroller._birthTimer = window.setTimeout(refreshTitle, 80);
+      });
+    });
+    birthPickerState = {
+      kind: "time",
+      form,
+      read() {
+        return toBirthTimeInputValue(
+          wheelSelectedValue(hourCol.scroller),
+          wheelSelectedValue(minCol.scroller),
+          wheelSelectedValue(secCol.scroller),
+          wheelSelectedValue(amCol.scroller)
+        );
+      }
+    };
+    overlay.hidden = false;
+    setBirthOverlayOpen(true);
+    requestAnimationFrame(() => {
+      scrollWheelToValue(hourCol.scroller, String(converted));
+      scrollWheelToValue(minCol.scroller, String(parts.minutes));
+      scrollWheelToValue(secCol.scroller, String(parts.seconds));
+      scrollWheelToValue(amCol.scroller, ampm);
+    });
+  }
+
+  function commitBirthPicker() {
+    if (!birthPickerState) {
+      closeBirthPicker();
+      return;
+    }
+    const { kind, form, read } = birthPickerState;
+    const value = read();
+    if (kind === "date") {
+      const input = form.querySelector("#birth-date");
+      if (input) input.value = value;
+    } else {
+      const input = form.querySelector("#birth-time");
+      if (input) input.value = value;
+    }
+    refreshBirthChooserDisplays(form);
+    closeBirthPicker();
+  }
+
+  function setBirthPlaceTab(tab) {
+    const overlay = document.getElementById("birth-place-overlay");
+    if (!overlay) return;
+    overlay.querySelectorAll("[data-place-tab]").forEach((btn) => {
+      btn.classList.toggle("is-on", btn.getAttribute("data-place-tab") === tab);
+    });
+    overlay.querySelectorAll("[data-place-pane]").forEach((pane) => {
+      pane.hidden = pane.getAttribute("data-place-pane") !== tab;
+    });
+  }
+
+  function renderBirthPlaceList() {
+    const overlay = document.getElementById("birth-place-overlay");
+    const list = overlay && overlay.querySelector("#birth-place-list");
+    if (!list) return;
+    const query = String(overlay.querySelector("#birth-place-search")?.value || "")
+      .trim()
+      .toLowerCase();
+    const places = Array.isArray(AC.BIRTH_PLACE_PRESETS) ? AC.BIRTH_PLACE_PRESETS : [];
+    const filtered =
+      query.length < 3 ? places : places.filter((place) => String(place).toLowerCase().includes(query));
+    list.replaceChildren();
+    if (!filtered.length) {
+      const empty = document.createElement("p");
+      empty.className = "birth-place-picker__empty";
+      empty.textContent = query.length < 3 ? "Type at least 3 characters to search." : "No matching place.";
+      list.appendChild(empty);
+    } else {
+      filtered.forEach((place) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "birth-place-picker__item";
+        const parts = splitBirthPlaceLabel(place);
+        const title = document.createElement("strong");
+        title.textContent = parts.title;
+        const meta = document.createElement("span");
+        meta.textContent = parts.meta;
+        btn.append(title, meta);
+        btn.addEventListener("click", () => commitBirthPlacePreset(place));
+        list.appendChild(btn);
+      });
+    }
+    const other = document.createElement("button");
+    other.type = "button";
+    other.className = "birth-place-picker__item";
+    other.innerHTML = "<strong>Other…</strong><span>Enter a custom city</span>";
+    other.addEventListener("click", () => setBirthPlaceTab("custom"));
+    list.appendChild(other);
+  }
+
+  function commitBirthPlacePreset(place) {
+    if (!birthPlaceForm) return;
+    const select = birthPlaceForm.querySelector("#place-preset");
+    const custom = birthPlaceForm.querySelector("#place-custom");
+    const wrap = birthPlaceForm.querySelector("#custom-place-wrap");
+    if (select) select.value = place;
+    if (custom) custom.value = "";
+    if (wrap) wrap.hidden = true;
+    refreshBirthChooserDisplays(birthPlaceForm);
+    closeBirthPlacePicker();
+  }
+
+  function commitBirthPlaceCustom() {
+    const overlay = document.getElementById("birth-place-overlay");
+    const value = String(overlay?.querySelector("#birth-place-custom-input")?.value || "").trim();
+    if (!value || !birthPlaceForm) return;
+    const select = birthPlaceForm.querySelector("#place-preset");
+    const custom = birthPlaceForm.querySelector("#place-custom");
+    const wrap = birthPlaceForm.querySelector("#custom-place-wrap");
+    if (select) select.value = AC.PLACE_CUSTOM_VALUE || "__custom__";
+    if (custom) custom.value = value;
+    if (wrap) wrap.hidden = true;
+    refreshBirthChooserDisplays(birthPlaceForm);
+    closeBirthPlacePicker();
+  }
+
+  function openBirthPlacePicker(form) {
+    birthPlaceForm = form;
+    const overlay = ensureBirthPlaceOverlay();
+    const select = form.querySelector("#place-preset");
+    const custom = form.querySelector("#place-custom");
+    const customVal = AC.PLACE_CUSTOM_VALUE || "__custom__";
+    overlay.querySelector("#birth-place-search").value = "";
+    overlay.querySelector("#birth-place-custom-input").value =
+      select && select.value === customVal ? String(custom?.value || "") : "";
+    setBirthPlaceTab(select && select.value === customVal ? "custom" : "search");
+    renderBirthPlaceList();
+    overlay.hidden = false;
+    setBirthOverlayOpen(true);
+    overlay.querySelector("#birth-place-search")?.focus();
+  }
+
+  function enhanceBirthChooser(form) {
+    if (!form || form.dataset.birthChooser === "1" || isNativeAppShell()) return;
+    const dateInput = form.querySelector("#birth-date");
+    const timeInput = form.querySelector("#birth-time");
+    const placeSelect = form.querySelector("#place-preset");
+    if (!dateInput || !timeInput || !placeSelect) return;
+    form.dataset.birthChooser = "1";
+    form.classList.add("kundali-form--chooser");
+    if (!dateInput.value) dateInput.value = todayBirthDateValue();
+    if (!timeInput.value) timeInput.value = nowBirthTimeValue();
+
+    const dateField = dateInput.closest(".form-field");
+    const timeField = timeInput.closest(".form-field");
+    const placeField = placeSelect.closest(".form-field");
+    const nameWrap = form.querySelector("#birth-name-wrap");
+    const nameInput = form.querySelector("#birth-name");
+    if (!dateField || !placeField) return;
+
+    dateField.classList.add("birth-datetime-field", "birth-icon-row");
+    placeField.classList.add("birth-place-field", "birth-icon-row");
+    if (nameWrap) {
+      nameWrap.classList.add("birth-icon-row");
+      const nameLabel = nameWrap.querySelector("label");
+      if (nameLabel) nameLabel.hidden = true;
+      if (nameInput) {
+        nameInput.placeholder = "Enter Name";
+        nameInput.setAttribute("aria-label", "Name");
+      }
+      if (!nameWrap.querySelector("svg")) {
+        nameWrap.insertAdjacentHTML(
+          "afterbegin",
+          iconSvg('<circle cx="12" cy="8" r="3"/><path d="M6.2 19c.9-3.4 2.8-5.1 5.8-5.1s4.9 1.7 5.8 5.1"/>')
+        );
+      }
+    }
+    dateField.insertAdjacentHTML(
+      "afterbegin",
+      iconSvg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>')
+    );
+    placeField.insertAdjacentHTML(
+      "afterbegin",
+      iconSvg('<path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/>')
+    );
+    dateInput.classList.add("birth-ui-hidden");
+    timeInput.classList.add("birth-ui-hidden");
+    placeSelect.classList.add("birth-ui-hidden");
+    if (timeField && timeField !== dateField) {
+      dateField.appendChild(timeInput);
+      timeField.hidden = true;
+    }
+    const dateLabel = dateField.querySelector("label");
+    const placeLabel = placeField.querySelector("label");
+    if (dateLabel) dateLabel.hidden = true;
+    if (placeLabel) placeLabel.hidden = true;
+
+    const row = document.createElement("div");
+    row.className = "birth-datetime-row";
+    row.innerHTML =
+      '<button type="button" class="birth-box" data-birth-open="date" aria-label="Birth date"></button>' +
+      '<button type="button" class="birth-box" data-birth-open="time" aria-label="Birth time"></button>';
+    dateField.insertBefore(row, dateInput);
+
+    const placeBtn = document.createElement("button");
+    placeBtn.type = "button";
+    placeBtn.className = "birth-box birth-place-box";
+    placeBtn.setAttribute("aria-label", "Birth place");
+    placeBtn.innerHTML =
+      '<strong data-birth-place-title></strong><span data-birth-place-meta></span>';
+    placeField.insertBefore(placeBtn, placeSelect);
+
+    if (nameWrap) nameWrap.after(dateField);
+    dateField.after(placeField);
+
+    row.querySelector("[data-birth-open='date']").addEventListener("click", () => openBirthDatePicker(form));
+    row.querySelector("[data-birth-open='time']").addEventListener("click", () => openBirthTimePicker(form));
+    placeBtn.addEventListener("click", () => openBirthPlacePicker(form));
+    dateInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
+    timeInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
+    placeSelect.addEventListener("change", () => refreshBirthChooserDisplays(form));
+    refreshBirthChooserDisplays(form);
+  }
+
+  function hookBirthChooserRefresh() {
+    if (!AUTH || typeof AUTH.applyDefaultBirthToForm !== "function") return;
+    if (AUTH.applyDefaultBirthToForm.__birthChooserHooked) return;
+    const original = AUTH.applyDefaultBirthToForm.bind(AUTH);
+    function hookedApplyDefaultBirthToForm() {
+      const result = original.apply(AUTH, arguments);
+      refreshBirthChooserDisplays();
+      return result;
+    }
+    hookedApplyDefaultBirthToForm.__birthChooserHooked = true;
+    AUTH.applyDefaultBirthToForm = hookedApplyDefaultBirthToForm;
+  }
+
   function initializeCommonLayout() {
     if (isLoginPage) {
       window.location.replace(`${navHref("kundali.html")}?auth=login`);
@@ -1144,6 +1804,14 @@
     mountLayout(AUTH ? AUTH.getUser() : null, null, AUTH ? AUTH.getUsage() : null);
     fillPlacePresetSelects();
     applyFormFieldLimits();
+    enhanceBirthChooser(document.getElementById("birth-form"));
+    enhanceBirthChooser(document.getElementById("remedy-form"));
+    hookBirthChooserRefresh();
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      closeBirthPicker();
+      closeBirthPlacePicker();
+    });
     fillPrivacyPageFromConstants();
     mountCollectionNotices();
     recordPageView();
@@ -1194,7 +1862,8 @@
     contactPhone,
     contactEmail,
     paidPlanNote,
-    privacyPolicyHref
+    privacyPolicyHref,
+    refreshBirthChooserDisplays
   };
 })(window);
 

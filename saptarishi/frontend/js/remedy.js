@@ -33,11 +33,11 @@
   const birthDate = document.getElementById("birth-date");
   const birthTime = document.getElementById("birth-time");
   const birthName = document.getElementById("birth-name");
-  const birthNameWrap = document.getElementById("birth-name-wrap");
   const saveBirth = document.getElementById("save-birth");
-  const saveBirthWrap = document.getElementById("save-birth-wrap");
   const openBirthWrap = document.getElementById("open-birth-wrap");
   const savedBirthSelect = document.getElementById("saved-birth-select");
+  const savedBirthList = document.getElementById("saved-birth-list");
+  const newBirthFields = document.getElementById("new-birth-fields");
   const tabOpenBirth = document.getElementById("tab-open-birth");
   const tabNewBirth = document.getElementById("tab-new-birth");
 
@@ -152,6 +152,74 @@
       .toLowerCase();
   }
 
+  function formatSavedBirthListDate(raw) {
+    const value = String(raw || "").trim();
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return value;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[Number(match[2]) - 1] || match[2];
+    return `${Number(match[3])}-${month}-${match[1]}`;
+  }
+
+  function savedBirthListMeta(view) {
+    if (!view) return "";
+    return [formatSavedBirthListDate(view.date), view.time, view.place].filter(Boolean).join(", ");
+  }
+
+  function savedBirthListInitials(name) {
+    const source = String(name || "S").trim();
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    return source.slice(0, 2).toUpperCase();
+  }
+
+  function renderSavedBirthList(views) {
+    if (!savedBirthList) return;
+    const selected = String(savedBirthSelect?.value || "").trim();
+    savedBirthList.replaceChildren();
+    if (!views.length) {
+      const empty = document.createElement("p");
+      empty.className = "birth-open-list__empty";
+      empty.textContent = "No saved birth details yet.";
+      savedBirthList.appendChild(empty);
+      return;
+    }
+    views.forEach((view, index) => {
+      const key = birthViewSelectKey(view);
+      if (!key) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "birth-open-list__item";
+      if (key === selected) btn.classList.add("is-on");
+      const avatar = document.createElement("span");
+      avatar.className = `birth-open-list__avatar birth-open-list__avatar--${index % 2}`;
+      avatar.textContent = savedBirthListInitials(view.name);
+      const text = document.createElement("span");
+      text.className = "birth-open-list__text";
+      const nameEl = document.createElement("strong");
+      nameEl.textContent = birthViewOptionLabel(view);
+      const meta = document.createElement("span");
+      meta.textContent = savedBirthListMeta(view);
+      text.append(nameEl, meta);
+      btn.append(avatar, text);
+      btn.addEventListener("click", () => pickSavedBirth(key));
+      savedBirthList.appendChild(btn);
+    });
+  }
+
+  function pickSavedBirth(key) {
+    if (!savedBirthSelect || !key) return;
+    savedBirthSelect.value = key;
+    applySavedBirthSelection();
+    renderSavedBirthList(
+      typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
+        ? SaptarishiAuth.getBirthViews()
+        : []
+    );
+    if (form?.requestSubmit) form.requestSubmit();
+    else form?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  }
+
   function refreshSavedBirthDropdown() {
     if (!savedBirthSelect || typeof SaptarishiAuth === "undefined") return;
     const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
@@ -175,6 +243,7 @@
     if (previous && [...savedBirthSelect.options].some((o) => o.value === previous)) {
       savedBirthSelect.value = previous;
     }
+    renderSavedBirthList(views);
   }
 
   function applySavedBirthSelection() {
@@ -210,12 +279,10 @@
       tabNewBirth.setAttribute("aria-selected", !isOpen ? "true" : "false");
     }
     if (openBirthWrap) openBirthWrap.hidden = !isOpen;
-    if (birthNameWrap) birthNameWrap.hidden = isOpen;
-    if (saveBirthWrap) saveBirthWrap.hidden = isOpen;
+    if (newBirthFields) newBirthFields.hidden = isOpen;
     if (saveBirth && !isOpen) saveBirth.checked = true;
     if (isOpen) {
       refreshSavedBirthDropdown();
-      applySavedBirthSelection();
     }
   }
 

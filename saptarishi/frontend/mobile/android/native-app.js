@@ -1191,7 +1191,6 @@
       field.insertAdjacentHTML("afterbegin", svg);
     };
     wrapIcon(document.getElementById("birth-name-wrap"), icon("person"));
-    wrapIcon(document.getElementById("open-kundali-wrap"), icon("person"));
     const dateField = document.getElementById("birth-date")?.closest(".form-field");
     const timeField = document.getElementById("birth-time")?.closest(".form-field");
     if (dateField && timeField && !form.querySelector(".native-datetime")) {
@@ -1214,7 +1213,8 @@
         <button type="button" data-gender="female">Female</button>
       </div>`;
       const actions = form.querySelector(".form-field--actions") || form.querySelector(".form-field--submit");
-      form.insertBefore(gender, actions);
+      const host = actions?.parentElement || form;
+      host.insertBefore(gender, actions);
       const saved = localStorage.getItem(GENDER_KEY) || "male";
       gender.querySelectorAll("button").forEach((btn) => {
         btn.classList.toggle("is-on", btn.getAttribute("data-gender") === saved);
@@ -1229,7 +1229,8 @@
       save.className = "native-save native-only";
       save.innerHTML = `<input type="checkbox" id="native-save-chart" checked /> Save`;
       const actions = form.querySelector(".form-field--actions") || form.querySelector(".form-field--submit");
-      form.insertBefore(save, actions);
+      const host = actions?.parentElement || form;
+      host.insertBefore(save, actions);
     }
 
     const params = new URLSearchParams(window.location.search);
