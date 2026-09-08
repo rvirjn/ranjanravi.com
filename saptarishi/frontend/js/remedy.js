@@ -332,26 +332,108 @@
     }
   }
 
+  function normalizeRemedyText(value) {
+    return String(value ?? "")
+      .replace(/\r\n/g, "\n")
+      .trim();
+  }
+
+  // ~4 wrapped lines in the remedy value column (~100 chars/line).
+  const REMEDY_PARAGRAPH_MAX_CHARS = 400;
+
+  function packRemedyChunks(chunks, maxChars = REMEDY_PARAGRAPH_MAX_CHARS) {
+    const paras = [];
+    let current = "";
+    for (const chunk of chunks) {
+      const piece = String(chunk || "").trim();
+      if (!piece) continue;
+      const next = current ? `${current} ${piece}` : piece;
+      if (current && next.length > maxChars) {
+        paras.push(current);
+        current = piece;
+      } else {
+        current = next;
+      }
+    }
+    if (current) paras.push(current);
+    return paras;
+  }
+
+  function splitRemedyParagraphs(text, colKey) {
+    const raw = normalizeRemedyText(text);
+    if (!raw) return [];
+
+    let chunks = [];
+    if (raw.includes("\n")) {
+      chunks = raw.split(/\n+/).map((part) => part.trim()).filter(Boolean);
+    } else if (colKey === "how_to_do_mantra_chant") {
+      chunks = raw
+        .split(/(?=For personal daily)/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    }
+
+    if (!chunks.length) {
+      if (raw.length <= REMEDY_PARAGRAPH_MAX_CHARS) return [raw];
+      chunks = raw
+        .split(/(?<=[.!?])\s+(?=[A-Z("])/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    }
+
+    if (chunks.length <= 1) return chunks.length ? chunks : [raw];
+    return packRemedyChunks(chunks);
+  }
+
+  function appendRemedyParagraphBreak(parent, index) {
+    if (index > 0) {
+      parent.appendChild(document.createElement("br"));
+      parent.appendChild(document.createElement("br"));
+    }
+  }
+
+  function appendFormattedRemedyText(parent, text, { quoteMantras = false } = {}) {
+    const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+    for (const part of parts) {
+      if (!part) continue;
+      if (/^\*\*[^*]+\*\*$/.test(part)) {
+        const strong = document.createElement("strong");
+        strong.className = "remedy-emphasis";
+        strong.textContent = part.slice(2, -2);
+        parent.appendChild(strong);
+        continue;
+      }
+      if (quoteMantras) appendQuotedMantraText(parent, part);
+      else parent.appendChild(document.createTextNode(part));
+    }
+  }
+
+  function fillRemedyParagraphs(parent, paragraphs, { quoteMantras = false } = {}) {
+    paragraphs.forEach((para, index) => {
+      const chunk = String(para || "").trim();
+      if (!chunk) return;
+      appendRemedyParagraphBreak(parent, index);
+      appendFormattedRemedyText(parent, chunk, { quoteMantras });
+    });
+  }
+
   function fillRemedyValueCell(td, col, cellText, locked) {
     if (!td) return;
-    const text = String(cellText || "");
-    if (locked || col.key !== "how_to_do_mantra_chant") {
-      td.textContent = text;
-      if (locked) blurLockedRemedyValueCell(td, text);
-      return;
-    }
+    const text = normalizeRemedyText(cellText);
+    const colKey = String(col?.key || "");
+    const isHowTo = colKey === "how_to_do_mantra_chant";
+    const paragraphs = splitRemedyParagraphs(text, colKey);
+
     td.textContent = "";
-    td.classList.add("remedy-how-to-chant");
-    const sections = text.split(/(?=For personal daily)/);
-    sections.forEach((section, index) => {
-      const chunk = section.trim();
-      if (!chunk) return;
-      if (index > 0) {
-        td.appendChild(document.createElement("br"));
-        td.appendChild(document.createElement("br"));
-      }
-      appendQuotedMantraText(td, chunk);
-    });
+    td.classList.toggle("remedy-how-to-chant", isHowTo);
+
+    if (paragraphs.length) {
+      fillRemedyParagraphs(td, paragraphs, { quoteMantras: isHowTo });
+    } else if (text) {
+      appendFormattedRemedyText(td, text, { quoteMantras: isHowTo });
+    }
+
+    if (locked) blurLockedRemedyValueCell(td);
   }
 
   /** Remedies unlock per paid birth, Free/Basic wallet, or Advance (₹1899+). */
@@ -392,22 +474,21 @@
     }
   }
 
-  function blurLockedRemedyValueCell(td, text) {
-    if (!td) return;
-    const value = String(text || "").trim();
+  function blurLockedRemedyValueCell(td) {
+    if (!td || td.classList.contains("remedy-text-cell--locked")) return;
+    const value = (td.textContent || "").trim();
     if (!value || value === "—") return;
 
-    // Blur a span — filter on <td> is unreliable in Chromium table layout.
-    td.textContent = "";
+    // Wrap rendered paragraphs so blur keeps <br> spacing intact.
+    td.classList.add("remedy-text-cell--locked");
     const span = document.createElement("span");
     span.className = "remedy-text--blurred";
-    span.textContent = value;
+    while (td.firstChild) span.appendChild(td.firstChild);
+    td.appendChild(span);
     span.setAttribute("title", "Add money to unlock");
     span.setAttribute("aria-label", "Blurred remedy text. Add money to wallet to unlock.");
     span.setAttribute("role", "button");
     span.setAttribute("tabindex", "0");
-    td.appendChild(span);
-    td.classList.add("remedy-text-cell--locked");
 
     if (span.dataset.remedyUnlockBound === "1") return;
     span.dataset.remedyUnlockBound = "1";
@@ -429,7 +510,7 @@
     // Blur every data cell; row color styling on <tr> stays visible.
     tbody.querySelectorAll("td").forEach((td) => {
       const text = (td.textContent || "").trim();
-      if (text && text !== "—") blurLockedRemedyValueCell(td, text);
+      if (text && text !== "—") blurLockedRemedyValueCell(td);
     });
   }
 

@@ -7,7 +7,7 @@
   const STORAGE_USAGE = "saptarishi_usage";
   const STORAGE_GUEST = "saptarishi_guest_id";
   const STORAGE_VIEW_COUNT = "saptarishi_view_count";
-  const STORAGE_KUNDALI_CACHE = "saptarishi_kundali_cache";
+  const STORAGE_KUNDALI_CACHE = "saptarishi_kundali_cache_v2";
   const STORAGE_AUSPICIOUS_CACHE = "saptarishi_auspicious_cache";
   const STORAGE_VIEW_RECORDED = "saptarishi_view_recorded_session";
   const SCAN_CACHE_MAX_ENTRIES = 5;

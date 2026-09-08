@@ -5096,7 +5096,7 @@ body.premium-modal-open {
 
 .remedy-planet-detail-table td {
   vertical-align: top;
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 .remedy-planet-detail-table td.remedy-mantra-value,
@@ -5112,6 +5112,7 @@ body.premium-modal-open {
 .remedy-text--blurred {
   display: inline-block;
   max-width: 100%;
+  white-space: pre-wrap;
   filter: blur(6px);
   -webkit-filter: blur(6px);
   user-select: none;
