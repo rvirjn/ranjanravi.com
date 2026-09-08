@@ -4724,10 +4724,13 @@ body.premium-modal-open {
   margin-top: 0.15rem;
 }
 
-.planets-status-section--full .house-planets-tiles,
+.planets-status-section--full .house-planets-tiles:not(.planet-status-tiles),
+.planets-status-section--grid .planet-status-tiles,
 .planets-status-section--grid .planets-table-wrap,
+.planets-status-section--full .planets-table-wrap,
 .planets-status-section--grid .planets-status-divisional,
 .house-planets-tiles[hidden],
+.planet-status-tiles[hidden],
 .planets-table-wrap[hidden] {
   display: none !important;
 }
@@ -4780,8 +4783,9 @@ body.premium-modal-open {
   box-shadow: 0 1px 2px rgba(30, 58, 95, 0.12);
 }
 
-/* Birth Time Planets Status — 12 equal house tiles */
-.house-planets-tiles {
+/* Birth Time Planets Status — 12 equal house tiles / planet tiles */
+.house-planets-tiles,
+.planet-status-tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-sm);
