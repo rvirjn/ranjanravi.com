@@ -1616,6 +1616,8 @@
       }
       if (!placeTitle) return;
       const place = currentFormPlace(form);
+      const placeBox = placeTitle.closest(".birth-place-box");
+      if (placeBox) placeBox.classList.toggle("birth-box--placeholder", !place);
       if (!place) {
         placeTitle.textContent = "Select Place…";
         if (placeMeta) placeMeta.textContent = "";

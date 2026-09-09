@@ -468,6 +468,11 @@ body.saptarishi-page {
   font-weight: 600;
 }
 
+.search-form.kundali-form .birth-place-box.birth-box--placeholder strong {
+  color: inherit;
+  font-weight: inherit;
+}
+
 .birth-box strong,
 .birth-box span {
   display: block;
@@ -6269,28 +6274,45 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   border: 0;
 }
 
+html.ask-ai-lock,
+html.ask-ai-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 @media (max-width: 720px) {
   .ask-ai.ask-ai--open,
   .ask-ai:has(.ask-ai__panel:not([hidden])) {
-    left: 0;
+    top: var(--ask-ai-top, 0px);
     right: 0;
-    bottom: max(0px, var(--ask-ai-keyboard, 0px));
+    bottom: var(--ask-ai-keyboard, 0px);
+    left: 0;
     width: 100%;
+    height: auto;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
   }
 
   .ask-ai__panel {
+    flex: 1 1 auto;
     width: 100%;
-    height: calc(100vh - var(--ask-ai-keyboard, 0px));
-    height: calc(100dvh - var(--ask-ai-keyboard, 0px));
+    height: 100%;
     min-height: 0;
     max-height: none;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-radius: 0;
   }
 
   .ask-ai__log {
+    flex: 1 1 0%;
+    height: 0;
     min-height: 0;
-    flex: 1 1 auto;
-    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    overflow-anchor: none;
   }
 
   .ask-ai__header,

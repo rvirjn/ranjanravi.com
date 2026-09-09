@@ -48,13 +48,15 @@
   function scrollLogToEnd(log) {
     if (!log) return;
     const pin = () => {
-      log.scrollTop = log.scrollHeight;
+      log.scrollTop = Math.max(0, log.scrollHeight - log.clientHeight);
     };
     pin();
     requestAnimationFrame(() => {
       pin();
       requestAnimationFrame(pin);
     });
+    window.setTimeout(pin, 150);
+    window.setTimeout(pin, 400);
   }
 
   function appendBubble(log, role, text) {
@@ -168,6 +170,7 @@
         fab.setAttribute("aria-expanded", "false");
       }
       root.classList.remove("ask-ai--open");
+      document.documentElement.classList.remove("ask-ai-lock");
     }
   }
 
@@ -229,18 +232,23 @@
       fab.setAttribute("aria-expanded", open ? "true" : "false");
       fab.hidden = open;
       root.classList.toggle("ask-ai--open", open);
-      if (open) {
-        if (!log.dataset.greeted) {
-          appendBubble(log, "assistant", welcomeMessage());
-          log.dataset.greeted = "1";
-        }
-        input.focus({ preventScroll: true });
-        window.setTimeout(() => {
-          pinAboveKeyboard();
-          scrollLogToEnd(log);
-          input.scrollIntoView({ block: "nearest", inline: "nearest" });
-        }, 250);
+      document.documentElement.classList.toggle("ask-ai-lock", open);
+      if (!open) {
+        root.style.setProperty("--ask-ai-top", "0px");
+        root.style.setProperty("--ask-ai-keyboard", "0px");
+        return;
       }
+      if (!log.dataset.greeted) {
+        appendBubble(log, "assistant", welcomeMessage());
+        log.dataset.greeted = "1";
+      }
+      pinAboveKeyboard();
+      scrollLogToEnd(log);
+      input.focus({ preventScroll: true });
+      window.setTimeout(() => {
+        pinAboveKeyboard();
+        scrollLogToEnd(log);
+      }, 280);
     }
 
     fab.addEventListener("click", () => setOpen(true));
@@ -267,8 +275,17 @@
 
     function pinAboveKeyboard() {
       const vv = window.visualViewport;
-      if (!vv) return;
-      const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      if (!vv) {
+        root.style.setProperty("--ask-ai-top", "0px");
+        root.style.setProperty("--ask-ai-keyboard", "0px");
+        return;
+      }
+      const top = Math.max(0, Math.round(vv.offsetTop));
+      const covered = Math.max(
+        0,
+        Math.round(window.innerHeight - vv.height - vv.offsetTop)
+      );
+      root.style.setProperty("--ask-ai-top", `${top}px`);
       root.style.setProperty("--ask-ai-keyboard", `${covered}px`);
       scrollLogToEnd(log);
     }
@@ -277,12 +294,15 @@
       window.visualViewport.addEventListener("scroll", pinAboveKeyboard);
       pinAboveKeyboard();
     }
+    window.addEventListener("resize", pinAboveKeyboard);
     input.addEventListener("focus", () => {
       window.setTimeout(() => {
         pinAboveKeyboard();
         scrollLogToEnd(log);
-        input.scrollIntoView({ block: "nearest", inline: "nearest" });
       }, 300);
+    });
+    input.addEventListener("blur", () => {
+      window.setTimeout(pinAboveKeyboard, 200);
     });
   }
 
