@@ -1717,32 +1717,76 @@
     closeBirthPicker();
   }
 
+  function wheelRowPx() {
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return Math.max(1, Math.round(2.4 * rootPx));
+  }
+
+  function lockWheelGeometry(scroller) {
+    if (!scroller) return 0;
+    const h = wheelRowPx();
+    const row = `${h}px`;
+    scroller.style.setProperty("--wheel-row", row);
+    const viewport = scroller.parentElement;
+    if (viewport) viewport.style.setProperty("--wheel-row", row);
+    const col = viewport && viewport.parentElement;
+    if (col) col.style.setProperty("--wheel-row", row);
+    const wheel = scroller.closest(".birth-wheel");
+    if (wheel) wheel.style.setProperty("--wheel-row", row);
+    scroller._wheelRow = h;
+    return h;
+  }
+
+  function wheelItemHeight(scroller) {
+    if (scroller && scroller._wheelRow) return scroller._wheelRow;
+    const item = scroller && scroller.querySelector(".birth-wheel__item");
+    if (!item) return 0;
+    const rectH = item.getBoundingClientRect().height;
+    return rectH || item.offsetHeight || 0;
+  }
+
   function wheelSelectedValue(scroller) {
-    const items = [...scroller.querySelectorAll(".birth-wheel__item")];
+    const items = [...(scroller ? scroller.querySelectorAll(".birth-wheel__item") : [])];
     if (!items.length) return "";
-    const mid = scroller.getBoundingClientRect().top + scroller.clientHeight / 2;
-    let best = items[0];
-    let bestDist = Infinity;
-    items.forEach((item) => {
-      const rect = item.getBoundingClientRect();
-      const dist = Math.abs(rect.top + rect.height / 2 - mid);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = item;
-      }
-    });
+    const itemH = wheelItemHeight(scroller);
+    const index = itemH
+      ? Math.max(0, Math.min(items.length - 1, Math.round(scroller.scrollTop / itemH)))
+      : 0;
+    const best = items[index] || items[0];
     items.forEach((item) => item.classList.toggle("is-on", item === best));
     return best.getAttribute("data-value") || "";
   }
 
   function scrollWheelToValue(scroller, value) {
-    const item = [...scroller.querySelectorAll(".birth-wheel__item")].find(
-      (el) => el.getAttribute("data-value") === String(value)
-    );
-    if (!item) return;
-    const top = item.offsetTop - scroller.clientHeight / 2 + item.offsetHeight / 2;
-    scroller.scrollTop = Math.max(0, top);
+    if (!scroller) return;
+    const items = [...scroller.querySelectorAll(".birth-wheel__item")];
+    const index = items.findIndex((el) => el.getAttribute("data-value") === String(value));
+    if (index < 0) return;
+    const itemH = lockWheelGeometry(scroller) || wheelItemHeight(scroller);
+    if (!itemH) return;
+    const snapType = scroller.style.scrollSnapType;
+    scroller.style.scrollSnapType = "none";
+    const alignSelected = () => {
+      const target = items[index];
+      const pad = scroller.querySelector(".birth-wheel__pad");
+      if (target && pad) {
+        const scrollerTop = scroller.getBoundingClientRect().top;
+        const delta = target.getBoundingClientRect().top - (scrollerTop + pad.getBoundingClientRect().height);
+        if (Math.abs(delta) > 0.5) scroller.scrollTop += delta;
+        else scroller.scrollTop = index * itemH;
+      } else {
+        scroller.scrollTop = index * itemH;
+      }
+    };
+    scroller.scrollTop = index * itemH;
+    alignSelected();
     wheelSelectedValue(scroller);
+    requestAnimationFrame(() => {
+      scroller.scrollTop = index * itemH;
+      alignSelected();
+      scroller.style.scrollSnapType = snapType;
+      wheelSelectedValue(scroller);
+    });
   }
 
   function makeWheelColumn(label, values, selected) {
@@ -1759,9 +1803,9 @@
     padBottom.className = "birth-wheel__pad";
     scroller.appendChild(padTop);
     values.forEach((item) => {
-      const el = document.createElement("button");
-      el.type = "button";
+      const el = document.createElement("div");
       el.className = "birth-wheel__item";
+      el.setAttribute("role", "option");
       el.setAttribute("data-value", item.value);
       el.textContent = item.label;
       if (String(item.value) === String(selected)) el.classList.add("is-on");
@@ -1769,13 +1813,25 @@
       scroller.appendChild(el);
     });
     scroller.appendChild(padBottom);
+    lockWheelGeometry(scroller);
     let snapTimer = 0;
     scroller.addEventListener("scroll", () => {
       window.clearTimeout(snapTimer);
       snapTimer = window.setTimeout(() => wheelSelectedValue(scroller), 80);
     });
-    col.append(caption, scroller);
-    requestAnimationFrame(() => scrollWheelToValue(scroller, selected));
+    const viewport = document.createElement("div");
+    viewport.className = "birth-wheel__viewport";
+    viewport.appendChild(scroller);
+    col.append(caption, viewport);
+    const tryScroll = () => {
+      if (scroller.clientHeight < 8) {
+        requestAnimationFrame(tryScroll);
+        return;
+      }
+      lockWheelGeometry(scroller);
+      scrollWheelToValue(scroller, selected);
+    };
+    requestAnimationFrame(tryScroll);
     return { col, scroller };
   }
 
@@ -1796,28 +1852,43 @@
     return next.scroller;
   }
 
+  function readBirthDateParts(value) {
+    const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return null;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null;
+    return { year, month, day };
+  }
+
   function openBirthDatePicker(form) {
     const dateInput = form.querySelector("#birth-date, .compare-birth-date");
     if (!dateInput) return;
-    const match = String(dateInput.value).match(/^(\d{4})-(\d{2})-(\d{2})/) || [];
     const now = new Date();
-    const year = Number(match[1]) || now.getFullYear();
-    const month = Number(match[2]) || now.getMonth() + 1;
-    const day = Number(match[3]) || now.getDate();
+    const dateBox = form.querySelector("[data-birth-open='date']");
+    const dateUnset = Boolean(dateBox && dateBox.classList.contains("birth-box--placeholder"));
+    const saved = dateUnset ? null : readBirthDateParts(dateInput.value);
+    const year = saved ? saved.year : now.getFullYear();
+    const month = saved ? saved.month : now.getMonth() + 1;
+    const day = saved ? saved.day : now.getDate();
     const overlay = ensureBirthPickerOverlay();
     overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
       '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
     );
-    overlay.querySelector(".birth-picker__title").textContent =
-      formatBirthDateTitle(dateInput.value) || formatBirthDateTitle(todayBirthDateValue());
+    overlay.querySelector(".birth-picker__title").textContent = formatBirthDateTitle(
+      `${year}-${padBirthNum(month)}-${padBirthNum(day)}`
+    );
     const dialog = overlay.querySelector(".birth-picker__dialog");
     if (dialog) dialog.classList.remove("birth-picker__dialog--place");
     const customWrap = overlay.querySelector(".birth-picker__custom");
     if (customWrap) customWrap.hidden = true;
     const wheels = overlay.querySelector(".birth-picker__wheels");
     wheels.className = "birth-picker__wheels birth-wheel birth-wheel--date";
+    overlay.hidden = false;
+    setBirthOverlayOpen(true);
     wheels.replaceChildren();
-    const thisYear = new Date().getFullYear();
+    const thisYear = now.getFullYear();
     const years = [];
     for (let y = 1900; y <= thisYear + 1; y += 1) years.push({ value: String(y), label: String(y) });
     const months = BIRTH_MONTHS_SHORT.map((label, idx) => ({ value: String(idx + 1), label }));
@@ -1828,7 +1899,9 @@
     yearCol.col.setAttribute("data-wheel", "year");
     wheels.append(monthCol.col, yearCol.col);
     dayScroller.current = rebuildBirthDayWheel(wheels, year, month, day);
+    let dateWheelsReady = false;
     const refreshTitle = () => {
+      if (!dateWheelsReady) return;
       const y = Number(wheelSelectedValue(yearCol.scroller));
       const m = Number(wheelSelectedValue(monthCol.scroller));
       const dayCount = wheels.querySelectorAll("[data-wheel='day'] .birth-wheel__item").length;
@@ -1863,8 +1936,25 @@
         return `${y}-${padBirthNum(m)}-${padBirthNum(Math.min(d, daysInMonth(y, m)))}`;
       }
     };
-    overlay.hidden = false;
-    setBirthOverlayOpen(true);
+    const settle = () => {
+      scrollWheelToValue(monthCol.scroller, String(month));
+      scrollWheelToValue(yearCol.scroller, String(year));
+      if (dayScroller.current) {
+        scrollWheelToValue(dayScroller.current, String(Math.min(day, daysInMonth(year, month))));
+      }
+      overlay.querySelector(".birth-picker__title").textContent = formatBirthDateTitle(
+        `${year}-${padBirthNum(month)}-${padBirthNum(day)}`
+      );
+    };
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        settle();
+        window.setTimeout(() => {
+          settle();
+          dateWheelsReady = true;
+        }, 80);
+      });
+    });
   }
 
   function openBirthTimePicker(form) {
@@ -1934,10 +2024,12 @@
     overlay.hidden = false;
     setBirthOverlayOpen(true);
     requestAnimationFrame(() => {
-      scrollWheelToValue(hourCol.scroller, String(converted));
-      scrollWheelToValue(minCol.scroller, String(parts.minutes));
-      scrollWheelToValue(secCol.scroller, String(parts.seconds));
-      scrollWheelToValue(amCol.scroller, ampm);
+      requestAnimationFrame(() => {
+        scrollWheelToValue(hourCol.scroller, String(converted));
+        scrollWheelToValue(minCol.scroller, String(parts.minutes));
+        scrollWheelToValue(secCol.scroller, String(parts.seconds));
+        scrollWheelToValue(amCol.scroller, ampm);
+      });
     });
   }
 

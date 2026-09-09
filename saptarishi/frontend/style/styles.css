@@ -542,9 +542,10 @@ body.saptarishi-page {
 }
 
 .birth-wheel {
+  --wheel-row: 2.4rem;
   display: grid;
   gap: 0;
-  height: 8.4rem;
+  height: calc(1.2rem + (3 * var(--wheel-row)));
   overflow: hidden;
   position: relative;
 }
@@ -623,22 +624,33 @@ body.saptarishi-page {
 
 .birth-wheel::before,
 .birth-wheel::after {
+  display: none;
+}
+
+.birth-wheel__viewport {
+  position: relative;
+  height: calc(3 * var(--wheel-row));
+  overflow: hidden;
+}
+
+.birth-wheel__viewport::before,
+.birth-wheel__viewport::after {
   content: "";
   position: absolute;
-  left: 0.4rem;
-  right: 0.4rem;
+  left: 0;
+  right: 0;
   z-index: 2;
   height: 1px;
   background: #1f1806;
   pointer-events: none;
 }
 
-.birth-wheel::before {
-  top: calc(1.2rem + 2.4rem);
+.birth-wheel__viewport::before {
+  top: var(--wheel-row);
 }
 
-.birth-wheel::after {
-  top: calc(1.2rem + 4.8rem);
+.birth-wheel__viewport::after {
+  top: calc(2 * var(--wheel-row));
 }
 
 .birth-wheel__col {
@@ -659,8 +671,8 @@ body.saptarishi-page {
 }
 
 .birth-wheel__scroller {
-  flex: 0 0 7.2rem;
-  height: 7.2rem;
+  flex: 0 0 calc(3 * var(--wheel-row));
+  height: calc(3 * var(--wheel-row));
   overflow-x: hidden;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
@@ -668,7 +680,9 @@ body.saptarishi-page {
 }
 
 .birth-wheel__pad {
-  height: 2.4rem;
+  height: var(--wheel-row) !important;
+  min-height: var(--wheel-row) !important;
+  max-height: var(--wheel-row) !important;
   flex-shrink: 0;
 }
 
@@ -676,10 +690,19 @@ body.saptarishi-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.4rem;
+  box-sizing: border-box;
+  flex: none;
+  width: 100%;
+  height: var(--wheel-row) !important;
+  min-height: var(--wheel-row) !important;
+  max-height: var(--wheel-row) !important;
+  margin: 0;
+  overflow: hidden;
   color: #8a7a5a;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
+  line-height: var(--wheel-row);
+  white-space: nowrap;
   scroll-snap-align: center;
 }
 
