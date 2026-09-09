@@ -73,6 +73,7 @@ const SAPTARISHI_CONSTANTS = {
   DEFAULT_HOUSE_SYSTEM: "W",
   API_KUNDALI_PATH: "/api/kundali",
   API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
+  API_PLACE_PATH: "/api/place",
   API_AUSPICIOUS_PATH: "/api/auspicious",
   API_ASK_PATH: "/api/ask",
   API_PLANET_DATABASE_PATH: "/api/planet-database?v=2",

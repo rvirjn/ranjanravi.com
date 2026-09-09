@@ -1313,7 +1313,6 @@ html.saptarishi-native-app .app-tab.is-on svg {
 /* Profile page in native: keep form readable */
 html.saptarishi-native-app .profile-form,
 html.saptarishi-native-app .profile-summary,
-html.saptarishi-native-app .profile-births,
 html.saptarishi-native-app .profile-security {
   background: #fff;
   border-radius: 1.2rem;

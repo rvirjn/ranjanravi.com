@@ -371,6 +371,7 @@
       return null;
     }
     if (CU && CU.validateBirthDetailsInput) {
+      const preset = rowEl.querySelector(".compare-place-preset");
       return CU.validateBirthDetailsInput({
         requireName: input.save !== false,
         emptyNameMessage: "Enter a name for new birth details.",
@@ -378,7 +379,8 @@
         place: input.place,
         date: input.date,
         time: input.time,
-        messagePrefix: prefix
+        messagePrefix: prefix,
+        allowCustom: preset && preset.value === C.PLACE_CUSTOM_VALUE
       });
     }
     if (!input.name && (input.save !== false)) return `${prefix}enter a name for new birth details.`;

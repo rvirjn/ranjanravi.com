@@ -122,7 +122,14 @@
   }
 
   function validateAuspiciousFormInput(place) {
-    if (!place) return "Select Place.";
+    if (CU && CU.validateBirthPlaceValue) {
+      const placeErr = CU.validateBirthPlaceValue(place, {
+        allowCustom: auspiciousPlacePreset && auspiciousPlacePreset.value === AC.PLACE_CUSTOM_VALUE
+      });
+      if (placeErr) return placeErr;
+    } else if (!place) {
+      return "Select Place.";
+    }
     if (!dateFrom.value || !dateTo.value) return "From and to dates are required.";
     if (dateTo.value < dateFrom.value) return "To date must be on or after from date.";
     const maxDays = Number(AC.AUSPICIOUS_MAX_RANGE_DAYS) || 365 * 2;

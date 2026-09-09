@@ -5326,7 +5326,8 @@ function validateBirthForm(place) {
       name: birthName && birthName.value,
       place,
       date: birthDate && birthDate.value,
-      time: birthTime && birthTime.value
+      time: birthTime && birthTime.value,
+      allowCustom: placePreset && placePreset.value === C.PLACE_CUSTOM_VALUE
     });
   }
   if (kundaliMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
@@ -5448,6 +5449,28 @@ function savedBirthListInitials(name) {
   return source.slice(0, 2).toUpperCase();
 }
 
+async function deleteSavedKundaliBirth(name) {
+  const label = String(name || "").trim();
+  if (!label || typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.deleteBirthView) return;
+  if (!SaptarishiAuth.getToken || !SaptarishiAuth.getToken()) {
+    if (SaptarishiAuth.ensureAuth) {
+      await SaptarishiAuth.ensureAuth({
+        tab: "login",
+        required: true,
+        message: "Sign in to delete saved birth details."
+      });
+    }
+    return;
+  }
+  if (!window.confirm(`Delete saved birth details for ${label}?`)) return;
+  try {
+    await SaptarishiAuth.deleteBirthView(label);
+    refreshSavedKundaliDropdown();
+  } catch (err) {
+    window.alert(err.message || "Could not delete saved birth details.");
+  }
+}
+
 function renderSavedKundaliList(views) {
   if (!savedKundaliList) return;
   const selected = String(savedKundaliSelect?.value || "").trim();
@@ -5462,10 +5485,23 @@ function renderSavedKundaliList(views) {
   views.forEach((view, index) => {
     const key = birthViewSelectKey(view);
     if (!key) return;
+    const row = document.createElement("div");
+    row.className = "birth-open-list__row";
+    row.setAttribute("role", "option");
+    if (key === selected) row.classList.add("is-on");
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "birth-open-list__delete";
+    del.textContent = "Delete";
+    del.setAttribute("aria-label", `Delete ${birthViewOptionLabel(view)}`);
+    del.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteSavedKundaliBirth(view.name);
+    });
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "birth-open-list__item";
-    if (key === selected) btn.classList.add("is-on");
     const avatar = document.createElement("span");
     avatar.className = `birth-open-list__avatar birth-open-list__avatar--${index % 2}`;
     avatar.textContent = savedBirthListInitials(view.name);
@@ -5478,7 +5514,8 @@ function renderSavedKundaliList(views) {
     text.append(nameEl, meta);
     btn.append(avatar, text);
     btn.addEventListener("click", () => pickSavedKundali(key));
-    savedKundaliList.appendChild(btn);
+    row.append(btn, del);
+    savedKundaliList.appendChild(row);
   });
 }
 

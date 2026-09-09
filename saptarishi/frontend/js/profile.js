@@ -20,11 +20,6 @@
   const deleteStartBtn = document.getElementById("profile-delete-start-btn");
   const profileLogoutBtn = document.getElementById("profile-logout-btn");
   const deleteStatusEl = document.getElementById("delete-status");
-  const birthsEl = document.getElementById("profile-births");
-  const birthListEl = document.getElementById("profile-birth-list");
-  const birthEmptyEl = document.getElementById("profile-birth-empty");
-  const birthStatusEl = document.getElementById("profile-birth-status");
-  const newBirthLink = document.getElementById("profile-new-birth");
   const summaryEl = document.getElementById("profile-summary");
   const statusEl = document.getElementById("profile-status");
   const planEl = document.getElementById("profile-plan");
@@ -275,14 +270,6 @@
     if (securityEl) securityEl.hidden = false;
   }
 
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
   function kundaliHref(query = "") {
     const file = "kundali.html";
     const prefix = C?.DEPLOY_PREFIX || "";
@@ -295,67 +282,6 @@
     }
     if (C?.PAGE_FILE_TO_PATH?.[file]) return `${C.PAGE_FILE_TO_PATH[file]}${qs}${hash}`;
     return `${file}${qs}${hash}`;
-  }
-
-  function kundaliNewHref() {
-    return kundaliHref("?mode=new");
-  }
-
-  function birthDetailLine(view) {
-    const bits = [view.date, view.time, view.place]
-      .map((part) => String(part || "").trim())
-      .filter(Boolean);
-    return bits.join(" · ");
-  }
-
-  function renderSavedBirths(profile, usage) {
-    if (!birthsEl) return;
-    birthsEl.hidden = false;
-    if (newBirthLink) newBirthLink.href = kundaliNewHref();
-    const source =
-      usage && Array.isArray(usage.birth_views)
-        ? usage
-        : profile && Array.isArray(profile.birth_views)
-          ? profile
-          : usage || profile;
-    const views = AUTH.getBirthViews ? AUTH.getBirthViews(source) : [];
-    if (birthEmptyEl) birthEmptyEl.hidden = views.length > 0;
-    if (!birthListEl) return;
-    if (!views.length) {
-      birthListEl.innerHTML = "";
-      return;
-    }
-    birthListEl.innerHTML = views
-      .map((view) => {
-        const name = String(view.name || "").trim();
-        const detail = birthDetailLine(view);
-        return `<div class="profile-birth-row">
-          <div class="profile-birth-row__meta">
-            <strong>${escapeHtml(name)}</strong>
-            ${detail ? `<span>${escapeHtml(detail)}</span>` : ""}
-          </div>
-          <button type="button" class="btn-danger" data-birth-name="${escapeHtml(name)}">Delete</button>
-        </div>`;
-      })
-      .join("");
-  }
-
-  async function deleteSavedBirth(name) {
-    const label = String(name || "").trim();
-    if (!label || !AUTH.deleteBirthView) return;
-    if (!window.confirm(`Delete saved birth details for ${label}?`)) return;
-    showFieldStatus(birthStatusEl, "Deleting…", false);
-    try {
-      const payload = await AUTH.deleteBirthView(label);
-      renderSavedBirths(payload, payload.usage || payload.user || {});
-      showFieldStatus(birthStatusEl, payload.message || "Saved birth details deleted.", false);
-    } catch (err) {
-      showFieldStatus(
-        birthStatusEl,
-        err.message || "Could not delete saved birth details.",
-        true
-      );
-    }
   }
 
   function showProfileLoadingStatus() {
@@ -385,7 +311,6 @@
       const payload = await AUTH.fetchProfile();
       renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
       populateProfileForm(payload.profile || {});
-      renderSavedBirths(payload.profile || {}, payload.usage || payload.user || {});
       showStatus("");
     } catch (err) {
       if (err.status === 401) {
@@ -621,14 +546,6 @@
           el.disabled = false;
         });
       }
-    });
-  }
-
-  if (birthListEl) {
-    birthListEl.addEventListener("click", (event) => {
-      const btn = event.target.closest("[data-birth-name]");
-      if (!btn) return;
-      deleteSavedBirth(btn.getAttribute("data-birth-name") || "");
     });
   }
 
