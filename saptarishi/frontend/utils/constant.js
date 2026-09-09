@@ -36,7 +36,7 @@ const SAPTARISHI_CONSTANTS = {
   ],
   /** Country/state/district list for the birth-place wheels. */
   PLACES_DATA_PATH: _DEPLOY_PREFIX + "/frontend/public_data/places.json",
-  PLACES_DATA_VERSION: "2",
+  PLACES_DATA_VERSION: "3",
   PLACE_OTHER_VALUE: "__other__",
 
   /** Form limits (keep in sync with backend/utils/constant.py). */

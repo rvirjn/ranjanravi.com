@@ -1358,6 +1358,34 @@
     return indiaPlacesPromise;
   }
 
+  const PLACE_DIRECTION_ALIASES = {
+    purbi: "east",
+    purba: "east",
+    purvi: "east",
+    poorbi: "east",
+    poorvi: "east",
+    pashchim: "west",
+    paschim: "west",
+    pachim: "west",
+    uttar: "north",
+    dakshin: "south",
+    dakshina: "south"
+  };
+
+  const PLACE_MATCH_ALIASES = {
+    mumbai: "mumbai city",
+    bangalore: "bengaluru urban",
+    bengaluru: "bengaluru urban",
+    motihari: "purbi champaran",
+    bettiah: "pashchim champaran",
+    "east champaran": "purbi champaran",
+    "west champaran": "pashchim champaran",
+    calcutta: "kolkata",
+    madras: "chennai",
+    bombay: "mumbai city",
+    pondicherry: "puducherry"
+  };
+
   function normPlaceToken(value) {
     return String(value || "")
       .toLowerCase()
@@ -1365,7 +1393,17 @@
       .replace(/&/g, " and ")
       .replace(/\bdistrict\b/g, " ")
       .replace(/[^a-z0-9]+/g, " ")
-      .trim();
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => PLACE_DIRECTION_ALIASES[word] || word)
+      .join(" ");
+  }
+
+  function canonicalPlaceNeedle(name) {
+    const normalized = normPlaceToken(name);
+    if (!normalized) return "";
+    return normPlaceToken(PLACE_MATCH_ALIASES[normalized] || normalized);
   }
 
   function splitPlaceParts(place) {
@@ -1380,35 +1418,24 @@
   }
 
   function findNamedPlace(items, name) {
-    const needle = normPlaceToken(name);
+    const needle = canonicalPlaceNeedle(name);
     if (!needle || !Array.isArray(items)) return null;
-    return items.find((item) => normPlaceToken(item && item.name) === needle) || null;
+    return items.find((item) => canonicalPlaceNeedle(item && item.name) === needle) || null;
   }
 
   function isPlaceCountryToken(name) {
     return /^(india|bharat|bharatvarsha|in)$/.test(normPlaceToken(name));
   }
 
-  const PLACE_MATCH_ALIASES = {
-    mumbai: "mumbai city",
-    bangalore: "bengaluru urban",
-    bengaluru: "bengaluru urban",
-    motihari: "east champaran",
-    calcutta: "kolkata",
-    madras: "chennai",
-    bombay: "mumbai city",
-    pondicherry: "puducherry"
-  };
-
   function findDistrictHits(name, country) {
-    const needle = PLACE_MATCH_ALIASES[normPlaceToken(name)] || normPlaceToken(name);
+    const needle = canonicalPlaceNeedle(name);
     if (!needle) return [];
     const hits = [];
     const countries = country ? [country] : indiaPlaceCountries();
     countries.forEach((entry) => {
       (entry.states || []).forEach((state) => {
         (state.districts || []).forEach((district) => {
-          if (normPlaceToken(district.name) === needle) {
+          if (canonicalPlaceNeedle(district.name) === needle) {
             hits.push({ country: entry, state, district });
           }
         });
