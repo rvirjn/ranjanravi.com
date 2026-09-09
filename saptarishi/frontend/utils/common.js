@@ -180,15 +180,17 @@
   function appendRequiredDataCredits(container, { leadingSpace = true } = {}) {
     if (!container) return;
     if (leadingSpace) container.append(document.createTextNode(" "));
-    container.append(document.createTextNode("Place search "));
     appendCreditLink(container, "https://www.geoapify.com/", "Powered by Geoapify");
     container.append(document.createTextNode(" · "));
     appendCreditLink(
       container,
       "https://www.openstreetmap.org/copyright",
-      "© OpenStreetMap contributors"
+      "© OpenStreetMap"
     );
-    container.append(document.createTextNode("."));
+    container.append(document.createTextNode(" · "));
+    appendCreditLink(container, "https://ssd.jpl.nasa.gov/", "NASA JPL");
+    container.append(document.createTextNode(" · "));
+    appendCreditLink(container, "https://rhodesmill.org/skyfield/", "Skyfield");
   }
 
   function fillPrivacyPageFromConstants() {
