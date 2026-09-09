@@ -531,10 +531,26 @@
       (typeof SAPTARISHI_CONSTANTS !== "undefined" &&
         (SAPTARISHI_CONSTANTS.BIRTH_CHARGE_INR || SAPTARISHI_CONSTANTS.QUERY_CHARGE_INR)) ||
       21;
+    const message = `Add money to your wallet to unlock remedy (₹${charge} per kundali).`;
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openUnlockFromBlur) {
+      SaptarishiAuth.openUnlockFromBlur({ message });
+      return;
+    }
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getToken && !SaptarishiAuth.getToken()) {
+      if (SaptarishiAuth.ensureAuth) {
+        SaptarishiAuth.ensureAuth({
+          tab: "login",
+          required: true,
+          message: "Sign in to continue."
+        });
+      }
+      return;
+    }
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
       SaptarishiAuth.openWalletFlow({
         required: true,
-        message: `Add money to your wallet to unlock this birth (₹${charge} once).`
+        addMoney: true,
+        message
       });
       return;
     }

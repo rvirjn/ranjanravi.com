@@ -1003,8 +1003,9 @@
     if (!err || (!err.premiumRequired && err.status !== 403)) return false;
 
     const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+    const wasLoggedIn = Boolean(getToken());
 
-    if (!getToken()) {
+    if (!wasLoggedIn) {
       const ok = await ensureAuth({
         tab: options.tab || "login",
         required: true,
@@ -1027,7 +1028,9 @@
     // Free plan births or wallet credit — caller should retry the scan.
     if (canUnlockBirthWithoutWallet()) return true;
 
-    // Need credit for this birth — open wallet, not Buy Premium pack.
+    // Guest just signed in: leave add-money for the blurred content click.
+    if (!wasLoggedIn) return false;
+
     await openWalletFlow({
       required: true,
       addMoney: true,
@@ -1040,6 +1043,31 @@
         `Free plan used. Add at least ₹${charge} to unlock this birth (charged once; reopen is free).`
     });
     return canUnlockBirthWithoutWallet();
+  }
+
+  async function openUnlockFromBlur(options = {}) {
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+    if (!getToken()) {
+      await ensureAuth({
+        tab: "login",
+        required: true,
+        message:
+          options.loginMessage ||
+          `Sign in to continue. Free plan includes ${AC.FREE_BIRTHS_PER_USER || 2} birth details.`
+      });
+      return false;
+    }
+    return openWalletFlow({
+      required: true,
+      addMoney: true,
+      suggestedAmountInr:
+        options.suggestedAmountInr != null
+          ? options.suggestedAmountInr
+          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 99),
+      message:
+        options.message ||
+        `Add money to your wallet to unlock remedy (₹${charge} per kundali).`
+    });
   }
 
   global.SaptarishiAuth = {
@@ -1089,6 +1117,7 @@
     openWalletFlow,
     openPremiumFlow,
     handlePremiumRequired,
+    openUnlockFromBlur,
     getDefaultBirth,
     getBirthViews,
     birthViewKey,

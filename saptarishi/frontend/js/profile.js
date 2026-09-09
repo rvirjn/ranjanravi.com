@@ -224,8 +224,8 @@
               ? "1 month"
               : `${months} months`;
         plansNoteEl.textContent =
-          `Free Plan: ${freeLimit} birth details free\n` +
-          `Basic Plan: ₹${queryCharge} for 1 birth details\n` +
+          `Free Plan: ${freeLimit} kundali free\n` +
+          `Basic Plan: ₹${queryCharge} per kundali\n` +
           `Advance Plan: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
       }
     }

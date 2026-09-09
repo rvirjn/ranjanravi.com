@@ -29,9 +29,16 @@
       openUnlockWalletFromBlur();
       return;
     }
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openUnlockFromBlur) {
+      SaptarishiAuth.openUnlockFromBlur({
+        message: "Add money to your wallet to unlock full details."
+      });
+      return;
+    }
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openWalletFlow) {
       SaptarishiAuth.openWalletFlow({
         required: true,
+        addMoney: true,
         message: "Add money to your wallet to unlock full details."
       });
     }

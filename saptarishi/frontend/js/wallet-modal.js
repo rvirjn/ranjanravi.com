@@ -40,8 +40,8 @@
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     return (
-      `Free Plan: ${freeBirths} birth details free\n` +
-      `Basic Plan: ₹${basicAmount} for 1 birth details\n` +
+      `Free Plan: ${freeBirths} kundali free\n` +
+      `Basic Plan: ₹${basicAmount} per kundali\n` +
       `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
     );
   }
