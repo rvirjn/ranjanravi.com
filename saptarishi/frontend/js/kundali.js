@@ -5316,15 +5316,24 @@ async function fetchKundaliJsonFromApi(date, time, place, name, saveBirthDetails
 
 /** Validate birth form; return error message or null if OK. */
 function validateBirthForm(place) {
-  if (kundaliMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
-    return "Enter a name to save these birth details.";
-  }
   if (kundaliMode === "open" && savedKundaliSelect && !savedKundaliSelect.value) {
     return "Select saved birth details.";
   }
-  if (!placePreset.value) return "Select a place.";
-  if (placePreset.value === C.PLACE_CUSTOM_VALUE && !place) return "Enter a custom place.";
-  if (!birthDate.value || !birthTime.value) return "Date and time are required.";
+  if (CU && CU.validateBirthDetailsInput) {
+    return CU.validateBirthDetailsInput({
+      requireName: kundaliMode === "new" && shouldSaveBirthDetails(),
+      emptyNameMessage: "Enter a name to save these birth details.",
+      name: birthName && birthName.value,
+      place,
+      date: birthDate && birthDate.value,
+      time: birthTime && birthTime.value
+    });
+  }
+  if (kundaliMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
+    return "Enter a name to save these birth details.";
+  }
+  if (!place) return "Select Place.";
+  if (!birthDate.value || !birthTime.value) return "Select Day, Month, and Year.";
   return null;
 }
 

@@ -363,19 +363,27 @@
   function validateCompareBirthRow(rowEl, index) {
     const input = getCompareRowBirthInput(rowEl);
     const savedKey = String(rowEl.querySelector(".compare-saved-birth")?.value || "").trim();
+    const prefix = `Birth ${index}: `;
     if (savedKey) {
       if (!input.date || !input.time || !input.place) {
-        return `Birth ${index}: saved birth details are incomplete.`;
+        return `${prefix}saved birth details are incomplete.`;
       }
       return null;
     }
-    if (!input.name && (input.save !== false)) return `Birth ${index}: enter a name for new birth details.`;
-    const preset = rowEl.querySelector(".compare-place-preset");
-    if (!preset?.value) return `Birth ${index}: select a place.`;
-    if (preset.value === C.PLACE_CUSTOM_VALUE && !input.place) {
-      return `Birth ${index}: enter a custom place.`;
+    if (CU && CU.validateBirthDetailsInput) {
+      return CU.validateBirthDetailsInput({
+        requireName: input.save !== false,
+        emptyNameMessage: "Enter a name for new birth details.",
+        name: input.name,
+        place: input.place,
+        date: input.date,
+        time: input.time,
+        messagePrefix: prefix
+      });
     }
-    if (!input.date || !input.time) return `Birth ${index}: date and time are required.`;
+    if (!input.name && (input.save !== false)) return `${prefix}enter a name for new birth details.`;
+    if (!input.place) return `${prefix}Select Place.`;
+    if (!input.date || !input.time) return `${prefix}Select Day, Month, and Year.`;
     return null;
   }
 

@@ -123,15 +123,24 @@
   }
 
   function validateRemedyBirthForm(place) {
-    if (birthMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
-      return "Enter a name to save these birth details.";
-    }
     if (birthMode === "open" && savedBirthSelect && !savedBirthSelect.value) {
       return "Select saved birth details.";
     }
-    if (!placePreset.value) return "Select a place.";
-    if (placePreset.value === C.PLACE_CUSTOM_VALUE && !place) return "Enter a custom place.";
-    if (!birthDate.value || !birthTime.value) return "Date and time are required.";
+    if (CU && CU.validateBirthDetailsInput) {
+      return CU.validateBirthDetailsInput({
+        requireName: birthMode === "new" && shouldSaveBirthDetails(),
+        emptyNameMessage: "Enter a name to save these birth details.",
+        name: birthName && birthName.value,
+        place,
+        date: birthDate && birthDate.value,
+        time: birthTime && birthTime.value
+      });
+    }
+    if (birthMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
+      return "Enter a name to save these birth details.";
+    }
+    if (!place) return "Select Place.";
+    if (!birthDate.value || !birthTime.value) return "Select Day, Month, and Year.";
     return null;
   }
 

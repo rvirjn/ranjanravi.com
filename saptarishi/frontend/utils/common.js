@@ -54,6 +54,106 @@
     return digits.length === 10 ? `91${digits}` : digits;
   }
 
+  function indiaMobileLocalDigits(raw) {
+    return String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+  }
+
+  function isValidIndiaMobile(raw) {
+    return /^[6-9]\d{9}$/.test(indiaMobileLocalDigits(raw));
+  }
+
+  function isValidEmailAddress(raw) {
+    const email = String(raw || "").trim();
+    const max = Number(AC.MAX_EMAIL_LENGTH) || 240;
+    if (!email || email.length > max) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function validatePersonName(raw) {
+    const name = String(raw || "").trim();
+    const max = Number(AC.MAX_NAME_LENGTH) || 120;
+    if (!name) return "Enter Name.";
+    if (name.length < 2) return "Name must be at least 2 characters.";
+    if (name.length > max) return "Name is too long.";
+    return null;
+  }
+
+  function validateMobileNumber(raw) {
+    if (!isValidIndiaMobile(raw)) return "Enter a valid 10-digit mobile number.";
+    return null;
+  }
+
+  function validateEmailAddress(raw) {
+    if (!isValidEmailAddress(raw)) return "Enter a valid email address.";
+    return null;
+  }
+
+  function validatePasswordValue(raw) {
+    const min = Number(AC.MIN_PASSWORD_LENGTH) || 4;
+    const value = String(raw || "");
+    if (!value) return "Enter Password.";
+    if (value.length < min) return `Password must be at least ${min} characters.`;
+    return null;
+  }
+
+  function validateLoginInput(mobile, password) {
+    return validateMobileNumber(mobile) || validatePasswordValue(password);
+  }
+
+  function validateRegisterInput(name, mobile, email, password, confirmPassword) {
+    return (
+      validatePersonName(name) ||
+      validateMobileNumber(mobile) ||
+      validateEmailAddress(email) ||
+      validatePasswordValue(password) ||
+      (String(password) !== String(confirmPassword) ? "Passwords do not match." : null)
+    );
+  }
+
+  function validateForgotPasswordInput(mobile, email) {
+    return validateMobileNumber(mobile) || validateEmailAddress(email);
+  }
+
+  function validateProfileInput(name, mobile, email) {
+    return validatePersonName(name) || validateMobileNumber(mobile) || validateEmailAddress(email);
+  }
+
+  function withValidationPrefix(prefix, message) {
+    if (!message) return null;
+    return prefix ? `${prefix}${message}` : message;
+  }
+
+  function validatePasswordChangeInput(currentPassword, newPassword, confirmPassword) {
+    if (!String(currentPassword || "")) return "Enter your current password.";
+    return (
+      validatePasswordValue(newPassword) ||
+      (String(newPassword) !== String(confirmPassword) ? "Passwords do not match." : null)
+    );
+  }
+
+  function validateBirthDetailsInput(options) {
+    const opts = options || {};
+    const prefix = String(opts.messagePrefix || "");
+    if (opts.requireName) {
+      const rawName = String(opts.name || "").trim();
+      if (!rawName && opts.emptyNameMessage) {
+        return withValidationPrefix(prefix, opts.emptyNameMessage);
+      }
+      const nameErr = validatePersonName(opts.name);
+      if (nameErr) return withValidationPrefix(prefix, nameErr);
+    }
+    if (!String(opts.place || "").trim()) {
+      return withValidationPrefix(prefix, "Select Place.");
+    }
+    if (!String(opts.date || "").trim()) {
+      return withValidationPrefix(prefix, "Select Day, Month, and Year.");
+    }
+    if (!String(opts.time || "").trim()) {
+      return withValidationPrefix(prefix, "Select Hour, Min, and Sec.");
+    }
+    return null;
+  }
+
   function originHref(raw) {
     const trimmed = String(raw || "").trim().replace(/\/+$/, "");
     return trimmed ? `${trimmed}/` : "";
@@ -2084,6 +2184,7 @@
     if (!placeSelect) return;
     form.dataset.birthChooser = "1";
     form.classList.add("kundali-form--chooser");
+    form.setAttribute("novalidate", "");
 
     const dateField = dateInput && dateInput.closest(".form-field");
     const timeField = timeInput && timeInput.closest(".form-field");
@@ -2259,6 +2360,13 @@
     getApiOrigin,
     formatIndiaPhoneDisplay,
     indiaPhoneDigits,
+    validateLoginInput,
+    validateRegisterInput,
+    validateForgotPasswordInput,
+    validateProfileInput,
+    validatePasswordValue,
+    validatePasswordChangeInput,
+    validateBirthDetailsInput,
     setStatusMessage,
     startStatusLoading,
     removePerIpText,

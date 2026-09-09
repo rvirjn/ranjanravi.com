@@ -5,11 +5,13 @@
   const AUTH = global.SaptarishiAuth;
   if (!AUTH) return;
 
+  const LOADING = global.SaptarishiLoading;
   const FORGOT_LEAD =
     "Enter the mobile number and email on your account. If they match, we email you a temporary password.";
 
-  const LOADING = global.SaptarishiLoading;
-  const CU = global.SaptarishiCommonUtils || null;
+  function formUtils() {
+    return global.SaptarishiCommonUtils || {};
+  }
 
   let overlay = null;
   let resolvePending = null;
@@ -39,7 +41,7 @@
           <button type="button" class="auth-tabs__btn" data-tab="register" role="tab" aria-selected="false">Register</button>
         </div>
         <div id="auth-modal-panel-login" class="auth-modal__panel">
-          <form id="auth-modal-login-form" class="auth-form" autocomplete="on">
+          <form id="auth-modal-login-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
               <label for="auth-modal-login-mobile">Mobile number</label>
               <input type="tel" id="auth-modal-login-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
@@ -57,7 +59,7 @@
           </form>
         </div>
         <div id="auth-modal-panel-forgot" class="auth-modal__panel auth-modal__panel--hidden" hidden>
-          <form id="auth-modal-forgot-form" class="auth-form" autocomplete="on">
+          <form id="auth-modal-forgot-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
               <label for="auth-modal-forgot-mobile">Mobile number</label>
               <input type="tel" id="auth-modal-forgot-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
@@ -75,7 +77,7 @@
           </form>
         </div>
         <div id="auth-modal-panel-register" class="auth-modal__panel auth-modal__panel--hidden" hidden>
-          <form id="auth-modal-register-form" class="auth-form" autocomplete="on">
+          <form id="auth-modal-register-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
               <label for="auth-modal-reg-name">Full name</label>
               <input type="text" id="auth-modal-reg-name" name="name" autocomplete="name" required maxlength="120" placeholder="Your full name" />
@@ -105,8 +107,8 @@
       </div>
     `;
     document.body.appendChild(overlay);
-    const formUtils = global.SaptarishiCommonUtils;
-    if (formUtils && formUtils.applyFormFieldLimits) formUtils.applyFormFieldLimits(overlay);
+    const utils = global.SaptarishiCommonUtils;
+    if (utils && utils.applyFormFieldLimits) utils.applyFormFieldLimits(overlay);
 
     statusEl = overlay.querySelector("#auth-modal-status");
     leadEl = overlay.querySelector("#auth-modal-lead");
@@ -142,12 +144,18 @@
 
     loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const mobile = overlay.querySelector("#auth-modal-login-mobile").value;
+      const password = overlay.querySelector("#auth-modal-login-password").value;
+      const loginError = formUtils().validateLoginInput
+        ? formUtils().validateLoginInput(mobile, password)
+        : null;
+      if (loginError) {
+        showStatus(loginError, true);
+        return;
+      }
       startAuthLoading();
       try {
-        await AUTH.login(
-          overlay.querySelector("#auth-modal-login-mobile").value,
-          overlay.querySelector("#auth-modal-login-password").value
-        );
+        await AUTH.login(mobile, password);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
@@ -158,21 +166,23 @@
 
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const name = overlay.querySelector("#auth-modal-reg-name").value;
+      const mobile = overlay.querySelector("#auth-modal-reg-mobile").value;
+      const email = overlay.querySelector("#auth-modal-reg-email").value;
       const password = overlay.querySelector("#auth-modal-reg-password").value;
       const confirmPassword = overlay.querySelector("#auth-modal-reg-password-confirm").value;
-      if (password !== confirmPassword) {
-        showStatus("Passwords do not match", true);
+      const registerError = formUtils().validateRegisterInput
+        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword)
+        : password !== confirmPassword
+          ? "Passwords do not match."
+          : null;
+      if (registerError) {
+        showStatus(registerError, true);
         return;
       }
       startAuthLoading();
       try {
-        await AUTH.register(
-          overlay.querySelector("#auth-modal-reg-name").value,
-          overlay.querySelector("#auth-modal-reg-mobile").value,
-          overlay.querySelector("#auth-modal-reg-email").value,
-          password,
-          confirmPassword
-        );
+        await AUTH.register(name, mobile, email, password, confirmPassword);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
@@ -183,12 +193,18 @@
 
     forgotForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const mobile = overlay.querySelector("#auth-modal-forgot-mobile").value;
+      const email = overlay.querySelector("#auth-modal-forgot-email").value;
+      const forgotError = formUtils().validateForgotPasswordInput
+        ? formUtils().validateForgotPasswordInput(mobile, email)
+        : null;
+      if (forgotError) {
+        showStatus(forgotError, true);
+        return;
+      }
       startAuthLoading();
       try {
-        const payload = await AUTH.forgotPassword(
-          overlay.querySelector("#auth-modal-forgot-mobile").value,
-          overlay.querySelector("#auth-modal-forgot-email").value
-        );
+        const payload = await AUTH.forgotPassword(mobile, email);
         stopAuthLoading();
         showStatus(
           payload.message ||
@@ -243,8 +259,9 @@
   }
 
   function showStatus(message, isError) {
-    if (CU && CU.setStatusMessage) {
-      CU.setStatusMessage(statusEl, message, isError, false);
+    const utils = formUtils();
+    if (utils.setStatusMessage) {
+      utils.setStatusMessage(statusEl, message, isError, false);
       return;
     }
     if (!statusEl) return;

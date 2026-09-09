@@ -8,6 +8,10 @@
   const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   if (!AUTH) return;
 
+  function formUtils() {
+    return global.SaptarishiCommonUtils || {};
+  }
+
   const form = document.getElementById("profile-form");
   const securityEl = document.getElementById("profile-security");
   const passwordForm = document.getElementById("password-form");
@@ -493,6 +497,16 @@
   if (form) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const name = document.getElementById("profile-name").value;
+      const mobile = document.getElementById("profile-mobile").value;
+      const email = document.getElementById("profile-email").value;
+      const profileError = formUtils().validateProfileInput
+        ? formUtils().validateProfileInput(name, mobile, email)
+        : null;
+      if (profileError) {
+        showStatus(profileError, true);
+        return;
+      }
       form.querySelectorAll("input, button").forEach((el) => {
         el.disabled = true;
       });
@@ -503,11 +517,7 @@
       }
 
       try {
-        const payload = await AUTH.updateProfile(
-          document.getElementById("profile-name").value,
-          document.getElementById("profile-mobile").value,
-          document.getElementById("profile-email").value
-        );
+        const payload = await AUTH.updateProfile(name, mobile, email);
         renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
         showStatus(payload.message || "Profile updated.", false);
       } catch (err) {
@@ -526,8 +536,13 @@
       const currentPassword = document.getElementById("profile-current-password").value;
       const newPassword = document.getElementById("profile-new-password").value;
       const confirmPassword = document.getElementById("profile-confirm-password").value;
-      if (newPassword !== confirmPassword) {
-        showFieldStatus(passwordStatusEl, "New passwords do not match.", true);
+      const passwordError = formUtils().validatePasswordChangeInput
+        ? formUtils().validatePasswordChangeInput(currentPassword, newPassword, confirmPassword)
+        : newPassword !== confirmPassword
+          ? "New passwords do not match."
+          : null;
+      if (passwordError) {
+        showFieldStatus(passwordStatusEl, passwordError, true);
         return;
       }
       passwordForm.querySelectorAll("input, button").forEach((el) => {
@@ -581,6 +596,15 @@
     deleteForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const password = document.getElementById("profile-delete-password").value;
+      const deleteError = formUtils().validatePasswordValue
+        ? formUtils().validatePasswordValue(password)
+        : !String(password || "")
+          ? "Enter Password."
+          : null;
+      if (deleteError) {
+        showFieldStatus(deleteStatusEl, deleteError, true);
+        return;
+      }
       deleteForm.querySelectorAll("input, button").forEach((el) => {
         el.disabled = true;
       });
