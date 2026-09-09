@@ -459,6 +459,7 @@ body.saptarishi-page {
   position: fixed;
   inset: 0;
   z-index: 1180;
+  touch-action: none;
 }
 
 .birth-picker[hidden],
@@ -486,7 +487,8 @@ body.saptarishi-page {
   border-radius: 10px;
   box-shadow: 0 18px 40px rgba(31, 24, 6, 0.28);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  touch-action: none;
 }
 
 .birth-picker__head {
@@ -562,6 +564,7 @@ body.saptarishi-page {
   color: var(--color-heading);
   font: inherit;
   font-size: 16px;
+  touch-action: manipulation;
 }
 
 .birth-picker__custom-hint {
@@ -624,9 +627,11 @@ body.saptarishi-page {
   flex: 0 0 7.2rem;
   height: 7.2rem;
   overflow-x: hidden;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  scroll-snap-type: y proximity;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .birth-wheel__pad {
@@ -643,6 +648,9 @@ body.saptarishi-page {
   font-size: 0.95rem;
   font-weight: 600;
   scroll-snap-align: center;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .birth-wheel__item.is-on {
@@ -681,6 +689,7 @@ body.birth-overlay-open {
   border: 0;
   background: transparent;
   padding: 0;
+  cursor: pointer;
 }
 
 .birth-place-picker {

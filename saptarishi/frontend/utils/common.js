@@ -1504,6 +1504,66 @@
     wheelSelectedValue(scroller);
   }
 
+  function bindWheelTouchPan(scroller) {
+    if (scroller.dataset.wheelPan === "1") return;
+    scroller.dataset.wheelPan = "1";
+    let active = false;
+    let startY = 0;
+    let startTop = 0;
+    let dragged = false;
+    const begin = (y) => {
+      active = true;
+      dragged = false;
+      startY = y;
+      startTop = scroller.scrollTop;
+    };
+    const move = (y, event) => {
+      if (!active) return;
+      const dy = startY - y;
+      if (Math.abs(dy) > 2) dragged = true;
+      scroller.scrollTop = startTop + dy;
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+    };
+    const end = () => {
+      if (!active) return;
+      active = false;
+      wheelSelectedValue(scroller);
+      if (!dragged) return;
+      window.setTimeout(() => {
+        dragged = false;
+      }, 350);
+    };
+    scroller.addEventListener(
+      "touchstart",
+      (event) => {
+        if (event.touches.length !== 1) return;
+        begin(event.touches[0].clientY);
+        event.stopPropagation();
+      },
+      { passive: true }
+    );
+    scroller.addEventListener(
+      "touchmove",
+      (event) => {
+        if (event.touches.length !== 1) return;
+        move(event.touches[0].clientY, event);
+      },
+      { passive: false }
+    );
+    scroller.addEventListener("touchend", end, { passive: true });
+    scroller.addEventListener("touchcancel", end, { passive: true });
+    scroller.addEventListener(
+      "click",
+      (event) => {
+        if (!dragged) return;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true
+    );
+  }
+
   function makeWheelColumn(label, values, selected) {
     const col = document.createElement("div");
     col.className = "birth-wheel__col";
@@ -1518,9 +1578,9 @@
     padBottom.className = "birth-wheel__pad";
     scroller.appendChild(padTop);
     values.forEach((item) => {
-      const el = document.createElement("button");
-      el.type = "button";
+      const el = document.createElement("div");
       el.className = "birth-wheel__item";
+      el.setAttribute("role", "option");
       el.setAttribute("data-value", item.value);
       el.textContent = item.label;
       if (String(item.value) === String(selected)) el.classList.add("is-on");
@@ -1533,6 +1593,7 @@
       window.clearTimeout(snapTimer);
       snapTimer = window.setTimeout(() => wheelSelectedValue(scroller), 80);
     });
+    bindWheelTouchPan(scroller);
     col.append(caption, scroller);
     requestAnimationFrame(() => scrollWheelToValue(scroller, selected));
     return { col, scroller };
