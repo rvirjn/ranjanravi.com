@@ -83,8 +83,10 @@
           min-height: 0 !important;
           height: auto !important;
           overflow-x: hidden !important;
-          overflow-y: auto !important;
+          overflow-y: scroll !important;
           -webkit-overflow-scrolling: touch !important;
+          overscroll-behavior: contain !important;
+          touch-action: pan-y !important;
         }
         .ask-ai.ask-ai--open .ask-ai__form {
           flex-shrink: 0 !important;
@@ -100,12 +102,7 @@
       log.scrollTop = Math.max(0, log.scrollHeight - log.clientHeight);
     };
     pin();
-    requestAnimationFrame(() => {
-      pin();
-      requestAnimationFrame(pin);
-    });
-    window.setTimeout(pin, 150);
-    window.setTimeout(pin, 400);
+    requestAnimationFrame(pin);
   }
 
   function appendBubble(log, role, text) {
@@ -227,8 +224,14 @@
       root.style.zIndex = "";
       root.classList.remove("ask-ai--open");
       document.documentElement.classList.remove("ask-ai-lock");
+      if (document.body) document.body.classList.remove("ask-ai-open");
       root.style.removeProperty("--ask-ai-vv-top");
       root.style.removeProperty("--ask-ai-vv-height");
+      try {
+        if (global.SaptarishiAndroid && SaptarishiAndroid.setPullToRefreshEnabled) {
+          SaptarishiAndroid.setPullToRefreshEnabled(true);
+        }
+      } catch (_) {}
     }
   }
 
@@ -262,7 +265,7 @@
             class="ask-ai__input"
             rows="2"
             maxlength="${MAX_Q}"
-            placeholder="version v15"
+            placeholder="version v16"
           ></textarea>
           <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send">
             <svg class="ask-ai__send-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -291,8 +294,14 @@
 
     function setPageLocked(locked) {
       const html = document.documentElement;
-      if (!html) return;
-      html.classList.toggle("ask-ai-lock", locked);
+      const body = document.body;
+      if (html) html.classList.toggle("ask-ai-lock", locked);
+      if (body) body.classList.toggle("ask-ai-open", locked);
+      try {
+        if (global.SaptarishiAndroid && SaptarishiAndroid.setPullToRefreshEnabled) {
+          SaptarishiAndroid.setPullToRefreshEnabled(!locked);
+        }
+      } catch (_) {}
     }
 
     function fitMobileViewport() {
@@ -306,7 +315,6 @@
       const top = Math.max(0, Math.round((vv && vv.offsetTop) || 0));
       root.style.setProperty("--ask-ai-vv-top", `${top}px`);
       root.style.setProperty("--ask-ai-vv-height", `${height}px`);
-      scrollLogToEnd(log);
     }
 
     function setOpen(open) {

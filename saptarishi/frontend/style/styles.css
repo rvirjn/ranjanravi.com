@@ -6353,7 +6353,7 @@ html.ask-ai-lock body {
     min-height: 0;
     height: auto;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y;
