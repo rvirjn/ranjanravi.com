@@ -1502,15 +1502,3 @@ html.saptarishi-native-app .ask-ai__log {
   min-height: 0;
   flex: 1 1 auto;
 }
-
-html.saptarishi-native-app .birth-picker,
-html.saptarishi-native-app .birth-place-picker,
-html.saptarishi-native-app .birth-picker__dialog {
-  touch-action: none;
-}
-
-html.saptarishi-native-app .birth-wheel__scroller,
-html.saptarishi-native-app .birth-wheel__item {
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-}
