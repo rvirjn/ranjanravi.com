@@ -45,6 +45,55 @@
     return String(AC.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
+  const ASK_AI_MOBILE_CSS_ID = "ask-ai-mobile-css";
+
+  function ensureMobileAskAiCss() {
+    if (document.getElementById(ASK_AI_MOBILE_CSS_ID)) return;
+    const style = document.createElement("style");
+    style.id = ASK_AI_MOBILE_CSS_ID;
+    style.textContent = `
+      @media (max-width: 720px) {
+        .ask-ai.ask-ai--open {
+          position: fixed !important;
+          top: var(--ask-ai-vv-top, 0px) !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: auto !important;
+          width: 100% !important;
+          height: var(--ask-ai-vv-height, 100dvh) !important;
+          max-height: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          z-index: 1300 !important;
+          background: var(--color-bg-page, #fffdf8) !important;
+        }
+        .ask-ai.ask-ai--open .ask-ai__panel {
+          flex: 1 1 auto !important;
+          display: grid !important;
+          grid-template-rows: auto minmax(0, 1fr) auto !important;
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+        .ask-ai.ask-ai--open .ask-ai__log {
+          min-height: 0 !important;
+          height: auto !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+        .ask-ai.ask-ai--open .ask-ai__form {
+          flex-shrink: 0 !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function scrollLogToEnd(log) {
     if (!log) return;
     const pin = () => {
@@ -178,17 +227,8 @@
       root.style.zIndex = "";
       root.classList.remove("ask-ai--open");
       document.documentElement.classList.remove("ask-ai-lock");
-      const body = document.body;
-      if (body && body.style.position === "fixed") {
-        const y = Number(body.dataset.askAiScroll || 0);
-        body.style.position = "";
-        body.style.top = "";
-        body.style.left = "";
-        body.style.right = "";
-        body.style.width = "";
-        delete body.dataset.askAiScroll;
-        window.scrollTo(0, y);
-      }
+      root.style.removeProperty("--ask-ai-vv-top");
+      root.style.removeProperty("--ask-ai-vv-height");
     }
   }
 
@@ -222,7 +262,7 @@
             class="ask-ai__input"
             rows="2"
             maxlength="${MAX_Q}"
-            placeholder="version v14"
+            placeholder="version v15"
           ></textarea>
           <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send">
             <svg class="ask-ai__send-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -251,72 +291,22 @@
 
     function setPageLocked(locked) {
       const html = document.documentElement;
-      const body = document.body;
-      if (!body) return;
-      if (locked) {
-        const y = window.scrollY || window.pageYOffset || 0;
-        body.dataset.askAiScroll = String(y);
-        html.classList.add("ask-ai-lock");
-        body.style.position = "fixed";
-        body.style.top = `-${y}px`;
-        body.style.left = "0";
-        body.style.right = "0";
-        body.style.width = "100%";
-        return;
-      }
-      const y = Number(body.dataset.askAiScroll || 0);
-      const wasLocked = body.style.position === "fixed";
-      html.classList.remove("ask-ai-lock");
-      body.style.position = "";
-      body.style.top = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
-      delete body.dataset.askAiScroll;
-      if (wasLocked) window.scrollTo(0, y);
+      if (!html) return;
+      html.classList.toggle("ask-ai-lock", locked);
     }
 
-    function applyMobileInlineLayout(open) {
-      const mobile = isMobileScreen();
-      if (!open || !mobile) {
-        root.style.position = "";
-        root.style.inset = "";
-        root.style.width = "";
-        root.style.height = "";
-        root.style.display = "";
-        root.style.flexDirection = "";
-        root.style.zIndex = "";
-        panel.style.flex = "";
-        panel.style.display = "";
-        panel.style.flexDirection = "";
-        panel.style.height = "";
-        panel.style.minHeight = "";
-        panel.style.maxHeight = "";
-        log.style.flex = "";
-        log.style.height = "";
-        log.style.minHeight = "";
-        log.style.overflowY = "";
-        form.style.flexShrink = "";
+    function fitMobileViewport() {
+      if (!root.classList.contains("ask-ai--open") || !isMobileScreen()) {
+        root.style.removeProperty("--ask-ai-vv-top");
+        root.style.removeProperty("--ask-ai-vv-height");
         return;
       }
-      root.style.position = "fixed";
-      root.style.inset = "0";
-      root.style.width = "100%";
-      root.style.height = "100%";
-      root.style.display = "flex";
-      root.style.flexDirection = "column";
-      root.style.zIndex = "1300";
-      panel.style.flex = "1 1 0%";
-      panel.style.display = "flex";
-      panel.style.flexDirection = "column";
-      panel.style.height = "0";
-      panel.style.minHeight = "0";
-      panel.style.maxHeight = "none";
-      log.style.flex = "1 1 0%";
-      log.style.height = "0";
-      log.style.minHeight = "0";
-      log.style.overflowY = "scroll";
-      form.style.flexShrink = "0";
+      const vv = window.visualViewport;
+      const height = Math.max(240, Math.round((vv && vv.height) || window.innerHeight || 0));
+      const top = Math.max(0, Math.round((vv && vv.offsetTop) || 0));
+      root.style.setProperty("--ask-ai-vv-top", `${top}px`);
+      root.style.setProperty("--ask-ai-vv-height", `${height}px`);
+      scrollLogToEnd(log);
     }
 
     function setOpen(open) {
@@ -330,22 +320,25 @@
       root.classList.toggle("ask-ai--open", open);
       closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
       if (!open) {
-        applyMobileInlineLayout(false);
         setPageLocked(false);
+        fitMobileViewport();
         return;
       }
-      applyMobileInlineLayout(true);
-      if (isMobileScreen()) setPageLocked(true);
-      else document.documentElement.classList.add("ask-ai-lock");
+      ensureMobileAskAiCss();
+      setPageLocked(true);
       if (!log.dataset.greeted) {
         appendBubble(log, "assistant", welcomeMessage());
         log.dataset.greeted = "1";
       }
+      fitMobileViewport();
       scrollLogToEnd(log);
       if (!isMobileScreen()) {
         input.focus({ preventScroll: true });
       }
-      window.setTimeout(() => scrollLogToEnd(log), 280);
+      window.setTimeout(() => {
+        fitMobileViewport();
+        scrollLogToEnd(log);
+      }, 280);
     }
 
     fab.addEventListener("click", () => setOpen(true));
@@ -370,17 +363,21 @@
 
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
 
-    function onResize() {
+    function onViewportChange() {
       if (!root.classList.contains("ask-ai--open")) return;
-      applyMobileInlineLayout(true);
-      scrollLogToEnd(log);
+      fitMobileViewport();
     }
+    ensureMobileAskAiCss();
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", onResize);
+      window.visualViewport.addEventListener("resize", onViewportChange);
+      window.visualViewport.addEventListener("scroll", onViewportChange);
     }
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onViewportChange);
     input.addEventListener("focus", () => {
-      window.setTimeout(() => scrollLogToEnd(log), 300);
+      window.setTimeout(onViewportChange, 300);
+    });
+    input.addEventListener("blur", () => {
+      window.setTimeout(onViewportChange, 200);
     });
   }
 

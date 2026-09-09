@@ -6290,9 +6290,13 @@ html.ask-ai-lock body {
   .ask-ai.ask-ai--open,
   .ask-ai:has(.ask-ai__panel:not([hidden])) {
     position: fixed;
-    inset: 0;
+    top: var(--ask-ai-vv-top, 0px);
+    left: 0;
+    right: 0;
+    bottom: auto;
     width: 100%;
-    height: 100%;
+    height: var(--ask-ai-vv-height, 100dvh);
+    max-height: none;
     display: flex;
     flex-direction: column;
     background: var(--color-bg-page);
@@ -6300,11 +6304,11 @@ html.ask-ai-lock body {
   }
 
   .ask-ai__panel {
-    flex: 1 1 0%;
-    display: flex;
-    flex-direction: column;
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     width: 100%;
-    height: 0;
+    height: 100%;
     min-height: 0;
     max-height: none;
     border: 0;
@@ -6346,11 +6350,10 @@ html.ask-ai-lock body {
   }
 
   .ask-ai__log {
-    flex: 1 1 0%;
-    height: 0;
     min-height: 0;
+    height: auto;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y;
