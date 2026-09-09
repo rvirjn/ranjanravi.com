@@ -11,14 +11,20 @@
   const UTILS = global.SaptarishiCommonUtils;
   const MAX_Q = Number(AC.ASK_AI_MAX_QUESTION_LENGTH) || 800;
 
-  function privacyHref() {
-    if (UTILS && typeof UTILS.privacyPolicyHref === "function") {
-      return UTILS.privacyPolicyHref();
+  function displayFirstName() {
+    const raw =
+      (AUTH && typeof AUTH.getUser === "function" && AUTH.getUser()?.name) || "";
+    const name = String(raw).trim();
+    if (!name) return "";
+    return name.split(/\s+/)[0];
+  }
+
+  function welcomeMessage() {
+    const name = displayFirstName();
+    if (name) {
+      return `Hi ${name}, welcome - ask our AI about your kundali.`;
     }
-    if (AC.PAGE_FILE_TO_PATH && AC.PAGE_FILE_TO_PATH["privacy.html"]) {
-      return AC.PAGE_FILE_TO_PATH["privacy.html"];
-    }
-    return `${AC.DEPLOY_PREFIX || ""}/privacy`;
+    return "Hi, welcome - ask our AI about your kundali.";
   }
 
   function isLoggedIn() {
@@ -170,16 +176,10 @@
         <header class="ask-ai__header">
           <div>
             <p class="ask-ai__title">Ask AI</p>
-            <p class="ask-ai__subtitle">General Vedic guidance</p>
           </div>
           <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI">×</button>
         </header>
         <div class="ask-ai__log" id="ask-ai-log" role="log" aria-live="polite"></div>
-        <p class="ask-ai__hint">
-          Not a substitute for a personal chart reading.
-          Questions are sent to <a href="https://groq.com/" target="_blank" rel="noopener noreferrer">Groq</a>
-          to generate answers. See <a href="${privacyHref()}">Privacy Policy</a>.
-        </p>
         <form class="ask-ai__form" id="ask-ai-form">
           <label class="ask-ai__sr-only" for="ask-ai-input">Your question</label>
           <textarea
@@ -187,7 +187,7 @@
             class="ask-ai__input"
             rows="2"
             maxlength="${MAX_Q}"
-            placeholder="e.g. What is Lagna?"
+            placeholder=""
           ></textarea>
           <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send">
             <svg class="ask-ai__send-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -217,11 +217,7 @@
       fab.hidden = open;
       if (open) {
         if (!log.dataset.greeted) {
-          appendBubble(
-            log,
-            "assistant",
-            "Hi — ask a short astrology question."
-          );
+          appendBubble(log, "assistant", welcomeMessage());
           log.dataset.greeted = "1";
         }
         input.focus({ preventScroll: false });

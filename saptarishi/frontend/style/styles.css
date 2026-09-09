@@ -6021,12 +6021,6 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   color: var(--color-heading);
 }
 
-.ask-ai__subtitle {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-}
-
 .ask-ai__close {
   border: none;
   background: transparent;
@@ -6091,23 +6085,6 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   color: #8a1f1f;
   background: rgba(183, 28, 28, 0.08);
   border: 1px solid rgba(183, 28, 28, 0.2);
-}
-
-.ask-ai__hint {
-  margin: 0;
-  padding: 0 1rem 0.35rem;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-}
-
-.ask-ai__hint a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.ask-ai__hint a:hover {
-  text-decoration: underline;
 }
 
 .ask-ai__form {
@@ -6205,7 +6182,6 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   }
 
   .ask-ai__header,
-  .ask-ai__hint,
   .ask-ai__form {
     flex-shrink: 0;
   }
