@@ -269,24 +269,6 @@
       if (wasLocked) window.scrollTo(0, y);
     }
 
-    function fitMobileScreen() {
-      if (!root.classList.contains("ask-ai--open") || !isMobileScreen()) {
-        root.style.removeProperty("--ask-ai-kb");
-        return;
-      }
-      const vv = window.visualViewport;
-      if (!vv) {
-        root.style.setProperty("--ask-ai-kb", "0px");
-        return;
-      }
-      const overlap = Math.max(
-        0,
-        Math.round(window.innerHeight - vv.height - vv.offsetTop)
-      );
-      root.style.setProperty("--ask-ai-kb", `${overlap}px`);
-      scrollLogToEnd(log);
-    }
-
     function setOpen(open) {
       if (open && !isLoggedIn()) {
         syncVisibility();
@@ -299,7 +281,6 @@
       closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
       if (!open) {
         setPageLocked(false);
-        root.style.removeProperty("--ask-ai-kb");
         return;
       }
       if (isMobileScreen()) setPageLocked(true);
@@ -308,15 +289,11 @@
         appendBubble(log, "assistant", welcomeMessage());
         log.dataset.greeted = "1";
       }
-      fitMobileScreen();
       scrollLogToEnd(log);
       if (!isMobileScreen()) {
         input.focus({ preventScroll: true });
       }
-      window.setTimeout(() => {
-        fitMobileScreen();
-        scrollLogToEnd(log);
-      }, 280);
+      window.setTimeout(() => scrollLogToEnd(log), 280);
     }
 
     fab.addEventListener("click", () => setOpen(true));
@@ -341,19 +318,15 @@
 
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", fitMobileScreen);
-      window.visualViewport.addEventListener("scroll", fitMobileScreen);
+    function onResize() {
+      if (root.classList.contains("ask-ai--open")) scrollLogToEnd(log);
     }
-    window.addEventListener("resize", fitMobileScreen);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", onResize);
+    }
+    window.addEventListener("resize", onResize);
     input.addEventListener("focus", () => {
-      window.setTimeout(() => {
-        fitMobileScreen();
-        scrollLogToEnd(log);
-      }, 300);
-    });
-    input.addEventListener("blur", () => {
-      window.setTimeout(fitMobileScreen, 200);
+      window.setTimeout(() => scrollLogToEnd(log), 300);
     });
   }
 

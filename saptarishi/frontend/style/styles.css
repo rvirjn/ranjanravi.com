@@ -6289,13 +6289,10 @@ html.ask-ai-lock body {
 @media (max-width: 720px) {
   .ask-ai.ask-ai--open,
   .ask-ai:has(.ask-ai__panel:not([hidden])) {
-    top: 0;
-    right: 0;
-    bottom: var(--ask-ai-kb, 0px);
-    left: 0;
+    position: fixed;
+    inset: 0;
     width: 100%;
-    height: auto;
-    max-height: none;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background: var(--color-bg-page);
@@ -6303,11 +6300,11 @@ html.ask-ai-lock body {
   }
 
   .ask-ai__panel {
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: auto;
+    height: 0;
     min-height: 0;
     max-height: none;
     border: 0;
@@ -6362,7 +6359,6 @@ html.ask-ai-lock body {
 
   .ask-ai__form {
     flex-shrink: 0;
-    margin-top: auto;
     padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
   }
 
