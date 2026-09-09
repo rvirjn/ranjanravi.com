@@ -1497,7 +1497,18 @@ html.saptarishi-native-app .ask-ai__panel {
   border-radius: 18px 18px 0 0;
 }
 
+html.saptarishi-native-app .ask-ai__panel {
+  min-height: 0;
+}
+
 html.saptarishi-native-app .ask-ai__log {
   min-height: 0;
   flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.saptarishi-native-app .ask-ai__bubble {
+  font-size: 0.78rem;
+  line-height: 1.4;
 }

@@ -45,12 +45,24 @@
     return String(AC.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
+  function scrollLogToEnd(log) {
+    if (!log) return;
+    const pin = () => {
+      log.scrollTop = log.scrollHeight;
+    };
+    pin();
+    requestAnimationFrame(() => {
+      pin();
+      requestAnimationFrame(pin);
+    });
+  }
+
   function appendBubble(log, role, text) {
     const row = document.createElement("div");
     row.className = `ask-ai__bubble ask-ai__bubble--${role}`;
     row.textContent = text;
     log.appendChild(row);
-    log.scrollTop = log.scrollHeight;
+    scrollLogToEnd(log);
   }
 
   function getCurrentBirthDetails() {
@@ -222,9 +234,11 @@
           appendBubble(log, "assistant", welcomeMessage());
           log.dataset.greeted = "1";
         }
-        input.focus({ preventScroll: false });
+        input.focus({ preventScroll: true });
         window.setTimeout(() => {
-          input.scrollIntoView({ block: "end", inline: "nearest" });
+          pinAboveKeyboard();
+          scrollLogToEnd(log);
+          input.scrollIntoView({ block: "nearest", inline: "nearest" });
         }, 250);
       }
     }
@@ -256,6 +270,7 @@
       if (!vv) return;
       const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       root.style.setProperty("--ask-ai-keyboard", `${covered}px`);
+      scrollLogToEnd(log);
     }
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", pinAboveKeyboard);
@@ -265,7 +280,8 @@
     input.addEventListener("focus", () => {
       window.setTimeout(() => {
         pinAboveKeyboard();
-        input.scrollIntoView({ block: "end", inline: "nearest" });
+        scrollLogToEnd(log);
+        input.scrollIntoView({ block: "nearest", inline: "nearest" });
       }, 300);
     });
   }
