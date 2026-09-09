@@ -6089,8 +6089,9 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 
 .ask-ai__panel {
   width: min(22rem, calc(100vw - 2rem));
-  min-height: min(22rem, calc(100vh - 5rem));
-  max-height: min(40rem, calc(100vh - 5rem));
+  height: min(48rem, calc(100vh - 2.5rem));
+  min-height: min(36rem, calc(100vh - 2.5rem));
+  max-height: calc(100vh - 2.5rem);
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
@@ -6279,8 +6280,8 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 
   .ask-ai__panel {
     width: 100%;
-    height: calc(100vh - var(--ask-ai-keyboard, 0px) - 0.5rem);
-    height: calc(100dvh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+    height: calc(100vh - var(--ask-ai-keyboard, 0px));
+    height: calc(100dvh - var(--ask-ai-keyboard, 0px));
     min-height: 0;
     max-height: none;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;

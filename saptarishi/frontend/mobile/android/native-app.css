@@ -1491,8 +1491,8 @@ html.saptarishi-native-app .ask-ai:has(.ask-ai__panel:not([hidden])) {
 
 html.saptarishi-native-app .ask-ai__panel {
   width: 100%;
-  height: calc(100vh - var(--ask-ai-keyboard, 0px) - 0.5rem);
-  height: calc(100dvh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+  height: calc(100vh - var(--ask-ai-keyboard, 0px));
+  height: calc(100dvh - var(--ask-ai-keyboard, 0px));
   max-height: none;
   border-radius: 18px 18px 0 0;
 }
