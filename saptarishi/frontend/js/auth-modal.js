@@ -214,7 +214,7 @@
     if (!overlay) return;
     [loginForm, registerForm, forgotForm].forEach((form) => {
       if (!form) return;
-      form.querySelectorAll("input, button[type='submit']").forEach((el) => {
+      form.querySelectorAll("input, button[type='submit'], .password-field__toggle").forEach((el) => {
         el.disabled = busy;
       });
     });

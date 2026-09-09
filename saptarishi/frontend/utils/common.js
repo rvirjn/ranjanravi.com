@@ -162,6 +162,57 @@
     ).forEach((el) => {
       el.placeholder = AC.MOBILE_PLACEHOLDER || el.placeholder;
     });
+    enhancePasswordVisibility(scope);
+  }
+
+  const PASSWORD_EYE_SHOW =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const PASSWORD_EYE_HIDE =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A11 11 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-3.2 3.8"/><path d="M6.1 6.1C3.8 7.8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.4-.9"/></svg>';
+
+  function syncPasswordToggle(input, toggle, visible) {
+    input.type = visible ? "text" : "password";
+    toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+    toggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+    toggle.innerHTML = visible ? PASSWORD_EYE_HIDE : PASSWORD_EYE_SHOW;
+  }
+
+  function enhancePasswordVisibility(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll('input[type="password"]').forEach((input) => {
+      if (input.closest(".password-field")) return;
+      const wrap = document.createElement("div");
+      wrap.className = "password-field";
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "password-field__toggle";
+      toggle.setAttribute("aria-label", "Show password");
+      toggle.setAttribute("aria-pressed", "false");
+      if (input.id) toggle.setAttribute("aria-controls", input.id);
+      toggle.innerHTML = PASSWORD_EYE_SHOW;
+      wrap.appendChild(toggle);
+      toggle.addEventListener("click", () => {
+        syncPasswordToggle(input, toggle, input.type === "password");
+        try {
+          input.focus({ preventScroll: true });
+        } catch (err) {
+          input.focus();
+        }
+      });
+      if (input.form && !input.form.dataset.passwordToggleReset) {
+        input.form.dataset.passwordToggleReset = "1";
+        input.form.addEventListener("reset", () => {
+          window.setTimeout(() => {
+            input.form.querySelectorAll(".password-field input").forEach((field) => {
+              const btn = field.parentElement && field.parentElement.querySelector(".password-field__toggle");
+              if (btn) syncPasswordToggle(field, btn, false);
+            });
+          }, 0);
+        });
+      }
+    });
   }
 
   function privacyPolicyHref() {
@@ -2212,6 +2263,7 @@
     placePresetOptions,
     fillPlacePresetSelects,
     applyFormFieldLimits,
+    enhancePasswordVisibility,
     contactPhone,
     contactEmail,
     unlimitedAccessDurationLabel,
