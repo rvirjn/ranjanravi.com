@@ -15,7 +15,7 @@
   const COMPARE_PLACE_OPTIONS = (CU && CU.placePresetOptions)
     ? CU.placePresetOptions()
     : [
-        { value: "", label: "Select place…" },
+        { value: "", label: "Select Place…" },
         ...((C.BIRTH_PLACE_PRESETS || []).map((place) => ({ value: place, label: place }))),
         { value: C.PLACE_CUSTOM_VALUE, label: "Other…" }
       ];

@@ -101,7 +101,7 @@
     const places = Array.isArray(AC.BIRTH_PLACE_PRESETS) ? AC.BIRTH_PLACE_PRESETS : [];
     const custom = AC.PLACE_CUSTOM_VALUE || "__custom__";
     return [
-      { value: "", label: "Select place…" },
+      { value: "", label: "Select Place…" },
       ...places.map((place) => ({ value: place, label: place })),
       { value: custom, label: "Other…" }
     ];
@@ -1174,7 +1174,7 @@
 
   function formatBirthDateLabel(iso) {
     const match = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return "Select date";
+    if (!match) return "Day - Month - Year";
     return `${match[3]} - ${BIRTH_MONTHS_SHORT[Number(match[2]) - 1] || match[2]} - ${match[1]}`;
   }
 
@@ -1196,6 +1196,7 @@
   }
 
   function formatBirthTimeLabel(value, withSeconds) {
+    if (!/^\d{1,2}:\d{2}/.test(String(value || "").trim())) return "Hour - Min - Sec";
     const parts = parseBirthTimeParts(value);
     const ampm = parts.hours24 >= 12 ? "PM" : "AM";
     let hour = parts.hours24 % 12;
@@ -1410,7 +1411,7 @@
 
   function splitBirthPlaceLabel(place) {
     const value = String(place || "").trim();
-    if (!value) return { title: "Select place…", meta: "" };
+    if (!value) return { title: "Select Place…", meta: "" };
     const idx = value.lastIndexOf(",");
     if (idx > 0) {
       return {
@@ -1434,12 +1435,18 @@
       const timeBox = form.querySelector("[data-birth-open='time']");
       const placeTitle = form.querySelector("[data-birth-place-title]");
       const placeMeta = form.querySelector("[data-birth-place-meta]");
-      if (dateBox) dateBox.textContent = formatBirthDateLabel(dateInput && dateInput.value);
-      if (timeBox) timeBox.textContent = formatBirthTimeLabel(timeInput && timeInput.value, false);
+      if (dateBox) {
+        dateBox.textContent = formatBirthDateLabel(dateInput && dateInput.value);
+        dateBox.classList.toggle("birth-box--placeholder", !String(dateInput && dateInput.value || "").trim());
+      }
+      if (timeBox) {
+        timeBox.textContent = formatBirthTimeLabel(timeInput && timeInput.value, false);
+        timeBox.classList.toggle("birth-box--placeholder", !String(timeInput && timeInput.value || "").trim());
+      }
       if (!placeTitle) return;
       const place = currentFormPlace(form);
       if (!place) {
-        placeTitle.textContent = "Select place…";
+        placeTitle.textContent = "Select Place…";
         if (placeMeta) placeMeta.textContent = "";
         return;
       }
@@ -1646,16 +1653,17 @@
   function openBirthDatePicker(form) {
     const dateInput = form.querySelector("#birth-date, .compare-birth-date");
     if (!dateInput) return;
-    if (!dateInput.value) dateInput.value = todayBirthDateValue();
     const match = String(dateInput.value).match(/^(\d{4})-(\d{2})-(\d{2})/) || [];
-    const year = Number(match[1]) || new Date().getFullYear();
-    const month = Number(match[2]) || new Date().getMonth() + 1;
-    const day = Number(match[3]) || new Date().getDate();
+    const now = new Date();
+    const year = Number(match[1]) || now.getFullYear();
+    const month = Number(match[2]) || now.getMonth() + 1;
+    const day = Number(match[3]) || now.getDate();
     const overlay = ensureBirthPickerOverlay();
     overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
       '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'
     );
-    overlay.querySelector(".birth-picker__title").textContent = formatBirthDateTitle(dateInput.value);
+    overlay.querySelector(".birth-picker__title").textContent =
+      formatBirthDateTitle(dateInput.value) || formatBirthDateTitle(todayBirthDateValue());
     const dialog = overlay.querySelector(".birth-picker__dialog");
     if (dialog) dialog.classList.remove("birth-picker__dialog--place");
     const customWrap = overlay.querySelector(".birth-picker__custom");
@@ -1665,7 +1673,7 @@
     wheels.replaceChildren();
     const thisYear = new Date().getFullYear();
     const years = [];
-    for (let y = thisYear + 1; y >= 1900; y -= 1) years.push({ value: String(y), label: String(y) });
+    for (let y = 1900; y <= thisYear + 1; y += 1) years.push({ value: String(y), label: String(y) });
     const months = BIRTH_MONTHS_SHORT.map((label, idx) => ({ value: String(idx + 1), label }));
     const dayScroller = { current: null };
     const monthCol = makeWheelColumn("Month", months, String(month));
@@ -1716,15 +1724,15 @@
   function openBirthTimePicker(form) {
     const timeInput = form.querySelector("#birth-time, .compare-birth-time");
     if (!timeInput) return;
-    if (!timeInput.value) timeInput.value = nowBirthTimeValue();
-    const parts = parseBirthTimeParts(timeInput.value);
+    const seedTime = timeInput.value || nowBirthTimeValue();
+    const parts = parseBirthTimeParts(seedTime);
     const converted = parts.hours24 % 12 === 0 ? 12 : parts.hours24 % 12;
     const ampm = parts.hours24 >= 12 ? "PM" : "AM";
     const overlay = ensureBirthPickerOverlay();
     overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
       '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'
     );
-    overlay.querySelector(".birth-picker__title").textContent = formatBirthTimeLabel(timeInput.value, true);
+    overlay.querySelector(".birth-picker__title").textContent = formatBirthTimeLabel(seedTime, true);
     const dialog = overlay.querySelector(".birth-picker__dialog");
     if (dialog) dialog.classList.remove("birth-picker__dialog--place");
     const customWrap = overlay.querySelector(".birth-picker__custom");
@@ -1740,9 +1748,9 @@
       minutes.push({ value: String(i), label: padBirthNum(i) });
       seconds.push({ value: String(i), label: padBirthNum(i) });
     }
-    const hourCol = makeWheelColumn("Hours", hours, String(converted));
-    const minCol = makeWheelColumn("Minutes", minutes, String(parts.minutes));
-    const secCol = makeWheelColumn("Seconds", seconds, String(parts.seconds));
+    const hourCol = makeWheelColumn("Hour", hours, String(converted));
+    const minCol = makeWheelColumn("Min", minutes, String(parts.minutes));
+    const secCol = makeWheelColumn("Sec", seconds, String(parts.seconds));
     const amCol = makeWheelColumn("\u00a0", [
       { value: "AM", label: "AM" },
       { value: "PM", label: "PM" }
@@ -1860,7 +1868,7 @@
       return composeCustomPlace(country, state, custom) || "Enter a place";
     }
     const district = state && findNamedPlace(state.districts || [], districtName);
-    return formatHierarchyPlace(country, state, district) || "Select place…";
+    return formatHierarchyPlace(country, state, district) || "Select Place…";
   }
 
   function pickWheelValue(values, selected, fallback) {
@@ -1979,7 +1987,7 @@
     overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
       '<path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/>'
     );
-    overlay.querySelector(".birth-picker__title").textContent = "Select place…";
+    overlay.querySelector(".birth-picker__title").textContent = "Select Place…";
     const dialog = overlay.querySelector(".birth-picker__dialog");
     if (dialog) dialog.classList.add("birth-picker__dialog--place");
     const wheels = overlay.querySelector(".birth-picker__wheels");
@@ -2076,8 +2084,6 @@
     if (!placeSelect) return;
     form.dataset.birthChooser = "1";
     form.classList.add("kundali-form--chooser");
-    if (dateInput && !dateInput.value) dateInput.value = todayBirthDateValue();
-    if (timeInput && !timeInput.value) timeInput.value = nowBirthTimeValue();
 
     const dateField = dateInput && dateInput.closest(".form-field");
     const timeField = timeInput && timeInput.closest(".form-field");

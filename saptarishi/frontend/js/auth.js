@@ -284,9 +284,9 @@
     if (global.SaptarishiAuthModal) {
       await global.SaptarishiAuthModal.open({
         tab: options.tab || "login",
-        required: options.required !== false,
-        reason: options.reason || "premium",
-        message: options.message
+        required: false,
+        reason: options.reason || "",
+        message: options.message || "Sign in to continue."
       });
       return Boolean(getToken());
     }
@@ -1008,11 +1008,7 @@
     if (!wasLoggedIn) {
       const ok = await ensureAuth({
         tab: options.tab || "login",
-        required: true,
-        reason: options.reason || "limit",
-        message:
-          options.loginMessage ||
-          `Sign in to continue. Free plan includes ${AC.FREE_BIRTHS_PER_USER || 2} birth details.`
+        message: options.loginMessage || "Sign in to continue."
       });
       if (!ok) return false;
       try {
@@ -1050,10 +1046,7 @@
     if (!getToken()) {
       await ensureAuth({
         tab: "login",
-        required: true,
-        message:
-          options.loginMessage ||
-          `Sign in to continue. Free plan includes ${AC.FREE_BIRTHS_PER_USER || 2} birth details.`
+        message: options.loginMessage || "Sign in to continue."
       });
       return false;
     }

@@ -433,6 +433,11 @@ body.saptarishi-page {
   cursor: pointer;
 }
 
+.search-form.kundali-form .birth-box.birth-box--placeholder {
+  color: #8a7a5a;
+  font-weight: 600;
+}
+
 .birth-box strong,
 .birth-box span {
   display: block;
@@ -617,7 +622,6 @@ body.saptarishi-page {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-align: center;
-  text-transform: uppercase;
 }
 
 .birth-wheel__scroller {

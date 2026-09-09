@@ -5,13 +5,6 @@
   const AUTH = global.SaptarishiAuth;
   if (!AUTH) return;
 
-  const AC = global.SAPTARISHI_CONSTANTS || {};
-  const PREMIUM_LEAD =
-    `Your free limit is used. Sign in for a Free plan (${AC.FREE_BIRTHS_PER_USER || 2} births), ` +
-    `then ₹${AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR || 21} per birth, ` +
-    `₹${AC.PREMIUM_PACK_AMOUNT_INR || 299} for ${AC.PREMIUM_PACK_QUERY_LIMIT || 6} births, ` +
-    `or ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR || 599} for unlimited).`;
-
   const FORGOT_LEAD =
     "Enter the mobile number and email on your account. If they match, we email you a temporary password.";
 
@@ -123,7 +116,7 @@
 
     overlay.querySelector("#auth-modal-close").addEventListener("click", () => close(false));
     overlay.addEventListener("click", (event) => {
-      if (event.target === overlay && overlay.dataset.required !== "true") {
+      if (event.target === overlay && !authBusy) {
         close(false);
       }
     });
@@ -142,7 +135,7 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && overlay && !overlay.hidden && overlay.dataset.required !== "true") {
+      if (event.key === "Escape" && overlay && !overlay.hidden && !authBusy) {
         close(false);
       }
     });
@@ -226,7 +219,7 @@
     if (forgotLink) forgotLink.disabled = busy;
     if (forgotBack) forgotBack.disabled = busy;
     const closeBtn = overlay.querySelector("#auth-modal-close");
-    if (closeBtn) closeBtn.disabled = busy && overlay.dataset.required !== "true";
+    if (closeBtn) closeBtn.disabled = busy;
   }
 
   function startAuthLoading() {
@@ -329,7 +322,6 @@
   }
 
   function close(success) {
-    if (overlay && overlay.dataset.required === "true" && !success) return;
     hideAuthModal();
     if (resolvePending) {
       resolvePending(Boolean(success));
@@ -356,17 +348,14 @@
     ensureAuthModalMounted();
     const tab =
       options.tab === "register" ? "register" : options.tab === "forgot" ? "forgot" : "login";
-    const required = Boolean(options.required);
-    const isPremium = options.reason === "premium";
 
-    const lead =
-      options.message || (tab === "forgot" ? FORGOT_LEAD : isPremium ? PREMIUM_LEAD : "");
+    const lead = options.message || (tab === "forgot" ? FORGOT_LEAD : "Sign in to continue.");
     overlay.dataset.lead = lead;
     setLeadText(lead);
 
     setActiveTab(tab);
-    overlay.dataset.required = required ? "true" : "false";
-    overlay.querySelector("#auth-modal-close").hidden = required;
+    overlay.dataset.required = "false";
+    overlay.querySelector("#auth-modal-close").hidden = false;
     overlay.hidden = false;
     document.body.classList.add("auth-modal-open");
 
