@@ -222,7 +222,7 @@
             class="ask-ai__input"
             rows="2"
             maxlength="${MAX_Q}"
-            placeholder=""
+            placeholder="version v14"
           ></textarea>
           <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send">
             <svg class="ask-ai__send-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
