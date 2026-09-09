@@ -1481,3 +1481,24 @@ html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is
 html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is-native-stacked .kundali-info-btn {
   display: none;
 }
+
+html.saptarishi-native-app .ask-ai.ask-ai--open,
+html.saptarishi-native-app .ask-ai:has(.ask-ai__panel:not([hidden])) {
+  left: 0;
+  right: 0;
+  bottom: max(0px, var(--ask-ai-keyboard, 0px));
+  width: 100%;
+}
+
+html.saptarishi-native-app .ask-ai__panel {
+  width: 100%;
+  height: calc(100vh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+  height: calc(100dvh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+  max-height: none;
+  border-radius: 18px 18px 0 0;
+}
+
+html.saptarishi-native-app .ask-ai__log {
+  min-height: 0;
+  flex: 1 1 auto;
+}

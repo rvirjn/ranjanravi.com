@@ -155,6 +155,7 @@
         fab.hidden = false;
         fab.setAttribute("aria-expanded", "false");
       }
+      root.classList.remove("ask-ai--open");
     }
   }
 
@@ -215,6 +216,7 @@
       panel.hidden = !open;
       fab.setAttribute("aria-expanded", open ? "true" : "false");
       fab.hidden = open;
+      root.classList.toggle("ask-ai--open", open);
       if (open) {
         if (!log.dataset.greeted) {
           appendBubble(log, "assistant", welcomeMessage());

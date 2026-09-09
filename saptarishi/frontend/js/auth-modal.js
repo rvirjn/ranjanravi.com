@@ -6,10 +6,6 @@
   if (!AUTH) return;
 
   const AC = global.SAPTARISHI_CONSTANTS || {};
-  const DEFAULT_LEAD =
-    `Try ${AC.MAX_FREE_QUERIES_PER_USER || 2} free queries per device without login (kundali or auspicious). ` +
-    "After that, sign in or register for premium access.";
-
   const PREMIUM_LEAD =
     `Your free limit is used. Sign in for a Free plan (${AC.FREE_BIRTHS_PER_USER || 2} births), ` +
     `then ₹${AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR || 21} per birth, ` +
@@ -21,16 +17,6 @@
 
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
-
-  function privacyPolicyHref() {
-    const prefix = AC.DEPLOY_PREFIX || "";
-    if (/\/frontend\/html\//i.test(window.location.pathname)) {
-      return `${prefix}/frontend/html/privacy.html`;
-    }
-    const map = AC.PAGE_FILE_TO_PATH;
-    if (map && map["privacy.html"]) return map["privacy.html"];
-    return `${prefix}/privacy`;
-  }
 
   let overlay = null;
   let resolvePending = null;
@@ -54,7 +40,7 @@
       <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
         <button type="button" class="auth-modal__close" id="auth-modal-close" aria-label="Close">&times;</button>
         <h2 id="auth-modal-title" class="auth-modal__title">Saptarishi</h2>
-        <p id="auth-modal-lead" class="auth-modal__lead"></p>
+        <p id="auth-modal-lead" class="auth-modal__lead" hidden></p>
         <div class="auth-tabs" role="tablist">
           <button type="button" class="auth-tabs__btn auth-tabs__btn--active" data-tab="login" role="tab" aria-selected="true">Login</button>
           <button type="button" class="auth-tabs__btn" data-tab="register" role="tab" aria-selected="false">Register</button>
@@ -117,10 +103,6 @@
               <label for="auth-modal-reg-password-confirm">Confirm password</label>
               <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
             </div>
-            <p class="auth-modal__privacy">
-              By creating an account you agree we collect your name, mobile, and email, and any birth details you later enter, as described in our
-              <a href="${privacyPolicyHref()}">Privacy Policy</a>.
-            </p>
             <div class="form-field form-field--submit">
               <button type="submit">Create account</button>
             </div>
@@ -314,14 +296,15 @@
       forgotPanel.classList.toggle("auth-modal__panel--hidden", !isForgot);
     }
 
-    if (leadEl) {
-      if (isForgot) {
-        leadEl.textContent = FORGOT_LEAD;
-      } else if (overlay.dataset.lead) {
-        leadEl.textContent = overlay.dataset.lead;
-      }
-    }
+    setLeadText(isForgot ? FORGOT_LEAD : overlay.dataset.lead || "");
     showStatus("");
+  }
+
+  function setLeadText(text) {
+    if (!leadEl) return;
+    const value = text || "";
+    leadEl.textContent = value;
+    leadEl.hidden = !value;
   }
 
   function completeAuthSuccessFlow() {
@@ -376,12 +359,10 @@
     const required = Boolean(options.required);
     const isPremium = options.reason === "premium";
 
-    if (leadEl) {
-      leadEl.textContent =
-        options.message ||
-        (tab === "forgot" ? FORGOT_LEAD : isPremium ? PREMIUM_LEAD : DEFAULT_LEAD);
-      overlay.dataset.lead = leadEl.textContent;
-    }
+    const lead =
+      options.message || (tab === "forgot" ? FORGOT_LEAD : isPremium ? PREMIUM_LEAD : "");
+    overlay.dataset.lead = lead;
+    setLeadText(lead);
 
     setActiveTab(tab);
     overlay.dataset.required = required ? "true" : "false";

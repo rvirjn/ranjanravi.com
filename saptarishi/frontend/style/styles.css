@@ -4657,23 +4657,6 @@ a.auth-form__link {
   line-height: 1.35;
 }
 
-.auth-modal__privacy {
-  margin: 0 0 0.85rem;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: var(--color-text-muted, var(--color-text));
-}
-
-.auth-modal__privacy a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.auth-modal__privacy a:hover {
-  text-decoration: underline;
-}
-
 .saptarishi-page--login .auth-form button[type="submit"] {
   width: 100%;
   padding: 0.65rem 1rem;
@@ -6163,22 +6146,26 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   border: 0;
 }
 
-@media (max-width: 480px) {
-  .ask-ai {
+@media (max-width: 720px) {
+  .ask-ai.ask-ai--open,
+  .ask-ai:has(.ask-ai__panel:not([hidden])) {
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: max(0px, var(--ask-ai-keyboard, 0px));
     width: 100%;
   }
 
   .ask-ai__panel {
     width: 100%;
-    max-height: min(72dvh, 36rem);
+    height: calc(100vh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+    height: calc(100dvh - var(--ask-ai-keyboard, 0px) - 0.5rem);
+    max-height: none;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
   .ask-ai__log {
     min-height: 0;
+    flex: 1 1 auto;
   }
 
   .ask-ai__header,
