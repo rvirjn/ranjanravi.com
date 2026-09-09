@@ -338,7 +338,8 @@ body.saptarishi-page {
 .kundali-form--chooser .birth-datetime-field > label,
 .kundali-form--chooser .birth-place-field > label,
 .kundali-form--chooser #birth-name-wrap > label,
-.kundali-form--chooser #custom-place-wrap {
+.kundali-form--chooser #custom-place-wrap,
+.kundali-form--chooser .compare-custom-place-wrap {
   display: none !important;
 }
 
@@ -478,11 +479,14 @@ body.saptarishi-page {
   position: relative;
   z-index: 1;
   width: min(22.5rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
   margin: 18vh auto 0;
   padding: 0.85rem 0.85rem 0.7rem;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 18px 40px rgba(31, 24, 6, 0.28);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .birth-picker__head {
@@ -516,6 +520,66 @@ body.saptarishi-page {
 
 .birth-wheel--time {
   grid-template-columns: 1fr 1fr 1fr 0.9fr;
+}
+
+.birth-picker__dialog--place {
+  width: min(22.5rem, calc(100vw - 2rem));
+}
+
+.birth-wheel--place {
+  grid-template-columns: 0.85fr 1.15fr 1.2fr;
+}
+
+.birth-wheel--place .birth-wheel__item {
+  font-size: 0.78rem;
+  padding: 0 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.birth-picker__custom {
+  margin: 0.55rem 0 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.birth-picker__custom[hidden] {
+  display: none !important;
+}
+
+.birth-picker__custom input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 2.45rem;
+  padding: 0.45rem 0.65rem;
+  border: 1.5px solid #e08a2a;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-heading);
+  font: inherit;
+  font-size: 16px;
+}
+
+.birth-picker__custom-hint {
+  margin: 0.35rem 0 0;
+  color: #8a6a3a;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.birth-picker__head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.birth-picker__custom-hint:empty {
+  display: none;
 }
 
 .birth-wheel::before,

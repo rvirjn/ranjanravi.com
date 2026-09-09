@@ -34,6 +34,10 @@ const SAPTARISHI_CONSTANTS = {
     "Patna, India",
     "Motihari, India"
   ],
+  /** Country/state/district list for the birth-place wheels. */
+  PLACES_DATA_PATH: _DEPLOY_PREFIX + "/frontend/public_data/places.json",
+  PLACES_DATA_VERSION: "2",
+  PLACE_OTHER_VALUE: "__other__",
 
   /** Form limits (keep in sync with backend/utils/constant.py). */
   MAX_NAME_LENGTH: 120,
@@ -43,7 +47,7 @@ const SAPTARISHI_CONSTANTS = {
   MOBILE_PLACEHOLDER: "e.g. 9876543210",
   NAME_PLACEHOLDER: "Enter Name",
   FULL_NAME_PLACEHOLDER: "Your full name",
-  PLACE_CUSTOM_PLACEHOLDER: "City, Country",
+  PLACE_CUSTOM_PLACEHOLDER: "Type city and country.",
 
   KUNDALI_COMPARE_MIN_BIRTHS: 2,
   KUNDALI_COMPARE_MAX_BIRTHS: 5,

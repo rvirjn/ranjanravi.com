@@ -256,7 +256,7 @@
     customInput.type = "text";
     customInput.className = "compare-place-custom";
     customInput.maxLength = C.MAX_PLACE_QUERY_LENGTH;
-    customInput.placeholder = "City, Country";
+    customInput.placeholder = C.PLACE_CUSTOM_PLACEHOLDER || "Type city and country.";
     customWrap.append(customLabel, customInput);
 
     const dateField = document.createElement("div");
@@ -310,6 +310,7 @@
     savedSelect.addEventListener("change", () => applyCompareSavedSelection(row));
 
     row.append(savedField, nameField, placeField, customWrap, dateField, timeField, saveField, removeField);
+    if (CU && CU.enhanceBirthChooser) CU.enhanceBirthChooser(row);
     return row;
   }
 
