@@ -5990,7 +5990,7 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 
 .ask-ai__panel {
   width: min(22rem, calc(100vw - 2rem));
-  max-height: min(28rem, calc(100vh - 5rem));
+  max-height: min(40rem, calc(100vh - 5rem));
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
@@ -6040,7 +6040,7 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  min-height: 10rem;
+  min-height: 18rem;
   background:
     radial-gradient(circle at top right, rgba(201, 162, 39, 0.12), transparent 45%),
     var(--color-bg-page);
@@ -6173,7 +6173,7 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 
   .ask-ai__panel {
     width: 100%;
-    max-height: min(52dvh, 22rem);
+    max-height: min(72dvh, 36rem);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
