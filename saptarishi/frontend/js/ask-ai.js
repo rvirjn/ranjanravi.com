@@ -169,6 +169,13 @@
         fab.hidden = false;
         fab.setAttribute("aria-expanded", "false");
       }
+      root.style.position = "";
+      root.style.inset = "";
+      root.style.width = "";
+      root.style.height = "";
+      root.style.display = "";
+      root.style.flexDirection = "";
+      root.style.zIndex = "";
       root.classList.remove("ask-ai--open");
       document.documentElement.classList.remove("ask-ai-lock");
       const body = document.body;
@@ -269,6 +276,49 @@
       if (wasLocked) window.scrollTo(0, y);
     }
 
+    function applyMobileInlineLayout(open) {
+      const mobile = isMobileScreen();
+      if (!open || !mobile) {
+        root.style.position = "";
+        root.style.inset = "";
+        root.style.width = "";
+        root.style.height = "";
+        root.style.display = "";
+        root.style.flexDirection = "";
+        root.style.zIndex = "";
+        panel.style.flex = "";
+        panel.style.display = "";
+        panel.style.flexDirection = "";
+        panel.style.height = "";
+        panel.style.minHeight = "";
+        panel.style.maxHeight = "";
+        log.style.flex = "";
+        log.style.height = "";
+        log.style.minHeight = "";
+        log.style.overflowY = "";
+        form.style.flexShrink = "";
+        return;
+      }
+      root.style.position = "fixed";
+      root.style.inset = "0";
+      root.style.width = "100%";
+      root.style.height = "100%";
+      root.style.display = "flex";
+      root.style.flexDirection = "column";
+      root.style.zIndex = "1300";
+      panel.style.flex = "1 1 0%";
+      panel.style.display = "flex";
+      panel.style.flexDirection = "column";
+      panel.style.height = "0";
+      panel.style.minHeight = "0";
+      panel.style.maxHeight = "none";
+      log.style.flex = "1 1 0%";
+      log.style.height = "0";
+      log.style.minHeight = "0";
+      log.style.overflowY = "scroll";
+      form.style.flexShrink = "0";
+    }
+
     function setOpen(open) {
       if (open && !isLoggedIn()) {
         syncVisibility();
@@ -280,9 +330,11 @@
       root.classList.toggle("ask-ai--open", open);
       closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
       if (!open) {
+        applyMobileInlineLayout(false);
         setPageLocked(false);
         return;
       }
+      applyMobileInlineLayout(true);
       if (isMobileScreen()) setPageLocked(true);
       else document.documentElement.classList.add("ask-ai-lock");
       if (!log.dataset.greeted) {
@@ -319,7 +371,9 @@
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
 
     function onResize() {
-      if (root.classList.contains("ask-ai--open")) scrollLogToEnd(log);
+      if (!root.classList.contains("ask-ai--open")) return;
+      applyMobileInlineLayout(true);
+      scrollLogToEnd(log);
     }
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", onResize);
