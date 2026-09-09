@@ -1483,15 +1483,17 @@ html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table.is
 
 html.saptarishi-native-app .ask-ai.ask-ai--open,
 html.saptarishi-native-app .ask-ai:has(.ask-ai__panel:not([hidden])) {
-  top: var(--ask-ai-top, 0px);
+  top: 0;
   right: 0;
-  bottom: var(--ask-ai-keyboard, 0px);
+  bottom: auto;
   left: 0;
   width: 100%;
-  height: auto;
-  max-height: none;
+  height: var(--ask-ai-screen-h, 100svh);
+  max-height: var(--ask-ai-screen-h, 100svh);
   display: flex;
   flex-direction: column;
+  background: var(--color-bg-page, #fffdf8);
+  z-index: 1300;
 }
 
 html.saptarishi-native-app .ask-ai__panel {
@@ -1500,7 +1502,36 @@ html.saptarishi-native-app .ask-ai__panel {
   height: 100%;
   min-height: 0;
   max-height: none;
+  border: 0;
   border-radius: 0;
+  box-shadow: none;
+}
+
+html.saptarishi-native-app .ask-ai__header {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  padding-top: max(0.55rem, env(safe-area-inset-top));
+}
+
+html.saptarishi-native-app .ask-ai__title {
+  grid-column: 2;
+  text-align: center;
+}
+
+html.saptarishi-native-app .ask-ai__close {
+  grid-column: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  order: 0;
+}
+
+html.saptarishi-native-app .ask-ai__close-mark--back {
+  display: inline;
+}
+
+html.saptarishi-native-app .ask-ai__close-mark--x {
+  display: none;
 }
 
 html.saptarishi-native-app .ask-ai__log {
@@ -1512,6 +1543,10 @@ html.saptarishi-native-app .ask-ai__log {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   touch-action: pan-y;
+}
+
+html.saptarishi-native-app .ask-ai__form {
+  padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
 }
 
 html.saptarishi-native-app .ask-ai__bubble {

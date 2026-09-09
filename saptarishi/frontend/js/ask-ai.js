@@ -171,6 +171,17 @@
       }
       root.classList.remove("ask-ai--open");
       document.documentElement.classList.remove("ask-ai-lock");
+      const body = document.body;
+      if (body && body.style.position === "fixed") {
+        const y = Number(body.dataset.askAiScroll || 0);
+        body.style.position = "";
+        body.style.top = "";
+        body.style.left = "";
+        body.style.right = "";
+        body.style.width = "";
+        delete body.dataset.askAiScroll;
+        window.scrollTo(0, y);
+      }
     }
   }
 
@@ -190,10 +201,11 @@
       </button>
       <div id="ask-ai-panel" class="ask-ai__panel" hidden>
         <header class="ask-ai__header">
-          <div>
-            <p class="ask-ai__title">Ask AI</p>
-          </div>
-          <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI">×</button>
+          <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI">
+            <span class="ask-ai__close-mark ask-ai__close-mark--back" aria-hidden="true">‹</span>
+            <span class="ask-ai__close-mark ask-ai__close-mark--x" aria-hidden="true">×</span>
+          </button>
+          <p class="ask-ai__title">Ask AI</p>
         </header>
         <div class="ask-ai__log" id="ask-ai-log" role="log" aria-live="polite"></div>
         <form class="ask-ai__form" id="ask-ai-form">
@@ -223,6 +235,54 @@
     const sendBtn = root.querySelector("#ask-ai-send");
     const log = root.querySelector("#ask-ai-log");
 
+    function isMobileScreen() {
+      return (
+        window.matchMedia("(max-width: 720px)").matches ||
+        document.documentElement.classList.contains("saptarishi-native-app")
+      );
+    }
+
+    function setPageLocked(locked) {
+      const html = document.documentElement;
+      const body = document.body;
+      if (!body) return;
+      if (locked) {
+        const y = window.scrollY || window.pageYOffset || 0;
+        body.dataset.askAiScroll = String(y);
+        html.classList.add("ask-ai-lock");
+        body.style.position = "fixed";
+        body.style.top = `-${y}px`;
+        body.style.left = "0";
+        body.style.right = "0";
+        body.style.width = "100%";
+        return;
+      }
+      const y = Number(body.dataset.askAiScroll || 0);
+      const wasLocked = body.style.position === "fixed";
+      html.classList.remove("ask-ai-lock");
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      delete body.dataset.askAiScroll;
+      if (wasLocked) window.scrollTo(0, y);
+    }
+
+    function fitMobileScreen() {
+      if (!root.classList.contains("ask-ai--open") || !isMobileScreen()) {
+        root.style.removeProperty("--ask-ai-screen-h");
+        return;
+      }
+      const vv = window.visualViewport;
+      const h = Math.max(
+        240,
+        Math.round((vv && vv.height) || window.innerHeight || 0)
+      );
+      root.style.setProperty("--ask-ai-screen-h", `${h}px`);
+      scrollLogToEnd(log);
+    }
+
     function setOpen(open) {
       if (open && !isLoggedIn()) {
         syncVisibility();
@@ -232,21 +292,25 @@
       fab.setAttribute("aria-expanded", open ? "true" : "false");
       fab.hidden = open;
       root.classList.toggle("ask-ai--open", open);
-      document.documentElement.classList.toggle("ask-ai-lock", open);
+      closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
       if (!open) {
-        root.style.setProperty("--ask-ai-top", "0px");
-        root.style.setProperty("--ask-ai-keyboard", "0px");
+        setPageLocked(false);
+        root.style.removeProperty("--ask-ai-screen-h");
         return;
       }
+      if (isMobileScreen()) setPageLocked(true);
+      else document.documentElement.classList.add("ask-ai-lock");
       if (!log.dataset.greeted) {
         appendBubble(log, "assistant", welcomeMessage());
         log.dataset.greeted = "1";
       }
-      pinAboveKeyboard();
+      fitMobileScreen();
       scrollLogToEnd(log);
-      input.focus({ preventScroll: true });
+      if (!isMobileScreen()) {
+        input.focus({ preventScroll: true });
+      }
       window.setTimeout(() => {
-        pinAboveKeyboard();
+        fitMobileScreen();
         scrollLogToEnd(log);
       }, 280);
     }
@@ -273,36 +337,19 @@
 
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
 
-    function pinAboveKeyboard() {
-      const vv = window.visualViewport;
-      if (!vv) {
-        root.style.setProperty("--ask-ai-top", "0px");
-        root.style.setProperty("--ask-ai-keyboard", "0px");
-        return;
-      }
-      const top = Math.max(0, Math.round(vv.offsetTop));
-      const covered = Math.max(
-        0,
-        Math.round(window.innerHeight - vv.height - vv.offsetTop)
-      );
-      root.style.setProperty("--ask-ai-top", `${top}px`);
-      root.style.setProperty("--ask-ai-keyboard", `${covered}px`);
-      scrollLogToEnd(log);
-    }
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", pinAboveKeyboard);
-      window.visualViewport.addEventListener("scroll", pinAboveKeyboard);
-      pinAboveKeyboard();
+      window.visualViewport.addEventListener("resize", fitMobileScreen);
+      window.visualViewport.addEventListener("scroll", fitMobileScreen);
     }
-    window.addEventListener("resize", pinAboveKeyboard);
+    window.addEventListener("resize", fitMobileScreen);
     input.addEventListener("focus", () => {
       window.setTimeout(() => {
-        pinAboveKeyboard();
+        fitMobileScreen();
         scrollLogToEnd(log);
       }, 300);
     });
     input.addEventListener("blur", () => {
-      window.setTimeout(pinAboveKeyboard, 200);
+      window.setTimeout(fitMobileScreen, 200);
     });
   }
 

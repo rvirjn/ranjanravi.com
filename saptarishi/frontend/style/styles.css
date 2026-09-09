@@ -6112,20 +6112,13 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
 
 .ask-ai__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   background: var(--color-header-bg);
   border-bottom: 1px solid var(--color-surface-border);
   flex-shrink: 0;
-}
-
-.ask-ai__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  color: var(--color-heading);
 }
 
 .ask-ai__close {
@@ -6138,6 +6131,19 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
   padding: 0.1rem 0.35rem;
   position: relative;
   z-index: 2;
+  order: 2;
+}
+
+.ask-ai__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-heading);
+  order: 1;
+}
+
+.ask-ai__close-mark--back {
+  display: none;
 }
 
 .ask-ai__log {
@@ -6283,15 +6289,17 @@ html.ask-ai-lock body {
 @media (max-width: 720px) {
   .ask-ai.ask-ai--open,
   .ask-ai:has(.ask-ai__panel:not([hidden])) {
-    top: var(--ask-ai-top, 0px);
+    top: 0;
     right: 0;
-    bottom: var(--ask-ai-keyboard, 0px);
+    bottom: auto;
     left: 0;
     width: 100%;
-    height: auto;
-    max-height: none;
+    height: var(--ask-ai-screen-h, 100svh);
+    max-height: var(--ask-ai-screen-h, 100svh);
     display: flex;
     flex-direction: column;
+    background: var(--color-bg-page);
+    z-index: 1300;
   }
 
   .ask-ai__panel {
@@ -6300,7 +6308,41 @@ html.ask-ai-lock body {
     height: 100%;
     min-height: 0;
     max-height: none;
+    border: 0;
     border-radius: 0;
+    box-shadow: none;
+  }
+
+  .ask-ai__header {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+    align-items: center;
+    gap: 0;
+    padding: max(0.55rem, env(safe-area-inset-top)) 0.35rem 0.55rem;
+  }
+
+  .ask-ai__title {
+    grid-column: 2;
+    text-align: center;
+    font-size: 1.05rem;
+  }
+
+  .ask-ai__close {
+    grid-column: 1;
+    grid-row: 1;
+    order: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.85rem;
+    line-height: 1;
+  }
+
+  .ask-ai__close-mark--back {
+    display: inline;
+  }
+
+  .ask-ai__close-mark--x {
+    display: none;
   }
 
   .ask-ai__log {
@@ -6315,9 +6357,8 @@ html.ask-ai-lock body {
     overflow-anchor: none;
   }
 
-  .ask-ai__header,
   .ask-ai__form {
-    flex-shrink: 0;
+    padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
   }
 
   .ask-ai__input {
