@@ -1485,11 +1485,11 @@ html.saptarishi-native-app .ask-ai.ask-ai--open,
 html.saptarishi-native-app .ask-ai:has(.ask-ai__panel:not([hidden])) {
   top: 0;
   right: 0;
-  bottom: auto;
+  bottom: var(--ask-ai-kb, 0px);
   left: 0;
   width: 100%;
-  height: var(--ask-ai-screen-h, 100svh);
-  max-height: var(--ask-ai-screen-h, 100svh);
+  height: auto;
+  max-height: none;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-page, #fffdf8);
@@ -1498,8 +1498,10 @@ html.saptarishi-native-app .ask-ai:has(.ask-ai__panel:not([hidden])) {
 
 html.saptarishi-native-app .ask-ai__panel {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: auto;
   min-height: 0;
   max-height: none;
   border: 0;
@@ -1512,6 +1514,7 @@ html.saptarishi-native-app .ask-ai__header {
   grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
   align-items: center;
   padding-top: max(0.55rem, env(safe-area-inset-top));
+  flex-shrink: 0;
 }
 
 html.saptarishi-native-app .ask-ai__title {
@@ -1546,6 +1549,8 @@ html.saptarishi-native-app .ask-ai__log {
 }
 
 html.saptarishi-native-app .ask-ai__form {
+  flex-shrink: 0;
+  margin-top: auto;
   padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
 }
 

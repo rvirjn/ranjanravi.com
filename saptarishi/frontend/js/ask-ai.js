@@ -271,15 +271,19 @@
 
     function fitMobileScreen() {
       if (!root.classList.contains("ask-ai--open") || !isMobileScreen()) {
-        root.style.removeProperty("--ask-ai-screen-h");
+        root.style.removeProperty("--ask-ai-kb");
         return;
       }
       const vv = window.visualViewport;
-      const h = Math.max(
-        240,
-        Math.round((vv && vv.height) || window.innerHeight || 0)
+      if (!vv) {
+        root.style.setProperty("--ask-ai-kb", "0px");
+        return;
+      }
+      const overlap = Math.max(
+        0,
+        Math.round(window.innerHeight - vv.height - vv.offsetTop)
       );
-      root.style.setProperty("--ask-ai-screen-h", `${h}px`);
+      root.style.setProperty("--ask-ai-kb", `${overlap}px`);
       scrollLogToEnd(log);
     }
 
@@ -295,7 +299,7 @@
       closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
       if (!open) {
         setPageLocked(false);
-        root.style.removeProperty("--ask-ai-screen-h");
+        root.style.removeProperty("--ask-ai-kb");
         return;
       }
       if (isMobileScreen()) setPageLocked(true);
