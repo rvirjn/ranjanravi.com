@@ -240,13 +240,23 @@ html.saptarishi-native-app .app-kicker {
 }
 
 html.saptarishi-native-app .app-title,
-html.saptarishi-native-app #saptarishi.main-shell .app-title,
-html.saptarishi-native-app #saptarishi.main-shell .auspicious-heading h1 {
+html.saptarishi-native-app #saptarishi.main-shell .app-title {
   margin: 0 0 0.35rem;
   padding: 0;
   border: none;
   font-family: var(--app-serif);
   font-size: 2rem;
+  font-weight: 700;
+  color: var(--app-brown);
+  letter-spacing: 0;
+}
+
+html.saptarishi-native-app #saptarishi.main-shell .auspicious-heading h1 {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  border: none;
+  font-family: var(--app-serif);
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--app-brown);
   letter-spacing: 0;
@@ -600,8 +610,7 @@ html.saptarishi-native-app .kundali-tabs__item--active {
 }
 
 html.saptarishi-native-app #birth-form .form-field:not(.form-field--save) > label,
-html.saptarishi-native-app #remedy-form .form-field:not(.form-field--save) > label,
-html.saptarishi-native-app .privacy-collect-note {
+html.saptarishi-native-app #remedy-form .form-field:not(.form-field--save) > label {
   display: none !important;
 }
 
@@ -628,10 +637,6 @@ html.saptarishi-native-app body.app-kundali-new #kundali-compare-panel {
 
 html.saptarishi-native-app #app-kundali-empty {
   margin: 0.6rem 0 1.2rem;
-}
-
-html.saptarishi-native-app .search-form .privacy-collect-note {
-  grid-column: 1 / -1;
 }
 
 html.saptarishi-native-app .search-form.kundali-form .form-field {
@@ -1362,8 +1367,7 @@ html.saptarishi-native-app #app-kundali-houses .app-title {
 
 html.saptarishi-native-app body.app-page--remedy .kundali-tabs,
 html.saptarishi-native-app body.app-page--remedy #remedy-form,
-html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead,
-html.saptarishi-native-app body.app-page--remedy .privacy-collect-note {
+html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead {
   display: none !important;
 }
 

@@ -177,7 +177,7 @@
     parent.appendChild(a);
   }
 
-  function appendRequiredDataCredits(container, { includeEphemeris = false, leadingSpace = true } = {}) {
+  function appendRequiredDataCredits(container, { leadingSpace = true } = {}) {
     if (!container) return;
     if (leadingSpace) container.append(document.createTextNode(" "));
     container.append(document.createTextNode("Place search "));
@@ -188,47 +188,7 @@
       "https://www.openstreetmap.org/copyright",
       "© OpenStreetMap contributors"
     );
-    if (includeEphemeris) {
-      container.append(document.createTextNode(" · Planetary positions from "));
-      appendCreditLink(container, "https://ssd.jpl.nasa.gov/", "NASA JPL");
-      container.append(document.createTextNode(" via "));
-      appendCreditLink(container, "https://rhodesmill.org/skyfield/", "Skyfield");
-    }
     container.append(document.createTextNode("."));
-  }
-
-  function makePrivacyNote(textBeforeLink) {
-    const note = document.createElement("p");
-    note.className = "privacy-collect-note";
-    note.append(document.createTextNode(textBeforeLink));
-    const link = document.createElement("a");
-    link.href = privacyPolicyHref();
-    link.textContent = "Privacy Policy";
-    note.appendChild(link);
-    note.append(document.createTextNode("."));
-    return note;
-  }
-
-  function attachPrivacyNote(form, textBeforeLink) {
-    if (!form || form.querySelector(".privacy-collect-note")) return;
-    const note = makePrivacyNote(textBeforeLink);
-    const submit = form.querySelector(".form-field--submit");
-    if (submit && submit.parentNode) submit.parentNode.insertBefore(note, submit);
-    else form.appendChild(note);
-  }
-
-  function mountCollectionNotices() {
-    const birthText =
-      "Name, date, time, and place of birth you enter are sent to our servers to generate results. See ";
-    const placeText =
-      "Place you enter is sent to our servers to calculate timings. We do not use device GPS. See ";
-    attachPrivacyNote(document.getElementById("birth-form"), birthText);
-    attachPrivacyNote(document.getElementById("remedy-form"), birthText);
-    attachPrivacyNote(document.getElementById("auspicious-form"), placeText);
-    attachPrivacyNote(
-      document.getElementById("kundali-compare-form"),
-      "Names, dates, times, and places you enter for comparison are sent to our servers. See "
-    );
   }
 
   function fillPrivacyPageFromConstants() {
@@ -931,7 +891,6 @@
       </div>
     `;
     appendRequiredDataCredits(footer.querySelector(".site-footer__credits"), {
-      includeEphemeris: true,
       leadingSpace: false
     });
     wireConnectAstrologer(footer);
@@ -1766,8 +1725,6 @@
     document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form").forEach((el) => {
       el.hidden = hidden;
     });
-    const changeBtn = document.getElementById("change-birth-details-btn");
-    if (changeBtn) changeBtn.hidden = !hidden;
     if (hidden) {
       const compare = document.getElementById("kundali-compare-panel");
       if (compare) compare.hidden = true;
@@ -1785,13 +1742,6 @@
     const lord = document.getElementById("lord-comparison-section");
     if (lord) lord.hidden = true;
     window.scrollTo(0, 0);
-  }
-
-  function bindBirthEntryToggle() {
-    const changeBtn = document.getElementById("change-birth-details-btn");
-    if (!changeBtn || changeBtn.dataset.bound === "1") return;
-    changeBtn.dataset.bound = "1";
-    changeBtn.addEventListener("click", () => setBirthEntryHidden(false));
   }
 
   function hookBirthChooserRefresh() {
@@ -1819,14 +1769,12 @@
     enhanceBirthChooser(document.getElementById("birth-form"));
     enhanceBirthChooser(document.getElementById("remedy-form"));
     hookBirthChooserRefresh();
-    bindBirthEntryToggle();
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       closeBirthPicker();
       closeBirthPlacePicker();
     });
     fillPrivacyPageFromConstants();
-    mountCollectionNotices();
     recordPageView();
     keepAppLinksInWebView();
 

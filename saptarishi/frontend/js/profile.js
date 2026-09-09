@@ -354,6 +354,19 @@
     }
   }
 
+  function showProfileLoadingStatus() {
+    const utils = global.SaptarishiCommonUtils;
+    if (utils && utils.startStatusLoading) {
+      utils.startStatusLoading(statusEl, (message) => showStatus(message, false));
+      return;
+    }
+    if (LOADING) {
+      LOADING.startStatusLoadingIndicator(statusEl);
+      return;
+    }
+    showStatus("Loading…", false);
+  }
+
   async function ensureLoggedIn() {
     if (AUTH.getToken()) return true;
     if (MODAL) {
@@ -363,7 +376,7 @@
   }
 
   async function loadProfileData() {
-    showStatus("Loading profile…", false);
+    showProfileLoadingStatus();
     try {
       const payload = await AUTH.fetchProfile();
       renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});

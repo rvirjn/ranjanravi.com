@@ -3243,7 +3243,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
-    showStatusMessage(C.KUNDALI_READY_STATUS_MESSAGE);
+    showStatusMessage("");
   }
 }
 

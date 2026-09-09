@@ -1354,7 +1354,7 @@
     const shell = document.getElementById("saptarishi");
     if (!shell) return;
     document.querySelectorAll(
-      "#saptarishi > p.lead, .kundali-tabs, #remedy-form, .privacy-collect-note"
+      "#saptarishi > p.lead, .kundali-tabs, #remedy-form"
     ).forEach((el) => {
       el.hidden = true;
     });

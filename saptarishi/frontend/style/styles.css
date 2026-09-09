@@ -218,24 +218,6 @@ body.saptarishi-page {
   box-shadow: inset 0 -3px 0 #c9a227;
 }
 
-.birth-change-btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  margin: 0 0 0.85rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-primary);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.birth-change-btn:hover {
-  text-decoration: underline;
-}
-
 .kundali-tabs[hidden],
 .search-form[hidden],
 #birth-form[hidden],
@@ -913,26 +895,6 @@ body.birth-overlay-open {
 .search-form input {
   width: 260px;
   padding: var(--space-sm);
-}
-
-.search-form .privacy-collect-note {
-  flex: 1 1 100%;
-  align-self: stretch;
-  width: 100%;
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: var(--color-text-muted, var(--color-text));
-}
-
-.search-form .privacy-collect-note a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.search-form .privacy-collect-note a:hover {
-  text-decoration: underline;
 }
 
 .form-field--save {
@@ -3109,6 +3071,7 @@ tbody tr:last-child td {
   margin-bottom: 0.35rem;
   padding-bottom: 0;
   border-bottom: none;
+  font-size: clamp(1.05rem, 2.8vw, 1.35rem);
 }
 
 #saptarishi.main-shell .auspicious-heading .lead {
@@ -3544,21 +3507,6 @@ tbody tr:last-child td {
 
 .kundali-compare-form .search-form button[type="submit"] {
   min-width: 7rem;
-}
-
-.kundali-compare-form .privacy-collect-note {
-  flex: 1 1 100%;
-  width: 100%;
-  margin: 0 0 var(--space-sm);
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: var(--color-text-muted, var(--color-text));
-}
-
-.kundali-compare-form .privacy-collect-note a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: none;
 }
 
 /* ---------- Site chrome (header / footer) ---------- */

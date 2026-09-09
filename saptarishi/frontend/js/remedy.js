@@ -736,7 +736,7 @@
       buttonsHost: dusthanaRemedyButtons,
       emptyEl: dusthanaRemedyEmpty,
       headingEl: dusthanaRemedyHeading,
-      baseHeading: "Remedy for planet in Dusthana 6/8/12 houses",
+      baseHeading: "Remedy for planet in dusthana 6/8/12 houses",
       planetKeys: groups.dusthana,
       buttonClassName: "remedy-navatara-btn--dosh"
     });
