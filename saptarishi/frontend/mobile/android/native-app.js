@@ -683,6 +683,13 @@
     } catch {
       /* WebView bridge not present on desktop */
     }
+    try {
+      if (global.SaptarishiIos && global.SaptarishiIos.setPullToRefreshEnabled) {
+        global.SaptarishiIos.setPullToRefreshEnabled(Boolean(enabled));
+      }
+    } catch {
+      /* iOS bridge not present on desktop */
+    }
   }
 
   function setDockHidden(hidden) {

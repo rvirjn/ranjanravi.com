@@ -19,6 +19,14 @@
   const LOADING = global.SaptarishiLoading;
   const CU = global.SaptarishiCommonUtils || null;
 
+  function isIosNativeApp() {
+    return (
+      document.documentElement.classList.contains("saptarishi-native-ios") ||
+      (/SaptarishiNativeApp/i.test(navigator.userAgent || "") &&
+        /iPhone|iPad|iPod/i.test(navigator.userAgent || ""))
+    );
+  }
+
   function formatContactPhoneDisplay(raw) {
     if (CU && CU.formatIndiaPhoneDisplay) return CU.formatIndiaPhoneDisplay(raw);
     const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
@@ -191,7 +199,7 @@
             Amount: <strong id="wallet-modal-amount">₹${DEFAULT_PLANS[0]?.amount_inr || AC.PREMIUM_PACK_AMOUNT_INR}</strong>
           </p>
           <p id="wallet-modal-plan-summary" class="premium-modal__plan-summary"></p>
-          <ol class="premium-modal__steps">
+          <ol class="premium-modal__steps" id="wallet-modal-upi-steps">
             <li>Select an amount, scan the QR code, and complete payment in PhonePe or any UPI app.</li>
             <li>
               Within 2 hours you will get a coupon code on your email or phone.
@@ -199,6 +207,10 @@
               <strong id="wallet-modal-phone">${formatContactPhoneDisplay(AC.CONTACT_PHONE || AC.PREMIUM_CONTACT_PHONE)}</strong>.
             </li>
           </ol>
+          <div class="premium-modal__ios-iap" id="wallet-modal-ios-iap" hidden>
+            <p class="premium-modal__steps">Apple requires in-app purchase on iPhone. Choose an amount, then tap Buy with Apple.</p>
+            <button type="button" id="wallet-modal-apple-buy">Buy with Apple</button>
+          </div>
           <form id="wallet-modal-form" class="premium-modal__form" autocomplete="off">
             <div class="form-field">
               <label for="wallet-modal-coupon">Enter coupon code</label>
@@ -245,6 +257,39 @@
     planPickerEl = overlay.querySelector("#wallet-modal-plan-picker");
     plansNoteEl = overlay.querySelector("#wallet-modal-plans-note");
     if (plansNoteEl) plansNoteEl.textContent = paidPlanNote();
+
+    const iosIap = overlay.querySelector("#wallet-modal-ios-iap");
+    const appleBuy = overlay.querySelector("#wallet-modal-apple-buy");
+    if (iosIap) iosIap.hidden = !isIosNativeApp();
+    if (appleBuy) {
+      appleBuy.addEventListener("click", async () => {
+        if (busy) return;
+        if (!AUTH.getToken()) {
+          showStatus("Please sign in first, then buy with Apple.", true);
+          return;
+        }
+        const plan = planById(selectedPlanId);
+        const amount = Number(plan?.amount_inr) || 0;
+        const iap = global.SaptarishiIosIap;
+        if (!iap || typeof iap.buyWalletCredit !== "function") {
+          showStatus("Apple purchase is not ready in this build.", true);
+          return;
+        }
+        setBusy(true);
+        showStatus("Contacting the App Store…", false);
+        try {
+          const result = await iap.buyWalletCredit(amount);
+          setBusy(false);
+          const tx = result && result.transactionId ? ` Apple ID ${result.transactionId}.` : "";
+          showSuccess(
+            `Apple payment received.${tx} Wallet credit is applied after App Store confirmation. If it is delayed, WhatsApp support with that ID.`
+          );
+        } catch (err) {
+          setBusy(false);
+          showStatus(err.message || "Could not complete Apple purchase.", true);
+        }
+      });
+    }
 
     overlay.querySelector("#wallet-modal-close").addEventListener("click", () => close(false));
     overlay.querySelector("#wallet-modal-done").addEventListener("click", () => close(true));
@@ -377,7 +422,10 @@
     if (titleEl) titleEl.textContent = "Add money to wallet";
     if (leadEl) {
       leadEl.textContent =
-        message || "Select an amount, scan the QR, pay, then enter your coupon code.";
+        message ||
+        (isIosNativeApp()
+          ? "Select an amount, then buy with Apple."
+          : "Select an amount, scan the QR, pay, then enter your coupon code.");
       leadEl.hidden = !leadEl.textContent;
     }
     if (summaryPanel) summaryPanel.hidden = true;
@@ -428,6 +476,8 @@
     }
     const closeBtn = overlay.querySelector("#wallet-modal-close");
     if (closeBtn) closeBtn.disabled = value;
+    const appleBuy = overlay.querySelector("#wallet-modal-apple-buy");
+    if (appleBuy) appleBuy.disabled = value;
   }
 
   function startLoading() {
@@ -528,7 +578,7 @@
     if (wantsAddMoney(options)) {
       showAddMoneyView({ fromSummary: false, message: options.message || "" });
       const couponInput = overlay.querySelector("#wallet-modal-coupon");
-      if (couponInput) {
+      if (couponInput && !isIosNativeApp()) {
         window.requestAnimationFrame(() => couponInput.focus());
       }
     } else {

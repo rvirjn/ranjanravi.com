@@ -1,0 +1,64 @@
+/*
+ * Copyright © 2018-2026 ranjanravi.com. All rights reserved.
+ * iPhone overlay on top of Android native-app.css.
+ * Applied when html.saptarishi-native-ios is present.
+ */
+
+html.saptarishi-native-ios {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.saptarishi-native-ios body.saptarishi-page {
+  padding-bottom: calc(var(--app-dock-h) + env(safe-area-inset-bottom, 0px));
+}
+
+html.saptarishi-native-ios .site-header.app-topbar {
+  padding-top: calc(0.45rem + env(safe-area-inset-top, 0px));
+}
+
+html.saptarishi-native-ios .app-dock {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.saptarishi-native-ios .app-drawer {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+}
+
+html.saptarishi-native-ios .app-sheet {
+  padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+}
+
+html.saptarishi-native-ios .premium-modal-overlay {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.saptarishi-native-ios .premium-modal__qr-wrap,
+html.saptarishi-native-ios #wallet-modal-upi-steps,
+html.saptarishi-native-ios #wallet-modal-form {
+  display: none !important;
+}
+
+html.saptarishi-native-ios #wallet-modal-ios-iap:not([hidden]) {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+html.saptarishi-native-ios #wallet-modal-apple-buy {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0.85rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(180deg, #d4b25a, #8b6d3b);
+  cursor: pointer;
+}
+
+html.saptarishi-native-ios input,
+html.saptarishi-native-ios select,
+html.saptarishi-native-ios textarea {
+  font-size: 16px;
+}
