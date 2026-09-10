@@ -5418,6 +5418,18 @@ async function handleBirthFormSubmit(event) {
     return;
   }
 
+  if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
+    const ok = await SaptarishiAuth.requireLoginForCharts();
+    if (!ok) {
+      showStatusMessage(
+        (C && C.LOGIN_REQUIRED_FOR_CHART_MESSAGE) ||
+          "Register or sign in to generate a kundali.",
+        true
+      );
+      return;
+    }
+  }
+
   if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
   showKundaliLoadingStatus();
   if (resultsEl) resultsEl.hidden = true;
@@ -5441,6 +5453,30 @@ async function handleBirthFormSubmit(event) {
     const formatted = formatKundaliApiError(err);
     if (typeof SaptarishiAuth !== "undefined" && err.status === 401) {
       SaptarishiAuth.clearSession();
+      if (SaptarishiAuth.requireLoginForCharts) {
+        const signedIn = await SaptarishiAuth.requireLoginForCharts();
+        if (signedIn) {
+          if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
+          showKundaliLoadingStatus();
+          try {
+            const kundaliPayload = await fetchKundaliJsonFromApi(
+              birthDate.value,
+              birthTime.value,
+              place,
+              name,
+              shouldSaveBirthDetails()
+            );
+            renderKundaliResponseIntoPage(kundaliPayload);
+            refreshSavedKundaliDropdown();
+            return;
+          } catch (retryErr) {
+            const retryFormatted = formatKundaliApiError(retryErr);
+            showStatusMessage(retryFormatted.text, true, retryFormatted.limitReached);
+            if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);
+            return;
+          }
+        }
+      }
     }
     showStatusMessage(formatted.text, true, formatted.limitReached);
     if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);

@@ -222,6 +222,16 @@
       return;
     }
 
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
+      const ok = await SaptarishiAuth.requireLoginForCharts({
+        message: "Register or sign in to run an auspicious scan."
+      });
+      if (!ok) {
+        showAuspiciousStatus("Register or sign in to run an auspicious scan.", true);
+        return;
+      }
+    }
+
     showAuspiciousLoading();
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
     const lordSection = document.getElementById("lord-comparison-section");

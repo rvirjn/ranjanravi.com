@@ -2074,6 +2074,14 @@
   async function lookupPlaceFromApi(query) {
     const text = String(query || "").trim();
     if (!text) throw new Error("Select Place.");
+    if (AUTH && typeof AUTH.requireLoginForCharts === "function") {
+      const ok = await AUTH.requireLoginForCharts({
+        message: "Register or sign in to look up a place."
+      });
+      if (!ok) {
+        throw new Error("Register or sign in to look up a place.");
+      }
+    }
     const path = `${AC.API_PLACE_PATH || "/api/place"}?place=${encodeURIComponent(text)}`;
     if (AUTH && typeof AUTH.apiFetch === "function") {
       return AUTH.apiFetch(path);

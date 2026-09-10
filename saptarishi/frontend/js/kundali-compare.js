@@ -456,6 +456,16 @@
       return;
     }
 
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
+      const ok = await SaptarishiAuth.requireLoginForCharts({
+        message: "Register or sign in to compare kundalis."
+      });
+      if (!ok) {
+        showStatus("Register or sign in to compare kundalis.", true);
+        return;
+      }
+    }
+
     showLoading();
     if (resultsEl) resultsEl.hidden = true;
     const lordSection = document.getElementById("lord-comparison-section");

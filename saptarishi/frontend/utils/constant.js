@@ -78,6 +78,7 @@ const SAPTARISHI_CONSTANTS = {
   API_ASK_PATH: "/api/ask",
   API_PLANET_DATABASE_PATH: "/api/planet-database?v=2",
   ASK_AI_MAX_QUESTION_LENGTH: 800,
+  LOGIN_REQUIRED_FOR_CHART_MESSAGE: "Register or sign in to generate a kundali.",
   API_AUTH_REGISTER_PATH: "/api/auth/register",
   API_AUTH_LOGIN_PATH: "/api/auth/login",
   API_AUTH_PROFILE_PATH: "/api/auth/profile",

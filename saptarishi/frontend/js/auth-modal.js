@@ -371,7 +371,7 @@
     setLeadText(lead);
 
     setActiveTab(tab);
-    overlay.dataset.required = "false";
+    overlay.dataset.required = options.required ? "true" : "false";
     overlay.querySelector("#auth-modal-close").hidden = false;
     overlay.hidden = false;
     document.body.classList.add("auth-modal-open");

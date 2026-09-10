@@ -260,6 +260,7 @@
       err.status = response.status;
       err.payload = payload;
       err.premiumRequired = Boolean(payload.premium_required);
+      err.loginRequired = Boolean(payload.login_required) || response.status === 401;
       throw err;
     }
     return payload;
@@ -284,13 +285,26 @@
     if (global.SaptarishiAuthModal) {
       await global.SaptarishiAuthModal.open({
         tab: options.tab || "login",
-        required: false,
+        required: Boolean(options.required),
         reason: options.reason || "",
         message: options.message || "Sign in to continue."
       });
       return Boolean(getToken());
     }
     return false;
+  }
+
+  async function requireLoginForCharts(options = {}) {
+    const message =
+      options.message ||
+      AC.LOGIN_REQUIRED_FOR_CHART_MESSAGE ||
+      "Register or sign in to generate a kundali.";
+    if (getToken()) return true;
+    return ensureAuth({
+      tab: options.tab || "register",
+      required: true,
+      message
+    });
   }
 
   async function refreshMe() {
@@ -625,32 +639,32 @@
   }
 
   async function fetchKundali(path, date, time, place, name) {
-    const cacheKey = buildScanCacheKey([date, time, place, name || ""]);
-    if (isGuestScanLimitReached("kundali")) {
-      const cached = getCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey);
-      if (cached) return cached;
-      throw createLimitError();
+    const ok = await requireLoginForCharts();
+    if (!ok) {
+      const err = new Error(
+        AC.LOGIN_REQUIRED_FOR_CHART_MESSAGE || "Register or sign in to generate a kundali."
+      );
+      err.status = 401;
+      err.loginRequired = true;
+      throw err;
     }
     const payload = await apiFetch(path);
     updateUserFromApiPayload(payload);
-    if (!requireAuth() && !isPremiumActive()) {
-      setCachedScanResult(STORAGE_KUNDALI_CACHE, cacheKey, payload);
-    }
     return payload;
   }
 
   async function fetchAuspicious(path, dateFrom, dateTo, place) {
-    const cacheKey = buildScanCacheKey([dateFrom, dateTo, place]);
-    if (isGuestScanLimitReached("auspicious")) {
-      const cached = getCachedScanResult(STORAGE_AUSPICIOUS_CACHE, cacheKey);
-      if (cached) return cached;
-      throw createLimitError();
+    const ok = await requireLoginForCharts({
+      message: "Register or sign in to run an auspicious scan."
+    });
+    if (!ok) {
+      const err = new Error("Register or sign in to run an auspicious scan.");
+      err.status = 401;
+      err.loginRequired = true;
+      throw err;
     }
     const payload = await apiFetch(path);
     updateUserFromApiPayload(payload);
-    if (!requireAuth() && !isPremiumActive()) {
-      setCachedScanResult(STORAGE_AUSPICIOUS_CACHE, cacheKey, payload);
-    }
     return payload;
   }
 
@@ -1075,6 +1089,7 @@
     clearSession,
     requireAuth,
     ensureAuth,
+    requireLoginForCharts,
     refreshMe,
     fetchUsage,
     login,
