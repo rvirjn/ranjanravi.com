@@ -325,15 +325,20 @@ function formatStrengthPercentChangeInBrackets(value) {
 const STRENGTH_RULE_PRIMARY_FOR_STATUS_COLUMN = {
   planet_status_in_rashi: new Set([
     "exalted",
+    "mooltrikona",
     "debilitated",
     "own_rashi",
     "friend_rashi",
-    "enemy_rashi"
+    "great_friend_rashi",
+    "enemy_rashi",
+    "great_enemy_rashi",
+    "neutral_rashi"
   ]),
   planet_status_in_nakshatra: new Set([
     "own_nakshatra",
     "friend_nakshatra",
-    "enemy_nakshatra"
+    "enemy_nakshatra",
+    "neutral_nakshatra"
   ])
 };
 
@@ -343,6 +348,7 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   dusthana_house: "Dusthana House",
   mangal_dosha: "mangaldosh",
   trikona_house: "Trikona House",
+  kendra_house: "Kendra House",
   retrograde: "Retrograde",
   combustion: "Combustion",
   death_degree: "Death Degree",
@@ -534,12 +540,18 @@ function formatTableCellForDisplay(key, cell) {
     return toTitleCaseWords(text);
   }
   if (key === "planet_status_in_rashi" || key === "planet_status_in_nakshatra") {
-    const s = normalizeText(text);
+    const s = normalizeText(text).replace(/_/g, " ");
     if (!s) return "—";
     if (s === "high") return "High";
     if (s === "low") return "Low";
     if (s === "own") return "Own";
-    return toTitleCaseWords(text);
+    if (s === "mooltrikona" || s === "mool trikona" || s === "moolatrikona") {
+      return "Mooltrikona";
+    }
+    if (s === "great friend") return "Great Friend";
+    if (s === "great enemy") return "Great Enemy";
+    if (s === "neutral") return "Neutral";
+    return toTitleCaseWords(s);
   }
   if (
     key === "strength" ||
@@ -667,8 +679,8 @@ function cellKindToColorCodeId(kind) {
   const k = String(kind || "")
     .trim()
     .toLowerCase();
-  if (k === "high" || k === "own" || k === "friend") return "green";
-  if (k === "low" || k === "enemy") return "red";
+  if (k === "high" || k === "own" || k === "friend" || k === "great_friend") return "green";
+  if (k === "low" || k === "enemy" || k === "great_enemy") return "red";
   if (k === "neutral") return "neutral";
   return "";
 }
@@ -793,10 +805,11 @@ function strengthToOpacity(row, strengthMax) {
 
 /** Status kind for cell tint: high/low beat own/friend/enemy when combined. */
 function planetStatusKind(status) {
-  const s = normalizeText(status);
+  const s = normalizeText(status).replace(/_/g, " ");
   if (!s || s === "unknown" || s === "—") return "";
   if (s === "high" || /\bhigh\b/.test(s)) return "high";
   if (s === "low" || /\blow\b/.test(s)) return "low";
+  if (s === "mooltrikona" || s === "mool trikona" || s === "moolatrikona") return "own";
   if (s === "own" || /\bown\b/.test(s)) return "own";
   if (/\bfriend\b/.test(s)) return "friend";
   if (/\benemy\b/.test(s)) return "enemy";
