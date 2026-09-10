@@ -4002,6 +4002,7 @@ body.site-drawer-open {
   box-shadow: 0 8px 20px rgba(74, 47, 20, 0.18);
   transform: translateX(-50%);
   text-align: left;
+  white-space: normal;
 }
 
 .site-footer__connect-rate {
@@ -4550,6 +4551,34 @@ body.send-coupon-open {
   color: var(--color-text-muted);
   opacity: 0.55;
   user-select: none;
+}
+
+@media (max-width: 720px) {
+  .site-footer {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
+
+  .site-footer__meta {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0.12rem 0.22rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .site-footer__views,
+  .site-footer__contact-toggle,
+  .site-footer__connect-toggle,
+  .site-footer__privacy-link {
+    flex-shrink: 0;
+    font-size: clamp(0.58rem, 2.65vw, 0.78rem);
+    white-space: nowrap;
+  }
+
+  .site-footer__meta-sep {
+    flex-shrink: 0;
+  }
 }
 
 /* Stack main card under header with no double outer margin */
