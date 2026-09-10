@@ -381,11 +381,17 @@ function appendPlanetsTableCellWithStrengthRules(td, rowData, columnKey, mainTex
   mainEl.textContent = mainText;
 
   if (primarySet) {
-    const primary = rules.find((rule) => primarySet.has(rule.rule));
+    // Status text already names the dignity (Friend / Great Friend / …).
+    // Attach one (+/-) to that line; never repeat the same dignity as a second line.
+    const primary =
+      rules.find((rule) => primarySet.has(rule.rule)) ||
+      rules.find((rule) => statusTextImpliesStrengthRule(mainText, rule));
     if (primary) appendStrengthPercentChangeLabel(mainEl, primary.value);
     td.appendChild(mainEl);
     for (const rule of rules) {
+      if (primarySet.has(rule.rule)) continue;
       if (primary && rule.rule === primary.rule) continue;
+      if (statusTextImpliesStrengthRule(mainText, rule)) continue;
       const line = document.createElement("div");
       line.className = "planets-strength-rule-line";
       line.textContent = formatStrengthRuleDisplayLabel(rule);
@@ -404,6 +410,28 @@ function appendPlanetsTableCellWithStrengthRules(td, rowData, columnKey, mainTex
     appendStrengthPercentChangeLabel(line, rule.value);
     td.appendChild(line);
   }
+}
+
+/** True when a strength rule is already expressed by the status label (avoid duplicate lines). */
+function statusTextImpliesStrengthRule(statusText, rule) {
+  const status = normalizeText(statusText).replace(/_/g, " ");
+  const ruleId = normalizeText(rule?.rule).replace(/_/g, " ");
+  const ruleLabel = normalizeText(
+    rule?.label || formatStrengthRuleDisplayLabel(rule) || ""
+  ).replace(/_/g, " ");
+  if (!status) return false;
+  if (status === ruleId || status === ruleLabel) return true;
+  // "Great Friend" ↔ great_friend_rashi / "Great Friend Rashi"
+  if (status === "great friend" && /great friend/.test(ruleId)) return true;
+  if (status === "great enemy" && /great enemy/.test(ruleId)) return true;
+  if (status === "friend" && ruleId === "friend rashi") return true;
+  if (status === "enemy" && ruleId === "enemy rashi") return true;
+  if (status === "own" && ruleId === "own rashi") return true;
+  if (status === "neutral" && ruleId === "neutral rashi") return true;
+  if (status === "mooltrikona" && /mooltrikona/.test(ruleId)) return true;
+  if ((status === "high" || status === "exalted") && ruleId === "exalted") return true;
+  if ((status === "low" || status === "debilitated") && ruleId === "debilitated") return true;
+  return false;
 }
 
 /** Strength % change from one incoming aspect (e.g. Mars aspect on this planet). */
