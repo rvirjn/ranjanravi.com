@@ -1399,7 +1399,7 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { key: "dasha_age", header: "Mahadasha on Age" },
   { key: "karakwaqt", header: "Karakwaqt", qaKey: "karakwaqt" },
   { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12", qaKey: "malefic_6_8_12" },
-  { key: "benefic_position", header: "Benefic Position", qaKey: "benefic_position" },
+  { key: "benefic_position", header: "Benefic 1/5/9", qaKey: "benefic_position" },
   { key: "navatara", header: "Nakshatra navatara", qaKey: "nakshatra_navatara" },
   { key: "degree", header: "Degree" },
   { key: "is_planet_at_death_degree", header: "Death Degree", qaKey: "death_degree" },
