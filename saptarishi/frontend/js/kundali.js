@@ -339,7 +339,8 @@ const STRENGTH_RULE_PRIMARY_FOR_STATUS_COLUMN = {
     "friend_nakshatra",
     "enemy_nakshatra",
     "neutral_nakshatra"
-  ])
+  ]),
+  benefic_position: new Set(["trikona_house", "kendra_house"])
 };
 
 const STRENGTH_RULE_FALLBACK_LABELS = {
@@ -347,8 +348,8 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   moon_under_precious_nakshatra: "Precious Nakshatra",
   dusthana_house: "Dusthana House",
   mangal_dosha: "mangaldosh",
-  trikona_house: "Trikona House",
-  kendra_house: "Kendra House",
+  trikona_house: "Trikona",
+  kendra_house: "Kendra",
   retrograde: "Retrograde",
   combustion: "Combustion",
   death_degree: "Death Degree",
@@ -429,6 +430,8 @@ function statusTextImpliesStrengthRule(statusText, rule) {
   if (status === "own" && ruleId === "own rashi") return true;
   if (status === "neutral" && ruleId === "neutral rashi") return true;
   if (status === "mooltrikona" && /mooltrikona/.test(ruleId)) return true;
+  if (status === "trikona" && /trikona/.test(ruleId)) return true;
+  if (status === "kendra" && /kendra/.test(ruleId)) return true;
   if ((status === "high" || status === "exalted") && ruleId === "exalted") return true;
   if ((status === "low" || status === "debilitated") && ruleId === "debilitated") return true;
   return false;
@@ -495,6 +498,9 @@ function planetsTableCellText(key, rowData) {
   if (key === "is_planet_in_6_8_12_house") {
     return flags.malefic_6_8_12 ?? rowData.malefic_6_8_12_display ?? rowData[key];
   }
+  if (key === "benefic_position") {
+    return flags.benefic_position ?? rowData.benefic_position ?? rowData[key] ?? "";
+  }
   if (key === "is_planet_lagna_lord_enemy") {
     return flags.lagna_lord_enemy ?? rowData.is_planet_lagna_lord_enemy_display ?? rowData[key];
   }
@@ -552,6 +558,7 @@ function formatTableCellForDisplay(key, cell) {
   if (
     key === "is_planet_in_6_8_12_house" ||
     key === "malefic_6_8_12" ||
+    key === "benefic_position" ||
     key === "is_planet_lagna_lord_enemy" ||
     key === "is_planet_at_death_degree" ||
     key === "malefic_6_8_12_display" ||
@@ -560,6 +567,13 @@ function formatTableCellForDisplay(key, cell) {
   ) {
     if (/^(yes|no)$/i.test(String(text).trim())) {
       return String(text).trim().toLowerCase() === "yes" ? "Yes" : "No";
+    }
+    if (key === "benefic_position") {
+      const s = normalizeText(text);
+      if (s === "trikona") return "Trikona";
+      if (s === "kendra") return "Kendra";
+      if (!s) return "—";
+      return toTitleCaseWords(text);
     }
     return text;
   }
@@ -850,6 +864,7 @@ function applyPlanetTableCellStyle(td, colorKind, columnKey) {
   if (!isPlanetCellColorAllowedForColumn(columnKey, colorKind)) return;
   const yesNoCol =
     columnKey === "is_planet_in_6_8_12_house" ||
+    columnKey === "benefic_position" ||
     columnKey === "is_planet_lagna_lord_enemy" ||
     columnKey === "is_planet_at_death_degree" ||
     columnKey === "navatara" ||
@@ -1369,6 +1384,7 @@ const KUNDALI_PLANETS_TABLE_COLUMNS_WITH_STRENGTH_BREAKDOWN = {
   planet_status_in_nakshatra: "planet_status_in_nakshatra",
   karakwaqt: "karakwaqt",
   is_planet_in_6_8_12_house: "is_planet_in_6_8_12_house",
+  benefic_position: "benefic_position",
   is_planet_at_death_degree: "is_planet_at_death_degree"
 };
 
@@ -1383,6 +1399,7 @@ const KUNDALI_PLANETS_TABLE_COLUMNS = [
   { key: "dasha_age", header: "Mahadasha on Age" },
   { key: "karakwaqt", header: "Karakwaqt", qaKey: "karakwaqt" },
   { key: "is_planet_in_6_8_12_house", header: "Malefic 6/8/12", qaKey: "malefic_6_8_12" },
+  { key: "benefic_position", header: "Benefic Position", qaKey: "benefic_position" },
   { key: "navatara", header: "Nakshatra navatara", qaKey: "nakshatra_navatara" },
   { key: "degree", header: "Degree" },
   { key: "is_planet_at_death_degree", header: "Death Degree", qaKey: "death_degree" },
