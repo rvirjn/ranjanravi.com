@@ -1,5 +1,5 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-/** Remedy page: dusthana / debilitated / dosh remedies + auspicious nava-tara. */
+/** Remedy page: dosh / debilitated / low-strength / dusthana remedies + auspicious nava-tara. */
 
 (function remedyPage() {
   const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
@@ -11,6 +11,8 @@
     (col) => col && col.key !== "planet"
   );
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
+  /** Match kundali red strength tint (data.json ``red_at_or_below_percent`` = 49). */
+  const LOW_STRENGTH_AT_OR_BELOW_PERCENT = 49;
 
   const form = document.getElementById("remedy-form");
   if (!form) return;
@@ -24,6 +26,9 @@
   const debilitatedRemedyHeading = document.getElementById("debilitated-remedy-heading");
   const debilitatedRemedyButtons = document.getElementById("debilitated-remedy-buttons");
   const debilitatedRemedyEmpty = document.getElementById("debilitated-remedy-empty");
+  const lowStrengthRemedyHeading = document.getElementById("low-strength-remedy-heading");
+  const lowStrengthRemedyButtons = document.getElementById("low-strength-remedy-buttons");
+  const lowStrengthRemedyEmpty = document.getElementById("low-strength-remedy-empty");
   const doshRemedyHeading = document.getElementById("dosh-remedy-heading");
   const doshRemedyButtons = document.getElementById("dosh-remedy-buttons");
   const doshRemedyEmpty = document.getElementById("dosh-remedy-empty");
@@ -49,6 +54,7 @@
   let selectedRemedyTileKeyByHost = {
     dusthana: "",
     debilitated: "",
+    low_strength: "",
     dosh: ""
   };
   let planetRemedyByName = {};
@@ -402,10 +408,12 @@
     return out;
   }
 
-  /** Collect planet keys by affliction reason (debilitated / dusthana 6-8-12). */
+  /** Collect planet keys by affliction reason (debilitated / low strength / dusthana). */
   function remedyPlanetKeysByReason(kundaliPayload) {
     const debilitated = new Set();
+    const lowStrength = new Set();
     const dusthana = new Set();
+    const strengthByPlanet = new Map();
 
     const addTo = (set, raw) => {
       const key = normalizeText(raw);
@@ -422,12 +430,39 @@
       }
     };
 
+    const strengthPercentFromRow = (row) => {
+      if (typeof row?.strength_percent === "number" && Number.isFinite(row.strength_percent)) {
+        return row.strength_percent;
+      }
+      const total = row?.strength_adjustments?.total;
+      if (typeof total === "number" && Number.isFinite(total)) return total;
+      const text = String(row?.strength || "").replace(/%/g, "").trim();
+      const n = Number.parseFloat(text);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const isLowStrengthRow = (row) => {
+      const kind = normalizeText(row?.cell_styles?.strength);
+      if (kind === "low" || kind === "enemy") return true;
+      const pct = strengthPercentFromRow(row);
+      return pct != null && pct <= LOW_STRENGTH_AT_OR_BELOW_PERCENT;
+    };
+
+    const rememberStrength = (raw, pct) => {
+      const key = normalizeText(raw);
+      if (!key || key === "ascendant" || pct == null || !Number.isFinite(pct)) return;
+      const prev = strengthByPlanet.get(key);
+      if (prev == null || pct < prev) strengthByPlanet.set(key, pct);
+    };
+
     for (const row of kundaliPayload?.planets_table || []) {
       const status = normalizeText(row?.status?.rashi || row?.planet_status_in_rashi);
       if (status === "low") addTo(debilitated, row?.planet);
       if (normalizeText(row?.flags?.malefic_6_8_12) === "yes") {
         addTo(dusthana, row?.planet);
       }
+      if (isLowStrengthRow(row)) addTo(lowStrength, row?.planet);
+      rememberStrength(row?.planet, strengthPercentFromRow(row));
     }
     for (const planet of kundaliPayload?.planets || []) {
       if (normalizeText(planet?.planet_dignity) === "debilitated") {
@@ -436,20 +471,60 @@
       if (normalizeText(planet?.is_planet_in_6_8_12_house) === "yes") {
         addTo(dusthana, planet?.name);
       }
+      const pct =
+        typeof planet?.planet_strength === "number" ? planet.planet_strength : null;
+      if (pct != null && pct <= LOW_STRENGTH_AT_OR_BELOW_PERCENT) {
+        addTo(lowStrength, planet?.name);
+      }
+      rememberStrength(planet?.name, pct);
     }
     addFromSummaryList("debilitated planet", debilitated);
 
     const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
-    const sortKeys = (keys) =>
-      [...keys].sort((a, b) => {
-        const ai = order.indexOf(a);
-        const bi = order.indexOf(b);
-        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+    const planetRank = (key) => {
+      const i = order.indexOf(key);
+      return i < 0 ? 99 : i;
+    };
+
+    /**
+     * Assign P0/P1… for multi-tile groups.
+     * Dusthana: also low-strength → P0, then others.
+     * Low-strength: also dusthana → P0, then weaker % first.
+     */
+    const prioritizeKeys = (keys, group) => {
+      const list = [...keys];
+      const isP0 = (key) => {
+        if (group === "dusthana") return lowStrength.has(key);
+        if (group === "low_strength") return dusthana.has(key);
+        return false;
+      };
+      list.sort((a, b) => {
+        const a0 = isP0(a) ? 0 : 1;
+        const b0 = isP0(b) ? 0 : 1;
+        if (a0 !== b0) return a0 - b0;
+        if (group === "low_strength") {
+          const sa = strengthByPlanet.has(a) ? strengthByPlanet.get(a) : 999;
+          const sb = strengthByPlanet.has(b) ? strengthByPlanet.get(b) : 999;
+          if (sa !== sb) return sa - sb;
+        }
+        return planetRank(a) - planetRank(b);
       });
+      let nextOther = 1;
+      return list.map((key) => {
+        if (isP0(key)) return { key, priority: "P0" };
+        const priority = `P${nextOther}`;
+        nextOther += 1;
+        return { key, priority };
+      });
+    };
+
+    const sortKeys = (keys) =>
+      [...keys].sort((a, b) => planetRank(a) - planetRank(b));
 
     return {
-      dusthana: sortKeys(dusthana),
-      debilitated: sortKeys(debilitated)
+      dusthana: prioritizeKeys(dusthana, "dusthana"),
+      debilitated: sortKeys(debilitated).map((key) => ({ key, priority: "" })),
+      low_strength: prioritizeKeys(lowStrength, "low_strength")
     };
   }
 
@@ -686,14 +761,29 @@
     });
   }
 
+  function doshPriorityRank(priority) {
+    const text = String(priority || "").trim().toUpperCase();
+    if (text.startsWith("P") && /^\d+$/.test(text.slice(1))) return Number(text.slice(1));
+    if (/^\d+$/.test(text)) return Number(text);
+    return 99;
+  }
+
   function presentDoshEntriesFromKundali(kundaliPayload) {
     const block = kundaliPayload?.kundali_dosh;
     const items = Array.isArray(block?.dosh) ? block.dosh : [];
-    return items.filter((item) => {
-      if (!item || item.present === false) return false;
-      const remedy = item.remedy;
-      return Boolean(remedy && typeof remedy === "object");
-    });
+    return items
+      .filter((item) => {
+        if (!item || item.present === false) return false;
+        const remedy = item.remedy;
+        return Boolean(remedy && typeof remedy === "object");
+      })
+      .sort((a, b) => {
+        const pr = doshPriorityRank(a?.priority) - doshPriorityRank(b?.priority);
+        if (pr !== 0) return pr;
+        const an = String(a?.name || a?.key || "").toLowerCase();
+        const bn = String(b?.name || b?.key || "").toLowerCase();
+        return an.localeCompare(bn);
+      });
   }
 
   function createRemedyDetailTable(remedy, columns) {
@@ -775,15 +865,25 @@
       emptyEl,
       headingEl,
       baseHeading,
-      planetKeys,
-      buttonClassName
+      planetEntries,
+      buttonClassName,
+      showPriorityWhenMultiple
     } = options;
     if (!buttonsHost) return;
 
     buttonsHost.innerHTML = "";
     selectedRemedyTileKeyByHost[groupKey] = "";
 
-    const keys = Array.isArray(planetKeys) ? planetKeys : [];
+    const entries = (Array.isArray(planetEntries) ? planetEntries : [])
+      .map((entry) => {
+        if (typeof entry === "string") return { key: entry, priority: "" };
+        return {
+          key: normalizeText(entry?.key || entry?.planet || ""),
+          priority: String(entry?.priority || "").trim().toUpperCase()
+        };
+      })
+      .filter((entry) => entry.key);
+    const keys = entries.map((entry) => entry.key);
     if (headingEl) {
       headingEl.textContent = keys.length ? `${baseHeading}(${keys.length})` : baseHeading;
     }
@@ -797,7 +897,15 @@
     buttonsHost.hidden = false;
     if (emptyEl) emptyEl.hidden = true;
 
-    for (const planetKey of keys) {
+    const showPriority = Boolean(showPriorityWhenMultiple) && entries.length >= 2;
+
+    for (const entry of entries) {
+      const planetKey = entry.key;
+      const priority = entry.priority;
+      const name = toTitleCaseWords(planetKey);
+      const tileLabel =
+        showPriority && /^P\d+$/.test(priority) ? `${name} (${priority})` : name;
+
       const item = document.createElement("div");
       item.className = "remedy-navatara-item";
 
@@ -805,7 +913,9 @@
       btn.type = "button";
       btn.className = ["remedy-navatara-btn", buttonClassName].filter(Boolean).join(" ");
       btn.dataset.planetKey = normalizeText(planetKey);
-      btn.textContent = toTitleCaseWords(planetKey);
+      if (priority) btn.dataset.priority = priority;
+      btn.textContent = tileLabel;
+      btn.title = tileLabel;
       btn.setAttribute("aria-pressed", "false");
       btn.setAttribute("aria-expanded", "false");
 
@@ -835,21 +945,32 @@
   function renderPlanetRemedyTables(kundaliPayload) {
     const groups = remedyPlanetKeysByReason(kundaliPayload);
     renderPlanetRemedyTiles({
-      groupKey: "dusthana",
-      buttonsHost: dusthanaRemedyButtons,
-      emptyEl: dusthanaRemedyEmpty,
-      headingEl: dusthanaRemedyHeading,
-      baseHeading: "Remedy for planet in dusthana 6/8/12 houses",
-      planetKeys: groups.dusthana,
-      buttonClassName: "remedy-navatara-btn--dosh"
-    });
-    renderPlanetRemedyTiles({
       groupKey: "debilitated",
       buttonsHost: debilitatedRemedyButtons,
       emptyEl: debilitatedRemedyEmpty,
       headingEl: debilitatedRemedyHeading,
       baseHeading: "Remedy for debilitated planet",
-      planetKeys: groups.debilitated
+      planetEntries: groups.debilitated
+    });
+    renderPlanetRemedyTiles({
+      groupKey: "low_strength",
+      buttonsHost: lowStrengthRemedyButtons,
+      emptyEl: lowStrengthRemedyEmpty,
+      headingEl: lowStrengthRemedyHeading,
+      baseHeading: "Remedy for low-strength planet",
+      planetEntries: groups.low_strength,
+      buttonClassName: "remedy-navatara-btn--dosh",
+      showPriorityWhenMultiple: true
+    });
+    renderPlanetRemedyTiles({
+      groupKey: "dusthana",
+      buttonsHost: dusthanaRemedyButtons,
+      emptyEl: dusthanaRemedyEmpty,
+      headingEl: dusthanaRemedyHeading,
+      baseHeading: "Remedy for planet in dusthana 6/8/12 houses",
+      planetEntries: groups.dusthana,
+      buttonClassName: "remedy-navatara-btn--dosh",
+      showPriorityWhenMultiple: true
     });
   }
 
@@ -879,8 +1000,9 @@
 
     if (!planetKey) return;
     const groups = [
-      { groupKey: "dusthana", host: dusthanaRemedyButtons },
-      { groupKey: "debilitated", host: debilitatedRemedyButtons }
+      { groupKey: "debilitated", host: debilitatedRemedyButtons },
+      { groupKey: "low_strength", host: lowStrengthRemedyButtons },
+      { groupKey: "dusthana", host: dusthanaRemedyButtons }
     ];
     for (const { groupKey, host } of groups) {
       if (!host) continue;
@@ -983,6 +1105,9 @@
       const label = String(dosh.name || dosh.key || "Dosha").trim() || "Dosha";
       const itemKey = String(dosh.key || dosh.name || label).trim();
       const remedy = dosh.remedy && typeof dosh.remedy === "object" ? dosh.remedy : {};
+      const priority = String(dosh.priority || "").trim().toUpperCase();
+      const showPriority = doshas.length >= 2 && /^P\d+$/.test(priority);
+      const tileLabel = showPriority ? `${label} (${priority})` : label;
 
       const item = document.createElement("div");
       item.className = "remedy-navatara-item";
@@ -991,9 +1116,10 @@
       btn.type = "button";
       btn.className = "remedy-navatara-btn remedy-navatara-btn--dosh";
       btn.dataset.doshKey = normalizeText(itemKey);
-      btn.textContent = label;
+      btn.textContent = tileLabel;
       btn.setAttribute("aria-pressed", "false");
       btn.setAttribute("aria-expanded", "false");
+      if (showPriority) btn.title = tileLabel;
 
       const panel = document.createElement("div");
       panel.className = "remedy-navatara-panel";
