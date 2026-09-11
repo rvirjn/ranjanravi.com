@@ -5679,6 +5679,28 @@ body.premium-modal-open {
   margin: 0 0 0.22rem;
 }
 
+.house-planets-sheet__match-with-info {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  vertical-align: baseline;
+}
+
+.house-planets-sheet__match-name {
+  font-weight: 650;
+}
+
+.house-planets-sheet__match-with-info .kundali-info-btn {
+  width: 1.15rem;
+  height: 1.15rem;
+  position: relative;
+  top: -0.12em;
+}
+
+.house-planets-sheet__match-with-info .kundali-info-btn__glyph {
+  font-size: 0.72rem;
+}
+
 .house-planets-sheet__divisional {
   margin: 0.35rem 0.95rem 0.85rem;
   padding-top: 0.55rem;

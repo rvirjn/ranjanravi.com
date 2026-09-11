@@ -2079,12 +2079,53 @@ function appendHouseDescriptionLabeledList(parent, label, items) {
   list.className = "house-planets-sheet__pc-list";
   for (const item of items) {
     const li = document.createElement("li");
-    li.textContent = String(item || "").trim();
-    if (li.textContent) list.appendChild(li);
+    const rendered = appendProsConsLineContent(li, item);
+    if (rendered) list.appendChild(li);
   }
   if (!list.children.length) return;
   wrap.append(heading, list);
   parent.appendChild(wrap);
+}
+
+/** Render a Pros/Cons line; yoga/dosh lines get an i-button after the match name. */
+function appendProsConsLineContent(li, item) {
+  if (item && typeof item === "object" && !Array.isArray(item)) {
+    const text = String(item.text || "").trim();
+    const qaKey = String(item.qa_key || "").trim();
+    const matchName = String(item.match_name || "").trim();
+    if (!text) return false;
+    if (qaKey && matchName) {
+      const idx = text.indexOf(matchName);
+      if (idx >= 0) {
+        const before = text.slice(0, idx);
+        const after = text.slice(idx + matchName.length);
+        if (before) li.appendChild(document.createTextNode(before));
+        const nameWrap = document.createElement("span");
+        nameWrap.className = "house-planets-sheet__match-with-info";
+        const nameEl = document.createElement("span");
+        nameEl.className = "house-planets-sheet__match-name";
+        nameEl.textContent = matchName;
+        nameWrap.append(nameEl, createKundaliQaInfoButton(qaKey));
+        li.appendChild(nameWrap);
+        if (after) li.appendChild(document.createTextNode(after));
+        return true;
+      }
+    }
+    if (qaKey) {
+      const row = document.createElement("span");
+      row.className = "house-planets-sheet__match-with-info";
+      row.appendChild(document.createTextNode(text));
+      row.appendChild(createKundaliQaInfoButton(qaKey));
+      li.appendChild(row);
+      return true;
+    }
+    li.textContent = text;
+    return true;
+  }
+  const text = String(item || "").trim();
+  if (!text) return false;
+  li.textContent = text;
+  return true;
 }
 
 function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}) {
