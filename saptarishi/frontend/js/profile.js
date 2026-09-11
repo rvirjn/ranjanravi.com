@@ -29,6 +29,7 @@
   const memberEl = document.getElementById("profile-member-since");
   const addWalletBtn = document.getElementById("profile-add-wallet-btn");
   const sendCouponBtn = document.getElementById("profile-send-coupon-btn");
+  const userNotesBtn = document.getElementById("profile-user-notes-btn");
   const couponOverlay = document.getElementById("send-coupon-overlay");
   const couponForm = document.getElementById("send-coupon-form");
   const couponClose = document.getElementById("send-coupon-close");
@@ -37,8 +38,17 @@
   const emailSelect = document.getElementById("send-coupon-email");
   const amountSelect = document.getElementById("send-coupon-amount");
   const codeSelect = document.getElementById("send-coupon-code");
+  const notesOverlay = document.getElementById("user-notes-overlay");
+  const notesClose = document.getElementById("user-notes-close");
+  const notesStatus = document.getElementById("user-notes-status");
+  const notesNameSelect = document.getElementById("user-notes-name");
+  const notesEmailSelect = document.getElementById("user-notes-email");
+  const notesDetail = document.getElementById("user-notes-detail");
+  const notesLifeEvents = document.getElementById("user-notes-life-events");
+  const notesQuestions = document.getElementById("user-notes-questions");
 
   let couponUsers = [];
+  let notesUsers = [];
   let couponPlans = [];
   let unavailableCouponKeys = new Set();
 
@@ -151,8 +161,12 @@
   }
 
   function emailsForName(name) {
+    return emailsForUsers(couponUsers, name);
+  }
+
+  function emailsForUsers(users, name) {
     const wanted = String(name || "").trim().toLowerCase();
-    return couponUsers
+    return (users || [])
       .filter((u) => String(u.name || "").trim().toLowerCase() === wanted)
       .map((u) => ({
         value: String(u.id || ""),
@@ -259,6 +273,9 @@
     if (sendCouponBtn) {
       sendCouponBtn.hidden = !AUTH.isAdmin(profile || usage);
     }
+    if (userNotesBtn) {
+      userNotesBtn.hidden = !AUTH.isAdmin(profile || usage);
+    }
   }
 
   function populateProfileForm(profile) {
@@ -266,6 +283,9 @@
     document.getElementById("profile-name").value = profile.name || "";
     document.getElementById("profile-mobile").value = profile.mobile || "";
     document.getElementById("profile-email").value = profile.email || "";
+    const lifeEl = document.getElementById("profile-life-events");
+    const lifeKey = C?.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates";
+    if (lifeEl) lifeEl.value = profile[lifeKey] || profile.life_events || "";
     form.hidden = false;
     if (securityEl) securityEl.hidden = false;
   }
@@ -410,6 +430,117 @@
     showCouponStatus("");
   }
 
+  function showNotesStatus(message, isError) {
+    if (!notesStatus) return;
+    notesStatus.textContent = message || "";
+    notesStatus.hidden = !message;
+    notesStatus.classList.toggle("error", Boolean(isError));
+  }
+
+  function resetNotesForm() {
+    fillSelect(notesNameSelect, "Select name…", []);
+    fillSelect(notesEmailSelect, "Select email…", []);
+    if (notesEmailSelect) notesEmailSelect.disabled = true;
+    if (notesDetail) notesDetail.hidden = true;
+    if (notesLifeEvents) notesLifeEvents.textContent = "";
+    if (notesQuestions) notesQuestions.replaceChildren();
+    showNotesStatus("");
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return "";
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return String(iso);
+    return date.toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
+  function renderUserNotes(payload) {
+    const lifeKey = C?.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates";
+    const lifeText = String(payload?.[lifeKey] || payload?.life_events || "").trim();
+    if (notesLifeEvents) {
+      notesLifeEvents.textContent = lifeText || "—";
+    }
+    const questions = Array.isArray(payload?.question_with_ai) ? payload.question_with_ai : [];
+    if (notesQuestions) {
+      notesQuestions.replaceChildren();
+      if (!questions.length) {
+        const empty = document.createElement("p");
+        empty.className = "user-notes-empty";
+        empty.textContent = "—";
+        notesQuestions.appendChild(empty);
+      } else {
+        const list = document.createElement("ol");
+        list.className = "user-notes-questions";
+        questions.forEach((item) => {
+          const li = document.createElement("li");
+          const question = typeof item === "string" ? item : String(item?.question || "").trim();
+          li.append(question || "—");
+          const askedAt = formatDateTime(item?.asked_at);
+          if (askedAt) {
+            const meta = document.createElement("span");
+            meta.className = "user-notes-questions__meta";
+            meta.textContent = askedAt;
+            li.appendChild(meta);
+          }
+          list.appendChild(li);
+        });
+        notesQuestions.appendChild(list);
+      }
+    }
+    if (notesDetail) notesDetail.hidden = false;
+  }
+
+  async function loadSelectedUserNotes() {
+    const userId = notesEmailSelect?.value || "";
+    if (!userId) {
+      if (notesDetail) notesDetail.hidden = true;
+      showNotesStatus("");
+      return;
+    }
+    showNotesStatus("Loading…", false);
+    if (notesDetail) notesDetail.hidden = true;
+    try {
+      const payload = await AUTH.fetchDbUserNotes(userId);
+      renderUserNotes(payload);
+      showNotesStatus("");
+    } catch (err) {
+      showNotesStatus(err.message || "Could not load user notes", true);
+    }
+  }
+
+  async function openUserNotesModal() {
+    if (!notesOverlay) return;
+    resetNotesForm();
+    notesOverlay.hidden = false;
+    document.body.classList.add("user-notes-open");
+    showNotesStatus("Loading users…", false);
+    try {
+      const usersPayload = await AUTH.fetchDbUsers();
+      notesUsers = usersPayload.users || [];
+      fillSelect(
+        notesNameSelect,
+        "Select name…",
+        uniqueNames(notesUsers).map((n) => ({ value: n, label: n }))
+      );
+      showNotesStatus(notesUsers.length ? "" : "No users with email found.", !notesUsers.length);
+    } catch (err) {
+      showNotesStatus(err.message || "Could not load users", true);
+    }
+  }
+
+  function closeUserNotesModal() {
+    if (!notesOverlay) return;
+    notesOverlay.hidden = true;
+    document.body.classList.remove("user-notes-open");
+    showNotesStatus("");
+  }
+
   async function initializeProfilePage() {
     const authed = await ensureLoggedIn();
     if (!authed) {
@@ -425,14 +556,17 @@
       const name = document.getElementById("profile-name").value;
       const mobile = document.getElementById("profile-mobile").value;
       const email = document.getElementById("profile-email").value;
+      const lifeEvents = document.getElementById("profile-life-events")
+        ? document.getElementById("profile-life-events").value
+        : "";
       const profileError = formUtils().validateProfileInput
-        ? formUtils().validateProfileInput(name, mobile, email)
+        ? formUtils().validateProfileInput(name, mobile, email, lifeEvents)
         : null;
       if (profileError) {
         showStatus(profileError, true);
         return;
       }
-      form.querySelectorAll("input, button").forEach((el) => {
+      form.querySelectorAll("input, textarea, button").forEach((el) => {
         el.disabled = true;
       });
       if (LOADING) {
@@ -442,13 +576,14 @@
       }
 
       try {
-        const payload = await AUTH.updateProfile(name, mobile, email);
+        const payload = await AUTH.updateProfile(name, mobile, email, lifeEvents);
         renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
+        populateProfileForm(payload.profile || {});
         showStatus(payload.message || "Profile updated.", false);
       } catch (err) {
         showStatus(err.message || "Could not update profile", true);
       } finally {
-        form.querySelectorAll("input, button").forEach((el) => {
+        form.querySelectorAll("input, textarea, button").forEach((el) => {
           el.disabled = false;
         });
       }
@@ -563,12 +698,23 @@
   if (sendCouponBtn) {
     sendCouponBtn.addEventListener("click", () => openSendCouponModal());
   }
+  if (userNotesBtn) {
+    userNotesBtn.addEventListener("click", () => openUserNotesModal());
+  }
   if (couponClose) {
     couponClose.addEventListener("click", () => closeSendCouponModal());
+  }
+  if (notesClose) {
+    notesClose.addEventListener("click", () => closeUserNotesModal());
   }
   if (couponOverlay) {
     couponOverlay.addEventListener("click", (event) => {
       if (event.target === couponOverlay) closeSendCouponModal();
+    });
+  }
+  if (notesOverlay) {
+    notesOverlay.addEventListener("click", (event) => {
+      if (event.target === notesOverlay) closeUserNotesModal();
     });
   }
 
@@ -584,6 +730,31 @@
       if (emails.length === 1) {
         emailSelect.value = emails[0].value;
       }
+    });
+  }
+
+  if (notesNameSelect) {
+    notesNameSelect.addEventListener("change", () => {
+      const emails = emailsForUsers(notesUsers, notesNameSelect.value);
+      fillSelect(
+        notesEmailSelect,
+        "Select email…",
+        emails.map((e) => ({ value: e.value, label: e.label }))
+      );
+      notesEmailSelect.disabled = emails.length === 0;
+      if (notesDetail) notesDetail.hidden = true;
+      if (emails.length === 1) {
+        notesEmailSelect.value = emails[0].value;
+        loadSelectedUserNotes();
+      } else {
+        showNotesStatus("");
+      }
+    });
+  }
+
+  if (notesEmailSelect) {
+    notesEmailSelect.addEventListener("change", () => {
+      loadSelectedUserNotes();
     });
   }
 

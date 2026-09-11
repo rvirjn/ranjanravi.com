@@ -350,7 +350,7 @@
     return payload;
   }
 
-  async function register(name, mobile, email, password, confirmPassword) {
+  async function register(name, mobile, email, password, confirmPassword, lifeEvents) {
     const payload = await apiFetch(AC.API_AUTH_REGISTER_PATH, {
       method: "POST",
       body: JSON.stringify({
@@ -358,7 +358,8 @@
         mobile,
         email,
         password,
-        confirm_password: confirmPassword
+        confirm_password: confirmPassword,
+        [AC.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates"]: lifeEvents
       })
     });
     setSession(payload.token, payload.user);
@@ -370,10 +371,15 @@
     return apiFetch(AC.API_AUTH_PROFILE_PATH);
   }
 
-  async function updateProfile(name, mobile, email) {
+  async function updateProfile(name, mobile, email, lifeEvents) {
     const payload = await apiFetch(AC.API_AUTH_PROFILE_UPDATE_PATH, {
       method: "POST",
-      body: JSON.stringify({ name, mobile, email })
+      body: JSON.stringify({
+        name,
+        mobile,
+        email,
+        [AC.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates"]: lifeEvents
+      })
     });
     if (payload.user) setSession(getToken(), payload.user);
     if (payload.usage) setUsage(payload.usage);
@@ -461,6 +467,11 @@
 
   async function fetchDbUsers() {
     return apiFetch(AC.API_DB_USERS_PATH);
+  }
+
+  async function fetchDbUserNotes(userId) {
+    const id = encodeURIComponent(String(userId || "").trim());
+    return apiFetch(`${AC.API_DB_USER_NOTES_PATH}?id=${id}`);
   }
 
   async function fetchDbBirthViews() {
@@ -1203,6 +1214,7 @@
     deleteAccount,
     isAdmin,
     fetchDbUsers,
+    fetchDbUserNotes,
     fetchDbBirthViews,
     fetchDbWallet,
     sendDbCoupon,

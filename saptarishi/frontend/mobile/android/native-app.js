@@ -1711,6 +1711,12 @@
       document.body.classList.remove("send-coupon-open");
       return true;
     }
+    const notes = document.getElementById("user-notes-overlay");
+    if (visible(notes)) {
+      notes.hidden = true;
+      document.body.classList.remove("user-notes-open");
+      return true;
+    }
     const sheet = document.getElementById("app-sheet-mask");
     if (visible(sheet)) {
       closeProfiles();

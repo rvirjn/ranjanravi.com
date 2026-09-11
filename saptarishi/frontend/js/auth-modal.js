@@ -98,6 +98,10 @@
               <label for="auth-modal-reg-password-confirm">Confirm password</label>
               <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
             </div>
+            <div class="form-field form-field--life-events">
+              <label for="auth-modal-reg-life-events">Give 3 major life events with dates</label>
+              <textarea id="auth-modal-reg-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
+            </div>
             <div class="form-field form-field--submit">
               <button type="submit">Create account</button>
             </div>
@@ -171,8 +175,9 @@
       const email = overlay.querySelector("#auth-modal-reg-email").value;
       const password = overlay.querySelector("#auth-modal-reg-password").value;
       const confirmPassword = overlay.querySelector("#auth-modal-reg-password-confirm").value;
+      const lifeEvents = overlay.querySelector("#auth-modal-reg-life-events").value;
       const registerError = formUtils().validateRegisterInput
-        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword)
+        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword, lifeEvents)
         : password !== confirmPassword
           ? "Passwords do not match."
           : null;
@@ -182,7 +187,7 @@
       }
       startAuthLoading();
       try {
-        await AUTH.register(name, mobile, email, password, confirmPassword);
+        await AUTH.register(name, mobile, email, password, confirmPassword, lifeEvents);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
@@ -223,7 +228,7 @@
     if (!overlay) return;
     [loginForm, registerForm, forgotForm].forEach((form) => {
       if (!form) return;
-      form.querySelectorAll("input, button[type='submit'], .password-field__toggle").forEach((el) => {
+      form.querySelectorAll("input, textarea, button[type='submit'], .password-field__toggle").forEach((el) => {
         el.disabled = busy;
       });
     });
@@ -278,6 +283,8 @@
     const isForgot = activePanel === "forgot";
     const isLogin = activePanel === "login";
     const isRegister = activePanel === "register";
+
+    overlay.classList.toggle("auth-modal-overlay--tall", isRegister);
 
     const tabsEl = overlay.querySelector(".auth-tabs");
     if (tabsEl) tabsEl.hidden = isForgot;
@@ -335,6 +342,7 @@
     stopAuthLoading();
     overlay.hidden = true;
     document.body.classList.remove("auth-modal-open");
+    overlay.classList.remove("auth-modal-overlay--tall");
     showStatus("");
   }
 

@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=330">
+  <link rel="stylesheet" href="../style/styles.css?v=333">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -28,6 +28,7 @@
           <div class="profile-summary__actions">
             <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
             <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
+            <button type="button" id="profile-user-notes-btn" class="btn-secondary" hidden>See user notes</button>
           </div>
         </div>
       </div>
@@ -45,6 +46,10 @@
       <div class="form-field">
         <label for="profile-email">Email</label>
         <input type="email" id="profile-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+      </div>
+      <div class="form-field form-field--life-events">
+        <label for="profile-life-events">Give 3 major life events with dates</label>
+        <textarea id="profile-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
       </div>
       <div class="form-field form-field--submit">
         <button type="submit">Save changes</button>
@@ -130,14 +135,47 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=81"></script>
-  <script src="../js/auth.js?v=45"></script>
+  <div id="user-notes-overlay" class="send-coupon-overlay user-notes-overlay" hidden>
+    <div class="send-coupon-modal user-notes-modal" role="dialog" aria-modal="true" aria-labelledby="user-notes-title">
+      <button type="button" class="send-coupon-modal__close" id="user-notes-close" aria-label="Close">&times;</button>
+      <h2 id="user-notes-title" class="send-coupon-modal__title">Life events and AI questions</h2>
+      <p class="send-coupon-modal__lead">Select a user to see what they entered.</p>
+      <div class="auth-form send-coupon-form">
+        <div class="form-field">
+          <label for="user-notes-name">User name</label>
+          <select id="user-notes-name">
+            <option value="">Select name…</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="user-notes-email">Email</label>
+          <select id="user-notes-email" disabled>
+            <option value="">Select email…</option>
+          </select>
+        </div>
+      </div>
+      <div id="user-notes-detail" class="user-notes-detail" hidden>
+        <section class="user-notes-block">
+          <h3 class="user-notes-block__title">Give 3 major life events with dates</h3>
+          <pre id="user-notes-life-events" class="user-notes-life-events"></pre>
+        </section>
+        <section class="user-notes-block">
+          <h3 class="user-notes-block__title">Questions asked with AI</h3>
+          <div id="user-notes-questions" class="user-notes-questions-wrap"></div>
+        </section>
+      </div>
+      <p id="user-notes-status" class="status" role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
+
+  <script src="../utils/constant.js?v=84"></script>
+  <script src="../js/auth.js?v=48"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=24"></script>
+  <script src="../js/auth-modal.js?v=27"></script>
   <script src="../js/premium-modal.js?v=13"></script>
   <script src="../js/wallet-modal.js?v=22"></script>
-  <script src="../js/profile.js?v=32"></script>
-  <script src="../utils/common.js?v=97"></script>
+  <script src="../js/profile.js?v=35"></script>
+  <script src="../utils/common.js?v=100"></script>
   <script src="../js/ask-ai.js?v=17"></script>
 </body>
 </html>

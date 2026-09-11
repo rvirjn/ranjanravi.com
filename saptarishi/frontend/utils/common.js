@@ -96,17 +96,25 @@
     return null;
   }
 
+  function validateLifeEvents(raw) {
+    const value = String(raw || "").trim();
+    const max = Number(AC.MAX_LIFE_EVENTS_LENGTH) || 2000;
+    if (value.length > max) return `Life events must be at most ${max} characters.`;
+    return null;
+  }
+
   function validateLoginInput(mobile, password) {
     return validateMobileNumber(mobile) || validatePasswordValue(password);
   }
 
-  function validateRegisterInput(name, mobile, email, password, confirmPassword) {
+  function validateRegisterInput(name, mobile, email, password, confirmPassword, lifeEvents) {
     return (
       validatePersonName(name) ||
       validateMobileNumber(mobile) ||
       validateEmailAddress(email) ||
       validatePasswordValue(password) ||
-      (String(password) !== String(confirmPassword) ? "Passwords do not match." : null)
+      (String(password) !== String(confirmPassword) ? "Passwords do not match." : null) ||
+      validateLifeEvents(lifeEvents)
     );
   }
 
@@ -114,8 +122,13 @@
     return validateMobileNumber(mobile) || validateEmailAddress(email);
   }
 
-  function validateProfileInput(name, mobile, email) {
-    return validatePersonName(name) || validateMobileNumber(mobile) || validateEmailAddress(email);
+  function validateProfileInput(name, mobile, email, lifeEvents) {
+    return (
+      validatePersonName(name) ||
+      validateMobileNumber(mobile) ||
+      validateEmailAddress(email) ||
+      validateLifeEvents(lifeEvents)
+    );
   }
 
   function withValidationPrefix(prefix, message) {
@@ -247,6 +260,17 @@
     scope.querySelectorAll("#place-custom, .compare-place-custom").forEach((el) => {
       el.maxLength = placeMax;
       el.placeholder = AC.PLACE_CUSTOM_PLACEHOLDER || el.placeholder;
+    });
+    const lifeMax = Number(AC.MAX_LIFE_EVENTS_LENGTH) || 2000;
+    scope.querySelectorAll("#auth-modal-reg-life-events, #profile-life-events").forEach((el) => {
+      el.maxLength = lifeMax;
+      el.placeholder = AC.LIFE_EVENTS_PLACEHOLDER || el.placeholder;
+    });
+    const lifeLabel = AC.LIFE_EVENTS_LABEL || "Give 3 major life events with dates";
+    scope.querySelectorAll(
+      "label[for='auth-modal-reg-life-events'], label[for='profile-life-events']"
+    ).forEach((el) => {
+      el.textContent = lifeLabel;
     });
     scope.querySelectorAll(
       'input[type="password"][minlength], #profile-current-password, #profile-new-password, #profile-confirm-password, #profile-delete-password, #auth-modal-login-password, #auth-modal-reg-password, #auth-modal-reg-password-confirm'

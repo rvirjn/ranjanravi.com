@@ -4349,6 +4349,76 @@ body.send-coupon-open {
   width: 100%;
 }
 
+.user-notes-modal {
+  width: min(560px, 100%);
+  max-height: min(92vh, 760px);
+}
+
+.user-notes-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+
+.user-notes-block {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  background: #fffdf8;
+  border: 1px solid #ead7a8;
+  border-radius: 10px;
+}
+
+.user-notes-block__title {
+  margin: 0 0 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3d2a14;
+}
+
+.user-notes-life-events {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #3d2a14;
+}
+
+.user-notes-questions {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.user-notes-questions li {
+  margin: 0 0 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #3d2a14;
+}
+
+.user-notes-questions li:last-child {
+  margin-bottom: 0;
+}
+
+.user-notes-questions__meta {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: #6b5235;
+}
+
+.user-notes-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b5235;
+}
+
+body.user-notes-open {
+  overflow: hidden;
+}
+
 .profile-form {
   margin-top: var(--space-sm);
   max-width: 480px;
@@ -4739,7 +4809,8 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
   letter-spacing: 0.01em;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 0.6rem 0.85rem;
@@ -4754,16 +4825,28 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.auth-form input::placeholder {
+.auth-form textarea {
+  min-height: 11.5rem;
+  resize: vertical;
+}
+
+.auth-form .form-field--life-events label {
+  line-height: 1.35;
+}
+
+.auth-form input::placeholder,
+.auth-form textarea::placeholder {
   color: rgba(92, 79, 26, 0.42);
 }
 
-.auth-form input:hover:not(:disabled):not(:focus) {
+.auth-form input:hover:not(:disabled):not(:focus),
+.auth-form textarea:hover:not(:disabled):not(:focus) {
   border-color: rgba(139, 105, 20, 0.42);
   background: #fffef9;
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   background: #fffef9;
@@ -4771,7 +4854,8 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
     inset 0 1px 2px rgba(31, 24, 6, 0.05);
 }
 
-.auth-form input:disabled {
+.auth-form input:disabled,
+.auth-form textarea:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   background: rgba(255, 255, 255, 0.55);
@@ -4938,8 +5022,20 @@ body.auth-modal-open {
   align-items: center;
   justify-content: center;
   padding: var(--page-margin-inline);
+  overflow-x: hidden;
+  overflow-y: auto;
   background: rgba(31, 24, 6, 0.55);
   backdrop-filter: blur(4px);
+}
+
+.auth-modal-overlay--tall {
+  align-items: flex-start;
+}
+
+.auth-modal-overlay--tall .auth-modal {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-width: 440px;
 }
 
 .auth-modal-overlay[hidden] {
@@ -5167,6 +5263,7 @@ body.premium-modal-open {
   .premium-modal button,
   .premium-modal select,
   .auth-modal input,
+  .auth-modal textarea,
   .auth-modal button,
   .send-coupon-modal input,
   .send-coupon-modal button,

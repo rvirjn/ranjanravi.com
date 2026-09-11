@@ -42,12 +42,17 @@ const SAPTARISHI_CONSTANTS = {
   /** Form limits (keep in sync with backend/utils/constant.py). */
   MAX_NAME_LENGTH: 120,
   MAX_EMAIL_LENGTH: 240,
+  MAX_LIFE_EVENTS_LENGTH: 2000,
+  LIFE_EVENTS_FIELD_KEY: "Give 3 major life events with dates",
+  LIFE_EVENTS_LABEL: "Give 3 major life events with dates",
   MIN_PASSWORD_LENGTH: 4,
   EMAIL_PLACEHOLDER: "you@example.com",
   MOBILE_PLACEHOLDER: "e.g. 9876543210",
   NAME_PLACEHOLDER: "Enter Name",
   FULL_NAME_PLACEHOLDER: "Your full name",
   PLACE_CUSTOM_PLACEHOLDER: "Type city and country.",
+  LIFE_EVENTS_PLACEHOLDER:
+    "Give 3 major life events with dates (Month/Year or at least Year) for Birth time verification.\n1.\n2.\n3.\n\nExample:\nSep 2000 - moved into new city, new home\nJul 2006 - First job - Software coder\nFeb 2009 - Marriage - Arranged",
 
   KUNDALI_COMPARE_MIN_BIRTHS: 2,
   KUNDALI_COMPARE_MAX_BIRTHS: 5,
@@ -96,6 +101,7 @@ const SAPTARISHI_CONSTANTS = {
   API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
   API_WALLET_PATH: "/api/wallet",
   API_DB_USERS_PATH: "/api/db/users",
+  API_DB_USER_NOTES_PATH: "/api/db/user-notes",
   API_DB_BIRTH_VIEWS_PATH: "/api/db/birth-views",
   API_DB_WALLET_PATH: "/api/db/wallet",
   API_DB_SEND_COUPON_PATH: "/api/db/send-coupon",
