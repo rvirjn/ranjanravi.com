@@ -1645,20 +1645,8 @@ function listPlanetStatusRows(rows) {
 }
 
 function formatPlanetStatusTileSubtitle(rowData) {
-  const { number: num, for: forRaw } = houseFromTableRow(rowData);
-  const forText = formatHouseForList(forRaw);
-  const housePart =
-    num != null && num !== ""
-      ? forText
-        ? `House ${num} · ${forText}`
-        : `House ${num}`
-      : forText || "";
-  const rashi = formatTableCellForDisplay(
-    "house_rashi",
-    planetsTableCellText("house_rashi", rowData)
-  );
-  if (housePart && rashi && rashi !== "—") return `${housePart} · ${rashi}`;
-  return housePart || (rashi !== "—" ? rashi : "");
+  // Backend ``planets_table[].for`` is already top planet significations (~12 words).
+  return formatHouseForList(rowData?.for || "");
 }
 
 function planetStatusTileIsAdverse(rowData) {
@@ -1767,6 +1755,14 @@ function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   const planetName = formatTableCellForDisplay("planet", rowData?.planet) || "Planet";
   planetLabel.textContent = planetName;
   title.appendChild(planetLabel);
+
+  const forFull = formatHouseForList(rowData?.for_full || rowData?.for || "");
+  if (forFull) {
+    const forEl = document.createElement("div");
+    forEl.className = "house-planets-sheet__for";
+    forEl.textContent = forFull;
+    title.appendChild(forEl);
+  }
   head.appendChild(title);
 
   const strengthText = planetsTableStrengthCellText(rowData);
@@ -2037,9 +2033,28 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         if (wrap.children.length) descEl.appendChild(wrap);
         continue;
       }
+      if (section.kind === "detail") {
+        const label = String(section.label || "").trim();
+        const text = String(section.text || "").trim();
+        if (!text) continue;
+        const p = document.createElement("p");
+        p.className = "house-planets-sheet__detail";
+        if (label && text.toLowerCase().startsWith(`${label.toLowerCase()}:`)) {
+          const strong = document.createElement("strong");
+          strong.textContent = `${label}:`;
+          p.appendChild(strong);
+          p.appendChild(document.createTextNode(text.slice(label.length + 1)));
+        } else {
+          p.textContent = text;
+        }
+        descEl.appendChild(p);
+        continue;
+      }
       const text = String(section.text || "").trim();
       if (!text) continue;
       const p = document.createElement("p");
+      if (section.kind === "themes") p.className = "house-planets-sheet__themes";
+      if (section.kind === "intro") p.className = "house-planets-sheet__intro";
       p.textContent = text;
       descEl.appendChild(p);
     }

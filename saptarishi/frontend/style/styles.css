@@ -5672,6 +5672,22 @@ body.premium-modal-open {
   white-space: pre-line;
 }
 
+.house-planets-sheet__themes {
+  font-weight: 600;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.house-planets-sheet__detail {
+  font-size: 0.86rem;
+  color: var(--color-text-muted, #5a6a7f);
+}
+
+.house-planets-sheet__detail strong {
+  color: var(--color-heading, #1e3a5f);
+  font-weight: 650;
+  margin-right: 0.25rem;
+}
+
 .house-planets-sheet__planet-read {
   margin: 0 0 0.95rem;
 }
