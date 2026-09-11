@@ -43,6 +43,9 @@
     if (dateTo && !dateTo.value) {
       dateTo.value = formatDateInputValue(addMonthsToDate(today, 1));
     }
+    if (CU && CU.refreshBirthChooserDisplays && auspiciousForm) {
+      CU.refreshBirthChooserDisplays(auspiciousForm);
+    }
   }
 
   function getFlaskApiOrigin() {
@@ -290,7 +293,7 @@
 
   function showRangeView(optionLabel) {
     selectedOption = optionLabel || "";
-    if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Auspicious";
+    if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Muhurta";
     if (auspiciousForm) auspiciousForm.dataset.option = selectedOption;
     if (optionsView) optionsView.hidden = true;
     if (rangeView) rangeView.hidden = false;

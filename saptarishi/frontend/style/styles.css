@@ -531,6 +531,24 @@ body.saptarishi-page {
   font-weight: 600;
 }
 
+.search-form.kundali-form .birth-box__hint {
+  color: #6b5235;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.search-form.kundali-form .birth-box.birth-box--placeholder .birth-box__hint {
+  color: #6b5235;
+  font-weight: 700;
+}
+
+.search-form.kundali-form .birth-box:has(.birth-box__hint) {
+  min-height: 3.35rem;
+  gap: 0.12rem;
+}
+
 .birth-picker,
 .birth-place-picker {
   position: fixed;

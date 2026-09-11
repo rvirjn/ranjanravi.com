@@ -550,6 +550,9 @@ html.saptarishi-native-app #auspicious-form select,
 html.saptarishi-native-app #auspicious-form input,
 html.saptarishi-native-app .app-form-card select,
 html.saptarishi-native-app .app-form-card input {
+  width: 100%;
+  max-width: none;
+  min-height: 2.7rem;
   border: 1px solid rgba(178, 141, 60, 0.45);
   border-radius: 0.85rem;
   background: #fff;

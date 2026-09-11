@@ -1395,19 +1395,39 @@
   function enhanceAuspicious() {
     if (livePage() !== "auspicious") return;
     const options = document.getElementById("auspicious-options-view");
-    if (!options || options.querySelector(".app-title")) return;
-    const heading = document.createElement("header");
-    heading.innerHTML = `<span class="app-kicker">Muhurat</span><h1 class="app-title">Auspicious</h1><p class="app-lead">Choose what you need timing for — same way people ask an astrologer.</p>`;
-    options.insertBefore(heading, options.firstChild);
-    const muhuratTiles = options.querySelectorAll(".auspicious-grid .feature-tile[data-option]");
-    const first = muhuratTiles[0] || options.querySelector(".feature-tile[data-option]");
-    if (first) first.classList.add("feature-tile--active");
-    muhuratTiles.forEach((tile) => {
-      tile.addEventListener("click", () => {
-        muhuratTiles.forEach((other) => other.classList.remove("feature-tile--active"));
-        tile.classList.add("feature-tile--active");
+    if (options && !options.querySelector(".app-title")) {
+      const heading = document.createElement("header");
+      heading.innerHTML = `<span class="app-kicker">Timing</span><h1 class="app-title">Muhurta</h1><p class="app-lead">Choose what you need timing for — same way people ask an astrologer.</p>`;
+      options.insertBefore(heading, options.firstChild);
+      const muhuratTiles = options.querySelectorAll(".auspicious-grid .feature-tile[data-option]");
+      const first = muhuratTiles[0] || options.querySelector(".feature-tile[data-option]");
+      if (first) first.classList.add("feature-tile--active");
+      muhuratTiles.forEach((tile) => {
+        tile.addEventListener("click", () => {
+          muhuratTiles.forEach((other) => other.classList.remove("feature-tile--active"));
+          tile.classList.add("feature-tile--active");
+        });
       });
-    });
+    }
+
+    const form = document.getElementById("auspicious-form");
+    const dateFromField = document.getElementById("date-from")?.closest(".form-field");
+    const dateToField = document.getElementById("date-to")?.closest(".form-field");
+    if (form && dateFromField && dateToField && !form.querySelector(".native-datetime")) {
+      const row = document.createElement("div");
+      row.className = "native-field-row";
+      row.innerHTML = icon("calendar");
+      const pair = document.createElement("div");
+      pair.className = "native-datetime";
+      dateFromField.parentNode.insertBefore(row, dateFromField);
+      pair.append(dateFromField, dateToField);
+      row.appendChild(pair);
+    }
+    const placeField = document.getElementById("place-preset")?.closest(".form-field");
+    if (placeField && !placeField.classList.contains("native-field-row")) {
+      placeField.classList.add("native-field-row");
+      placeField.insertAdjacentHTML("afterbegin", icon("pin"));
+    }
   }
 
   function houseSheetHeaderLabel(th) {
@@ -1496,7 +1516,7 @@
         </a>
         <a class="app-service" href="${pageHref("auspicious.html")}">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><path d="M12 8.2v4.1l2.6 1.7"/></svg>
-          <strong>Auspicious</strong>
+          <strong>Muhurta</strong>
           <span>Best birth time</span>
         </a>
       </div>

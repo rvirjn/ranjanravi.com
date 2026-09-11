@@ -550,7 +550,7 @@
           </a>
           <a href="${navHref("auspicious.html")}" class="site-drawer__link" data-page="auspicious">
             ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
-            <span>Auspicious</span>
+            <span>Muhurta</span>
           </a>
         </nav>
         <nav class="site-drawer__nav" aria-label="Account">
@@ -611,7 +611,7 @@
       <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
-        <a href="${navHref("auspicious.html")}" class="site-header__link">Auspicious</a>
+        <a href="${navHref("auspicious.html")}" class="site-header__link">Muhurta</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
@@ -1597,19 +1597,33 @@
     return [...document.querySelectorAll(".kundali-form--chooser")];
   }
 
+  function chooserDateInputForBox(form, dateBox) {
+    const sel = dateBox && dateBox.getAttribute("data-date-input");
+    if (sel) return form.querySelector(sel);
+    return form.querySelector("#birth-date, .compare-birth-date");
+  }
+
+  function setChooserDateBoxText(dateBox, dateInput) {
+    const text = formatBirthDateLabel(dateInput && dateInput.value);
+    const label = dateBox.querySelector("[data-birth-date-label]");
+    if (label) label.textContent = text;
+    else dateBox.textContent = text;
+    dateBox.classList.toggle(
+      "birth-box--placeholder",
+      !String((dateInput && dateInput.value) || "").trim()
+    );
+  }
+
   function refreshBirthChooserDisplays(root) {
     const forms = root ? [root] : birthChooserForms();
     forms.forEach((form) => {
-      const dateInput = form.querySelector("#birth-date, .compare-birth-date");
       const timeInput = form.querySelector("#birth-time, .compare-birth-time");
-      const dateBox = form.querySelector("[data-birth-open='date']");
       const timeBox = form.querySelector("[data-birth-open='time']");
       const placeTitle = form.querySelector("[data-birth-place-title]");
       const placeMeta = form.querySelector("[data-birth-place-meta]");
-      if (dateBox) {
-        dateBox.textContent = formatBirthDateLabel(dateInput && dateInput.value);
-        dateBox.classList.toggle("birth-box--placeholder", !String(dateInput && dateInput.value || "").trim());
-      }
+      form.querySelectorAll("[data-birth-open='date']").forEach((dateBox) => {
+        setChooserDateBoxText(dateBox, chooserDateInputForBox(form, dateBox));
+      });
       if (timeBox) {
         timeBox.textContent = formatBirthTimeLabel(timeInput && timeInput.value, false);
         timeBox.classList.toggle("birth-box--placeholder", !String(timeInput && timeInput.value || "").trim());
@@ -1891,13 +1905,17 @@
     return { year, month, day };
   }
 
-  function openBirthDatePicker(form) {
-    const dateInput = form.querySelector("#birth-date, .compare-birth-date");
-    if (!dateInput) return;
+  function openBirthDatePicker(form, dateInput) {
+    const input = dateInput || form.querySelector("#birth-date, .compare-birth-date");
+    if (!input) return;
     const now = new Date();
-    const dateBox = form.querySelector("[data-birth-open='date']");
-    const dateUnset = Boolean(dateBox && dateBox.classList.contains("birth-box--placeholder"));
-    const saved = dateUnset ? null : readBirthDateParts(dateInput.value);
+    const dateBox = [...form.querySelectorAll("[data-birth-open='date']")].find((box) => {
+      return chooserDateInputForBox(form, box) === input;
+    });
+    const dateUnset =
+      Boolean(dateBox && dateBox.classList.contains("birth-box--placeholder")) ||
+      !String(input.value || "").trim();
+    const saved = dateUnset ? null : readBirthDateParts(input.value);
     const year = saved ? saved.year : now.getFullYear();
     const month = saved ? saved.month : now.getMonth() + 1;
     const day = saved ? saved.day : now.getDate();
@@ -1918,8 +1936,10 @@
     setBirthOverlayOpen(true);
     wheels.replaceChildren();
     const thisYear = now.getFullYear();
+    const isRangeDate = input.id === "date-from" || input.id === "date-to";
+    const maxYear = thisYear + (isRangeDate ? 5 : 1);
     const years = [];
-    for (let y = 1900; y <= thisYear + 1; y += 1) years.push({ value: String(y), label: String(y) });
+    for (let y = 1900; y <= maxYear; y += 1) years.push({ value: String(y), label: String(y) });
     const months = BIRTH_MONTHS_SHORT.map((label, idx) => ({ value: String(idx + 1), label }));
     const dayScroller = { current: null };
     const monthCol = makeWheelColumn("Month", months, String(month));
@@ -1958,6 +1978,7 @@
     birthPickerState = {
       kind: "date",
       form,
+      input,
       read() {
         const y = Number(wheelSelectedValue(yearCol.scroller));
         const m = Number(wheelSelectedValue(monthCol.scroller));
@@ -2149,11 +2170,14 @@
       closeBirthPicker();
       return;
     }
-    const { kind, form, read } = birthPickerState;
+    const { kind, form, read, input: pickerInput } = birthPickerState;
     const value = read();
     if (kind === "date") {
-      const input = form.querySelector("#birth-date, .compare-birth-date");
-      if (input) input.value = value;
+      const input = pickerInput || form.querySelector("#birth-date, .compare-birth-date");
+      if (input) {
+        input.value = value;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
     } else if (kind === "time") {
       const input = form.querySelector("#birth-time, .compare-birth-time");
       if (input) input.value = value;
@@ -2492,7 +2516,7 @@
         '<button type="button" class="birth-box" data-birth-open="date" aria-label="Birth date"></button>' +
         '<button type="button" class="birth-box" data-birth-open="time" aria-label="Birth time"></button>';
       dateField.insertBefore(row, dateInput);
-      row.querySelector("[data-birth-open='date']").addEventListener("click", () => openBirthDatePicker(form));
+      row.querySelector("[data-birth-open='date']").addEventListener("click", () => openBirthDatePicker(form, dateInput));
       row.querySelector("[data-birth-open='time']").addEventListener("click", () => openBirthTimePicker(form));
       dateInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
       timeInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
@@ -2500,10 +2524,48 @@
       dateField.after(placeField);
     }
 
+    const dateFromInput = form.querySelector("#date-from");
+    const dateToInput = form.querySelector("#date-to");
+    if (dateFromInput && dateToInput) {
+      const dateFromField = dateFromInput.closest(".form-field");
+      const dateToField = dateToInput.closest(".form-field");
+      if (dateFromField) {
+        dateFromField.classList.add("birth-datetime-field", "birth-icon-row");
+        dateFromField.insertAdjacentHTML(
+          "afterbegin",
+          iconSvg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>')
+        );
+        dateFromInput.classList.add("birth-ui-hidden");
+        dateToInput.classList.add("birth-ui-hidden");
+        if (dateToField && dateToField !== dateFromField) {
+          dateFromField.appendChild(dateToInput);
+          dateToField.hidden = true;
+        }
+        const fromLabel = dateFromField.querySelector("label");
+        if (fromLabel) fromLabel.hidden = true;
+        const row = document.createElement("div");
+        row.className = "birth-datetime-row";
+        row.innerHTML =
+          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-from" aria-label="From date">' +
+          '<span class="birth-box__hint">From</span><span data-birth-date-label></span></button>' +
+          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-to" aria-label="To date">' +
+          '<span class="birth-box__hint">To</span><span data-birth-date-label></span></button>';
+        dateFromField.insertBefore(row, dateFromInput);
+        row.querySelectorAll("[data-birth-open='date']").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            openBirthDatePicker(form, form.querySelector(btn.getAttribute("data-date-input")));
+          });
+        });
+        dateFromInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
+        dateToInput.addEventListener("change", () => refreshBirthChooserDisplays(form));
+        if (placeField) placeField.before(dateFromField);
+      }
+    }
+
     const placeBtn = document.createElement("button");
     placeBtn.type = "button";
     placeBtn.className = "birth-box birth-place-box";
-    placeBtn.setAttribute("aria-label", "Birth place");
+    placeBtn.setAttribute("aria-label", form.id === "auspicious-form" ? "Place" : "Birth place");
     placeBtn.innerHTML =
       '<strong data-birth-place-title></strong><span data-birth-place-meta></span>';
     placeField.insertBefore(placeBtn, placeSelect);
