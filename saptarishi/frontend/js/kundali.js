@@ -2644,8 +2644,38 @@ function rashiNumberFromCell(cell) {
   return idx >= 0 ? idx + 1 : null;
 }
 
-/** Build North Indian chart from ``planets`` + lagna (whole-sign houses derived in UI). */
+/** Prefer API-ready ``kundali_chart.cells``; fall back to assembling from planets. */
 function buildNorthIndianChartFromPayload(payload) {
+  const ready =
+    (Array.isArray(payload?.cells) && payload.cells.length ? payload : null) ||
+    (Array.isArray(payload?.kundali_chart?.cells) && payload.kundali_chart.cells.length
+      ? payload.kundali_chart
+      : null);
+  if (ready) {
+    const regions = C.NORTH_INDIAN_HOUSE_REGIONS || [];
+    const cxCyByHouse = new Map(
+      regions.map(([house, , cx, cy]) => [house, { cx, cy }])
+    );
+    return {
+      layout: ready.layout || "north_indian",
+      lagna_label: ready.lagna_label || "",
+      lagna_rashi_number:
+        ready.lagna_rashi_number != null ? ready.lagna_rashi_number : null,
+      strength_max:
+        typeof ready.strength_max === "number"
+          ? ready.strength_max
+          : strengthMaxFromPayload(payload),
+      cells: (ready.cells || []).map((cell) => {
+        const pos = cxCyByHouse.get(cell.house) || {};
+        return {
+          ...cell,
+          cx: cell.cx ?? pos.cx ?? 50,
+          cy: cell.cy ?? pos.cy ?? 50
+        };
+      })
+    };
+  }
+
   const asc = findAscendantPlanet(payload) || {};
   const lagnaRi = asc.rashi_index;
   const lagnaRashiNumber =
@@ -3332,7 +3362,13 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   updateBirthChartHeading(kundaliPayload, viewTargets.chartHeading || "kundali-chart-heading");
   if (chartHostEl) {
-    renderKundaliChart(buildNorthIndianChartFromPayload(kundaliPayload), chartHostId);
+    const chartSource = kundaliPayload.kundali_chart || kundaliPayload;
+    renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHostId);
+    bindKundaliChartZoom(
+      chartHostEl,
+      chartSource,
+      formatBirthChartHeading(kundaliPayload) || "Birth chart"
+    );
   }
   const planetsRows = kundaliPayload.planets_table || [];
   renderPlanetsTableWithColors(planetsBody, planetsRows);
@@ -3869,6 +3905,23 @@ function buildDashaLevelSnapshot(birthDate, mahadasha, ageYears, planets) {
 }
 
 function computeCurrentDashaSnapshot(payload, asOfDate = new Date()) {
+  const apiSnap = payload?.current_dasha;
+  if (apiSnap?.current) {
+    const asOf =
+      apiSnap.as_of_iso != null ? new Date(apiSnap.as_of_iso) : asOfDate;
+    const nextChange =
+      apiSnap.next_change_iso != null ? new Date(apiSnap.next_change_iso) : null;
+    return {
+      current: apiSnap.current,
+      next: apiSnap.next || null,
+      asOfDate: asOf && !Number.isNaN(asOf.getTime()) ? asOf : asOfDate,
+      nextChangeDate:
+        nextChange && !Number.isNaN(nextChange.getTime()) ? nextChange : null,
+      daysUntilNext:
+        typeof apiSnap.days_until_next === "number" ? apiSnap.days_until_next : null
+    };
+  }
+
   const birthDate = parseBirthDateFromKundaliPayload(payload);
   if (!birthDate) return null;
   const ageYears = ageYearsBetween(birthDate, asOfDate);
@@ -4974,7 +5027,10 @@ function openKundaliChartZoom(chartPayload, title) {
 
 /** Make a rendered chart host open the zoom lightbox on click. */
 function bindKundaliChartZoom(host, chartPayload, title) {
-  if (!host || !chartPayload || !Array.isArray(chartPayload.planets)) return;
+  if (!host || !chartPayload) return;
+  const hasCells = Array.isArray(chartPayload.cells) && chartPayload.cells.length;
+  const hasPlanets = Array.isArray(chartPayload.planets) && chartPayload.planets.length;
+  if (!hasCells && !hasPlanets) return;
   host.classList.add("kundali-chart-host--zoomable");
   host.tabIndex = 0;
   host.setAttribute("role", "button");
