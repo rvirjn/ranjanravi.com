@@ -1755,14 +1755,6 @@ function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   const planetName = formatTableCellForDisplay("planet", rowData?.planet) || "Planet";
   planetLabel.textContent = planetName;
   title.appendChild(planetLabel);
-
-  const forFull = formatHouseForList(rowData?.for_full || rowData?.for || "");
-  if (forFull) {
-    const forEl = document.createElement("div");
-    forEl.className = "house-planets-sheet__for";
-    forEl.textContent = forFull;
-    title.appendChild(forEl);
-  }
   head.appendChild(title);
 
   const strengthText = planetsTableStrengthCellText(rowData);
