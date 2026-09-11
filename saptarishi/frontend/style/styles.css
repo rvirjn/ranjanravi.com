@@ -1827,7 +1827,9 @@ tbody tr:last-child td {
 }
 
 #summary-table th[scope="row"] .kundali-table-header-with-info,
-[id$="-summary-table"] th[scope="row"] .kundali-table-header-with-info {
+#summary-table td .kundali-table-header-with-info,
+[id$="-summary-table"] th[scope="row"] .kundali-table-header-with-info,
+[id$="-summary-table"] td .kundali-table-header-with-info {
   justify-content: flex-start;
 }
 

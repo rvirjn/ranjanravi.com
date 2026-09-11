@@ -151,11 +151,23 @@ function summaryValueClassForLabel(label, value) {
 }
 
 const KUNDALI_SUMMARY_QA_KEYS = {
+  "paya": "paya",
   "combust planet": "combust_planet",
   "exalted planet": "exalted_planet",
   "debilitated planet": "debilitated_planet",
   "retrograde planet": "retrograde_planet"
 };
+
+/** ``Gold (Swarna)`` → ``paya_gold`` for the value-side i-button. */
+function payaTypeQaKeyFromValue(value) {
+  const text = normalizeText(value);
+  if (!text) return "";
+  if (text.startsWith("gold") || text.includes("swarna")) return "paya_gold";
+  if (text.startsWith("silver") || text.includes("rajat")) return "paya_silver";
+  if (text.startsWith("copper") || text.includes("tamra")) return "paya_copper";
+  if (text.startsWith("iron") || text.includes("loha")) return "paya_iron";
+  return "paya";
+}
 
 /** One label + value row for the summary facts table. */
 function createSummaryLabelValueRow(label, value) {
@@ -175,7 +187,18 @@ function createSummaryLabelValueRow(label, value) {
   const td = document.createElement("td");
   const valueClass = summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
-  td.textContent = formatSummaryCellValue(label, value);
+  const displayValue = formatSummaryCellValue(label, value);
+  const valueQaKey =
+    normalizeText(label) === "paya" ? payaTypeQaKeyFromValue(value) : "";
+  if (valueQaKey) {
+    const wrap = document.createElement("span");
+    wrap.className = "kundali-table-header-with-info";
+    wrap.appendChild(document.createTextNode(displayValue));
+    wrap.appendChild(createKundaliQaInfoButton(valueQaKey));
+    td.appendChild(wrap);
+  } else {
+    td.textContent = displayValue;
+  }
   tr.appendChild(th);
   tr.appendChild(td);
   return tr;
