@@ -26,6 +26,7 @@ const saveBirthWrap = document.getElementById("save-birth-wrap");
 const openKundaliWrap = document.getElementById("open-kundali-wrap");
 const savedKundaliSelect = document.getElementById("saved-kundali-select");
 const savedKundaliList = document.getElementById("saved-kundali-list");
+const savedKundaliSearch = document.getElementById("saved-kundali-search");
 const newKundaliFields = document.getElementById("new-kundali-fields");
 const tabOpenKundali = document.getElementById("tab-open-kundali");
 const tabNewKundali = document.getElementById("tab-new-kundali");
@@ -5584,6 +5585,37 @@ function savedBirthListInitials(name) {
   return source.slice(0, 2).toUpperCase();
 }
 
+function savedBirthSearchQuery() {
+  return String(savedKundaliSearch?.value || "").trim().toLowerCase();
+}
+
+function filterSavedBirthViews(views, query) {
+  const list = Array.isArray(views) ? views : [];
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return list;
+  const tokens = q.split(/\s+/).filter(Boolean);
+  return list.filter((view) => {
+    const hay = [
+      birthViewOptionLabel(view),
+      view?.name,
+      view?.date,
+      formatSavedBirthListDate(view?.date),
+      view?.time,
+      view?.place
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return tokens.every((token) => hay.includes(token));
+  });
+}
+
+function currentSavedKundaliViews() {
+  return typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
+    ? SaptarishiAuth.getBirthViews()
+    : [];
+}
+
 async function deleteSavedKundaliBirth(name) {
   const label = String(name || "").trim();
   if (!label || typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.deleteBirthView) return;
@@ -5609,15 +5641,25 @@ async function deleteSavedKundaliBirth(name) {
 function renderSavedKundaliList(views) {
   if (!savedKundaliList) return;
   const selected = String(savedKundaliSelect?.value || "").trim();
+  const allViews = Array.isArray(views) ? views : [];
+  const query = savedBirthSearchQuery();
+  const filtered = filterSavedBirthViews(allViews, query);
   savedKundaliList.replaceChildren();
-  if (!views.length) {
+  if (!allViews.length) {
     const empty = document.createElement("p");
     empty.className = "birth-open-list__empty";
     empty.textContent = "No saved birth details yet.";
     savedKundaliList.appendChild(empty);
     return;
   }
-  views.forEach((view, index) => {
+  if (!filtered.length) {
+    const empty = document.createElement("p");
+    empty.className = "birth-open-list__empty";
+    empty.textContent = `No births match “${String(savedKundaliSearch?.value || "").trim()}”.`;
+    savedKundaliList.appendChild(empty);
+    return;
+  }
+  filtered.forEach((view, index) => {
     const key = birthViewSelectKey(view);
     if (!key) return;
     const row = document.createElement("div");
@@ -5658,11 +5700,7 @@ function pickSavedKundali(key) {
   if (!savedKundaliSelect || !key) return;
   savedKundaliSelect.value = key;
   applySavedKundaliSelection();
-  renderSavedKundaliList(
-    typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
-      ? SaptarishiAuth.getBirthViews()
-      : []
-  );
+  renderSavedKundaliList(currentSavedKundaliViews());
   if (form?.requestSubmit) form.requestSubmit();
   else form?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
 }
@@ -5730,6 +5768,9 @@ function setKundaliMode(mode) {
   if (saveBirth && !isOpen) saveBirth.checked = true;
   if (isOpen) {
     refreshSavedKundaliDropdown();
+    if (savedKundaliSearch && currentSavedKundaliViews().length >= 8) {
+      window.setTimeout(() => savedKundaliSearch.focus(), 0);
+    }
   }
 }
 
@@ -5761,6 +5802,14 @@ if (document.getElementById("birth-form")) {
   }
   if (savedKundaliSelect) {
     savedKundaliSelect.addEventListener("change", applySavedKundaliSelection);
+  }
+  if (savedKundaliSearch) {
+    savedKundaliSearch.addEventListener("input", () => {
+      renderSavedKundaliList(currentSavedKundaliViews());
+    });
+    savedKundaliSearch.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") event.preventDefault();
+    });
   }
   setKundaliMode("new");
   refreshKundaliSavedViews();

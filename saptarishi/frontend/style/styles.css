@@ -247,6 +247,43 @@ body.saptarishi-page {
   align-self: stretch;
 }
 
+.birth-open-search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.birth-open-search {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.65rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.18));
+  border-radius: 10px;
+  background: #fffef8;
+  color: var(--color-text, #1e293b);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.birth-open-search::placeholder {
+  color: var(--color-text-muted, #5a6578);
+}
+
+.birth-open-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--color-accent, #c9a227) 55%, transparent);
+  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--color-accent, #c9a227) 45%, var(--color-surface-border));
+}
+
 .birth-open-list {
   width: 100%;
   overflow: hidden;

@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=331">
+  <link rel="stylesheet" href="../style/styles.css?v=332">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -37,6 +37,16 @@
 
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
       <div class="form-field birth-open-list-wrap" id="open-kundali-wrap" hidden>
+        <label class="birth-open-search-label" for="saved-kundali-search">Search saved births</label>
+        <input
+          type="search"
+          id="saved-kundali-search"
+          class="birth-open-search"
+          placeholder="Search by name, place, or date…"
+          autocomplete="off"
+          enterkeyhint="search"
+          aria-label="Search saved birth details"
+        />
         <select id="saved-kundali-select" hidden aria-hidden="true">
           <option value="">Select saved name…</option>
         </select>
@@ -248,7 +258,7 @@
   <script src="../js/wallet-modal.js?v=22"></script>
   <script src="../utils/common.js?v=96"></script>
   <script src="../js/ask-ai.js?v=17"></script>
-  <script src="../js/kundali.js?v=346"></script>
+  <script src="../js/kundali.js?v=347"></script>
   <script src="../js/lord-comparison.js?v=20"></script>
   <script src="../js/kundali-compare.js?v=18"></script>
 </body>

@@ -37,6 +37,7 @@
   const openBirthWrap = document.getElementById("open-birth-wrap");
   const savedBirthSelect = document.getElementById("saved-birth-select");
   const savedBirthList = document.getElementById("saved-birth-list");
+  const savedBirthSearch = document.getElementById("saved-birth-search");
   const newBirthFields = document.getElementById("new-birth-fields");
   const tabOpenBirth = document.getElementById("tab-open-birth");
   const tabNewBirth = document.getElementById("tab-new-birth");
@@ -183,6 +184,37 @@
     return source.slice(0, 2).toUpperCase();
   }
 
+  function savedBirthSearchQuery() {
+    return String(savedBirthSearch?.value || "").trim().toLowerCase();
+  }
+
+  function filterSavedBirthViews(views, query) {
+    const list = Array.isArray(views) ? views : [];
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return list;
+    const tokens = q.split(/\s+/).filter(Boolean);
+    return list.filter((view) => {
+      const hay = [
+        birthViewOptionLabel(view),
+        view?.name,
+        view?.date,
+        formatSavedBirthListDate(view?.date),
+        view?.time,
+        view?.place
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return tokens.every((token) => hay.includes(token));
+    });
+  }
+
+  function currentSavedBirthViews() {
+    return typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
+      ? SaptarishiAuth.getBirthViews()
+      : [];
+  }
+
   async function deleteSavedBirth(name) {
     const label = String(name || "").trim();
     if (!label || typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.deleteBirthView) return;
@@ -208,15 +240,25 @@
   function renderSavedBirthList(views) {
     if (!savedBirthList) return;
     const selected = String(savedBirthSelect?.value || "").trim();
+    const allViews = Array.isArray(views) ? views : [];
+    const query = savedBirthSearchQuery();
+    const filtered = filterSavedBirthViews(allViews, query);
     savedBirthList.replaceChildren();
-    if (!views.length) {
+    if (!allViews.length) {
       const empty = document.createElement("p");
       empty.className = "birth-open-list__empty";
       empty.textContent = "No saved birth details yet.";
       savedBirthList.appendChild(empty);
       return;
     }
-    views.forEach((view, index) => {
+    if (!filtered.length) {
+      const empty = document.createElement("p");
+      empty.className = "birth-open-list__empty";
+      empty.textContent = `No births match “${String(savedBirthSearch?.value || "").trim()}”.`;
+      savedBirthList.appendChild(empty);
+      return;
+    }
+    filtered.forEach((view, index) => {
       const key = birthViewSelectKey(view);
       if (!key) return;
       const row = document.createElement("div");
@@ -257,11 +299,7 @@
     if (!savedBirthSelect || !key) return;
     savedBirthSelect.value = key;
     applySavedBirthSelection();
-    renderSavedBirthList(
-      typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
-        ? SaptarishiAuth.getBirthViews()
-        : []
-    );
+    renderSavedBirthList(currentSavedBirthViews());
     if (form?.requestSubmit) form.requestSubmit();
     else form?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
   }
@@ -329,6 +367,9 @@
     if (saveBirth && !isOpen) saveBirth.checked = true;
     if (isOpen) {
       refreshSavedBirthDropdown();
+      if (savedBirthSearch && currentSavedBirthViews().length >= 8) {
+        window.setTimeout(() => savedBirthSearch.focus(), 0);
+      }
     }
   }
 
@@ -1229,6 +1270,14 @@
   }
   if (savedBirthSelect) {
     savedBirthSelect.addEventListener("change", applySavedBirthSelection);
+  }
+  if (savedBirthSearch) {
+    savedBirthSearch.addEventListener("input", () => {
+      renderSavedBirthList(currentSavedBirthViews());
+    });
+    savedBirthSearch.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") event.preventDefault();
+    });
   }
   form.addEventListener("submit", handleRemedyFormSubmit);
   setBirthMode("new");
