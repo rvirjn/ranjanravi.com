@@ -22,7 +22,9 @@ upload_changed_files_to_remote.log
 *.launch
 .settings/
 *.sublime-workspace
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 
 # IDE - VSCode
 .vscode/*

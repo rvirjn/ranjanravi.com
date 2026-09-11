@@ -1,0 +1,16 @@
+---
+description: Keep git commits under the user's authorship only — no Cursor co-author
+alwaysApply: true
+---
+
+# Git commit authorship
+
+When creating git commits or PRs:
+
+- Commit **only** as the user's normal git author/committer (their configured `user.name` / `user.email`).
+- Do **not** add `Co-authored-by: Cursor` / `cursoragent@cursor.com` (or any similar AI co-author trailer).
+- Do **not** add `Made-with: Cursor` or any Cursor attribution footer.
+- Do **not** use `--trailer`, `--footer`, amend, or other flags that attribute the work to Cursor, cursoragent, or dual authors.
+- The GitHub/UI commit should show a **single** committer (e.g. `rvirjn` alone) — never "rvirjn and cursoragent committed".
+
+If the environment tries to inject a Cursor co-author or Made-with trailer, omit it or strip it so the final commit/PR has no AI attribution line.

@@ -1,0 +1,29 @@
+---
+description: Backend-heavy kundali architecture — thin frontend, fat backend JSON
+alwaysApply: true
+---
+
+# Backend vs frontend split
+
+This product has **two separate repos**:
+
+- **Backend**: `saptarishi` — astrology logic, enrichment, and API
+- **Frontend**: `ranjanravi.com` — UI that calls the API and renders results
+
+## Where logic belongs
+
+- Put **almost all** calculation, rules, enrichment, and complex processing in the **backend**.
+- Keep the **frontend thin**: display, light formatting, navigation, and API calls only.
+- Avoid duplicating astrology rules, strength math, yoga/dosha matching, Paya, dasha logic, or similar in JS.
+
+## Kundali JSON contract
+
+- Backend should **process and dump** ready-to-use fields into the kundali / chart JSON (tables, summary rows, colors, labels, Q&A keys, etc.).
+- Frontend should **read values from that JSON via the API** and render them — not recompute core results.
+- Prefer adding a new backend field over inventing frontend derivation when the UI needs something new.
+
+## When changing features
+
+1. Implement / extend logic in `saptarishi` (e.g. `kundali.py`, `data.json`, related modules).
+2. Expose the result on the API payload.
+3. Update the frontend only to show the new field.
