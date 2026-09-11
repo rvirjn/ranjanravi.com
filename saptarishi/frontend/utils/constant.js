@@ -96,6 +96,7 @@ const SAPTARISHI_CONSTANTS = {
   API_PREMIUM_ACTIVATE_PATH: "/api/premium/activate",
   API_WALLET_PATH: "/api/wallet",
   API_DB_USERS_PATH: "/api/db/users",
+  API_DB_BIRTH_VIEWS_PATH: "/api/db/birth-views",
   API_DB_WALLET_PATH: "/api/db/wallet",
   API_DB_SEND_COUPON_PATH: "/api/db/send-coupon",
   USER_TYPE_ENDUSER: "enduser",

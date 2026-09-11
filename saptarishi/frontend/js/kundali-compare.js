@@ -74,6 +74,9 @@
   }
 
   function birthViewSelectKey(view) {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openBirthViewKey) {
+      return SaptarishiAuth.openBirthViewKey(view);
+    }
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
       return SaptarishiAuth.birthViewKey(view);
     }
@@ -91,9 +94,10 @@
   }
 
   function getSavedBirthViews() {
-    return typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
-      ? SaptarishiAuth.getBirthViews()
-      : [];
+    if (typeof SaptarishiAuth === "undefined") return [];
+    if (SaptarishiAuth.getOpenBirthViews) return SaptarishiAuth.getOpenBirthViews();
+    if (SaptarishiAuth.getBirthViews) return SaptarishiAuth.getBirthViews();
+    return [];
   }
 
   function populateCompareSavedSelect(selectEl, selectedKey) {
@@ -110,7 +114,8 @@
       if (!key) return;
       const opt = document.createElement("option");
       opt.value = key;
-      const detail = [view.date, view.place].filter(Boolean).join(" · ");
+      const owner = String(view.owner_name || "").trim();
+      const detail = [view.date, view.place, owner].filter(Boolean).join(" · ");
       opt.textContent = detail
         ? `${birthViewOptionLabel(view)} (${detail})`
         : birthViewOptionLabel(view);

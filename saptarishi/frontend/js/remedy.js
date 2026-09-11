@@ -160,6 +160,9 @@
   }
 
   function birthViewSelectKey(view) {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openBirthViewKey) {
+      return SaptarishiAuth.openBirthViewKey(view);
+    }
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.birthViewKey) {
       return SaptarishiAuth.birthViewKey(view);
     }
@@ -180,7 +183,10 @@
 
   function savedBirthListMeta(view) {
     if (!view) return "";
-    return [formatSavedBirthListDate(view.date), view.time, view.place].filter(Boolean).join(", ");
+    const parts = [formatSavedBirthListDate(view.date), view.time, view.place].filter(Boolean);
+    const owner = String(view.owner_name || view.owner_email || "").trim();
+    const meta = parts.join(", ");
+    return owner ? (meta ? `${meta} · ${owner}` : owner) : meta;
   }
 
   function savedBirthListInitials(name) {
@@ -206,7 +212,9 @@
         view?.date,
         formatSavedBirthListDate(view?.date),
         view?.time,
-        view?.place
+        view?.place,
+        view?.owner_name,
+        view?.owner_email
       ]
         .filter(Boolean)
         .join(" ")
@@ -216,9 +224,17 @@
   }
 
   function currentSavedBirthViews() {
-    return typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.getBirthViews
-      ? SaptarishiAuth.getBirthViews()
-      : [];
+    if (typeof SaptarishiAuth === "undefined") return [];
+    if (SaptarishiAuth.getOpenBirthViews) return SaptarishiAuth.getOpenBirthViews();
+    if (SaptarishiAuth.getBirthViews) return SaptarishiAuth.getBirthViews();
+    return [];
+  }
+
+  function canDeleteSavedBirth(view) {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.canDeleteOpenBirthView) {
+      return SaptarishiAuth.canDeleteOpenBirthView(view);
+    }
+    return true;
   }
 
   async function deleteSavedBirth(name) {
@@ -237,7 +253,7 @@
     if (!window.confirm(`Delete saved birth details for ${label}?`)) return;
     try {
       await SaptarishiAuth.deleteBirthView(label);
-      refreshSavedBirthDropdown();
+      await loadOpenBirthViews();
     } catch (err) {
       window.alert(err.message || "Could not delete saved birth details.");
     }
@@ -271,16 +287,8 @@
       row.className = "birth-open-list__row";
       row.setAttribute("role", "option");
       if (key === selected) row.classList.add("is-on");
-      const del = document.createElement("button");
-      del.type = "button";
-      del.className = "birth-open-list__delete";
-      del.textContent = "Delete";
-      del.setAttribute("aria-label", `Delete ${birthViewOptionLabel(view)}`);
-      del.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        deleteSavedBirth(view.name);
-      });
+      const showDelete = canDeleteSavedBirth(view);
+      if (!showDelete) row.classList.add("birth-open-list__row--readonly");
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "birth-open-list__item";
@@ -296,7 +304,20 @@
       text.append(nameEl, meta);
       btn.append(avatar, text);
       btn.addEventListener("click", () => pickSavedBirth(key));
-      row.append(btn, del);
+      row.append(btn);
+      if (showDelete) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "birth-open-list__delete";
+        del.textContent = "Delete";
+        del.setAttribute("aria-label", `Delete ${birthViewOptionLabel(view)}`);
+        del.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          deleteSavedBirth(view.name);
+        });
+        row.append(del);
+      }
       savedBirthList.appendChild(row);
     });
   }
@@ -312,7 +333,7 @@
 
   function refreshSavedBirthDropdown() {
     if (!savedBirthSelect || typeof SaptarishiAuth === "undefined") return;
-    const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+    const views = currentSavedBirthViews();
     const previous = savedBirthSelect.value;
     savedBirthSelect.replaceChildren();
     const placeholder = document.createElement("option");
@@ -324,7 +345,8 @@
       if (!key) return;
       const opt = document.createElement("option");
       opt.value = key;
-      const detail = [view.date, view.place].filter(Boolean).join(" · ");
+      const owner = String(view.owner_name || "").trim();
+      const detail = [view.date, view.place, owner].filter(Boolean).join(" · ");
       opt.textContent = detail
         ? `${birthViewOptionLabel(view)} (${detail})`
         : birthViewOptionLabel(view);
@@ -336,9 +358,27 @@
     renderSavedBirthList(views);
   }
 
+  async function loadOpenBirthViews() {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.ensureOpenBirthViews) {
+      try {
+        await SaptarishiAuth.ensureOpenBirthViews({ refresh: true });
+      } catch {
+        /* keep own saved births */
+      }
+    }
+    if (savedBirthSearch) {
+      const adminList =
+        typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.isAdmin && SaptarishiAuth.isAdmin();
+      savedBirthSearch.placeholder = adminList
+        ? "Search by name, place, date, or account…"
+        : "Search by name, place, or date…";
+    }
+    refreshSavedBirthDropdown();
+  }
+
   function applySavedBirthSelection() {
     if (!savedBirthSelect || typeof SaptarishiAuth === "undefined") return;
-    const views = SaptarishiAuth.getBirthViews ? SaptarishiAuth.getBirthViews() : [];
+    const views = currentSavedBirthViews();
     const key = String(savedBirthSelect.value || "").trim();
     if (!key) return;
     const view = views.find((entry) => birthViewSelectKey(entry) === key);
@@ -372,15 +412,15 @@
     if (newBirthFields) newBirthFields.hidden = isOpen;
     if (saveBirth && !isOpen) saveBirth.checked = true;
     if (isOpen) {
-      refreshSavedBirthDropdown();
+      loadOpenBirthViews();
       if (savedBirthSearch && currentSavedBirthViews().length >= 8) {
         window.setTimeout(() => savedBirthSearch.focus(), 0);
       }
     }
   }
 
-  function refreshRemedySavedViews() {
-    refreshSavedBirthDropdown();
+  async function refreshRemedySavedViews() {
+    await loadOpenBirthViews();
     if (birthMode === "open") applySavedBirthSelection();
   }
 

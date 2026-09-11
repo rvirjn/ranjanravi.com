@@ -311,6 +311,11 @@ body.saptarishi-page {
   border-bottom: 0;
 }
 
+.birth-open-list__row--readonly {
+  grid-template-columns: minmax(0, 1fr);
+  padding-right: 0;
+}
+
 .birth-open-list__row:hover,
 .birth-open-list__row.is-on {
   background: rgba(139, 105, 20, 0.08);

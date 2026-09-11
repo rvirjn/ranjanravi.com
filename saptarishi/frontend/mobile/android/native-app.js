@@ -324,16 +324,28 @@
   }
 
   function getBirthViews() {
+    if (AUTH && AUTH.getOpenBirthViews) return AUTH.getOpenBirthViews();
     return AUTH && AUTH.getBirthViews ? AUTH.getBirthViews() : [];
+  }
+
+  function openBirthKey(view) {
+    if (AUTH && AUTH.openBirthViewKey) return AUTH.openBirthViewKey(view);
+    return String(view?.name || "").trim().toLowerCase();
   }
 
   function getActiveChart() {
     const saved = readJson(ACTIVE_CHART_KEY);
     const views = getBirthViews();
     if (saved && saved.name) {
-      const match = views.find(
-        (view) => String(view.name || "").trim().toLowerCase() === String(saved.name).trim().toLowerCase()
-      );
+      const savedKey = openBirthKey(saved);
+      const match = views.find((view) => {
+        const key = openBirthKey(view);
+        if (savedKey && key && key === savedKey) return true;
+        return (
+          String(view.name || "").trim().toLowerCase() === String(saved.name).trim().toLowerCase() &&
+          String(view.date || "").trim() === String(saved.date || "").trim()
+        );
+      });
       if (match) return match;
       if (saved.date) return saved;
     }
@@ -346,6 +358,7 @@
 
   function birthKey(view) {
     return [
+      String(view?.owner_id || "").trim(),
       String(view?.name || "").trim().toLowerCase(),
       String(view?.date || "").trim(),
       String(view?.time || "").trim(),
@@ -361,6 +374,7 @@
       time: view.time || "",
       place: view.place || ""
     };
+    if (view.owner_id) next.owner_id = view.owner_id;
     if (birthKey(readJson(ACTIVE_CHART_KEY)) === birthKey(next)) return;
     writeJson(ACTIVE_CHART_KEY, next);
     global.dispatchEvent(new CustomEvent("saptarishi-native-chart-changed", { detail: view }));
@@ -744,20 +758,28 @@
     if (!list) return;
     const views = getBirthViews();
     const active = getActiveChart();
-    const activeKey = String(active?.name || "").trim().toLowerCase();
+    const activeKey = openBirthKey(active);
     if (!views.length) {
       list.innerHTML = `<p class="app-empty">No saved birth details yet. Enter new birth details to open kundali, dasha, and remedies.</p>`;
       return;
     }
     list.innerHTML = views
       .map((view) => {
-        const key = String(view.name || "").trim().toLowerCase();
+        const key = openBirthKey(view);
         const on = key && key === activeKey;
         const name = String(view.name || "").trim();
+        const owner = String(view.owner_name || "").trim();
+        const sub = [view.date || "", owner].filter(Boolean).join(" · ");
+        const allowDelete = AUTH?.canDeleteOpenBirthView
+          ? AUTH.canDeleteOpenBirthView(view)
+          : true;
+        const deleteHtml = allowDelete
+          ? `<span class="app-delete" data-delete="${escapeHtml(name)}" title="Delete saved birth details" role="button">${ICONS.trash}</span>`
+          : "";
         return `<button type="button" class="app-profile-row${on ? " is-on" : ""}" data-name="${escapeHtml(key)}">
           <span class="app-avatar">${escapeHtml(initials(view.name))}</span>
-          <span><strong>${escapeHtml(name)}</strong><span>${escapeHtml(view.date || "")}</span></span>
-          <span class="app-delete" data-delete="${escapeHtml(name)}" title="Delete saved birth details" role="button">${ICONS.trash}</span>
+          <span><strong>${escapeHtml(name)}</strong><span>${escapeHtml(sub)}</span></span>
+          ${deleteHtml}
           <span class="app-check"></span>
         </button>`;
       })
@@ -793,14 +815,21 @@
           return;
         }
         const key = row.getAttribute("data-name");
-        const view = views.find((entry) => String(entry.name || "").trim().toLowerCase() === key);
+        const view = views.find((entry) => openBirthKey(entry) === key);
         if (view) setActiveChart(view);
         closeProfiles();
       });
     });
   }
 
-  function openProfiles() {
+  async function openProfiles() {
+    if (AUTH?.ensureOpenBirthViews) {
+      try {
+        await AUTH.ensureOpenBirthViews({ refresh: true });
+      } catch {
+        /* keep own saved births */
+      }
+    }
     renderProfiles();
     const mask = document.getElementById("app-sheet-mask");
     if (mask) mask.hidden = false;
@@ -1256,11 +1285,9 @@
       if (!select || select.dataset.nativeChartBound === "1") return;
       select.dataset.nativeChartBound = "1";
       select.addEventListener("change", () => {
-        const key = String(select.value || "").trim().toLowerCase();
+        const key = String(select.value || "").trim();
         if (!key) return;
-        const view = getBirthViews().find(
-          (entry) => String(entry.name || "").trim().toLowerCase() === key
-        );
+        const view = getBirthViews().find((entry) => openBirthKey(entry) === key);
         if (view) setActiveChart(view);
       });
     });
@@ -1301,7 +1328,7 @@
     if (openTab) openTab.click();
     const select = document.getElementById("saved-birth-select") || document.getElementById("saved-kundali-select");
     if (select) {
-      const key = String(chart.name || "").trim().toLowerCase();
+      const key = openBirthKey(chart);
       if (key) select.value = key;
       select.dispatchEvent(new Event("change"));
     }
@@ -1633,10 +1660,19 @@
       if (currentPage() === "dos") initDosDont();
       if (livePage() === "remedy") openRemedyDetails();
     });
-    global.addEventListener("saptarishi-auth-changed", () => {
+    global.addEventListener("saptarishi-auth-changed", async () => {
       refreshHeaderAuth();
       if (!document.getElementById("app-drawer")?.hidden) renderDrawer();
-      if (!document.getElementById("app-sheet-mask")?.hidden) renderProfiles();
+      if (!document.getElementById("app-sheet-mask")?.hidden) {
+        if (AUTH?.ensureOpenBirthViews) {
+          try {
+            await AUTH.ensureOpenBirthViews({ refresh: true });
+          } catch {
+            /* keep own saved births */
+          }
+        }
+        renderProfiles();
+      }
     });
   }
 

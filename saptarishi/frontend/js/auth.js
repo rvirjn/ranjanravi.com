@@ -11,6 +11,8 @@
   const STORAGE_AUSPICIOUS_CACHE = "saptarishi_auspicious_cache";
   const STORAGE_VIEW_RECORDED = "saptarishi_view_recorded_session";
   const SCAN_CACHE_MAX_ENTRIES = 5;
+  let cachedDbBirthViews = null;
+  let dbBirthViewsPromise = null;
 
   const AC = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   if (!AC) return;
@@ -213,6 +215,7 @@
     sessionStorage.removeItem(STORAGE_TOKEN);
     sessionStorage.removeItem(STORAGE_USER);
     sessionStorage.removeItem(STORAGE_USAGE);
+    clearDbBirthViewsCache();
   }
 
   async function parseJsonResponse(response) {
@@ -458,6 +461,10 @@
 
   async function fetchDbUsers() {
     return apiFetch(AC.API_DB_USERS_PATH);
+  }
+
+  async function fetchDbBirthViews() {
+    return apiFetch(AC.API_DB_BIRTH_VIEWS_PATH);
   }
 
   async function fetchDbWallet() {
@@ -836,6 +843,99 @@
       .toLowerCase();
   }
 
+  /** Select key that stays unique when admin lists births from every account. */
+  function openBirthViewKey(view) {
+    const nameKey = birthViewKey(view);
+    if (!nameKey) return "";
+    const ownerId = String(view?.owner_id || "").trim();
+    return ownerId ? `${ownerId}:${nameKey}` : nameKey;
+  }
+
+  function currentUserId() {
+    const src = getUser() || getUsage() || {};
+    return String(src.id || "").trim();
+  }
+
+  function canDeleteOpenBirthView(view) {
+    if (!view || typeof view !== "object") return false;
+    const flag = view.can_delete;
+    if (flag === true || flag === 1 || flag === "1" || flag === "true") return true;
+    if (flag === false || flag === 0 || flag === "0" || flag === "false") return false;
+    const ownerId = String(view.owner_id || "").trim();
+    if (!ownerId) return true;
+    return ownerId === currentUserId();
+  }
+
+  function clearDbBirthViewsCache() {
+    cachedDbBirthViews = null;
+    dbBirthViewsPromise = null;
+  }
+
+  function normalizeAllBirthViews(payload) {
+    const raw = payload && Array.isArray(payload.birth_views) ? payload.birth_views : [];
+    const out = [];
+    const seen = new Set();
+    raw.forEach((entry) => {
+      const parsed = parseBirthViewLabel(entry);
+      if (!parsed || !parsed.date || !parsed.name) return;
+      const ownerId = String(entry.owner_id || "").trim();
+      const ownerName = String(entry.owner_name || "").trim();
+      const ownerEmail = String(entry.owner_email || "").trim();
+      if (ownerId) parsed.owner_id = ownerId;
+      if (ownerName) parsed.owner_name = ownerName;
+      if (ownerEmail) parsed.owner_email = ownerEmail;
+      if (entry.can_delete === true || entry.can_delete === 1 || entry.can_delete === "1" || entry.can_delete === "true") {
+        parsed.can_delete = true;
+      } else if (ownerId && ownerId !== currentUserId()) {
+        parsed.can_delete = false;
+      } else {
+        parsed.can_delete = true;
+      }
+      const key = openBirthViewKey(parsed);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      out.push(parsed);
+    });
+    return out;
+  }
+
+  function getOpenBirthViews() {
+    if (isAdmin() && Array.isArray(cachedDbBirthViews)) {
+      return cachedDbBirthViews.slice();
+    }
+    return getBirthViews();
+  }
+
+  async function ensureOpenBirthViews(options = {}) {
+    if (!isAdmin() || !getToken()) {
+      clearDbBirthViewsCache();
+      return getBirthViews();
+    }
+    const refresh = Boolean(options.refresh);
+    if (!refresh && Array.isArray(cachedDbBirthViews)) {
+      return cachedDbBirthViews.slice();
+    }
+    if (!refresh && dbBirthViewsPromise) {
+      return dbBirthViewsPromise;
+    }
+    const pending = fetchDbBirthViews()
+      .then((payload) => {
+        cachedDbBirthViews = normalizeAllBirthViews(payload);
+        return cachedDbBirthViews.slice();
+      })
+      .catch((err) => {
+        if (!Array.isArray(cachedDbBirthViews)) {
+          throw err;
+        }
+        return cachedDbBirthViews.slice();
+      })
+      .finally(() => {
+        if (dbBirthViewsPromise === pending) dbBirthViewsPromise = null;
+      });
+    dbBirthViewsPromise = pending;
+    return pending;
+  }
+
   function getWalletBalance(usage) {
     const u = usage || getUsage() || getUser();
     if (!u || typeof u !== "object") return 0;
@@ -1103,6 +1203,7 @@
     deleteAccount,
     isAdmin,
     fetchDbUsers,
+    fetchDbBirthViews,
     fetchDbWallet,
     sendDbCoupon,
     logout,
@@ -1128,7 +1229,11 @@
     openUnlockFromBlur,
     getDefaultBirth,
     getBirthViews,
+    getOpenBirthViews,
+    ensureOpenBirthViews,
     birthViewKey,
+    openBirthViewKey,
+    canDeleteOpenBirthView,
     isBirthPaid,
     canViewBirthRemedies,
     getWalletBalance,
