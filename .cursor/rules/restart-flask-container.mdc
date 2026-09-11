@@ -1,0 +1,15 @@
+---
+description: Restart saptarishi_flask container after backend changes
+alwaysApply: true
+---
+
+# Restart Flask after backend changes
+
+After changing **backend** code in the `saptarishi` repo (Python under `backend/`, `data.json`, requirements, etc.):
+
+1. Restart the Docker container named **`saptarishi_flask`** so the running API picks up the changes.
+2. Prefer: `docker restart saptarishi_flask`
+3. If restart fails, check status with `docker ps -a --filter name=saptarishi_flask` and report the error.
+4. Do this in the same turn as the backend edit when practical — do not leave the user to restart manually.
+
+Frontend-only changes in `ranjanravi.com` do **not** require restarting this container.
