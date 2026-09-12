@@ -2766,22 +2766,23 @@ function buildNorthIndianChartFromPayload(payload) {
 }
 
 /**
- * Eye outline scale by planet count. Labels are sized separately so they stay inside
- * (uniform group scale would grow text with the eye and keep overflowing).
+ * Eye outline scale by planet count. Kept smaller than sitting-planet glyphs.
+ * Labels are sized separately so they stay inside (uniform group scale would
+ * grow text with the eye and keep overflowing).
  */
 function aspectEyeShapeScale(aspectCount, crowded) {
   const n = Math.max(1, Number(aspectCount) || 1);
   const table = {
-    1: [0.5, 0.5],
-    2: [0.82, 0.64],
-    3: [1.42, 0.92],
-    4: [1.72, 1.02],
-    5: [1.58, 1.22],
-    6: [1.78, 1.32]
+    1: [0.36, 0.36],
+    2: [0.58, 0.46],
+    3: [1.0, 0.66],
+    4: [1.2, 0.72],
+    5: [1.12, 0.86],
+    6: [1.26, 0.94]
   };
   let pair = table[n];
   if (!pair) {
-    pair = [Math.min(1.95, 1.42 + (n - 3) * 0.12), Math.min(1.4, 0.92 + (n - 3) * 0.08)];
+    pair = [Math.min(1.4, 1.0 + (n - 3) * 0.08), Math.min(1.05, 0.66 + (n - 3) * 0.06)];
   }
   let [sx, sy] = pair;
   if (crowded) {
@@ -2791,14 +2792,14 @@ function aspectEyeShapeScale(aspectCount, crowded) {
   return { sx, sy };
 }
 
-/** Label font inside the eye — slightly smaller as count grows so text fits the lid. */
+/** Compact label font inside the eye — smaller than sitting planets in the house. */
 function aspectEyeLabelFontPx(aspectCount) {
   const n = Math.max(1, Number(aspectCount) || 1);
-  if (n <= 1) return 2.85;
-  if (n === 2) return 2.65;
-  if (n === 3) return 2.35;
-  if (n === 4) return 2.15;
-  return 2.0;
+  if (n <= 1) return 2.0;
+  if (n === 2) return 1.85;
+  if (n === 3) return 1.65;
+  if (n === 4) return 1.5;
+  return 1.4;
 }
 
 /** Approx half-size of the aspect eye (viewBox units) for placement clearance. */
@@ -2903,8 +2904,8 @@ function appendAspectEyeWithPlanets(parentG, aspectPlanets, originX, originY, op
   // One comma-separated row up to 4; wrap after that.
   const cols = n <= 4 ? n : Math.min(3, n);
   const rows = Math.ceil(n / cols);
-  const cellH = Math.max(fontPx + 0.6, rows === 1 ? 2.4 : 2.2);
-  const gapY = 0.25;
+  const cellH = Math.max(fontPx + 0.3, rows === 1 ? 1.65 : 1.5);
+  const gapY = 0.16;
   const contentH = rows * cellH + Math.max(0, rows - 1) * gapY;
 
   const g = document.createElementNS("http://www.w3.org/2000/svg", "g");

@@ -2586,16 +2586,16 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-aspect-eye__label {
-  font-size: 3.15px;
+  font-size: 2px;
   font-weight: 700;
   stroke: var(--color-surface);
-  stroke-width: 0.55px;
+  stroke-width: 0.35px;
   paint-order: stroke fill;
   pointer-events: none;
 }
 
 .kundali-chart-aspect-eye__comma {
-  font-size: 3.15px;
+  font-size: 2px;
   font-weight: 600;
   fill: var(--color-primary);
   stroke: none;
