@@ -1849,6 +1849,26 @@ tbody tr:last-child td {
   font-size: 0.55rem;
 }
 
+.summary-label-mark {
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.summary-label-mark--exalted,
+.summary-label-mark--vargottama {
+  color: var(--planet-color-green, #2e7d32);
+}
+
+.summary-label-mark--debilitated,
+.summary-label-mark--combust {
+  color: var(--planet-color-red, #b71c1c);
+}
+
+.summary-label-mark--retro {
+  color: var(--color-heading, #1f1806);
+}
+
 #summary-table th[scope="row"] .kundali-table-header-with-info,
 #summary-table td .kundali-table-header-with-info,
 [id$="-summary-table"] th[scope="row"] .kundali-table-header-with-info,
@@ -2540,13 +2560,14 @@ tbody tr:last-child td {
 
 .kundali-chart-planet-power--retro {
   fill: var(--color-heading, #1f1806);
-  font-size: 1.85px;
-  font-weight: 800;
+  font-size: 2.35px;
+  font-weight: 700;
+  font-style: normal;
   stroke: none;
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--retro {
-  font-size: 1.6px;
+  font-size: 2.1px;
 }
 
 .kundali-chart-planet-power--combust {
@@ -2558,6 +2579,18 @@ tbody tr:last-child td {
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--combust {
   font-size: 2.05px;
+}
+
+.kundali-chart-planet-power--vargottama {
+  fill: var(--planet-color-green, #2e7d32);
+  stroke: var(--planet-color-green, #2e7d32);
+  stroke-width: 0.18px;
+  font-weight: 700;
+  font-size: 2.15px;
+}
+
+.kundali-chart-label-planets--dense .kundali-chart-planet-power--vargottama {
+  font-size: 1.9px;
 }
 
 .kundali-chart-aspect-eye__brow {

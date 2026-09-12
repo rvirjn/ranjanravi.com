@@ -188,6 +188,28 @@ function payaTypeQaKeyFromValue(value) {
   return "paya";
 }
 
+const KUNDALI_SUMMARY_LABEL_MARKS = {
+  "combust planet": { mark: "⊙", className: "summary-label-mark--combust" },
+  "exalted planet": { mark: "↑", className: "summary-label-mark--exalted" },
+  "vargottama planet": { mark: "★", className: "summary-label-mark--vargottama" },
+  "debilitated planet": { mark: "↓", className: "summary-label-mark--debilitated" },
+  "retrograde planet": { mark: "↺", className: "summary-label-mark--retro" }
+};
+
+function summaryLabelMarkFromRow(label, row = {}) {
+  const dumped = String(row.label_mark || "").trim();
+  const fallback = KUNDALI_SUMMARY_LABEL_MARKS[normalizeText(label)];
+  const mark = dumped || fallback?.mark || "";
+  if (!mark) return null;
+  const el = document.createElement("span");
+  el.className = ["summary-label-mark", String(row.label_mark_class || "").trim() || fallback?.className || ""]
+    .filter(Boolean)
+    .join(" ");
+  el.textContent = mark;
+  el.setAttribute("aria-hidden", "true");
+  return el;
+}
+
 /** One label + value row for the summary facts table. */
 function createSummaryLabelValueRow(label, value, row = {}) {
   const tr = document.createElement("tr");
@@ -197,11 +219,13 @@ function createSummaryLabelValueRow(label, value, row = {}) {
     String(row.qa_key || "").trim() ||
     KUNDALI_SUMMARY_QA_KEYS[normalizeText(label)] ||
     "";
-  if (qaKey) {
+  const markEl = summaryLabelMarkFromRow(label, row);
+  if (qaKey || markEl) {
     const wrap = document.createElement("span");
     wrap.className = "kundali-table-header-with-info";
     wrap.appendChild(document.createTextNode(toTitleCaseWords(label)));
-    wrap.appendChild(createKundaliQaInfoButton(qaKey));
+    if (markEl) wrap.appendChild(markEl);
+    if (qaKey) wrap.appendChild(createKundaliQaInfoButton(qaKey));
     th.appendChild(wrap);
   } else {
     th.textContent = toTitleCaseWords(label);
@@ -1089,6 +1113,12 @@ function chartPlanetDignityKind(entry) {
   return "";
 }
 
+function isChartPlanetRetrograde(entry) {
+  return (
+    isChartYesFlag(entry?.retrograde) || Boolean(String(entry?.retrograde_mark || "").trim())
+  );
+}
+
 function chartPlanetExponentParts(entry) {
   const parts = [];
   const degreeText = formatChartPlanetDegree(entry?.degree_in_sign);
@@ -1113,11 +1143,12 @@ function chartPlanetExponentParts(entry) {
         "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--debilitated"
     });
   }
-  if (isChartYesFlag(entry?.retrograde)) {
+  const vargMark = String(entry?.vargottama_mark || "").trim();
+  if (vargMark || isChartYesFlag(entry?.vargottama)) {
     parts.push({
-      text: "2x",
+      text: vargMark || "★",
       className:
-        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--retro"
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--vargottama"
     });
   }
   if (isChartPlanetCombust(entry)) {
@@ -1125,6 +1156,13 @@ function chartPlanetExponentParts(entry) {
       text: "⊙",
       className:
         "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--combust"
+    });
+  }
+  if (isChartPlanetRetrograde(entry)) {
+    parts.push({
+      text: "↺",
+      className:
+        "kundali-chart-planet-exponent kundali-chart-planet-power kundali-chart-planet-power--retro"
     });
   }
   return parts;
@@ -2616,7 +2654,14 @@ function chartPlanetEntryFromPayloadPlanet(p, planetOrder) {
       p.planet_status_in_rashi || p.planet_relation_with_rashi_lord,
     planet_dignity: p.planet_dignity || "",
     retrograde: p.retrograde,
+    retrograde_mark:
+      String(p.retrograde_mark || "").trim() ||
+      (isChartYesFlag(p.retrograde) ? "↺" : ""),
     combustion: p.combustion || p.combust || "",
+    vargottama: p.vargottama || "",
+    vargottama_mark:
+      String(p.vargottama_mark || "").trim() ||
+      (isChartYesFlag(p.vargottama) ? "★" : ""),
     strength_adjustments: p.strength_adjustments,
     degree_in_sign: chartPlanetDegreeInSign(p),
     strength_percent:
