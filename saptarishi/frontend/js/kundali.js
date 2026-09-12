@@ -102,14 +102,16 @@ function getBirthPlaceFromKundaliForm() {
   return placePreset.value.trim();
 }
 
-/** Title Case for UI labels and values (each word capitalized). */
+/** Title Case for UI labels and values (each word capitalized, including slash parts). */
 function toTitleCaseWords(text) {
   return String(text ?? "")
     .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
+    .split(/(\s+|\/)/)
+    .map((token) => {
+      if (!token || /^\s+$/.test(token) || token === "/") return token;
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+    })
+    .join("");
 }
 
 function formatSummaryTimeValue(iso) {
@@ -131,10 +133,10 @@ function formatSummaryCellValue(label, value) {
   if (key === "moon type") {
     const paksha = normalizeText(raw);
     if (paksha === "krishna" || raw.toLowerCase().includes("krishna")) {
-      return "Krishna paksha (dark moon)";
+      return "Krishna paksha (dark Moon)";
     }
     if (paksha === "shukla" || paksha === "sukla" || raw.toLowerCase().includes("shukla")) {
-      return "Shukla paksha (white moon)";
+      return "Shukla paksha (white Moon)";
     }
   }
   return raw;
@@ -164,6 +166,7 @@ function summaryValueClassForLabel(label, value) {
 }
 
 const KUNDALI_SUMMARY_QA_KEYS = {
+  "starting name letter": "starting_name_letter",
   "paya": "paya",
   "gandmool": "gandmool",
   "mangalik": "mangalik",
