@@ -159,7 +159,7 @@ function summaryValueClassForLabel(label, value) {
   if (key === "exalted planet" || key === "vargottama planet" || key === "retrograde planet") {
     return "summary-value--green";
   }
-  if (key === "debilitated planet" || key === "graha yuddha loser") {
+  if (key === "debilitated planet") {
     return "summary-value--red";
   }
   return "";
@@ -173,7 +173,6 @@ const KUNDALI_SUMMARY_QA_KEYS = {
   "combust planet": "combust_planet",
   "exalted planet": "exalted_planet",
   "vargottama planet": "vargottama_planet",
-  "graha yuddha loser": "graha_yuddha_loser",
   "debilitated planet": "debilitated_planet",
   "retrograde planet": "retrograde_planet"
 };
