@@ -154,7 +154,7 @@ function summaryValueClassForLabel(label, value) {
     return "";
   }
   if (!summaryValueHasPlanetList(value)) return "";
-  if (key === "exalted planet" || key === "retrograde planet") {
+  if (key === "exalted planet" || key === "vargottama planet" || key === "retrograde planet") {
     return "summary-value--green";
   }
   if (key === "debilitated planet") {
@@ -169,6 +169,7 @@ const KUNDALI_SUMMARY_QA_KEYS = {
   "mangalik": "mangalik",
   "combust planet": "combust_planet",
   "exalted planet": "exalted_planet",
+  "vargottama planet": "vargottama_planet",
   "debilitated planet": "debilitated_planet",
   "retrograde planet": "retrograde_planet"
 };
@@ -400,6 +401,7 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   neecha_bhanga: "Neecha Bhanga",
   strong_neecha_bhanga: "Strong Neecha Bhanga",
   retrograde: "Retrograde",
+  vargottama: "Vargottama",
   combustion: "Combustion",
   death_degree: "Death Degree",
   degree_in_sign_bands: "Degree Phase",
