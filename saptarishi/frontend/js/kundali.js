@@ -370,7 +370,7 @@ function formatPlanetStrengthVerificationTitle(rowData) {
         ? rowData.strength_percent
         : null;
   if (base == null || total == null) return "";
-  const baseLabel = adj.base_rule === "degree_in_sign_bands" ? "Degree Phase" : "base";
+  const baseLabel = adj.base_rule === "baladi_avastha" ? "Baladi Avastha" : "base";
   const lines = [`${base} (${baseLabel})`];
   for (const items of Object.values(adj.by_column || {})) {
     if (!Array.isArray(items)) continue;
@@ -432,7 +432,7 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   graha_yuddha_loser: "Graha Yuddha",
   combustion: "Combustion",
   death_degree: "Death Degree",
-  degree_in_sign_bands: "Degree Phase",
+  baladi_avastha: "Baladi Avastha",
   incoming_aspect: "Aspect",
   good_karakwaqt: "Good Karakwaqt",
   bad_karakwaqt: "Bad Karakwaqt"
