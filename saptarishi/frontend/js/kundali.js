@@ -397,6 +397,8 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   mangal_dosha: "mangaldosh",
   trikona_house: "Trikona",
   kendra_house: "Kendra",
+  neecha_bhanga: "Neecha Bhanga",
+  strong_neecha_bhanga: "Strong Neecha Bhanga",
   retrograde: "Retrograde",
   combustion: "Combustion",
   death_degree: "Death Degree",
