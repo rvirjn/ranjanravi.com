@@ -8,6 +8,8 @@ if (!C) {
 
 /** Cached planet database from ``/api/planet-database`` (``backend/database/data.json``). */
 let planetDatabase = null;
+/** Last ``/api/kundali`` payload — used so Q&A can show chart-specific answers (e.g. Kaal Sarp type). */
+let lastKundaliPayload = null;
 /** ``column_key`` → ``{ color_id: hex }`` from ``planet_rules.color_codes.column_name``. */
 let planetColorCodesByColumnKey = null;
 
@@ -121,6 +123,11 @@ function formatSummaryCellValue(label, value) {
   const key = normalizeText(label);
   const raw = String(value ?? "");
   if (key === "time") return formatSummaryTimeValue(raw);
+  if (key === "gandmool" || key === "mangalik") {
+    const flag = normalizeText(raw);
+    if (flag === "yes") return "Yes";
+    if (flag === "no") return "No";
+  }
   if (key === "moon type") {
     const paksha = normalizeText(raw);
     if (paksha === "krishna" || raw.toLowerCase().includes("krishna")) {
@@ -139,8 +146,14 @@ function summaryValueHasPlanetList(value) {
 }
 
 function summaryValueClassForLabel(label, value) {
-  if (!summaryValueHasPlanetList(value)) return "";
   const key = normalizeText(label);
+  const text = normalizeText(value);
+  if (key === "gandmool" || key === "mangalik") {
+    if (text === "yes") return "summary-value--red";
+    if (text === "no") return "summary-value--green";
+    return "";
+  }
+  if (!summaryValueHasPlanetList(value)) return "";
   if (key === "exalted planet" || key === "retrograde planet") {
     return "summary-value--green";
   }
@@ -152,6 +165,8 @@ function summaryValueClassForLabel(label, value) {
 
 const KUNDALI_SUMMARY_QA_KEYS = {
   "paya": "paya",
+  "gandmool": "gandmool",
+  "mangalik": "mangalik",
   "combust planet": "combust_planet",
   "exalted planet": "exalted_planet",
   "debilitated planet": "debilitated_planet",
@@ -170,11 +185,14 @@ function payaTypeQaKeyFromValue(value) {
 }
 
 /** One label + value row for the summary facts table. */
-function createSummaryLabelValueRow(label, value) {
+function createSummaryLabelValueRow(label, value, row = {}) {
   const tr = document.createElement("tr");
   const th = document.createElement("th");
   th.scope = "row";
-  const qaKey = KUNDALI_SUMMARY_QA_KEYS[normalizeText(label)] || "";
+  const qaKey =
+    String(row.qa_key || "").trim() ||
+    KUNDALI_SUMMARY_QA_KEYS[normalizeText(label)] ||
+    "";
   if (qaKey) {
     const wrap = document.createElement("span");
     wrap.className = "kundali-table-header-with-info";
@@ -185,11 +203,16 @@ function createSummaryLabelValueRow(label, value) {
     th.textContent = toTitleCaseWords(label);
   }
   const td = document.createElement("td");
-  const valueClass = summaryValueClassForLabel(label, value);
+  const dumpedClass = String(row.value_class || "").trim();
+  const valueClass = dumpedClass || summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
   const displayValue = formatSummaryCellValue(label, value);
+  const labelKey = normalizeText(label);
   const valueQaKey =
-    normalizeText(label) === "paya" ? payaTypeQaKeyFromValue(value) : "";
+    labelKey === "gandmool" || labelKey === "mangalik"
+      ? ""
+      : String(row.value_qa_key || "").trim() ||
+        (labelKey === "paya" ? payaTypeQaKeyFromValue(value) : "");
   if (valueQaKey) {
     const wrap = document.createElement("span");
     wrap.className = "kundali-table-header-with-info";
@@ -3354,12 +3377,13 @@ function renderSummaryTableFromApiRows(summaryBody, summaryRows) {
   if (!summaryBody) return;
   summaryBody.innerHTML = "";
   for (const row of summaryRows || []) {
-    summaryBody.appendChild(createSummaryLabelValueRow(row.label, row.value));
+    summaryBody.appendChild(createSummaryLabelValueRow(row.label, row.value, row));
   }
 }
 
 /** Fill summary, chart, planets (and optional nakshatra when requested) from /api/kundali JSON. */
 function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
+  lastKundaliPayload = kundaliPayload || null;
   const viewTargets = targets.summaryTable ? targets : buildKundaliViewTargets(targets);
   const summaryBody = document.querySelector(viewTargets.summaryTable || "#summary-table tbody");
   const planetsBody = document.querySelector(viewTargets.planetsTable || "#planets-table tbody");
@@ -4635,8 +4659,61 @@ const kundaliQaPopoverState = {
   bound: false
 };
 
+/** Chart-specific Q&A dumped on yoga/dosha items (common + the type this chart has). */
+function parseDumpedQaEntry(qa) {
+  if (!qa || typeof qa !== "object") return null;
+  const question = String(qa.question || "").trim();
+  let answerParts = qa.answer;
+  if (typeof answerParts === "string") {
+    answerParts = answerParts
+      .split(/\n\n+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  if (!Array.isArray(answerParts)) answerParts = [];
+  answerParts = answerParts.map((part) => String(part || "").trim()).filter(Boolean);
+  if (!question || !answerParts.length) return null;
+  return { question, answerParts };
+}
+
+function qaEntryFromKundaliPayload(qaKey) {
+  const key = String(qaKey || "").trim();
+  if (!key || !lastKundaliPayload) return null;
+  const summaryQa = lastKundaliPayload.kundali_summary?.qa;
+  if (summaryQa && typeof summaryQa === "object") {
+    const fromSummary = parseDumpedQaEntry(summaryQa[key]);
+    if (fromSummary) return fromSummary;
+  }
+  const blocks = [lastKundaliPayload.kundali_dosh, lastKundaliPayload.kundali_yog];
+  for (const block of blocks) {
+    const items = Array.isArray(block?.dosh)
+      ? block.dosh
+      : Array.isArray(block?.yogas)
+        ? block.yogas
+        : [];
+    for (const item of items) {
+      if (!item || typeof item !== "object") continue;
+      const qa = item.qa;
+      if (!qa || typeof qa !== "object") continue;
+      const itemKeys = [];
+      const dumpedKey = String(item.qa_key || "").trim();
+      if (dumpedKey) itemKeys.push(dumpedKey);
+      const itemKey = String(item.key || "").trim();
+      if (itemKey) {
+        itemKeys.push(`dosh_${itemKey}`);
+        itemKeys.push(`yoga_${itemKey}`);
+      }
+      if (!itemKeys.includes(key)) continue;
+      return parseDumpedQaEntry(qa);
+    }
+  }
+  return null;
+}
+
 /** Read ``data.json`` → ``Q&A.<key>`` (question + answer paragraphs). */
 function qaEntryFromDatabase(db, qaKey) {
+  const fromChart = qaEntryFromKundaliPayload(qaKey);
+  if (fromChart) return fromChart;
   const key = String(qaKey || "").trim();
   if (!key) return null;
   const qaRoot = db?.["Q&A"];
@@ -5353,12 +5430,21 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     panel.className = "remedy-navatara-panel kundali-yog-panel";
     panel.hidden = true;
 
-    if (item.desc || item.summary) {
+    const descParts = [];
+    if (Array.isArray(item.desc_parts) && item.desc_parts.length) {
+      item.desc_parts.forEach((part) => {
+        const text = String(part || "").trim();
+        if (text) descParts.push(text);
+      });
+    } else if (item.desc || item.summary) {
+      descParts.push(String(item.desc || item.summary));
+    }
+    descParts.forEach((text) => {
       const desc = document.createElement("p");
       desc.className = "kundali-yog-panel__summary";
-      desc.textContent = String(item.desc || item.summary);
+      desc.textContent = text;
       panel.appendChild(desc);
-    }
+    });
 
     if (item.rule) {
       const rule = document.createElement("p");
