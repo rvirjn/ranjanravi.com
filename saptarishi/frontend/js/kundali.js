@@ -2158,10 +2158,44 @@ function createHouseSheetPlanetTableElement(rowData, allRows) {
   return tableWrap;
 }
 
+/** House-level aspectors from planets_table house row (or description columns). */
+function houseAspectedByFromHouseContext(houseRows, descriptions, houseNum) {
+  const sample = (Array.isArray(houseRows) ? houseRows : []).find(Boolean);
+  if (sample) {
+    const planets = collectAspectedByPlanetKeys(sample);
+    if (planets.length) {
+      return {
+        planets,
+        text: String(sample.aspected_by || "").trim() || formatAspectedByPlanets(sample)
+      };
+    }
+  }
+  const entry = houseGridDescriptionEntry(descriptions, houseNum);
+  const cols = entry?.columns?.aspected_by;
+  if (Array.isArray(cols) && cols.length) {
+    const planets = cols.map((name) => normalizeText(name)).filter(Boolean);
+    return { planets, text: cols.map((name) => toTitleCaseWords(name)).join(", ") };
+  }
+  return { planets: [], text: "" };
+}
+
+/** Overlay this house's aspectors onto a planet row (house lord sits elsewhere). */
+function withHouseAspectedBy(rowData, houseAspect) {
+  if (!rowData || !houseAspect?.planets?.length) return rowData;
+  return {
+    ...rowData,
+    aspected_by_planets: [...houseAspect.planets],
+    aspected_by: houseAspect.text || formatAspectedByPlanets({
+      aspected_by_planets: houseAspect.planets
+    })
+  };
+}
+
 function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
   if (!entry || typeof entry !== "object") return false;
   const sections = Array.isArray(entry.sections) ? entry.sections : [];
   const allRows = Array.isArray(options.allRows) ? options.allRows : [];
+  const houseAspect = options.houseAspectedBy || null;
   if (sections.length) {
     for (const section of sections) {
       if (!section || typeof section !== "object") continue;
@@ -2175,7 +2209,11 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         if (title.textContent) wrap.appendChild(title);
         // One-row table after status title / before Pros-Cons (house lord + sitting planets).
         if (role === "house lord" || role === "sitting in this house") {
-          const planetRow = planetTableRowByName(allRows, section.planet);
+          let planetRow = planetTableRowByName(allRows, section.planet);
+          // House lord often sits in another house — show *this* house's aspectors.
+          if (role === "house lord") {
+            planetRow = withHouseAspectedBy(planetRow, houseAspect);
+          }
           const tableEl = createHouseSheetPlanetTableElement(planetRow, allRows);
           if (tableEl) wrap.appendChild(tableEl);
         }
@@ -2321,7 +2359,17 @@ function appendProsConsLineContent(li, item) {
 function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}) {
   const entry = houseGridDescriptionEntry(descriptions, houseNum);
   if (!entry) return false;
-  if (renderStatusGridDescriptionSections(descEl, entry, options)) return true;
+  const houseAspectedBy =
+    options.houseAspectedBy ||
+    houseAspectedByFromHouseContext(options.houseRows, descriptions, houseNum);
+  if (
+    renderStatusGridDescriptionSections(descEl, entry, {
+      ...options,
+      houseAspectedBy
+    })
+  ) {
+    return true;
+  }
   const paragraphs = houseGridDescriptionParagraphs({ [String(houseNum)]: entry }, houseNum);
   for (const text of paragraphs) {
     const p = document.createElement("p");
@@ -2399,6 +2447,8 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet";
   const allRows = Array.isArray(options.allRows) ? options.allRows : [];
+  const rows = Array.isArray(houseRows) ? houseRows : [];
+  const houseAspectedBy = houseAspectedByFromHouseContext(rows, descriptions, houseNum);
 
   const head = document.createElement("div");
   head.className = "house-planets-sheet__head";
@@ -2419,12 +2469,21 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
 
   sheet.appendChild(head);
 
+  // Empty house: still show the house row so Aspected By (drishti on this house) is visible.
+  const sitting = housePlanetTableRows(rows);
+  if (!sitting.length && rows[0]) {
+    const emptyHouseTable = createHouseSheetPlanetTableElement(rows[0], allRows);
+    if (emptyHouseTable) sheet.appendChild(emptyHouseTable);
+  }
+
   const desc = document.createElement("div");
   desc.className = "house-planets-sheet__desc";
   desc.setAttribute("aria-label", `House ${houseNum} reading`);
   if (
     renderHouseGridDescription(desc, descriptions, houseNum, {
-      allRows
+      allRows,
+      houseRows: rows,
+      houseAspectedBy
     })
   ) {
     sheet.appendChild(desc);
