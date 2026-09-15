@@ -2751,36 +2751,40 @@ tbody tr:last-child td {
   line-height: 1.25;
 }
 
-/* Planets table columns (13): Planet (+ strength), Aspected, Nakshatra (+ status),
-   House, In House Rashi (+ status), In House Lord (+ strength), Mahadasha on Age,
-   Karakwaqt, Malefic, Navatara, Degree, Death Degree, Lagna Lord Enemy —
+/* Planets table columns (15): Planet, Aspected By, Conjunction, Nakshatra,
+   House, In House Rashi, In House Lord, Mahadasha on Age, Karakwaqt, Malefic,
+   Benefic, Navatara, Degree, Death Degree, Lagna Lord Enemy —
    keep % sum ≈ 100 for table-layout:fixed. */
 #planets-table.kundali-table thead th:nth-child(1),
-#slot-planets-table.kundali-table thead th:nth-child(1) { width: 8%; }
+#slot-planets-table.kundali-table thead th:nth-child(1) { width: 7%; }
 #planets-table.kundali-table thead th:nth-child(2),
-#slot-planets-table.kundali-table thead th:nth-child(2) { width: 9%; }
+#slot-planets-table.kundali-table thead th:nth-child(2) { width: 8%; }
 #planets-table.kundali-table thead th:nth-child(3),
-#slot-planets-table.kundali-table thead th:nth-child(3) { width: 10%; }
+#slot-planets-table.kundali-table thead th:nth-child(3) { width: 9%; }
 #planets-table.kundali-table thead th:nth-child(4),
-#slot-planets-table.kundali-table thead th:nth-child(4) { width: 7%; }
+#slot-planets-table.kundali-table thead th:nth-child(4) { width: 9%; }
 #planets-table.kundali-table thead th:nth-child(5),
-#slot-planets-table.kundali-table thead th:nth-child(5) { width: 9%; }
+#slot-planets-table.kundali-table thead th:nth-child(5) { width: 6%; }
 #planets-table.kundali-table thead th:nth-child(6),
-#slot-planets-table.kundali-table thead th:nth-child(6) { width: 8%; }
+#slot-planets-table.kundali-table thead th:nth-child(6) { width: 7%; }
 #planets-table.kundali-table thead th:nth-child(7),
-#slot-planets-table.kundali-table thead th:nth-child(7) { width: 6%; }
+#slot-planets-table.kundali-table thead th:nth-child(7) { width: 7%; }
 #planets-table.kundali-table thead th:nth-child(8),
-#slot-planets-table.kundali-table thead th:nth-child(8) { width: 8%; }
+#slot-planets-table.kundali-table thead th:nth-child(8) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(9),
 #slot-planets-table.kundali-table thead th:nth-child(9) { width: 6%; }
 #planets-table.kundali-table thead th:nth-child(10),
-#slot-planets-table.kundali-table thead th:nth-child(10) { width: 8%; }
+#slot-planets-table.kundali-table thead th:nth-child(10) { width: 5%; }
 #planets-table.kundali-table thead th:nth-child(11),
-#slot-planets-table.kundali-table thead th:nth-child(11) { width: 7%; }
+#slot-planets-table.kundali-table thead th:nth-child(11) { width: 6%; }
 #planets-table.kundali-table thead th:nth-child(12),
-#slot-planets-table.kundali-table thead th:nth-child(12) { width: 8%; }
+#slot-planets-table.kundali-table thead th:nth-child(12) { width: 6%; }
 #planets-table.kundali-table thead th:nth-child(13),
 #slot-planets-table.kundali-table thead th:nth-child(13) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(14),
+#slot-planets-table.kundali-table thead th:nth-child(14) { width: 6%; }
+#planets-table.kundali-table thead th:nth-child(15),
+#slot-planets-table.kundali-table thead th:nth-child(15) { width: 6%; }
 
 /* Phone: wide kundali tables scroll sideways instead of stacking one letter per line. */
 @media (max-width: 900px) {
