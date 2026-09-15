@@ -661,6 +661,15 @@ function planetsTableCellText(key, rowData) {
     }
     return "";
   }
+  if (key === "house_status_strength") {
+    if (rowData.house_status_strength != null && String(rowData.house_status_strength).trim()) {
+      return rowData.house_status_strength;
+    }
+    if (typeof rowData.house_status_strength_percent === "number") {
+      return `${rowData.house_status_strength_percent}%`;
+    }
+    return "";
+  }
   if (key === "house_rashi") {
     const flat = rowData.house_rashi ?? rowData.rashi;
     if (flat != null && String(flat).trim()) {
@@ -1768,16 +1777,32 @@ function houseColumnDisplayForRows(houseRows, col) {
   return [...new Set(values)].join(", ");
 }
 
+/** House Status tile %: lord + aspector planet strengths (from API). */
 function formatHouseTileStrengthPercent(houseRows, allRows) {
   const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
   if (!sample) return "—";
+  const direct = formatTableCellForDisplay(
+    "house_status_strength",
+    planetsTableCellText("house_status_strength", sample)
+  );
+  if (direct && direct !== "—") return direct;
+  if (typeof sample.house_status_strength_percent === "number") {
+    return `${sample.house_status_strength_percent}%`;
+  }
   return houseLordStrengthCellText(sample, allRows || houseRows);
 }
 
-/** Apply house-lord strength tint onto a house tile button. */
+/** Color kind for House Status tile (lord + aspectors total). */
+function houseStatusStrengthColorKind(rowData, allRows) {
+  const direct = rowData?.cell_styles?.house_status_strength;
+  if (direct) return direct;
+  return houseLordStrengthColorKind(rowData, allRows);
+}
+
+/** Apply house-status strength tint onto a house tile button. */
 function applyHousePlanetsTileStyle(btn, representativeRow, allRows) {
   if (!btn || !representativeRow) return;
-  const colorKind = houseLordStrengthColorKind(representativeRow, allRows);
+  const colorKind = houseStatusStrengthColorKind(representativeRow, allRows);
   applyPlanetTableCellStyle(btn, colorKind, "strength");
 }
 
@@ -5497,13 +5522,13 @@ function isAdversePlanetColorKind(kind) {
   return k === "low" || k === "enemy";
 }
 
-/** True when a house tile is red or house lord strength is negative. */
+/** True when a house tile is red or house status strength is negative. */
 function housePlanetsTileIsAdverse(houseRows, representativeRow, allRows) {
   const sample = representativeRow || (Array.isArray(houseRows) ? houseRows[0] : null);
   if (!sample) return false;
   const lookup = allRows || houseRows;
-  if (isAdversePlanetColorKind(houseLordStrengthColorKind(sample, lookup))) return true;
-  const text = houseLordStrengthCellText(sample, lookup);
+  if (isAdversePlanetColorKind(houseStatusStrengthColorKind(sample, lookup))) return true;
+  const text = formatHouseTileStrengthPercent(houseRows, lookup);
   const n = Number.parseInt(String(text).replace(/%/g, ""), 10);
   return Number.isFinite(n) && n < 0;
 }
