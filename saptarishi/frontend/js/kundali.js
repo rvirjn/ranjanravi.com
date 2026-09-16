@@ -417,11 +417,6 @@ function formatPlanetStrengthVerificationTitle(rowData) {
       lines.push(`${sign}${item.value} (${formatStrengthRuleDisplayLabel(item)})`);
     }
   }
-  const limit = adj.limit_clamp;
-  if (limit && typeof limit.value === "number" && limit.value !== 0) {
-    const sign = limit.value > 0 ? "+" : "";
-    lines.push(`${sign}${limit.value} (${limit.label || "Strength Limit"})`);
-  }
   lines.push(`= ${total}`);
   return lines.join("\n");
 }
@@ -769,7 +764,7 @@ function normalizeText(value) {
     .replace(/\s+/g, " ");
 }
 
-/** Chart shading cap from API ``strength_max`` (from data.json ``strength_limits.max_percent``). */
+/** Chart shading scale from API ``strength_max`` (highest actual strength on the chart). */
 function strengthMaxFromPayload(kundaliPayload) {
   const max = kundaliPayload?.strength_max;
   return typeof max === "number" && max > 0 ? max : null;
@@ -918,7 +913,7 @@ function strengthPercentFromRow(row) {
   return null;
 }
 
-/** Map strength % to 0–1 chart shading using API ``strength_max`` only. */
+/** Map strength % to 0–1 chart shading using API ``strength_max``. */
 function planetStrengthVisualVars(strengthPercent, strengthMax) {
   if (!(strengthMax > 0) || typeof strengthPercent !== "number") {
     return { intensity: 0 };
