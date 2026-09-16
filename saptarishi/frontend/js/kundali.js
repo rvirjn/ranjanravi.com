@@ -1810,6 +1810,11 @@ function formatHouseStatusStrengthBreakdown(houseRows) {
     parts.push(`${toTitleCaseWords(lordName)} ${lordPct}`);
   }
   for (const row of Array.isArray(bd.aspected_by) ? bd.aspected_by : []) {
+    const display = String(row?.display || "").trim();
+    if (display) {
+      parts.push(display);
+      continue;
+    }
     const name = String(row?.planet || "").trim();
     const pct = row?.strength_percent;
     if (name && typeof pct === "number") {
