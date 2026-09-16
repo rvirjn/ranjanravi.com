@@ -1792,6 +1792,18 @@ function formatHouseTileStrengthPercent(houseRows, allRows) {
   return houseLordStrengthCellText(sample, allRows || houseRows);
 }
 
+function houseTileStrengthSortValue(houseRows, allRows) {
+  const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
+  if (typeof sample?.house_status_strength_percent === "number") {
+    return sample.house_status_strength_percent;
+  }
+  const n = Number.parseInt(
+    String(formatHouseTileStrengthPercent(houseRows, allRows) || "").replace(/%/g, ""),
+    10
+  );
+  return Number.isFinite(n) ? n : Number.NEGATIVE_INFINITY;
+}
+
 /** Header equation: ``Sun 135 + Mars 66 + Jupiter 185 = 386%``. */
 function formatHouseStatusStrengthBreakdown(houseRows) {
   const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
@@ -1848,7 +1860,7 @@ function applyPlanetStatusTileStyle(btn, rowData) {
   applyPlanetTableCellStyle(btn, rowData?.cell_styles?.strength || "", "strength");
 }
 
-/** Planet rows only (skip empty-house placeholder rows). */
+/** Planet rows only (skip empty-house placeholder rows), strongest first. */
 function listPlanetStatusRows(rows) {
   const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
   const rank = new Map(order.map((p, i) => [normalizeText(p), i]));
@@ -1858,10 +1870,22 @@ function listPlanetStatusRows(rows) {
       return Boolean(name && name !== "No planet");
     })
     .sort((a, b) => {
+      const ds = planetRowStrengthSortValue(b) - planetRowStrengthSortValue(a);
+      if (ds !== 0) return ds;
       const ak = normalizeText(a?.planet);
       const bk = normalizeText(b?.planet);
       return (rank.get(ak) ?? 99) - (rank.get(bk) ?? 99);
     });
+}
+
+function planetRowStrengthSortValue(row) {
+  if (typeof row?.strength_percent === "number" && Number.isFinite(row.strength_percent)) {
+    return row.strength_percent;
+  }
+  const total = row?.strength_adjustments?.total;
+  if (typeof total === "number" && Number.isFinite(total)) return total;
+  const n = Number.parseInt(String(planetsTableStrengthCellText(row) || "").replace(/%/g, ""), 10);
+  return Number.isFinite(n) ? n : Number.NEGATIVE_INFINITY;
 }
 
 function formatPlanetStatusTileSubtitle(rowData) {
@@ -2588,7 +2612,18 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     });
   };
 
+  const houseNums = [];
   for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
+    if (byHouse[houseNum]?.[0]) houseNums.push(houseNum);
+  }
+  houseNums.sort((a, b) => {
+    const ds =
+      houseTileStrengthSortValue(byHouse[b], allRows) -
+      houseTileStrengthSortValue(byHouse[a], allRows);
+    return ds !== 0 ? ds : a - b;
+  });
+
+  for (const houseNum of houseNums) {
     const houseRows = byHouse[houseNum];
     const sampleRow = houseRows[0];
     if (!sampleRow) continue;
@@ -5588,6 +5623,11 @@ function applyAdverseHouseTileContentLock(btn, panel) {
 
 function blurMatchTileButtonLabel(btn) {
   if (!btn) return;
+  const nameEl = btn.querySelector(".kundali-yog-btn__name");
+  if (nameEl) {
+    blurLockedTextElement(nameEl);
+    return;
+  }
   const label = String(btn.textContent || "").trim();
   if (!label) return;
   btn.textContent = "";
@@ -5613,7 +5653,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     isBadItem,
     blurPanelText,
     blurAdverseTiles,
-    showRemedyHint
+    showRemedyHint,
+    showYogaStrength
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -5622,9 +5663,19 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
   if (!section || !listEl) return;
 
   const block = payload?.[blockKey];
-  const items = (Array.isArray(block?.[itemsKey]) ? block[itemsKey] : []).filter(
+  let items = (Array.isArray(block?.[itemsKey]) ? block[itemsKey] : []).filter(
     (item) => item && item.present
   );
+  if (showYogaStrength) {
+    items = [...items].sort((a, b) => {
+      const as = typeof a?.strength_percent === "number" ? a.strength_percent : -1;
+      const bs = typeof b?.strength_percent === "number" ? b.strength_percent : -1;
+      if (as !== bs) return bs - as;
+      const an = String(a?.name || a?.key || "").toLowerCase();
+      const bn = String(b?.name || b?.key || "").toLowerCase();
+      return an.localeCompare(bn);
+    });
+  }
   listEl.innerHTML = "";
 
   if (!items.length) {
@@ -5699,7 +5750,22 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       : buttonClassName;
     btn.className = ["remedy-navatara-btn", extraBtnClass].filter(Boolean).join(" ");
     btn.dataset.matchKey = String(item.key || "");
-    btn.textContent = String(item.name || item.key || ariaItemKind || headingLabel);
+    const nameText = String(item.name || item.key || ariaItemKind || headingLabel);
+    const nameEl = document.createElement("span");
+    nameEl.className = "kundali-yog-btn__name";
+    nameEl.textContent = nameText;
+    btn.appendChild(nameEl);
+    if (
+      showYogaStrength &&
+      typeof item.strength_percent === "number" &&
+      Number.isFinite(item.strength_percent)
+    ) {
+      btn.classList.add("remedy-navatara-btn--with-strength");
+      const pctEl = document.createElement("span");
+      pctEl.className = "kundali-yog-btn__pct";
+      pctEl.textContent = `${item.strength_percent}%`;
+      btn.appendChild(pctEl);
+    }
     btn.setAttribute("aria-pressed", "false");
     btn.setAttribute("aria-expanded", "false");
 
@@ -5735,6 +5801,13 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       chart.className = "kundali-yog-panel__meta";
       chart.textContent = String(item.chart);
       panel.appendChild(chart);
+    }
+
+    if (showYogaStrength && item.strength_text) {
+      const strength = document.createElement("p");
+      strength.className = "kundali-yog-panel__meta kundali-yog-panel__strength";
+      strength.textContent = String(item.strength_text);
+      panel.appendChild(strength);
     }
 
     if (item.detail) {
@@ -5789,7 +5862,8 @@ function renderKundaliYogasFromPayload(payload) {
     emptyDetail: "No extra detail for this yoga.",
     ariaItemKind: "Yoga",
     isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad",
-    blurAdverseTiles: true
+    blurAdverseTiles: true,
+    showYogaStrength: true
   });
 }
 

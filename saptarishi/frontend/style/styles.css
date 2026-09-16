@@ -2465,6 +2465,11 @@ tbody tr:last-child td {
   color: var(--color-muted, #5a6a7a);
 }
 
+.kundali-yog-panel__strength {
+  font-weight: 600;
+  color: var(--color-heading, #1e3a5f);
+}
+
 .kundali-chart-svg {
   width: 100%;
   height: auto;
@@ -5561,8 +5566,10 @@ body.premium-modal-open {
   width: 100%;
   aspect-ratio: 1 / 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.2rem;
   padding: 0.5rem;
   border: 1px solid rgba(46, 125, 50, 0.28);
   border-radius: var(--radius-sm);
@@ -5607,6 +5614,20 @@ body.premium-modal-open {
   border-color: var(--planet-color-red, #b71c1c);
   box-shadow: inset 0 0 0 1px rgba(var(--planet-color-red-rgb, 183, 28, 28), 0.25);
   color: var(--planet-color-red_text, #6d1010);
+}
+
+.kundali-yog-btn__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kundali-yog-btn__pct {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .remedy-navatara-panel {
