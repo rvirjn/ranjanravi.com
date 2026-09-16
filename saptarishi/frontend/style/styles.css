@@ -1693,6 +1693,72 @@ tbody tr:last-child td {
   }
 }
 
+/* Desktop website: keep summary content inside the table and fill the
+   box that stretches to the birth-chart square. */
+@media (min-width: 721px) {
+  .summary-chart-row__summary.table-wrap {
+    height: 0;
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  .summary-chart-row__summary-body {
+    flex: 1 1 0%;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    container-type: size;
+    container-name: kundali-summary;
+  }
+
+  .summary-chart-row #summary-table,
+  .summary-chart-row [id$="-summary-table"] {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+  }
+
+  .summary-chart-row #summary-table tbody,
+  .summary-chart-row [id$="-summary-table"] tbody {
+    height: 100%;
+  }
+
+  #results .summary-chart-row #summary-table.kundali-table th,
+  #results .summary-chart-row #summary-table.kundali-table td,
+  #results .summary-chart-row [id$="-summary-table"].kundali-table th,
+  #results .summary-chart-row [id$="-summary-table"].kundali-table td,
+  .summary-chart-row #summary-table th,
+  .summary-chart-row #summary-table td,
+  .summary-chart-row [id$="-summary-table"] th,
+  .summary-chart-row [id$="-summary-table"] td {
+    font-size: clamp(0.58rem, 2.35cqh, 0.8rem);
+    line-height: 1.25;
+    padding-top: clamp(0.08rem, 0.55cqh, 0.38rem);
+    padding-bottom: clamp(0.08rem, 0.55cqh, 0.38rem);
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .summary-chart-row #summary-table th[scope="row"],
+  .summary-chart-row [id$="-summary-table"] th[scope="row"] {
+    white-space: normal;
+  }
+
+  .summary-chart-row .kundali-table-header-with-info {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 /* ---------- Divisional charts (D1 / D9 / D10 / D30 / D60) ---------- */
 
 .divisional-charts-section {
