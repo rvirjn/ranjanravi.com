@@ -1424,6 +1424,22 @@ html.saptarishi-native-app #app-today-dasha-summary {
   margin-top: 0.35rem;
 }
 
+html.saptarishi-native-app #saptarishi.main-shell .summary-chart-row__summary.table-wrap,
+html.saptarishi-native-app #results .summary-chart-row__summary.table-wrap {
+  overflow: hidden !important;
+}
+
+html.saptarishi-native-app .summary-chart-row__summary-body {
+  flex: 1 1 0%;
+  height: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
 /* House sheet: one label/value row per column so names stay readable on phone. */
 html.saptarishi-native-app #saptarishi.main-shell .house-planets-sheet__table-wrap:has(.house-planets-sheet__table.is-native-stacked) {
   overflow-x: hidden !important;

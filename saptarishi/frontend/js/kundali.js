@@ -6278,6 +6278,53 @@ async function refreshKundaliSavedViews() {
   }
 }
 
+function isAskAiPanelOpen() {
+  return Boolean(document.querySelector(".ask-ai.ask-ai--open, .ask-ai:has(.ask-ai__panel:not([hidden]))"));
+}
+
+function setNativePullToRefreshEnabled(enabled) {
+  const on = Boolean(enabled);
+  try {
+    if (window.SaptarishiAndroid && typeof window.SaptarishiAndroid.setPullToRefreshEnabled === "function") {
+      window.SaptarishiAndroid.setPullToRefreshEnabled(on);
+    }
+  } catch {
+    /* Android WebView bridge only */
+  }
+  try {
+    if (window.SaptarishiIos && typeof window.SaptarishiIos.setPullToRefreshEnabled === "function") {
+      window.SaptarishiIos.setPullToRefreshEnabled(on);
+    }
+  } catch {
+    /* iOS bridge only */
+  }
+}
+
+/** Keep nested summary scrolling from being stolen by the page or Android pull-to-refresh. */
+function bindSummaryNestedScroll() {
+  if (document.documentElement.dataset.summaryNestedScrollBound === "1") return;
+  document.documentElement.dataset.summaryNestedScrollBound = "1";
+  let touchingSummary = false;
+
+  document.addEventListener("touchstart", (event) => {
+    const node = event.target;
+    const el = node instanceof Element ? node : node?.parentElement;
+    if (!el?.closest?.(".summary-chart-row__summary-body")) return;
+    touchingSummary = true;
+    setNativePullToRefreshEnabled(false);
+  }, { capture: true, passive: true });
+
+  const endTouch = () => {
+    if (!touchingSummary) return;
+    touchingSummary = false;
+    if (!isAskAiPanelOpen()) setNativePullToRefreshEnabled(true);
+  };
+  document.addEventListener("touchend", endTouch, { capture: true, passive: true });
+  document.addEventListener("touchcancel", endTouch, { capture: true, passive: true });
+}
+
+bindSummaryNestedScroll();
+
 if (document.getElementById("birth-form")) {
   if (placePreset) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
