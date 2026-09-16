@@ -5797,10 +5797,13 @@ body.premium-modal-open {
 }
 
 .house-planets-sheet__pct {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-heading, #1e3a5f);
-  white-space: nowrap;
+  white-space: normal;
+  text-align: right;
+  max-width: min(100%, 28rem);
+  line-height: 1.35;
 }
 
 .house-planets-sheet__table-wrap {

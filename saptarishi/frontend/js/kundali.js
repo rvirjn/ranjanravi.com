@@ -1777,7 +1777,7 @@ function houseColumnDisplayForRows(houseRows, col) {
   return [...new Set(values)].join(", ");
 }
 
-/** House Status tile %: lord + aspector planet strengths (from API). */
+/** House Status tile %: lord + aspector + sitting (from API). */
 function formatHouseTileStrengthPercent(houseRows, allRows) {
   const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
   if (!sample) return "—";
@@ -1792,7 +1792,43 @@ function formatHouseTileStrengthPercent(houseRows, allRows) {
   return houseLordStrengthCellText(sample, allRows || houseRows);
 }
 
-/** Color kind for House Status tile (lord + aspectors total). */
+/** Header equation: ``Sun 135 + Mars 66 + Jupiter 185 = 386%``. */
+function formatHouseStatusStrengthBreakdown(houseRows) {
+  const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
+  const bd = sample?.house_status_strength_breakdown;
+  if (!bd || typeof bd !== "object") return "";
+
+  const parts = [];
+  const lordName = String(bd.house_lord || "").trim();
+  const lordPct = bd.house_lord_strength_percent;
+  if (lordName && typeof lordPct === "number") {
+    parts.push(`${toTitleCaseWords(lordName)} ${lordPct}`);
+  }
+  for (const row of Array.isArray(bd.aspected_by) ? bd.aspected_by : []) {
+    const name = String(row?.planet || "").trim();
+    const pct = row?.strength_percent;
+    if (name && typeof pct === "number") {
+      parts.push(`${toTitleCaseWords(name)} ${pct}`);
+    }
+  }
+  for (const row of Array.isArray(bd.sitting) ? bd.sitting : []) {
+    const name = String(row?.planet || "").trim();
+    const pct = row?.strength_percent;
+    if (name && typeof pct === "number") {
+      parts.push(`${toTitleCaseWords(name)} ${pct}`);
+    }
+  }
+  const total =
+    typeof bd.total_percent === "number"
+      ? bd.total_percent
+      : typeof sample.house_status_strength_percent === "number"
+        ? sample.house_status_strength_percent
+        : null;
+  if (!parts.length || total == null) return "";
+  return `${parts.join(" + ")} = ${total}%`;
+}
+
+/** Color kind for House Status tile (lord + aspectors + sitting total). */
 function houseStatusStrengthColorKind(rowData, allRows) {
   const direct = rowData?.cell_styles?.house_status_strength;
   if (direct) return direct;
@@ -2491,7 +2527,9 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   if (strengthText && strengthText !== "—") {
     const pct = document.createElement("span");
     pct.className = "house-planets-sheet__pct";
-    pct.textContent = strengthText;
+    const equation = formatHouseStatusStrengthBreakdown(rows);
+    pct.textContent = equation || strengthText;
+    if (equation) pct.title = equation;
     head.appendChild(pct);
   }
 
