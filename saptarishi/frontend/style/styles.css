@@ -5632,11 +5632,27 @@ body.premium-modal-open {
   color: var(--planet-color-red_text, #6d1010);
 }
 
+.kundali-yog-btn__name-row {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.15rem;
+  max-width: 100%;
+}
+
 .kundali-yog-btn__name {
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.kundali-yog-btn__star {
+  flex: 0 0 auto;
+  color: #ffd54f;
+  font-size: 0.95em;
+  line-height: 1.25;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 .kundali-yog-btn__pct {

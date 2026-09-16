@@ -5685,7 +5685,24 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     const nameEl = document.createElement("span");
     nameEl.className = "kundali-yog-btn__name";
     nameEl.textContent = nameText;
-    btn.appendChild(nameEl);
+    const isTopList =
+      itemsKey === "yogas" &&
+      String(item.is_under_top_list || "").trim().toLowerCase() === "yes";
+    if (isTopList) {
+      const nameRow = document.createElement("span");
+      nameRow.className = "kundali-yog-btn__name-row";
+      nameRow.appendChild(nameEl);
+      const starEl = document.createElement("span");
+      starEl.className = "kundali-yog-btn__star";
+      starEl.textContent = "★";
+      starEl.setAttribute("aria-hidden", "true");
+      nameRow.appendChild(starEl);
+      btn.appendChild(nameRow);
+      btn.classList.add("kundali-yog-btn--top-list");
+      btn.title = `${nameText} — top 15 yoga`;
+    } else {
+      btn.appendChild(nameEl);
+    }
     if (
       showYogaStrength &&
       typeof item.strength_percent === "number" &&
