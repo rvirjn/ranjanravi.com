@@ -5649,7 +5649,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     blurPanelText,
     blurAdverseTiles,
     showRemedyHint,
-    showYogaStrength
+    showYogaStrength,
+    sortByStrength
   } = options;
   const section = document.getElementById(sectionId);
   const headingEl = document.getElementById(headingId);
@@ -5661,7 +5662,9 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
   let items = (Array.isArray(block?.[itemsKey]) ? block[itemsKey] : []).filter(
     (item) => item && item.present
   );
-  if (showYogaStrength) {
+  const shouldSortByStrength =
+    sortByStrength === true || (sortByStrength == null && showYogaStrength);
+  if (shouldSortByStrength) {
     items = [...items].sort((a, b) => {
       const as = typeof a?.strength_percent === "number" ? a.strength_percent : -1;
       const bs = typeof b?.strength_percent === "number" ? b.strength_percent : -1;
@@ -5877,7 +5880,9 @@ function renderKundaliDoshasFromPayload(payload) {
     buttonClassName: "remedy-navatara-btn--dosh",
     blurPanelText: true,
     blurAdverseTiles: true,
-    showRemedyHint: true
+    showRemedyHint: true,
+    showYogaStrength: true,
+    sortByStrength: false
   });
 }
 

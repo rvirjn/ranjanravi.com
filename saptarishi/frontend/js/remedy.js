@@ -820,6 +820,9 @@
       .sort((a, b) => {
         const pr = doshPriorityRank(a?.priority) - doshPriorityRank(b?.priority);
         if (pr !== 0) return pr;
+        const as = typeof a?.strength_percent === "number" ? a.strength_percent : -1;
+        const bs = typeof b?.strength_percent === "number" ? b.strength_percent : -1;
+        if (as !== bs) return bs - as;
         const an = String(a?.name || a?.key || "").toLowerCase();
         const bn = String(b?.name || b?.key || "").toLowerCase();
         return an.localeCompare(bn);
@@ -1156,7 +1159,20 @@
       btn.type = "button";
       btn.className = "remedy-navatara-btn remedy-navatara-btn--dosh";
       btn.dataset.doshKey = normalizeText(itemKey);
-      btn.textContent = tileLabel;
+      const nameEl = document.createElement("span");
+      nameEl.className = "kundali-yog-btn__name";
+      nameEl.textContent = tileLabel;
+      btn.appendChild(nameEl);
+      if (
+        typeof dosh.strength_percent === "number" &&
+        Number.isFinite(dosh.strength_percent)
+      ) {
+        btn.classList.add("remedy-navatara-btn--with-strength");
+        const pctEl = document.createElement("span");
+        pctEl.className = "kundali-yog-btn__pct";
+        pctEl.textContent = `${dosh.strength_percent}%`;
+        btn.appendChild(pctEl);
+      }
       btn.setAttribute("aria-pressed", "false");
       btn.setAttribute("aria-expanded", "false");
       if (showPriority) btn.title = tileLabel;
