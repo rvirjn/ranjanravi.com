@@ -1838,7 +1838,7 @@ function formatHouseStatusStrengthBreakdown(houseRows) {
   return `${parts.join(" + ")} = ${total}%`;
 }
 
-/** Color kind for House Status tile (lord + aspectors + sitting total). */
+/** Color kind for House Status tile: same as that house lord's planet strength. */
 function houseStatusStrengthColorKind(rowData, allRows) {
   const direct = rowData?.cell_styles?.house_status_strength;
   if (direct) return direct;
