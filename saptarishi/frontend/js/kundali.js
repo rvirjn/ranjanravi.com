@@ -1600,10 +1600,8 @@ const KUNDALI_PLANETS_GRID_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT
   (col) => col.header
 );
 
-const KUNDALI_PLANETS_TABLE_HEADING = "Planet/Houses Status";
-const KUNDALI_PLANETS_VIEW_GRID = "grid";
-const KUNDALI_PLANETS_VIEW_FULL = "full";
-let kundaliPlanetsViewMode = KUNDALI_PLANETS_VIEW_GRID;
+const KUNDALI_PLANET_STATUS_HEADING = "Planet Status";
+const KUNDALI_HOUSE_STATUS_HEADING = "House Status";
 
 /** Grid-house → linked divisional chart keys (D1 stays in Full-view strip only). */
 const HOUSE_DIVISIONAL_CHART_KEYS = {
@@ -2126,94 +2124,24 @@ function renderPlanetStatusTiles(container, rows, options = {}) {
   }
 }
 
-function normalizeKundaliPlanetsViewMode(mode) {
-  return mode === KUNDALI_PLANETS_VIEW_FULL ? KUNDALI_PLANETS_VIEW_FULL : KUNDALI_PLANETS_VIEW_GRID;
-}
-
-/** Show house tiles or planet tiles inside one status section. */
+/** Show planet and house status tiles together (planet block first). */
 function applyKundaliPlanetsView(fromEl) {
-  const view = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
   const sections = fromEl
     ? [fromEl.closest?.(".planets-status-section") || fromEl].filter(Boolean)
     : Array.from(document.querySelectorAll(".planets-status-section"));
   for (const section of sections) {
     if (!section?.querySelector) continue;
-    section.setAttribute("data-planets-view", view);
-    section.classList.toggle("planets-status-section--grid", view === KUNDALI_PLANETS_VIEW_GRID);
-    section.classList.toggle("planets-status-section--full", view === KUNDALI_PLANETS_VIEW_FULL);
     const houseTiles = section.querySelector(".house-planets-tiles:not(.planet-status-tiles)");
     const planetTiles = section.querySelector(".planet-status-tiles");
     const tableWrap = section.querySelector(".planets-table-wrap");
-    const hasData = Boolean(
-      (houseTiles && houseTiles.childElementCount) ||
-        (planetTiles && planetTiles.childElementCount) ||
-        tableWrap?.querySelector("tbody tr")
-    );
     if (houseTiles) {
-      houseTiles.hidden = !(hasData && view === KUNDALI_PLANETS_VIEW_GRID);
-      if (houseTiles.hidden) {
-        houseTiles.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
-          btn.classList.remove("house-planets-tile-btn--active");
-          btn.setAttribute("aria-pressed", "false");
-          btn.setAttribute("aria-expanded", "false");
-        });
-        houseTiles.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
-          panel.hidden = true;
-        });
-      }
+      houseTiles.hidden = houseTiles.childElementCount === 0;
     }
     if (planetTiles) {
-      planetTiles.hidden = !(hasData && view === KUNDALI_PLANETS_VIEW_FULL);
-      if (planetTiles.hidden) {
-        planetTiles.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
-          btn.classList.remove("house-planets-tile-btn--active");
-          btn.setAttribute("aria-pressed", "false");
-          btn.setAttribute("aria-expanded", "false");
-        });
-        planetTiles.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
-          panel.hidden = true;
-        });
-      }
+      planetTiles.hidden = planetTiles.childElementCount === 0;
     }
     if (tableWrap) tableWrap.hidden = true;
-    const divisional = section.querySelector(".planets-status-divisional, #divisional-charts-section");
-    if (divisional && divisional.dataset.hasCharts === "1") {
-      divisional.hidden = view !== KUNDALI_PLANETS_VIEW_FULL;
-      if (view !== KUNDALI_PLANETS_VIEW_FULL) collapseDivisionalChartsPanel();
-    }
-    section.querySelectorAll(".planets-view-switch__btn[data-planets-view]").forEach((btn) => {
-      const active = btn.getAttribute("data-planets-view") === view;
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-pressed", active ? "true" : "false");
-    });
   }
-}
-
-function setKundaliPlanetsViewMode(mode, fromEl) {
-  kundaliPlanetsViewMode = normalizeKundaliPlanetsViewMode(mode);
-  applyKundaliPlanetsView(fromEl);
-}
-
-function createPlanetsViewSwitchElement(idPrefix) {
-  const switchEl = document.createElement("div");
-  switchEl.className = "planets-view-switch";
-  switchEl.setAttribute("role", "group");
-  switchEl.setAttribute("aria-label", "Planets status view");
-  const current = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
-  for (const [mode, label] of [
-    [KUNDALI_PLANETS_VIEW_GRID, "House Status"],
-    [KUNDALI_PLANETS_VIEW_FULL, "Planet Status"]
-  ]) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `planets-view-switch__btn${mode === current ? " is-active" : ""}`;
-    btn.dataset.planetsView = mode;
-    btn.id = kundaliElementId(idPrefix, `planets-view-${mode}`);
-    btn.textContent = label;
-    btn.setAttribute("aria-pressed", mode === current ? "true" : "false");
-    switchEl.appendChild(btn);
-  }
-  return switchEl;
 }
 
 function createHouseSheetPlanetTableElement(rowData, allRows, houseAspectedBy = null) {
@@ -3607,34 +3535,41 @@ function createStandardKundaliPanelElement(options = {}) {
   panel.appendChild(summaryRow);
 
   const planetsSection = document.createElement("section");
-  planetsSection.className = "planets-status-section planets-status-section--grid";
-  planetsSection.setAttribute("data-planets-view", KUNDALI_PLANETS_VIEW_GRID);
-  planetsSection.setAttribute("aria-label", KUNDALI_PLANETS_TABLE_HEADING);
+  planetsSection.className = "planets-status-section";
+  planetsSection.setAttribute(
+    "aria-label",
+    `${KUNDALI_PLANET_STATUS_HEADING} and ${KUNDALI_HOUSE_STATUS_HEADING}`
+  );
 
-  const toolbar = document.createElement("div");
-  toolbar.className = "planets-status-toolbar";
-  toolbar.appendChild(Object.assign(document.createElement("h2"), {
+  const planetBlock = document.createElement("div");
+  planetBlock.className = "planets-status-block planets-status-block--planet";
+  planetBlock.appendChild(Object.assign(document.createElement("h2"), {
     className: "result-heading",
-    textContent: KUNDALI_PLANETS_TABLE_HEADING
+    textContent: KUNDALI_PLANET_STATUS_HEADING
   }));
-  toolbar.appendChild(createPlanetsViewSwitchElement(idPrefix));
-  planetsSection.appendChild(toolbar);
-
-  const houseTiles = document.createElement("div");
-  houseTiles.id = kundaliElementId(idPrefix, "house-planets-tiles");
-  houseTiles.className = "house-planets-tiles";
-  houseTiles.setAttribute("role", "group");
-  houseTiles.setAttribute("aria-label", "Birth time planets by house");
-  houseTiles.hidden = true;
-  planetsSection.appendChild(houseTiles);
-
   const planetTiles = document.createElement("div");
   planetTiles.id = kundaliElementId(idPrefix, "planet-status-tiles");
   planetTiles.className = "house-planets-tiles planet-status-tiles";
   planetTiles.setAttribute("role", "group");
   planetTiles.setAttribute("aria-label", "Birth time planets by planet");
   planetTiles.hidden = true;
-  planetsSection.appendChild(planetTiles);
+  planetBlock.appendChild(planetTiles);
+  planetsSection.appendChild(planetBlock);
+
+  const houseBlock = document.createElement("div");
+  houseBlock.className = "planets-status-block planets-status-block--house";
+  houseBlock.appendChild(Object.assign(document.createElement("h2"), {
+    className: "result-heading",
+    textContent: KUNDALI_HOUSE_STATUS_HEADING
+  }));
+  const houseTiles = document.createElement("div");
+  houseTiles.id = kundaliElementId(idPrefix, "house-planets-tiles");
+  houseTiles.className = "house-planets-tiles";
+  houseTiles.setAttribute("role", "group");
+  houseTiles.setAttribute("aria-label", "Birth time planets by house");
+  houseTiles.hidden = true;
+  houseBlock.appendChild(houseTiles);
+  planetsSection.appendChild(houseBlock);
 
   const planetsWrap = document.createElement("div");
   planetsWrap.className = "table-wrap planets-table-wrap";
@@ -5452,9 +5387,7 @@ function renderDivisionalChartsFromPayload(payload) {
   if (divisionalToggle) divisionalToggle.hidden = charts.length === 0;
   if (section) {
     section.dataset.hasCharts = charts.length ? "1" : "0";
-    const view = normalizeKundaliPlanetsViewMode(kundaliPlanetsViewMode);
-    // Planet Status: strip under planets table. House Status: charts open from house panels.
-    section.hidden = charts.length === 0 || view !== KUNDALI_PLANETS_VIEW_FULL;
+    section.hidden = charts.length === 0;
   }
   if (!charts.length) return;
 
@@ -6380,14 +6313,6 @@ if (document.getElementById("birth-form")) {
     refreshKundaliSavedViews();
   });
 }
-
-document.addEventListener("click", (event) => {
-  const btn = event.target.closest?.(".planets-view-switch__btn[data-planets-view]");
-  if (!btn || !btn.closest(".planets-status-section")) return;
-  const mode = btn.getAttribute("data-planets-view");
-  if (mode !== KUNDALI_PLANETS_VIEW_GRID && mode !== KUNDALI_PLANETS_VIEW_FULL) return;
-  setKundaliPlanetsViewMode(mode, btn);
-});
 
 /** Shared kundali view helpers (auspicious page row drill-down). */
 window.SaptarishiKundaliView = {

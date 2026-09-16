@@ -5637,68 +5637,23 @@ body.premium-modal-open {
   padding: var(--space-sm) 0 0;
 }
 
-/* Birth Time Planets Status — toolbar + grid / full toggle */
+/* Birth Time Planets Status — planet block, then house block */
 .planets-status-section {
   margin-top: 0.15rem;
 }
 
-.planets-status-section--full .house-planets-tiles:not(.planet-status-tiles),
-.planets-status-section--grid .planet-status-tiles,
-.planets-status-section--grid .planets-table-wrap,
-.planets-status-section--full .planets-table-wrap,
-.planets-status-section--grid .planets-status-divisional,
+.planets-status-block + .planets-status-block {
+  margin-top: var(--space-md);
+}
+
+.planets-status-block .result-heading {
+  margin: 0 0 var(--space-sm);
+}
+
 .house-planets-tiles[hidden],
 .planet-status-tiles[hidden],
 .planets-table-wrap[hidden] {
   display: none !important;
-}
-
-.planets-status-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 0.75rem;
-  margin: 0 0 var(--space-sm);
-}
-
-.planets-status-toolbar .result-heading {
-  margin: 0;
-}
-
-.planets-view-switch {
-  display: inline-flex;
-  align-items: stretch;
-  margin-left: auto;
-  padding: 0.15rem;
-  border: 1px solid var(--color-surface-border);
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: inset 0 1px 2px rgba(30, 58, 95, 0.06);
-}
-
-.planets-view-switch__btn {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  font-weight: 600;
-  line-height: 1;
-  padding: 0.45rem 0.85rem;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.planets-view-switch__btn:hover {
-  color: var(--color-heading);
-}
-
-.planets-view-switch__btn.is-active {
-  background: color-mix(in srgb, var(--color-heading) 12%, #fff);
-  color: var(--color-heading);
-  box-shadow: 0 1px 2px rgba(30, 58, 95, 0.12);
 }
 
 /* Birth Time Planets Status — 12 equal house tiles / planet tiles */
