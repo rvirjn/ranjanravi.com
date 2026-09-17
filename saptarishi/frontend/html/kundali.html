@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=343">
+  <link rel="stylesheet" href="../style/styles.css?v=344">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -88,7 +88,7 @@
       <div class="form-field form-field--submit form-field--actions">
         <div class="form-actions">
           <button type="submit" id="submit-btn">Show</button>
-          <button type="button" id="compare-toggle-btn">Kundali compare</button>
+          <button type="button" id="compare-toggle-btn" hidden>Kundali compare</button>
         </div>
       </div>
       </div>

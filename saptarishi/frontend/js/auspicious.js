@@ -10,6 +10,7 @@
   const optionsGrid = optionsView && optionsView.querySelector(".auspicious-grid");
   const backBtn = document.getElementById("auspicious-back-btn");
   const selectedTitleEl = document.getElementById("auspicious-selected-title");
+  const leadOptionEl = document.getElementById("auspicious-lead-option");
   const auspiciousForm = document.getElementById("auspicious-form");
   const auspiciousStatusEl = document.getElementById("status");
   const auspiciousResultsEl = document.getElementById("results");
@@ -296,6 +297,7 @@
   function showRangeView(optionLabel) {
     selectedOption = optionLabel || "";
     if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Muhurta";
+    if (leadOptionEl) leadOptionEl.textContent = selectedOption || "muhurta";
     if (auspiciousForm) auspiciousForm.dataset.option = selectedOption;
     if (optionsView) optionsView.hidden = true;
     if (rangeView) rangeView.hidden = false;

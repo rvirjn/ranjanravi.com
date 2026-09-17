@@ -1083,6 +1083,11 @@ body.birth-overlay-open {
   background: var(--color-primary-hover);
 }
 
+#compare-toggle-btn,
+#kundali-compare-panel {
+  display: none !important;
+}
+
 .search-form input {
   width: 260px;
   padding: var(--space-sm);
