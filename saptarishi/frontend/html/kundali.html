@@ -8,10 +8,13 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=339">
+  <link rel="stylesheet" href="../style/styles.css?v=343">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
+    <nav class="topic-crumb birth-change-nav" hidden aria-label="Kundali">
+      <button type="button" class="auspicious-back birth-change-btn">← kundali : change birth</button>
+    </nav>
     <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
       <button
         type="button"
@@ -221,8 +224,8 @@
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=27"></script>
   <script src="../js/premium-modal.js?v=13"></script>
-  <script src="../js/wallet-modal.js?v=22"></script>
-  <script src="../utils/common.js?v=105"></script>
+  <script src="../js/wallet-modal.js?v=23"></script>
+  <script src="../utils/common.js?v=106"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=355"></script>
   <script src="../js/lord-comparison.js?v=20"></script>

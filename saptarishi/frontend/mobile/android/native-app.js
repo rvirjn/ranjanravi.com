@@ -1757,6 +1757,11 @@
       closeDrawer();
       return true;
     }
+    const changeBirthBtn = document.querySelector(".birth-change-nav:not([hidden]) .birth-change-btn");
+    if (changeBirthBtn) {
+      changeBirthBtn.click();
+      return true;
+    }
     const range = document.getElementById("auspicious-range-view");
     const backBtn = document.getElementById("auspicious-back-btn");
     if (visible(range) && backBtn) {

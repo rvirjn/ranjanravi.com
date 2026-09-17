@@ -200,6 +200,7 @@
     }
 
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = false;
+    if (rangeView) rangeView.classList.add("is-showing-results");
     showAuspiciousStatus("");
   }
 
@@ -275,6 +276,7 @@
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
     const lordSection = document.getElementById("lord-comparison-section");
     if (lordSection) lordSection.hidden = true;
+    if (rangeView) rangeView.classList.remove("is-showing-results");
   }
 
   function showOptionsView() {

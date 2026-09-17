@@ -48,7 +48,7 @@
   const tabNewBirth = document.getElementById("tab-new-birth");
 
   const KV = window.SaptarishiKundaliView;
-  let birthMode = "new";
+  let birthMode = "open";
   let cachedNakshatraRows = [];
   let selectedNavataraKey = "";
   let selectedRemedyTileKeyByHost = {
@@ -1462,7 +1462,7 @@
     });
   }
   form.addEventListener("submit", handleRemedyFormSubmit);
-  setBirthMode("new");
+  setBirthMode("open");
   refreshRemedySavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);
   consumeRemedyHandoffAndRun();

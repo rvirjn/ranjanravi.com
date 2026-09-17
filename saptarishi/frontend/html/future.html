@@ -8,8 +8,8 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Prediction by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=340">
-  <link rel="stylesheet" href="../style/future.css?v=12">
+  <link rel="stylesheet" href="../style/styles.css?v=343">
+  <link rel="stylesheet" href="../style/future.css?v=16">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -33,36 +33,38 @@
 
     <section id="future-detail-view" class="auspicious-view" hidden aria-label="Prediction birth details">
       <nav class="topic-crumb" aria-label="Prediction">
-        <button type="button" id="future-back-btn" class="auspicious-back">← Prediction</button>
-        <span class="topic-crumb__current">← <span id="future-selected-title">Career</span></span>
+        <button type="button" id="future-back-btn" class="auspicious-back">← prediction</button>
+        <button type="button" id="future-change-birth-btn" class="auspicious-back">
+          ← <span id="future-selected-title">career</span><span class="birth-change-suffix"> : change birth</span>
+        </button>
       </nav>
       <p class="lead future-detail-lead">Enter birth details to find favourable dasha windows.</p>
 
       <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
         <button
           type="button"
-          class="kundali-tabs__item"
+          class="kundali-tabs__item kundali-tabs__item--active"
           id="tab-open-birth"
           role="tab"
-          aria-selected="false"
+          aria-selected="true"
           data-birth-mode="open"
         >
           Open birth details
         </button>
         <button
           type="button"
-          class="kundali-tabs__item kundali-tabs__item--active"
+          class="kundali-tabs__item"
           id="tab-new-birth"
           role="tab"
-          aria-selected="true"
+          aria-selected="false"
           data-birth-mode="new"
         >
           New birth details
         </button>
       </div>
 
-      <form id="future-form" class="search-form kundali-form" autocomplete="off" novalidate>
-        <div class="form-field birth-open-list-wrap" id="open-birth-wrap" hidden>
+      <form id="future-form" class="search-form kundali-form is-open-mode" autocomplete="off" novalidate>
+        <div class="form-field birth-open-list-wrap" id="open-birth-wrap">
           <label class="birth-open-search-label" for="saved-birth-search">Search saved births</label>
           <input
             type="search"
@@ -79,7 +81,7 @@
           <div id="saved-birth-list" class="birth-open-list" role="listbox" aria-label="Saved birth details"></div>
           <p id="open-birth-status" class="status" role="status" aria-live="polite" hidden></p>
         </div>
-        <div id="new-birth-fields">
+        <div id="new-birth-fields" hidden>
         <div class="form-field" id="birth-name-wrap">
           <label for="birth-name">Name</label>
           <input type="text" id="birth-name" maxlength="120" placeholder="Enter Name" aria-label="Name" />
@@ -152,10 +154,10 @@
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=27"></script>
   <script src="../js/premium-modal.js?v=13"></script>
-  <script src="../js/wallet-modal.js?v=22"></script>
-  <script src="../utils/common.js?v=105"></script>
+  <script src="../js/wallet-modal.js?v=23"></script>
+  <script src="../utils/common.js?v=106"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=355"></script>
-  <script src="../js/future.js?v=9"></script>
+  <script src="../js/future.js?v=12"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@
   const dashaSummary = document.getElementById("current-dasha-summary");
   const backBtn = document.getElementById("future-back-btn");
   const selectedTitleEl = document.getElementById("future-selected-title");
+  const changeBirthBtn = document.getElementById("future-change-birth-btn");
   const form = document.getElementById("future-form");
   const statusEl = document.getElementById("status");
   const openBirthStatusEl = document.getElementById("open-birth-status");
@@ -42,7 +43,7 @@
   };
 
   let selectedEvent = "";
-  let birthMode = "new";
+  let birthMode = "open";
   let birthChooserHidden = false;
 
   function activeStatusEl() {
@@ -425,11 +426,9 @@
     article.innerHTML = `
       <header class="future-window__head">
         ${row.rank ? `<span class="future-window__rank">${escapeHtml(row.rank)}</span>` : ""}
-        <div>
-          <strong class="future-window__dasha">${escapeHtml(dasha)}</strong>
-          <p class="future-window__range">${escapeHtml(row.range || "")}</p>
-        </div>
-        <span class="future-window__score">${escapeHtml(row.score_label || "")} · ${escapeHtml(row.score ?? "")}</span>
+        <strong class="future-window__range">${escapeHtml(row.range || "")}</strong>
+        <p class="future-window__dasha">${escapeHtml(dasha)}</p>
+        <p class="future-window__score">${escapeHtml(row.score_label || "")} · ${escapeHtml(row.score ?? "")}</p>
       </header>
       ${
         row.transit?.confirmed
@@ -604,6 +603,11 @@
     });
   }
   if (backBtn) backBtn.addEventListener("click", showOptionsView);
+  if (changeBirthBtn) {
+    changeBirthBtn.addEventListener("click", () => {
+      if (birthChooserHidden) setFutureBirthChooserHidden(false);
+    });
+  }
   if (placePreset) placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
   if (tabOpenBirth) tabOpenBirth.addEventListener("click", () => setBirthMode("open"));
   if (tabNewBirth) tabNewBirth.addEventListener("click", () => setBirthMode("new"));
@@ -615,6 +619,6 @@
     });
   }
   if (form) form.addEventListener("submit", handleSubmit);
-  setBirthMode("new");
+  setBirthMode("open");
   if (CU && CU.enhanceBirthChooser) CU.enhanceBirthChooser(form);
 })();

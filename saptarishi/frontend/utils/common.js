@@ -2607,6 +2607,9 @@
     document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
       el.hidden = hidden;
     });
+    document.querySelectorAll(".birth-change-nav").forEach((el) => {
+      el.hidden = !hidden;
+    });
     if (hidden) {
       const compare = document.getElementById("kundali-compare-panel");
       if (compare) compare.hidden = true;
@@ -2660,6 +2663,9 @@
     enhanceBirthChooser(document.getElementById("remedy-form"));
     enhanceBirthChooser(document.getElementById("auspicious-form"));
     enhanceBirthChooser(document.getElementById("future-form"));
+    document.querySelectorAll(".birth-change-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setBirthEntryHidden(false));
+    });
     loadIndiaPlaces()
       .then(() => refreshBirthChooserDisplays())
       .catch(() => {});

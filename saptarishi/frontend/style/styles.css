@@ -3407,6 +3407,7 @@ tbody tr:last-child td {
   background: transparent;
   border: none;
   cursor: pointer;
+  text-transform: lowercase;
 }
 
 .auspicious-back:hover {
@@ -3420,6 +3421,11 @@ tbody tr:last-child td {
   flex-wrap: wrap;
   gap: 0.45rem;
   margin: 0 0 0.75rem;
+  text-transform: lowercase;
+}
+
+.topic-crumb[hidden] {
+  display: none !important;
 }
 
 .topic-crumb .auspicious-back {
@@ -3432,6 +3438,14 @@ tbody tr:last-child td {
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+#auspicious-range-view .topic-crumb__current {
+  display: none;
+}
+
+#auspicious-range-view.is-showing-results .topic-crumb__current {
+  display: inline;
 }
 
 .auspicious-grid {
@@ -5538,6 +5552,7 @@ body.premium-modal-open {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  text-transform: lowercase;
 }
 
 .premium-modal__back:hover {

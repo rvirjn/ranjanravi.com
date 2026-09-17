@@ -18,6 +18,22 @@
   display: none;
 }
 
+#future-change-birth-btn {
+  display: none;
+}
+
+#future-detail-view.is-showing-results #future-change-birth-btn {
+  display: inline-flex;
+}
+
+.birth-change-suffix {
+  display: none;
+}
+
+#future-detail-view.is-showing-results .birth-change-suffix {
+  display: inline;
+}
+
 #future-detail-view .planet-active-dasha-section {
   margin-top: 0;
   padding-top: 0;
@@ -69,6 +85,13 @@
 }
 
 .future-window--best {
+  width: min(100%, 22rem);
+  min-height: 22rem;
+  aspect-ratio: auto;
+  height: auto;
+  overflow: visible;
+  justify-content: center;
+  padding: 1.15rem 1.05rem 1.2rem;
   border-color: rgba(139, 105, 20, 0.45);
   background: linear-gradient(180deg, rgba(255, 248, 230, 0.95), rgba(255, 252, 244, 0.92));
 }
@@ -95,14 +118,23 @@
 
 .future-window__dasha {
   display: block;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 400;
 }
 
-.future-window__range,
+.future-window__range {
+  display: block;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .future-window__score,
 .future-window__transit,
 .future-window__now {
-  margin: 0.2rem 0 0;
+  margin: 0.15rem 0 0;
   font-size: 0.88rem;
 }
 

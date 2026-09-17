@@ -182,7 +182,7 @@
           </div>
         </div>
         <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
-          <button type="button" class="premium-modal__back" id="wallet-modal-back">← Wallet</button>
+          <button type="button" class="premium-modal__back" id="wallet-modal-back">← wallet</button>
           <h3 class="premium-modal__add-title">Add money to wallet</h3>
           <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose amount"></div>
           <div class="premium-modal__qr-wrap">
