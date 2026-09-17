@@ -8,8 +8,8 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Future by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=339">
-  <link rel="stylesheet" href="../style/future.css?v=7">
+  <link rel="stylesheet" href="../style/styles.css?v=340">
+  <link rel="stylesheet" href="../style/future.css?v=10">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -32,13 +32,11 @@
     </section>
 
     <section id="future-detail-view" class="auspicious-view" hidden aria-label="Future birth details">
-      <button type="button" id="future-back-btn" class="auspicious-back">← Future</button>
-
-      <header class="auspicious-heading">
-        <span class="auspicious-heading__label">Selected option</span>
-        <h1 id="future-selected-title">Career</h1>
-        <p class="lead">Enter birth details to find favourable dasha windows.</p>
-      </header>
+      <nav class="topic-crumb" aria-label="Future">
+        <button type="button" id="future-back-btn" class="auspicious-back">← Future</button>
+        <span class="topic-crumb__current">← <span id="future-selected-title">Career</span></span>
+      </nav>
+      <p class="lead future-detail-lead">Enter birth details to find favourable dasha windows.</p>
 
       <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
         <button
@@ -158,6 +156,6 @@
   <script src="../utils/common.js?v=102"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=355"></script>
-  <script src="../js/future.js?v=7"></script>
+  <script src="../js/future.js?v=8"></script>
 </body>
 </html>

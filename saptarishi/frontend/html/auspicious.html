@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Muhurta by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=339">
+  <link rel="stylesheet" href="../style/styles.css?v=340">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -55,13 +55,11 @@
     </section>
 
     <section id="auspicious-range-view" class="auspicious-view" hidden aria-label="Enter range details">
-      <button type="button" id="auspicious-back-btn" class="auspicious-back">← Muhurta</button>
-
-      <header class="auspicious-heading">
-        <span class="auspicious-heading__label">Selected option</span>
-        <h1 id="auspicious-selected-title">Baby Birth</h1>
-        <p class="lead">Enter place and date range to find strong muhurta slots.</p>
-      </header>
+      <nav class="topic-crumb" aria-label="Muhurta">
+        <button type="button" id="auspicious-back-btn" class="auspicious-back">← Muhurta</button>
+        <span class="topic-crumb__current">← <span id="auspicious-selected-title">Baby Birth</span></span>
+      </nav>
+      <p class="lead">Enter place and date range to find strong muhurta slots.</p>
 
       <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
         <div class="form-field">

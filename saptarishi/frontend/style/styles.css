@@ -3414,6 +3414,26 @@ tbody tr:last-child td {
   text-decoration: underline;
 }
 
+.topic-crumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+}
+
+.topic-crumb .auspicious-back {
+  margin: 0;
+}
+
+.topic-crumb__current {
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .auspicious-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

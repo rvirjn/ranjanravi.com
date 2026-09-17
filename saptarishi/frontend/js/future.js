@@ -477,16 +477,10 @@
         summaryHost: dashaSummary
       });
     }
-    const notes = [];
-    if (payload.windows?.length && payload.ui_status_message) {
-      notes.push(payload.ui_status_message);
-    } else if (payload.empty_reason) {
-      notes.push(payload.empty_reason);
-    }
-    if (payload.disclaimer) notes.push(payload.disclaimer);
     if (disclaimerEl) {
-      disclaimerEl.textContent = notes.join("\n\n");
-      disclaimerEl.hidden = !notes.length;
+      const reason = payload.windows?.length ? "" : String(payload.empty_reason || "").trim();
+      disclaimerEl.textContent = reason;
+      disclaimerEl.hidden = !reason;
     }
     showStatus("");
   }
