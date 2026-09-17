@@ -3678,7 +3678,6 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
     renderDivisionalChartsFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
-    renderCurrentDashaFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage("");
   }
