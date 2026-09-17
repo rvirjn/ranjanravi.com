@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=344">
+  <link rel="stylesheet" href="../style/styles.css?v=346">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -205,6 +205,26 @@
         <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
       </section>
 
+      <section id="planet-active-dasha-section" class="kundali-yog-section planet-active-dasha-section" hidden>
+        <div class="planet-active-dasha-header">
+          <h2 id="planet-active-dasha-heading" class="result-heading">Your Dasha</h2>
+          <button
+            type="button"
+            id="planet-active-dasha-info-btn"
+            class="kundali-info-btn"
+            data-qa-key="your_dasha"
+            aria-label="What is Dasha?"
+            aria-expanded="false"
+            aria-controls="kundali-qa-popover"
+            title="What is Dasha?"
+            hidden
+          >
+            <span class="kundali-info-btn__glyph" aria-hidden="true">i</span>
+          </button>
+        </div>
+        <div id="current-dasha-summary" class="current-dasha-summary" aria-label="Your dasha"></div>
+      </section>
+
       </div>
 
       <div id="lord-comparison-section" hidden>
@@ -219,7 +239,7 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=85"></script>
+  <script src="../utils/constant.js?v=86"></script>
   <script src="../js/auth.js?v=50"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=27"></script>
@@ -227,7 +247,7 @@
   <script src="../js/wallet-modal.js?v=23"></script>
   <script src="../utils/common.js?v=106"></script>
   <script src="../js/ask-ai.js?v=17"></script>
-  <script src="../js/kundali.js?v=355"></script>
+  <script src="../js/kundali.js?v=357"></script>
   <script src="../js/lord-comparison.js?v=20"></script>
   <script src="../js/kundali-compare.js?v=19"></script>
 </body>

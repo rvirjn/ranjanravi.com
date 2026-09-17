@@ -1973,6 +1973,29 @@ tbody tr:last-child td {
   display: block;
 }
 
+.planet-transit-chart {
+  margin-top: var(--space-md);
+  width: 100%;
+  max-width: min(28rem, 100%);
+  box-sizing: border-box;
+  aspect-ratio: 1 / 1;
+}
+
+.planet-transit-chart .kundali-chart-host,
+.planet-transit-chart .kundali-chart-host .kundali-chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.planet-transit-mount {
+  width: 100%;
+}
+
+.planet-transit-mount.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .dasha-life {
   width: 100%;
   overflow: visible;

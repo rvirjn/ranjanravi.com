@@ -3678,6 +3678,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
     renderDivisionalChartsFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
+    renderCurrentDashaFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage("");
   }
@@ -4861,7 +4862,7 @@ function renderDashaAgeStack(host, ageYears, payload, ctx) {
   });
 }
 
-function createDashaExplorer(payload, snapshot) {
+function createDashaExplorer(payload, snapshot, onSelectAge) {
   const birthDate = parseBirthDateFromKundaliPayload(payload);
   const planets = Array.isArray(payload?.planets) ? payload.planets : [];
   const liveAge = Math.min(
@@ -4884,8 +4885,14 @@ function createDashaExplorer(payload, snapshot) {
   const stack = document.createElement("div");
   stack.className = "dasha-life__stack";
 
+  let primed = false;
   function showAt(ageYears) {
     renderDashaAgeStack(stack, ageYears, payload, ctx);
+    if (!primed) {
+      primed = true;
+      return;
+    }
+    if (typeof onSelectAge === "function") onSelectAge(ageYears);
   }
 
   ctx.onPickAge = showAt;
@@ -5223,6 +5230,107 @@ async function ensureKundaliQaUi() {
   return db;
 }
 
+function planetTransitQueryFromPayload(payload) {
+  const place = payload?.place_resolved && typeof payload.place_resolved === "object"
+    ? payload.place_resolved
+    : {};
+  const summary = payload?.kundali_summary && typeof payload.kundali_summary === "object"
+    ? payload.kundali_summary
+    : {};
+  const birthIso = String(payload?.datetime_local_iso || summary.datetime_local_iso || "").trim();
+  const placeQuery = String(
+    payload?.place_query
+    || summary.place_query
+    || payload?.birth?.place
+    || place.name
+    || ""
+  ).trim();
+  const lat = place.latitude;
+  const lon = place.longitude;
+  const timezone = String(place.timezone || summary.timezone || "").trim();
+  if (!birthIso || !placeQuery || !timezone) return null;
+  if (typeof lat !== "number" || typeof lon !== "number" || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return null;
+  }
+  return {
+    birth: birthIso,
+    place: placeQuery,
+    place_name: String(place.name || "").trim(),
+    admin1: String(place.admin1 || "").trim(),
+    country: String(place.country || "").trim(),
+    lat: String(lat),
+    lon: String(lon),
+    timezone,
+    house_system: String(payload?.house_system || C.DEFAULT_HOUSE_SYSTEM || "W").trim()
+  };
+}
+
+async function fetchPlanetTransitFromApi(payload, ageYears) {
+  const query = planetTransitQueryFromPayload(payload);
+  if (!query) throw new Error("Missing birth place for planet transit.");
+  const params = new URLSearchParams(query);
+  if (Number.isFinite(ageYears)) params.set("age_years", String(ageYears));
+  const path = `${C.API_PLANET_TRANSIT_PATH}?${params}`;
+  if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.apiFetch) {
+    return SaptarishiAuth.apiFetch(path);
+  }
+  const response = await fetch(`${getFlaskApiOrigin()}${path}`);
+  const body = await parseApiJsonResponse(response);
+  if (!response.ok) {
+    throw new Error(body.error || `HTTP ${response.status}`);
+  }
+  return body;
+}
+
+function bindPlanetTransitToDashaAge(payload, transitMount) {
+  let timer = 0;
+  let reqId = 0;
+  return (ageYears) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(async () => {
+      const req = ++reqId;
+      transitMount.classList.add("is-loading");
+      try {
+        const transit = await fetchPlanetTransitFromApi(payload, ageYears);
+        if (req !== reqId) return;
+        transitMount.replaceChildren();
+        renderPlanetTransitFromPayload({ planet_transit: transit }, transitMount);
+      } catch {
+        if (req !== reqId) return;
+      } finally {
+        if (req === reqId) transitMount.classList.remove("is-loading");
+      }
+    }, 280);
+  };
+}
+
+function renderPlanetTransitFromPayload(payload, host) {
+  if (!host) return;
+  const transit = payload?.planet_transit;
+  if (!transit || typeof transit !== "object") return;
+  const chartSource = Array.isArray(transit.cells) && transit.cells.length
+    ? transit
+    : (transit.kundali_chart && typeof transit.kundali_chart === "object"
+      ? transit.kundali_chart
+      : transit);
+  const hasCells = Array.isArray(chartSource.cells) && chartSource.cells.length;
+  const hasPlanets = Array.isArray(chartSource.planets) && chartSource.planets.length;
+  if (!hasCells && !hasPlanets) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "planet-transit-chart summary-chart-row__chart";
+  const heading = document.createElement("h3");
+  heading.className = "result-heading kundali-chart-heading";
+  heading.textContent = String(transit.heading || transit.title || "Planet Transit").trim()
+    || "Planet Transit";
+  const chartHost = document.createElement("div");
+  chartHost.className = "kundali-chart-host planet-transit-chart__host";
+  wrap.append(heading, chartHost);
+  host.appendChild(wrap);
+  renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHost);
+  bindKundaliChartZoom(chartHost, chartSource, heading.textContent);
+}
+
 function renderCurrentDashaFromPayload(payload, hosts = {}) {
   const section = hosts.section || document.getElementById("planet-active-dasha-section");
   const summaryHost = hosts.summaryHost || document.getElementById("current-dasha-summary");
@@ -5232,7 +5340,15 @@ function renderCurrentDashaFromPayload(payload, hosts = {}) {
   summaryHost.className = "current-dasha-summary";
 
   const snapshot = computeCurrentDashaSnapshot(payload);
-  if (!snapshot?.current) {
+  const hasDasha = Boolean(snapshot?.current);
+  const hasTransit = Boolean(
+    payload?.planet_transit
+    && typeof payload.planet_transit === "object"
+    && (Array.isArray(payload.planet_transit.cells)
+      || Array.isArray(payload.planet_transit.planets)
+      || payload.planet_transit.kundali_chart)
+  );
+  if (!hasDasha && !hasTransit) {
     if (section) section.hidden = true;
     return;
   }
@@ -5240,10 +5356,20 @@ function renderCurrentDashaFromPayload(payload, hosts = {}) {
   if (section) section.hidden = false;
   ensureKundaliQaUi().catch(() => {});
 
-  const layout = document.createElement("div");
-  layout.className = "dasha-stage";
-  layout.appendChild(createDashaExplorer(payload, snapshot));
-  summaryHost.appendChild(layout);
+  const transitMount = document.createElement("div");
+  transitMount.className = "planet-transit-mount";
+  const onSelectAge = hasTransit ? bindPlanetTransitToDashaAge(payload, transitMount) : null;
+
+  if (hasDasha) {
+    const layout = document.createElement("div");
+    layout.className = "dasha-stage";
+    layout.appendChild(createDashaExplorer(payload, snapshot, onSelectAge));
+    summaryHost.appendChild(layout);
+  }
+  if (hasTransit) {
+    summaryHost.appendChild(transitMount);
+    renderPlanetTransitFromPayload(payload, transitMount);
+  }
 }
 
 /** Progressive zoom sizes for the chart lightbox (CSS rem). */
@@ -6395,6 +6521,7 @@ window.SaptarishiKundaliView = {
   renderDivisionalChartsFromPayload,
   computeCurrentDashaSnapshot,
   renderCurrentDashaFromPayload,
+  renderPlanetTransitFromPayload,
   renderKundaliYogasFromPayload,
   renderKundaliDoshasFromPayload,
   renderHousePlanetsTiles,
