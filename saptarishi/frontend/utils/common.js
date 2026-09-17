@@ -576,6 +576,10 @@
             ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
             <span>Muhurta</span>
           </a>
+          <a href="${navHref("future.html")}" class="site-drawer__link" data-page="future">
+            ${drawerIcon('<path d="M5 19l7-14 7 14"></path><path d="M8.5 13h7"></path>')}
+            <span>Future</span>
+          </a>
         </nav>
         <nav class="site-drawer__nav" aria-label="Account">
           <a href="${navHref("profile.html")}" class="site-drawer__link" data-page="profile">
@@ -636,6 +640,7 @@
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
         <a href="${navHref("auspicious.html")}" class="site-header__link">Muhurta</a>
+        <a href="${navHref("future.html")}" class="site-header__link">Future</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
@@ -2599,7 +2604,7 @@
   }
 
   function setBirthEntryHidden(hidden) {
-    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form").forEach((el) => {
+    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
       el.hidden = hidden;
     });
     if (hidden) {
@@ -2654,6 +2659,7 @@
     enhanceBirthChooser(document.getElementById("birth-form"));
     enhanceBirthChooser(document.getElementById("remedy-form"));
     enhanceBirthChooser(document.getElementById("auspicious-form"));
+    enhanceBirthChooser(document.getElementById("future-form"));
     loadIndiaPlaces()
       .then(() => refreshBirthChooserDisplays())
       .catch(() => {});

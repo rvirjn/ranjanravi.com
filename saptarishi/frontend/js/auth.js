@@ -686,6 +686,21 @@
     return payload;
   }
 
+  async function fetchFuture(path) {
+    const ok = await requireLoginForCharts({
+      message: "Register or sign in to see future timings."
+    });
+    if (!ok) {
+      const err = new Error("Register or sign in to see future timings.");
+      err.status = 401;
+      err.loginRequired = true;
+      throw err;
+    }
+    const payload = await apiFetch(path);
+    updateUserFromApiPayload(payload);
+    return payload;
+  }
+
   function updateUserFromApiPayload(payload) {
     if (payload && payload.user) {
       setSession(getToken(), payload.user);
@@ -1225,6 +1240,7 @@
     isGuestScanLimitReached,
     fetchKundali,
     fetchAuspicious,
+    fetchFuture,
     updateUserFromApiPayload,
     normalizeUsage,
     hasUnlimitedPremium,

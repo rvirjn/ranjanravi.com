@@ -3676,7 +3676,6 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
 
   if (!viewTargets.skipShellUpdates) {
     renderDivisionalChartsFromPayload(kundaliPayload);
-    renderCurrentDashaFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;

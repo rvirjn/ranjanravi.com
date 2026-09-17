@@ -1,0 +1,100 @@
+/* Copyright © 2018-2026 ranjanravi.com. All rights reserved. */
+#future-form.is-open-mode #new-birth-fields,
+#future-form.is-open-mode #new-birth-fields > * {
+  display: none !important;
+}
+
+#open-birth-wrap > .status {
+  width: 100%;
+  margin: 0.75rem 0 0;
+}
+
+#open-birth-wrap.is-loading .birth-open-list {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+#future-detail-view.is-showing-results .auspicious-heading .lead {
+  display: none;
+}
+
+#future-form[hidden] {
+  display: none !important;
+}
+
+.future-disclaimer {
+  margin: 0.85rem 0 1rem;
+  white-space: pre-line;
+}
+
+.future-best,
+.future-windows {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1.25rem;
+}
+
+.future-window {
+  padding: 0.9rem 1rem 0.85rem;
+  border: 1px solid rgba(139, 105, 20, 0.22);
+  border-radius: 0.85rem;
+  background: rgba(255, 252, 244, 0.9);
+}
+
+.future-window--best {
+  border-color: rgba(139, 105, 20, 0.45);
+  background: linear-gradient(180deg, rgba(255, 248, 230, 0.95), rgba(255, 252, 244, 0.92));
+}
+
+.future-window--high {
+  box-shadow: inset 3px 0 0 #2f7d4a;
+}
+
+.future-window--low {
+  box-shadow: inset 3px 0 0 #b42318;
+}
+
+.future-window__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.future-window__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: #8b6914;
+}
+
+.future-window__dasha {
+  display: block;
+  font-size: 1rem;
+}
+
+.future-window__range,
+.future-window__score,
+.future-window__transit,
+.future-window__now {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+}
+
+.future-window__score {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.future-window__why {
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+}

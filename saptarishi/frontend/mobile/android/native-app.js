@@ -181,6 +181,12 @@
     ) {
       return "auspicious";
     }
+    if (
+      document.getElementById("future-options-view") ||
+      document.getElementById("future-form")
+    ) {
+      return "future";
+    }
     if (document.getElementById("remedy-form") && !document.getElementById("birth-form")) {
       return "remedy";
     }
@@ -198,6 +204,9 @@
     const file = (path.split("/").pop() || "").replace(/[?#].*$/, "");
     if (path.includes("auspicious") || href.includes("auspicious") || file === "auspicious.html") {
       return "auspicious";
+    }
+    if (path.includes("/future") || href.includes("future.html") || file === "future.html") {
+      return "future";
     }
     if (path.includes("/remedy") || href.includes("remedy.html") || file === "remedy.html") {
       return "remedy";
@@ -1457,6 +1466,21 @@
     }
   }
 
+  function enhanceFuture() {
+    if (livePage() !== "future") return;
+    const options = document.getElementById("future-options-view");
+    if (options && !options.querySelector(".app-title")) {
+      const heading = document.createElement("header");
+      heading.innerHTML = `<span class="app-kicker">Timing</span><h1 class="app-title">Future</h1><p class="app-lead">See favourable windows for career, marriage, and child born.</p>`;
+      options.insertBefore(heading, options.firstChild);
+    }
+    const placeField = document.getElementById("place-preset")?.closest(".form-field");
+    if (placeField && !placeField.classList.contains("native-field-row")) {
+      placeField.classList.add("native-field-row");
+      placeField.insertAdjacentHTML("afterbegin", icon("pin"));
+    }
+  }
+
   function houseSheetHeaderLabel(th) {
     const clone = th.cloneNode(true);
     clone.querySelectorAll("button, .kundali-info-btn").forEach((el) => el.remove());
@@ -1546,6 +1570,11 @@
           <strong>Muhurta</strong>
           <span>Best birth time</span>
         </a>
+        <a class="app-service" href="${pageHref("future.html")}">
+          <svg viewBox="0 0 24 24"><path d="M5 19l7-14 7 14"/><path d="M8.5 13h7"/></svg>
+          <strong>Future</strong>
+          <span>Career, marriage, child</span>
+        </a>
       </div>
       <div class="app-section-head">
         <h2>Astrologers</h2>
@@ -1633,6 +1662,7 @@
     enhanceKundaliHouses();
     enhanceRemedy();
     enhanceAuspicious();
+    enhanceFuture();
     stripHouseGridsOffAuspicious();
     hookKundaliPersist();
     observeNativeHousePlanetTables();

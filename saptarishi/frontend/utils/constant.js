@@ -68,6 +68,7 @@ const SAPTARISHI_CONSTANTS = {
   PAGE_FILE_TO_PATH: {
     "kundali.html": _DEPLOY_PREFIX + "/kundali",
     "auspicious.html": _DEPLOY_PREFIX + "/auspicious",
+    "future.html": _DEPLOY_PREFIX + "/future",
     "remedy.html": _DEPLOY_PREFIX + "/remedy",
     "profile.html": _DEPLOY_PREFIX + "/profile",
     "login.html": _DEPLOY_PREFIX + "/login",
@@ -80,6 +81,7 @@ const SAPTARISHI_CONSTANTS = {
   API_KUNDALI_COMPARE_PATH: "/api/kundali/compare",
   API_PLACE_PATH: "/api/place",
   API_AUSPICIOUS_PATH: "/api/auspicious",
+  API_FUTURE_PATH: "/api/future",
   API_ASK_PATH: "/api/ask",
   API_PLANET_DATABASE_PATH: "/api/planet-database?v=4",
   ASK_AI_MAX_QUESTION_LENGTH: 800,
