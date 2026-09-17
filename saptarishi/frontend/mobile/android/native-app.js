@@ -1471,7 +1471,7 @@
     const options = document.getElementById("future-options-view");
     if (options && !options.querySelector(".app-title")) {
       const heading = document.createElement("header");
-      heading.innerHTML = `<span class="app-kicker">Timing</span><h1 class="app-title">Future</h1><p class="app-lead">See favourable windows for career, marriage, and child born.</p>`;
+      heading.innerHTML = `<span class="app-kicker">Timing</span><h1 class="app-title">Prediction</h1><p class="app-lead">See favourable windows for career, marriage, and child born.</p>`;
       options.insertBefore(heading, options.firstChild);
     }
     const placeField = document.getElementById("place-preset")?.closest(".form-field");
@@ -1565,15 +1565,15 @@
           <strong>Remedy</strong>
           <span>Planet support</span>
         </a>
+        <a class="app-service" href="${pageHref("future.html")}">
+          <svg viewBox="0 0 24 24"><path d="M5 19l7-14 7 14"/><path d="M8.5 13h7"/></svg>
+          <strong>Prediction</strong>
+          <span>Career, marriage, child</span>
+        </a>
         <a class="app-service" href="${pageHref("auspicious.html")}">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><path d="M12 8.2v4.1l2.6 1.7"/></svg>
           <strong>Muhurta</strong>
           <span>Best birth time</span>
-        </a>
-        <a class="app-service" href="${pageHref("future.html")}">
-          <svg viewBox="0 0 24 24"><path d="M5 19l7-14 7 14"/><path d="M8.5 13h7"/></svg>
-          <strong>Future</strong>
-          <span>Career, marriage, child</span>
         </a>
       </div>
       <div class="app-section-head">

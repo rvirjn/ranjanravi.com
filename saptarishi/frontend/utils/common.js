@@ -572,13 +572,13 @@
             ${drawerIcon('<path d="M5 19c8-1 14-8 14-15-7 1-14 6-14 15z"></path><path d="M8 14c2.2-2 5.2-4.2 9-5.2"></path>')}
             <span>Remedy</span>
           </a>
+          <a href="${navHref("future.html")}" class="site-drawer__link" data-page="future">
+            ${drawerIcon('<path d="M5 19l7-14 7 14"></path><path d="M8.5 13h7"></path>')}
+            <span>Prediction</span>
+          </a>
           <a href="${navHref("auspicious.html")}" class="site-drawer__link" data-page="auspicious">
             ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
             <span>Muhurta</span>
-          </a>
-          <a href="${navHref("future.html")}" class="site-drawer__link" data-page="future">
-            ${drawerIcon('<path d="M5 19l7-14 7 14"></path><path d="M8.5 13h7"></path>')}
-            <span>Future</span>
           </a>
         </nav>
         <nav class="site-drawer__nav" aria-label="Account">
@@ -639,8 +639,8 @@
       <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
         <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
         <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
+        <a href="${navHref("future.html")}" class="site-header__link">Prediction</a>
         <a href="${navHref("auspicious.html")}" class="site-header__link">Muhurta</a>
-        <a href="${navHref("future.html")}" class="site-header__link">Future</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>

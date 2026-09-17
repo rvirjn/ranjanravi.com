@@ -336,12 +336,12 @@
   function formatLoadError(err) {
     if (CU && CU.formatApiLoadError) {
       return CU.formatApiLoadError(err, {
-        failurePrefix: "Failed to load future timings",
+        failurePrefix: "Failed to load predictions",
         limitReachedFallback: "Free kundali limit reached."
       });
     }
     const msg = stripPerIpWording(err?.message || "Request failed");
-    return { text: `Failed to load future timings: ${msg}`, limitReached: false };
+    return { text: `Failed to load predictions: ${msg}`, limitReached: false };
   }
 
   function getApiOrigin() {
@@ -502,7 +502,7 @@
 
   function showDetailView(eventKey) {
     selectedEvent = eventKey || "";
-    const label = EVENT_LABELS[selectedEvent] || selectedEvent || "Future";
+    const label = EVENT_LABELS[selectedEvent] || selectedEvent || "Prediction";
     if (selectedTitleEl) selectedTitleEl.textContent = label;
     if (form) form.dataset.event = selectedEvent;
     if (optionsView) optionsView.hidden = true;
@@ -526,10 +526,10 @@
     }
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
       const ok = await SaptarishiAuth.requireLoginForCharts({
-        message: "Register or sign in to see future timings."
+        message: "Register or sign in to see predictions."
       });
       if (!ok) {
-        showStatus("Register or sign in to see future timings.", true);
+        showStatus("Register or sign in to see predictions.", true);
         return;
       }
     }

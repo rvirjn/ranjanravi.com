@@ -7,15 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
-  <title>Future by Saptarishi</title>
+  <title>Prediction by Saptarishi</title>
   <link rel="stylesheet" href="../style/styles.css?v=340">
-  <link rel="stylesheet" href="../style/future.css?v=10">
+  <link rel="stylesheet" href="../style/future.css?v=12">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
 
-    <section id="future-options-view" class="auspicious-view" aria-label="Future options">
-      <div class="auspicious-grid future-grid" role="list" aria-label="Future topics">
+    <section id="future-options-view" class="auspicious-view" aria-label="Prediction options">
+      <div class="auspicious-grid future-grid" role="list" aria-label="Prediction topics">
         <button class="feature-tile" type="button" data-event="career" role="listitem">
           <span class="feature-tile__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="7.4" cy="5" r="1.65"/><path d="M6.6 6.8 8.2 11.4l3.4 1"/><path d="M8.2 11.4 6.4 16.6"/><path d="M6.8 8.4 10.4 7"/><path d="M4 20h5.4v-4h4.2v-4h4.2V8H20"/></svg></span>
           <strong>Career</strong>
@@ -31,9 +31,9 @@
       </div>
     </section>
 
-    <section id="future-detail-view" class="auspicious-view" hidden aria-label="Future birth details">
-      <nav class="topic-crumb" aria-label="Future">
-        <button type="button" id="future-back-btn" class="auspicious-back">← Future</button>
+    <section id="future-detail-view" class="auspicious-view" hidden aria-label="Prediction birth details">
+      <nav class="topic-crumb" aria-label="Prediction">
+        <button type="button" id="future-back-btn" class="auspicious-back">← Prediction</button>
         <span class="topic-crumb__current">← <span id="future-selected-title">Career</span></span>
       </nav>
       <p class="lead future-detail-lead">Enter birth details to find favourable dasha windows.</p>
@@ -148,14 +148,14 @@
   </div>
 
   <script src="../utils/constant.js?v=85"></script>
-  <script src="../js/auth.js?v=49"></script>
+  <script src="../js/auth.js?v=50"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=27"></script>
   <script src="../js/premium-modal.js?v=13"></script>
   <script src="../js/wallet-modal.js?v=22"></script>
-  <script src="../utils/common.js?v=102"></script>
+  <script src="../utils/common.js?v=105"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=355"></script>
-  <script src="../js/future.js?v=8"></script>
+  <script src="../js/future.js?v=9"></script>
 </body>
 </html>

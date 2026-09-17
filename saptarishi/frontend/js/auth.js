@@ -688,10 +688,10 @@
 
   async function fetchFuture(path) {
     const ok = await requireLoginForCharts({
-      message: "Register or sign in to see future timings."
+      message: "Register or sign in to see predictions."
     });
     if (!ok) {
-      const err = new Error("Register or sign in to see future timings.");
+      const err = new Error("Register or sign in to see predictions.");
       err.status = 401;
       err.loginRequired = true;
       throw err;
