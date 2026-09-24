@@ -44,10 +44,17 @@ html.saptarishi-native-ios .app-sheet {
 }
 
 html.saptarishi-native-ios .premium-modal-overlay,
-html.saptarishi-native-ios .auth-modal-overlay {
+html.saptarishi-native-ios .auth-modal-overlay,
+html.saptarishi-native-ios .kundali-chart-zoom-overlay,
+html.saptarishi-native-ios .send-coupon-overlay {
   align-items: flex-start;
   padding-top: calc(0.75rem + max(env(safe-area-inset-top, 0px), 54px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.saptarishi-native-ios .ask-ai.ask-ai--open,
+html.saptarishi-native-ios .ask-ai:has(.ask-ai__panel:not([hidden])) {
+  padding-top: max(env(safe-area-inset-top, 0px), 54px);
 }
 
 html.saptarishi-native-ios .auth-modal-overlay--tall .auth-modal {

@@ -213,6 +213,15 @@
       if (event.target.closest && event.target.closest("#app-menu-btn")) {
         setTimeout(applyIosMenu, 0);
       }
+      const logoutBtn = event.target.closest && event.target.closest("#profile-logout-btn");
+      if (!logoutBtn) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const auth = global.SaptarishiAuth;
+      if (!auth || !auth.logout) return;
+      auth.logout().finally(() => {
+        window.location.replace(pageHref("kundali.html"));
+      });
     },
     true
   );
