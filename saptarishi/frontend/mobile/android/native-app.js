@@ -1,7 +1,7 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 /**
  * Native Android shell: top bar, bottom nav, menu, profiles,
- * and Home / Dasha / Horoscope / Do's & Don't screens.
+ * and Home, Kundali, Remedy, Prediction, and Muhurta screens.
  */
 (function nativeApp(global) {
   const isNative =
@@ -541,17 +541,13 @@
     dock.className = "app-dock";
     dock.innerHTML = `
       <nav class="app-tabbar" aria-label="App">
-        ${dockTabHtml("home", "Home", "home", page === "home")}
-        <button type="button" class="app-tab" id="app-tab-call">
-          <span class="app-tab__icon">${icon("phone")}</span>
-          <span class="app-tab__label">Call</span>
-        </button>
-        ${dockTabHtml("horoscope", "Today", "clock", page === "horoscope")}
-        ${dockTabHtml("dos", "Do's &amp; Don't", "guide", page === "dos")}
+        ${dockTabHtml("kundali", "Kundali", "kundali", page === "kundali")}
+        ${dockTabHtml("remedy", "Remedy", "remedy", page === "remedy")}
+        ${dockTabHtml("future", "Prediction", "stars", page === "future")}
+        ${dockTabHtml("auspicious", "Muhurta", "clock", page === "auspicious")}
       </nav>
     `;
     document.body.appendChild(dock);
-    dock.querySelector("#app-tab-call")?.addEventListener("click", () => handleCallOrAsk("call"));
     dock.querySelectorAll("[data-app-screen]").forEach((tab) => {
       tab.addEventListener("click", (event) => {
         event.preventDefault();
