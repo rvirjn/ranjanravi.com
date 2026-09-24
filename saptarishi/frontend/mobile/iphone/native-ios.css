@@ -52,6 +52,10 @@ html.saptarishi-native-ios .send-coupon-overlay {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+html.saptarishi-native-ios .ask-ai:not(.ask-ai--open):not(:has(.ask-ai__panel:not([hidden]))) {
+  bottom: calc(var(--app-dock-h, 3.65rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+
 html.saptarishi-native-ios .ask-ai.ask-ai--open,
 html.saptarishi-native-ios .ask-ai:has(.ask-ai__panel:not([hidden])) {
   padding-top: max(env(safe-area-inset-top, 0px), 54px);
