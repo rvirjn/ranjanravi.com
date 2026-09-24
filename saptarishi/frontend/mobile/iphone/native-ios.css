@@ -12,9 +12,12 @@ html.saptarishi-native-ios body.saptarishi-page {
   padding-bottom: calc(var(--app-dock-h) + env(safe-area-inset-bottom, 0px));
 }
 
-html.saptarishi-native-ios .site-header.app-topbar,
-html.saptarishi-native-ios .app-drawer {
-  padding-top: calc(0.55rem + max(env(safe-area-inset-top, 0px), 59px));
+html.saptarishi-native-ios .site-header.app-topbar {
+  padding-top: calc(0.35rem + env(safe-area-inset-top, 0px));
+}
+
+html.saptarishi-native-ios .app-drawer .site-header.app-topbar {
+  padding-top: 0.35rem;
 }
 
 html.saptarishi-native-ios .app-dock {
@@ -22,7 +25,18 @@ html.saptarishi-native-ios .app-dock {
 }
 
 html.saptarishi-native-ios .app-drawer {
+  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+}
+
+html.saptarishi-native-ios .app-menu-item {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html.saptarishi-native-ios .app-menu-item span {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
 }
 
 html.saptarishi-native-ios .app-sheet {
