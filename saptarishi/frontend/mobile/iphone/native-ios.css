@@ -113,9 +113,9 @@ html.saptarishi-native-ios.saptarishi-native-app .kundali-tabs {
   display: flex !important;
 }
 
-html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field > label,
-html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field > label,
-html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field > label,
+html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field > label:not(.save-birth-label),
+html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field > label:not(.save-birth-label),
+html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field > label:not(.save-birth-label),
 html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields,
 html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields,
 html.saptarishi-native-ios.saptarishi-native-app #open-kundali-wrap,
@@ -171,6 +171,35 @@ html.saptarishi-native-ios .app-ios-auth--login {
   border: none;
   background: #3d2a14;
   color: #fff;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field--save > .save-birth-label,
+html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field--save > .save-birth-label,
+html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field--save > .save-birth-label {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.45rem;
+  width: auto;
+  pointer-events: auto;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #birth-form input[type="checkbox"],
+html.saptarishi-native-ios.saptarishi-native-app #remedy-form input[type="checkbox"],
+html.saptarishi-native-ios.saptarishi-native-app #future-form input[type="checkbox"] {
+  display: inline-block !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  min-height: 1.25rem !important;
+  max-width: 1.25rem !important;
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 0.2rem !important;
+  flex: 0 0 auto;
+  opacity: 1 !important;
+  pointer-events: auto;
+  accent-color: #3d2a14;
+  -webkit-appearance: checkbox;
+  appearance: auto;
 }
 
 html.saptarishi-native-ios input,
