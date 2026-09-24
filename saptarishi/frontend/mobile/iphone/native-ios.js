@@ -75,4 +75,104 @@
     productIdForAmount,
     buyWalletCredit
   };
+
+  function pageHref(file) {
+    const path = String(location.pathname || "");
+    const marker = "/frontend/html/";
+    const at = path.indexOf(marker);
+    const pre = at >= 0 ? path.slice(0, at) : "";
+    const routes = {
+      "kundali.html": "/kundali",
+      "remedy.html": "/remedy",
+      "future.html": "/future",
+      "auspicious.html": "/auspicious",
+      "profile.html": "/profile"
+    };
+    if (at < 0 && routes[file]) return pre + routes[file];
+    return `${pre}/frontend/html/${file}`;
+  }
+
+  function currentScreen() {
+    const path = String(location.pathname || "").toLowerCase();
+    if (path.includes("remedy")) return "remedy";
+    if (path.includes("future")) return "future";
+    if (path.includes("auspicious")) return "auspicious";
+    if (path.includes("kundali") || path.endsWith("/") || path === "") return "kundali";
+    return "";
+  }
+
+  function applyIosDock() {
+    const dock = document.querySelector(".app-dock .app-tabbar");
+    if (!dock || dock.dataset.iosDock === "1") return;
+    const page = currentScreen();
+    const tabs = [
+      ["kundali", "Kundali", "kundali.html"],
+      ["remedy", "Remedy", "remedy.html"],
+      ["future", "Prediction", "future.html"],
+      ["auspicious", "Muhurta", "auspicious.html"]
+    ];
+    dock.innerHTML = tabs
+      .map(
+        ([id, label, file]) =>
+          `<a class="app-tab${page === id ? " is-on" : ""}" data-app-screen="${id}" href="${pageHref(file)}"><span class="app-tab__label">${label}</span></a>`
+      )
+      .join("");
+    dock.dataset.iosDock = "1";
+  }
+
+  function applyIosHeader() {
+    const header = document.querySelector(".site-header");
+    if (!header) return;
+    const user = global.SaptarishiAuth && global.SaptarishiAuth.getUser && global.SaptarishiAuth.getUser();
+    const avatar = header.querySelector("#app-profile-btn");
+    const loginBtn = header.querySelector("#site-login-btn");
+    if (avatar && avatar.dataset.iosProfile !== "1") {
+      avatar.dataset.iosProfile = "1";
+      avatar.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.location.href = pageHref("profile.html");
+        },
+        true
+      );
+    }
+    if (avatar) avatar.hidden = !user;
+    if (loginBtn) {
+      loginBtn.textContent = "Sign in";
+      loginBtn.classList.add("app-signin");
+      loginBtn.hidden = !!user;
+      if (loginBtn.dataset.iosLogin !== "1") {
+        loginBtn.dataset.iosLogin = "1";
+        loginBtn.addEventListener("click", async () => {
+          if (global.SaptarishiAuth && global.SaptarishiAuth.ensureAuth) {
+            await global.SaptarishiAuth.ensureAuth({ tab: "login", required: true, message: "Sign in to continue." });
+          }
+        });
+      }
+    }
+  }
+
+  function showIosBirthTabs() {
+    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form").forEach((el) => {
+      el.hidden = false;
+    });
+  }
+
+  function applyIosChrome() {
+    applyIosDock();
+    applyIosHeader();
+    showIosBirthTabs();
+  }
+
+  applyIosChrome();
+  document.addEventListener("DOMContentLoaded", applyIosChrome);
+  global.addEventListener("saptarishi-auth-changed", () => setTimeout(applyIosChrome, 0));
+  let tries = 0;
+  const timer = setInterval(() => {
+    applyIosChrome();
+    tries += 1;
+    if (tries > 20) clearInterval(timer);
+  }, 300);
 })(window);

@@ -57,6 +57,39 @@ html.saptarishi-native-ios #wallet-modal-apple-buy {
   cursor: pointer;
 }
 
+html.saptarishi-native-ios.saptarishi-native-app .kundali-tabs,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali-tabs {
+  display: flex !important;
+  width: 100%;
+  gap: 0;
+  margin: 0.15rem 0 1.25rem;
+  border-bottom: 1px solid rgba(61, 42, 20, 0.16);
+}
+
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali #birth-form,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form {
+  display: grid !important;
+}
+
+html.saptarishi-native-ios .app-avatar[hidden],
+html.saptarishi-native-ios #site-login-btn[hidden] {
+  display: none !important;
+}
+
+html.saptarishi-native-ios #site-login-btn.app-signin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.05rem;
+  padding: 0.28rem 0.85rem;
+  border: none;
+  border-radius: 999px;
+  background: #3d2a14;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 html.saptarishi-native-ios input,
 html.saptarishi-native-ios select,
 html.saptarishi-native-ios textarea {
