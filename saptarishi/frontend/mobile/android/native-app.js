@@ -468,9 +468,8 @@
       <a class="app-brand" href="${brandHref}">SAPTARISHI</a>
       <div class="site-header__meta">
         <button type="button" id="site-wallet-btn" class="site-header__wallet app-wallet" hidden title="Wallet">${ICONS.wallet}<span class="app-wallet__amt">₹0</span></button>
-        <button type="button" class="app-avatar" id="app-profile-btn" aria-label="Select Birth details">IN</button>
-        <a href="${pageHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden>Profile</a>
-        <button type="button" id="site-login-btn" class="site-header__login" hidden>Login</button>
+        <button type="button" class="app-avatar" id="app-profile-btn" aria-label="Profile" hidden>IN</button>
+        <button type="button" id="site-login-btn" class="site-header__login app-signin">Sign in</button>
         <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
       </div>
     `;
@@ -481,15 +480,13 @@
       });
     }
     header.querySelector("#app-menu-btn")?.addEventListener("click", openDrawer);
-    header.querySelector("#app-profile-btn")?.addEventListener("click", async () => {
-      if (!AUTH) return;
-      if (!AUTH.getToken()) {
-        if (AUTH.ensureAuth) {
-          await AUTH.ensureAuth({ tab: "login", required: true, message: "Sign in to manage charts." });
-        }
-        if (!AUTH.getToken()) return;
+    header.querySelector("#app-profile-btn")?.addEventListener("click", () => {
+      window.location.href = pageHref("profile.html");
+    });
+    header.querySelector("#site-login-btn")?.addEventListener("click", async () => {
+      if (AUTH?.ensureAuth) {
+        await AUTH.ensureAuth({ tab: "login", required: true, message: "Sign in to continue." });
       }
-      openProfiles();
     });
     refreshHeaderAuth();
   }
@@ -502,7 +499,6 @@
     const avatar = header.querySelector("#app-profile-btn");
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
-    const profileLink = header.querySelector("#site-profile-link");
     if (walletBtn) {
       if (user) {
         walletBtn.hidden = false;
@@ -514,17 +510,14 @@
       }
     }
     if (avatar) {
-      const chart = getActiveChart();
-      const chartName = String(chart?.name || "").trim();
+      avatar.hidden = !user;
       avatar.textContent = avatarInitials();
-      const label = chartName ? `Select Birth details · ${chartName}` : "Select Birth details";
-      avatar.title = label;
-      avatar.setAttribute("aria-label", label);
+      avatar.title = "Profile";
+      avatar.setAttribute("aria-label", "Profile");
       avatar.classList.toggle("app-avatar--guest", !user);
     }
-    if (loginBtn) loginBtn.hidden = true;
+    if (loginBtn) loginBtn.hidden = !!user;
     if (logoutBtn) logoutBtn.hidden = true;
-    if (profileLink) profileLink.hidden = true;
   }
 
   function dockTabHtml(screen, label, iconName, isOn) {
@@ -893,11 +886,6 @@
       "app-kundali-new",
       isKundaliNewMode() && !isKundaliCompareMode()
     );
-    if (!isKundaliCompareMode()) {
-      document.querySelectorAll(".kundali-tabs").forEach((el) => {
-        el.hidden = true;
-      });
-    }
   }
 
   function showKundaliEmpty(message) {
@@ -927,7 +915,6 @@
     document.getElementById("app-kundali-empty")?.remove();
     const chart = getActiveChart();
     if (!chart?.date || !chart?.time || !chart?.place) {
-      showKundaliEmpty();
       return;
     }
     try {
@@ -1392,21 +1379,17 @@
     if (livePage() !== "remedy" || document.getElementById("auspicious-options-view")) return;
     const shell = document.getElementById("saptarishi");
     if (!shell) return;
-    document.querySelectorAll(
-      "#saptarishi > p.lead, .kundali-tabs, #remedy-form"
-    ).forEach((el) => {
-      el.hidden = true;
-    });
     document.getElementById("app-remedy-grid")?.remove();
     if (!document.getElementById("app-remedy-intro")) {
       const intro = document.createElement("header");
       intro.id = "app-remedy-intro";
       intro.innerHTML = `<h1 class="app-title">Remedy</h1><p class="app-lead">Planet and ritual remedies for this birth.</p>`;
       const form = document.getElementById("remedy-form");
-      if (form) form.before(intro);
+      const tabs = shell.querySelector(".kundali-tabs");
+      if (tabs) tabs.before(intro);
+      else if (form) form.before(intro);
       else shell.insertBefore(intro, shell.firstChild);
     }
-    openRemedyDetails();
   }
 
   function enhanceKundaliHouses() {

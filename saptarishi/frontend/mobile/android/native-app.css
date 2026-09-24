@@ -212,8 +212,25 @@ html.saptarishi-native-app #site-wallet-btn.app-wallet {
   cursor: pointer;
 }
 
-html.saptarishi-native-app #site-wallet-btn.site-header__wallet[hidden] {
+html.saptarishi-native-app #site-wallet-btn.site-header__wallet[hidden],
+html.saptarishi-native-app .app-avatar[hidden],
+html.saptarishi-native-app #site-login-btn[hidden] {
   display: none !important;
+}
+
+html.saptarishi-native-app #site-login-btn.app-signin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.05rem;
+  padding: 0.28rem 0.85rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--app-brown-deep);
+  color: #fff;
+  font-family: var(--app-font);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 html.saptarishi-native-app .app-wallet__icon {
@@ -583,10 +600,6 @@ html.saptarishi-native-app #saptarishi.main-shell > p.lead {
 }
 
 html.saptarishi-native-app .kundali-tabs {
-  display: none !important;
-}
-
-html.saptarishi-native-app body.app-kundali-compare .kundali-tabs {
   display: flex;
   width: 100%;
   gap: 0;
@@ -627,7 +640,6 @@ html.saptarishi-native-app .search-form.kundali-form {
   gap: 1rem;
 }
 
-html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,
 html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #app-kundali-houses,
 html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #kundali-compare-panel {
   display: none !important;
@@ -1367,13 +1379,6 @@ html.saptarishi-native-app #app-kundali-houses .app-title {
   margin: 0.2rem 0 0.2rem;
 }
 
-html.saptarishi-native-app body.app-page--remedy .kundali-tabs,
-html.saptarishi-native-app body.app-page--remedy #remedy-form,
-html.saptarishi-native-app body.app-page--remedy #saptarishi.main-shell > p.lead {
-  display: none !important;
-}
-
-html.saptarishi-native-app .app-about-item svg,
 html.saptarishi-native-app .app-service svg,
 html.saptarishi-native-app .app-more svg {
   fill: none;
