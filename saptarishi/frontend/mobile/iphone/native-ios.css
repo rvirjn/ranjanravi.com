@@ -94,9 +94,41 @@ html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali
   border-bottom: 1px solid rgba(61, 42, 20, 0.16);
 }
 
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali #birth-form,
-html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form {
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future #future-form,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future .kundali-tabs {
   display: grid !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs,
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future .kundali-tabs,
+html.saptarishi-native-ios.saptarishi-native-app .kundali-tabs {
+  display: flex !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field > label,
+html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field > label,
+html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field > label,
+html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields,
+html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields,
+html.saptarishi-native-ios.saptarishi-native-app #open-kundali-wrap,
+html.saptarishi-native-ios.saptarishi-native-app .birth-open-list-wrap {
+  display: block !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields,
+html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields {
+  display: contents !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields[hidden],
+html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields[hidden],
+html.saptarishi-native-ios.saptarishi-native-app #open-kundali-wrap[hidden],
+html.saptarishi-native-ios.saptarishi-native-app .birth-open-list-wrap[hidden] {
+  display: none !important;
 }
 
 html.saptarishi-native-ios .app-avatar[hidden],

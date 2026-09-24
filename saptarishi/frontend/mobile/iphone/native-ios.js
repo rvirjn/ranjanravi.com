@@ -92,6 +92,10 @@
     return `${pre}/frontend/html/${file}`;
   }
 
+  function kundaliHref() {
+    return `${pageHref("kundali.html").split("#")[0]}#app=kundali`;
+  }
+
   function currentScreen() {
     const path = String(location.pathname || "").toLowerCase();
     if (path.includes("remedy")) return "remedy";
@@ -114,7 +118,7 @@
     dock.innerHTML = tabs
       .map(
         ([id, label, file]) =>
-          `<a class="app-tab${page === id ? " is-on" : ""}" data-app-screen="${id}" href="${pageHref(file)}"><span class="app-tab__label">${label}</span></a>`
+          `<a class="app-tab${page === id ? " is-on" : ""}" data-app-screen="${id}" href="${id === "kundali" ? kundaliHref() : pageHref(file)}"><span class="app-tab__label">${label}</span></a>`
       )
       .join("");
     dock.dataset.iosDock = "1";
@@ -175,9 +179,14 @@
   }
 
   function showIosBirthTabs() {
-    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form").forEach((el) => {
+    if (document.body.dataset.iosChartOpen === "1") return;
+    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
       el.hidden = false;
     });
+    document.getElementById("app-kundali-empty")?.remove();
+    document.getElementById("app-remedy-empty")?.remove();
+    const results = document.getElementById("results");
+    if (results) results.hidden = true;
   }
 
   function applyIosMenu() {
@@ -194,7 +203,7 @@
     scroll.innerHTML = `<div class="app-menu-list">${items
       .map(
         ([file, label]) =>
-          `<a class="app-menu-item" href="${pageHref(file)}"><span>${label}</span></a>`
+          `<a class="app-menu-item" href="${file === "kundali.html" ? kundaliHref() : pageHref(file)}"><span>${label}</span></a>`
       )
       .join("")}</div>`;
     scroll.dataset.iosMenu = "1";
@@ -220,18 +229,28 @@
       const auth = global.SaptarishiAuth;
       if (!auth || !auth.logout) return;
       auth.logout().finally(() => {
-        window.location.replace(pageHref("kundali.html"));
+        window.location.replace(kundaliHref());
       });
+    },
+    true
+  );
+  document.addEventListener(
+    "click",
+    (event) => {
+      const picked =
+        event.target.closest &&
+        event.target.closest(
+          "#saved-kundali-list, #saved-birth-list, #birth-form button[type='submit'], #remedy-form button[type='submit'], #future-form button[type='submit']"
+        );
+      if (picked) document.body.dataset.iosChartOpen = "1";
     },
     true
   );
   applyIosChrome();
   document.addEventListener("DOMContentLoaded", applyIosChrome);
   global.addEventListener("saptarishi-auth-changed", () => setTimeout(applyIosChrome, 0));
-  let tries = 0;
   const timer = setInterval(() => {
     applyIosChrome();
-    tries += 1;
-    if (tries > 20) clearInterval(timer);
+    if (document.body.dataset.iosChartOpen === "1") clearInterval(timer);
   }, 300);
 })(window);
