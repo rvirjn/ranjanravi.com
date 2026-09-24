@@ -43,9 +43,15 @@ html.saptarishi-native-ios .app-sheet {
   padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
 }
 
-html.saptarishi-native-ios .premium-modal-overlay {
-  padding-top: env(safe-area-inset-top, 0px);
+html.saptarishi-native-ios .premium-modal-overlay,
+html.saptarishi-native-ios .auth-modal-overlay {
+  align-items: flex-start;
+  padding-top: calc(0.75rem + max(env(safe-area-inset-top, 0px), 54px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.saptarishi-native-ios .auth-modal-overlay--tall .auth-modal {
+  margin-top: 0;
 }
 
 html.saptarishi-native-ios .premium-modal__qr-wrap,
