@@ -160,12 +160,42 @@
     });
   }
 
+  function applyIosMenu() {
+    const scroll = document.querySelector("#app-drawer .app-drawer-scroll");
+    if (!scroll || scroll.dataset.iosMenu === "1") return;
+    const items = [
+      ["kundali.html", "Kundali"],
+      ["remedy.html", "Remedy"],
+      ["future.html", "Prediction"],
+      ["auspicious.html", "Muhurta"],
+      ["profile.html", "Profile"],
+      ["privacy.html", "Privacy"]
+    ];
+    scroll.innerHTML = `<div class="app-menu-list">${items
+      .map(
+        ([file, label]) =>
+          `<a class="app-menu-item" href="${pageHref(file)}"><span>${label}</span></a>`
+      )
+      .join("")}</div>`;
+    scroll.dataset.iosMenu = "1";
+  }
+
   function applyIosChrome() {
     applyIosDock();
     applyIosHeader();
     showIosBirthTabs();
+    applyIosMenu();
   }
 
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (event.target.closest && event.target.closest("#app-menu-btn")) {
+        setTimeout(applyIosMenu, 0);
+      }
+    },
+    true
+  );
   applyIosChrome();
   document.addEventListener("DOMContentLoaded", applyIosChrome);
   global.addEventListener("saptarishi-auth-changed", () => setTimeout(applyIosChrome, 0));
