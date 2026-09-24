@@ -131,6 +131,7 @@ html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields {
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali-tabs[hidden],
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs[hidden],
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--future .kundali-tabs[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form[hidden],
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali #birth-form[hidden],
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form[hidden],
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--future #future-form[hidden] {
