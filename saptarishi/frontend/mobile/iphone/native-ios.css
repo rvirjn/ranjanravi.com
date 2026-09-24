@@ -24,6 +24,14 @@ html.saptarishi-native-ios .app-dock {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+html.saptarishi-native-ios body:not(.app-page--home) .app-dock {
+  display: none !important;
+}
+
+html.saptarishi-native-ios body:not(.app-page--home).saptarishi-page {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 html.saptarishi-native-ios .app-drawer {
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
@@ -52,7 +60,7 @@ html.saptarishi-native-ios .send-coupon-overlay {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html.saptarishi-native-ios .ask-ai:not(.ask-ai--open):not(:has(.ask-ai__panel:not([hidden]))) {
+html.saptarishi-native-ios body.app-page--home .ask-ai:not(.ask-ai--open):not(:has(.ask-ai__panel:not([hidden]))) {
   bottom: calc(var(--app-dock-h, 3.65rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
 }
 
