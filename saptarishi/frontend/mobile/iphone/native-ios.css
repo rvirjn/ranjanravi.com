@@ -73,21 +73,32 @@ html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-f
 }
 
 html.saptarishi-native-ios .app-avatar[hidden],
-html.saptarishi-native-ios #site-login-btn[hidden] {
+html.saptarishi-native-ios .app-ios-auth[hidden] {
   display: none !important;
 }
 
-html.saptarishi-native-ios #site-login-btn.app-signin {
+html.saptarishi-native-ios .app-ios-auth {
   display: inline-flex;
   align-items: center;
   min-height: 2.05rem;
-  padding: 0.28rem 0.85rem;
-  border: none;
+  margin-left: 0.35rem;
+  padding: 0.28rem 0.7rem;
   border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+html.saptarishi-native-ios .app-ios-auth--register {
+  border: 1px solid #3d2a14;
+  background: transparent;
+  color: #3d2a14;
+}
+
+html.saptarishi-native-ios .app-ios-auth--login {
+  border: none;
   background: #3d2a14;
   color: #fff;
-  font-size: 0.82rem;
-  font-weight: 700;
 }
 
 html.saptarishi-native-ios input,

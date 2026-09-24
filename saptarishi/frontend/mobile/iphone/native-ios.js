@@ -120,12 +120,23 @@
     dock.dataset.iosDock = "1";
   }
 
+  function openAuth(tab) {
+    const modal = global.SaptarishiAuthModal;
+    if (modal && modal.open) {
+      modal.open({ tab, required: false });
+      return;
+    }
+    if (global.SaptarishiAuth && global.SaptarishiAuth.ensureAuth) {
+      global.SaptarishiAuth.ensureAuth({ tab, required: true });
+    }
+  }
+
   function applyIosHeader() {
     const header = document.querySelector(".site-header");
-    if (!header) return;
+    const meta = header && header.querySelector(".site-header__meta");
+    if (!meta) return;
     const user = global.SaptarishiAuth && global.SaptarishiAuth.getUser && global.SaptarishiAuth.getUser();
     const avatar = header.querySelector("#app-profile-btn");
-    const loginBtn = header.querySelector("#site-login-btn");
     if (avatar && avatar.dataset.iosProfile !== "1") {
       avatar.dataset.iosProfile = "1";
       avatar.addEventListener(
@@ -139,19 +150,28 @@
       );
     }
     if (avatar) avatar.hidden = !user;
-    if (loginBtn) {
-      loginBtn.textContent = "Sign in";
-      loginBtn.classList.add("app-signin");
-      loginBtn.hidden = !!user;
-      if (loginBtn.dataset.iosLogin !== "1") {
-        loginBtn.dataset.iosLogin = "1";
-        loginBtn.addEventListener("click", async () => {
-          if (global.SaptarishiAuth && global.SaptarishiAuth.ensureAuth) {
-            await global.SaptarishiAuth.ensureAuth({ tab: "login", required: true, message: "Sign in to continue." });
-          }
-        });
-      }
+    let registerBtn = meta.querySelector("#ios-register-btn");
+    let loginBtn = meta.querySelector("#ios-login-btn");
+    if (!registerBtn) {
+      registerBtn = document.createElement("button");
+      registerBtn.type = "button";
+      registerBtn.id = "ios-register-btn";
+      registerBtn.className = "app-ios-auth app-ios-auth--register";
+      registerBtn.textContent = "Register";
+      registerBtn.addEventListener("click", () => openAuth("register"));
+      meta.appendChild(registerBtn);
     }
+    if (!loginBtn) {
+      loginBtn = document.createElement("button");
+      loginBtn.type = "button";
+      loginBtn.id = "ios-login-btn";
+      loginBtn.className = "app-ios-auth app-ios-auth--login";
+      loginBtn.textContent = "Login";
+      loginBtn.addEventListener("click", () => openAuth("login"));
+      meta.appendChild(loginBtn);
+    }
+    registerBtn.hidden = !!user;
+    loginBtn.hidden = !!user;
   }
 
   function showIosBirthTabs() {
