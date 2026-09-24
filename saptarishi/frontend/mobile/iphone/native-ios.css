@@ -101,10 +101,11 @@ html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali #birth-form,
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form,
-html.saptarishi-native-ios.saptarishi-native-app body.app-page--future #future-form,
-html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs,
-html.saptarishi-native-ios.saptarishi-native-app body.app-page--future .kundali-tabs {
-  display: grid !important;
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future #future-form {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
 }
 
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs,
@@ -113,9 +114,82 @@ html.saptarishi-native-ios.saptarishi-native-app .kundali-tabs {
   display: flex !important;
 }
 
+html.saptarishi-native-ios .native-only,
+html.saptarishi-native-ios .native-gender,
+html.saptarishi-native-ios .native-save {
+  display: none !important;
+}
+
+html.saptarishi-native-ios .native-field-row > svg:first-child {
+  display: none !important;
+}
+
+html.saptarishi-native-ios .native-datetime,
+html.saptarishi-native-ios .birth-datetime-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.7rem;
+  width: 100%;
+}
+
+html.saptarishi-native-ios .search-form.kundali-form .birth-box,
+html.saptarishi-native-ios .search-form.kundali-form .birth-place-box,
+html.saptarishi-native-ios #birth-name {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+html.saptarishi-native-ios #birth-form .form-field--actions,
+html.saptarishi-native-ios #remedy-form .form-field--actions,
+html.saptarishi-native-ios #future-form .form-field--actions {
+  display: inline-flex !important;
+  width: auto;
+  flex: 1 1 auto;
+}
+
+html.saptarishi-native-ios #birth-form button[type="submit"],
+html.saptarishi-native-ios #remedy-form button[type="submit"],
+html.saptarishi-native-ios #future-form button[type="submit"] {
+  width: auto !important;
+  min-width: 8.5rem;
+  border-radius: 0.7rem !important;
+}
+
+html.saptarishi-native-ios .site-footer {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem calc(var(--app-dock-h, 3.65rem) + env(safe-area-inset-bottom, 0px) + 0.85rem);
+  background: #fff8ea;
+  border: none;
+  border-top: 2px solid #c4a35a;
+  border-radius: 0;
+  box-shadow: none;
+  text-align: center;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app .site-footer > :not(.site-footer__credits) {
+  display: block !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app .site-footer__meta {
+  display: flex !important;
+}
+
 html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field > label:not(.save-birth-label),
 html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field > label:not(.save-birth-label),
-html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field > label:not(.save-birth-label),
+html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field > label:not(.save-birth-label) {
+  display: none !important;
+}
+
+html.saptarishi-native-ios.saptarishi-native-app #birth-form .form-field:not(.form-field--save):not(.form-field--actions),
+html.saptarishi-native-ios.saptarishi-native-app #remedy-form .form-field:not(.form-field--save):not(.form-field--actions),
+html.saptarishi-native-ios.saptarishi-native-app #future-form .form-field:not(.form-field--save):not(.form-field--actions),
+html.saptarishi-native-ios.saptarishi-native-app .birth-datetime-row,
+html.saptarishi-native-ios.saptarishi-native-app .native-field-row {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
 html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields,
 html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields,
 html.saptarishi-native-ios.saptarishi-native-app #open-kundali-wrap,
