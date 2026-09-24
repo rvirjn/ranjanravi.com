@@ -128,6 +128,15 @@ html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields {
   display: contents !important;
 }
 
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali-tabs[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy .kundali-tabs[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future .kundali-tabs[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali #birth-form[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--remedy #remedy-form[hidden],
+html.saptarishi-native-ios.saptarishi-native-app body.app-page--future #future-form[hidden] {
+  display: none !important;
+}
+
 html.saptarishi-native-ios.saptarishi-native-app #new-kundali-fields[hidden],
 html.saptarishi-native-ios.saptarishi-native-app #new-birth-fields[hidden],
 html.saptarishi-native-ios.saptarishi-native-app #open-kundali-wrap[hidden],
