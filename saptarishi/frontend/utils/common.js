@@ -267,10 +267,11 @@
       el.placeholder = AC.LIFE_EVENTS_PLACEHOLDER || el.placeholder;
     });
     const lifeLabel = AC.LIFE_EVENTS_LABEL || "Give 3 major life events with dates";
-    scope.querySelectorAll(
-      "label[for='auth-modal-reg-life-events'], label[for='profile-life-events']"
-    ).forEach((el) => {
+    scope.querySelectorAll("label[for='profile-life-events']").forEach((el) => {
       el.textContent = lifeLabel;
+    });
+    scope.querySelectorAll("label[for='auth-modal-reg-life-events']").forEach((el) => {
+      el.textContent = `${lifeLabel} (optional)`;
     });
     scope.querySelectorAll(
       'input[type="password"][minlength], #profile-current-password, #profile-new-password, #profile-confirm-password, #profile-delete-password, #auth-modal-login-password, #auth-modal-reg-password, #auth-modal-reg-password-confirm'

@@ -99,7 +99,7 @@
               <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
             </div>
             <div class="form-field form-field--life-events">
-              <label for="auth-modal-reg-life-events">Give 3 major life events with dates</label>
+              <label for="auth-modal-reg-life-events">Give 3 major life events with dates (optional)</label>
               <textarea id="auth-modal-reg-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
             </div>
             <div class="form-field form-field--submit">
