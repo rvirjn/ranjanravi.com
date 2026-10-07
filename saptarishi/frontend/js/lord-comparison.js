@@ -9,6 +9,10 @@
     compare: {
       heading: "Lord strength across compared births",
       lead: ""
+    },
+    yoga: {
+      heading: "Top 5 by more yoga",
+      lead: ""
     }
   };
 
@@ -324,6 +328,15 @@
     tr.appendChild(td);
   }
 
+  function appendChartMarkCell(tr, cell) {
+    const td = document.createElement("td");
+    td.className = "auspicious-lord-col auspicious-lord-col--chart-mark";
+    const valueClass = String(cell?.value_class || "").trim();
+    if (valueClass) td.classList.add(valueClass);
+    td.textContent = String(cell?.text || "None");
+    tr.appendChild(td);
+  }
+
   function appendMatchListCell(tr, cell, matchKind) {
     const td = document.createElement("td");
     td.className = "auspicious-lord-col auspicious-lord-col--match-list";
@@ -345,7 +358,9 @@
       const chip = document.createElement("span");
       const nature = String(item?.nature || "good").toLowerCase();
       chip.className = `lord-compare-chip lord-compare-chip--${nature === "bad" ? "bad" : "good"}`;
-      chip.textContent = String(item?.name || item?.key || "").trim() || "—";
+      const chipName = String(item?.name || item?.key || "").trim() || "—";
+      const isTopYoga = String(item?.is_under_top_list || "").trim().toLowerCase() === "yes";
+      chip.textContent = isTopYoga ? `★ ${chipName}` : chipName;
       if (item?.summary) chip.title = String(item.summary);
       wrap.appendChild(chip);
     });
@@ -354,7 +369,7 @@
   }
 
   function setChrome(mode) {
-    currentMode = mode === "compare" ? "compare" : "top";
+    currentMode = mode === "compare" || mode === "yoga" ? mode : "top";
     const heading = document.getElementById("lord-comparison-heading");
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
     const cfg = CHROME[currentMode] || CHROME.top;
@@ -389,9 +404,17 @@
     if (!thead || !tbody) return;
 
     const hasDivisionalRows = rows.some((row) => row?.row_kind === "divisional_chart");
+    const chartOnlyHeader = String(comparison?.header_mode || "") === "chart";
+    table.classList.toggle("lord-comparison-table--yoga", chartOnlyHeader);
 
     const headerRow = document.createElement("tr");
-    headerRow.appendChild(Object.assign(document.createElement("th"), { textContent: "Planet" }));
+    headerRow.appendChild(
+      Object.assign(document.createElement("th"), {
+        textContent: chartOnlyHeader
+          ? String(comparison?.corner_label || "Yoga")
+          : "Planet"
+      })
+    );
 
     columns.forEach((column, colIndex) => {
       const th = document.createElement("th");
@@ -407,7 +430,8 @@
         total.textContent = `Strength ${column.houses_strength_total}`;
       }
 
-      th.append(label, total);
+      th.append(label);
+      if (!chartOnlyHeader) th.append(total);
 
       const shortMap =
         (typeof SAPTARISHI_CONSTANTS !== "undefined" && SAPTARISHI_CONSTANTS?.PLANET_SHORT) ||
@@ -421,7 +445,7 @@
           .filter(Boolean);
 
       const exaltedSymbols = planetSymbols(column.exalted_planets);
-      if (exaltedSymbols.length) {
+      if (!chartOnlyHeader && exaltedSymbols.length) {
         const exalted = document.createElement("span");
         exalted.className = "auspicious-lord-col__exalted";
         exalted.textContent = `Exalted: ${exaltedSymbols.join(", ")}`;
@@ -429,7 +453,7 @@
       }
 
       const debilitatedSymbols = planetSymbols(column.debilitated_planets);
-      if (debilitatedSymbols.length) {
+      if (!chartOnlyHeader && debilitatedSymbols.length) {
         const debilitated = document.createElement("span");
         debilitated.className = "auspicious-lord-col__debilitated";
         debilitated.textContent = `Debilitated: ${debilitatedSymbols.join(", ")}`;
@@ -451,18 +475,23 @@
     for (const rowData of rows) {
       const tr = document.createElement("tr");
       const isDivisional = rowData.row_kind === "divisional_chart";
+      const isChartMark = rowData.row_kind === "chart_mark";
       const isMatchList = rowData.row_kind === "match_list";
       const isMatchCount = rowData.row_kind === "match_count";
       const isYogaLegacy =
         rowData.row_kind === "yoga_diff" || rowData.row_kind === "yoga_count";
       const isMatchRow = isMatchList || isMatchCount || isYogaLegacy;
+      if (isChartMark) tr.classList.add("lord-comparison-row--chart-mark");
       if (isDivisional) tr.classList.add("lord-comparison-row--divisional");
       if (isMatchRow) tr.classList.add("lord-comparison-row--yoga");
       if (isMatchCount || rowData.row_kind === "yoga_count") {
         tr.classList.add("lord-comparison-row--yoga-count");
       }
-      if (isMatchList && rowData.match_kind === "kundali_dosh") {
+      if (rowData.match_kind === "kundali_dosh") {
         tr.classList.add("lord-comparison-row--dosh");
+      }
+      if (rowData.match_kind === "dusthana") {
+        tr.classList.add("lord-comparison-row--dusthana");
       }
 
       const planetTd = document.createElement("td");
@@ -472,6 +501,8 @@
 
       if (isDivisional) {
         (rowData.cells || []).forEach((cell) => appendDivisionalChartCell(tr, cell));
+      } else if (isChartMark) {
+        (rowData.cells || []).forEach((cell) => appendChartMarkCell(tr, cell));
       } else if (isMatchList) {
         (rowData.cells || []).forEach((cell) =>
           appendMatchListCell(tr, cell, rowData.match_kind)

@@ -61,8 +61,7 @@ html.saptarishi-native-app .site-header__usage,
 html.saptarishi-native-app .site-header__premium,
 html.saptarishi-native-app .site-header__login,
 html.saptarishi-native-app .site-header__logout,
-html.saptarishi-native-app .site-header__tagline,
-html.saptarishi-native-app #compare-toggle-btn {
+html.saptarishi-native-app .site-header__tagline {
   display: none !important;
 }
 
@@ -633,10 +632,6 @@ html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app
   display: none !important;
 }
 
-html.saptarishi-native-app body.app-kundali-new #compare-toggle-btn,
-html.saptarishi-native-app body.app-kundali-new #kundali-compare-panel {
-  display: none !important;
-}
 
 html.saptarishi-native-app #app-kundali-empty {
   margin: 0.6rem 0 1.2rem;

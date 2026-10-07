@@ -159,13 +159,14 @@
     if (!isCustom && auspiciousPlaceCustom) auspiciousPlaceCustom.value = "";
   }
 
-  async function fetchAuspiciousJsonFromApi(dateFromValue, dateToValue, place) {
+  async function fetchAuspiciousJsonFromApi(dateFromValue, dateToValue, place, rankBy) {
     const params = new URLSearchParams({
       date_from: dateFromValue,
       date_to: dateToValue,
       place,
       house_system: AC.DEFAULT_HOUSE_SYSTEM
     });
+    if (rankBy === "yoga") params.set("rank_by", "yoga");
     const path = `${AC.API_AUSPICIOUS_PATH}?${params}`;
     if (typeof SaptarishiAuth !== "undefined") {
       if (SaptarishiAuth.fetchAuspicious) {
@@ -189,14 +190,16 @@
   }
 
   function renderAuspiciousResponseIntoPage(payload) {
+    const rankBy = String(payload?.rank_by || "").trim().toLowerCase();
+    const focusResult = rankBy === "yoga";
     const summaryRenderer = window.SaptarishiKundaliView?.renderSummaryTable;
-    if (summaryRenderer) {
+    if (summaryRenderer && !focusResult) {
       summaryRenderer(document.querySelector("#summary-table tbody"), payload.summary_table);
     }
-    if (auspiciousScanResultsEl) auspiciousScanResultsEl.hidden = false;
+    if (auspiciousScanResultsEl) auspiciousScanResultsEl.hidden = focusResult;
     const lord = window.SaptarishiLordComparison;
     if (lord) {
-      lord.setChrome("top");
+      lord.setChrome(focusResult ? rankBy : "top");
       lord.renderTable(payload.lord_comparison_table || {});
     }
 
@@ -241,9 +244,16 @@
     if (auspiciousResultsEl) auspiciousResultsEl.hidden = true;
     const lordSection = document.getElementById("lord-comparison-section");
     if (lordSection) lordSection.hidden = true;
+    const submitId = event.submitter && event.submitter.id;
+    const rankBy = submitId === "submit-yoga-btn" ? "yoga" : "strength";
 
     try {
-      const payload = await fetchAuspiciousJsonFromApi(dateFrom.value, dateTo.value, place);
+      const payload = await fetchAuspiciousJsonFromApi(
+        dateFrom.value,
+        dateTo.value,
+        place,
+        rankBy
+      );
       renderAuspiciousResponseIntoPage(payload);
     } catch (err) {
       const formatted = formatAuspiciousLoadError(err);
@@ -259,7 +269,8 @@
             const payload = await fetchAuspiciousJsonFromApi(
               dateFrom.value,
               dateTo.value,
-              place
+              place,
+              rankBy
             );
             renderAuspiciousResponseIntoPage(payload);
             return;
@@ -299,6 +310,9 @@
     if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Muhurta";
     if (leadOptionEl) leadOptionEl.textContent = selectedOption || "muhurta";
     if (auspiciousForm) auspiciousForm.dataset.option = selectedOption;
+    const babyBirth = selectedOption === "Baby Birth";
+    const yogaBtn = document.getElementById("submit-yoga-btn");
+    if (yogaBtn) yogaBtn.hidden = !babyBirth;
     if (optionsView) optionsView.hidden = true;
     if (rangeView) rangeView.hidden = false;
     clearAuspiciousResults();

@@ -510,8 +510,30 @@
     }
   }
 
+  function isCompareAdmin() {
+    return (
+      typeof SaptarishiAuth !== "undefined" &&
+      typeof SaptarishiAuth.isAdmin === "function" &&
+      SaptarishiAuth.isAdmin()
+    );
+  }
+
+  function syncCompareToggleVisibility() {
+    const admin = isCompareAdmin();
+    if (compareToggleBtn) compareToggleBtn.hidden = !admin;
+    if (!admin) {
+      panel.hidden = true;
+      if (compareToggleBtn) compareToggleBtn.setAttribute("aria-expanded", "false");
+      if (mainLeadEl) mainLeadEl.hidden = false;
+    }
+  }
+
+  syncCompareToggleVisibility();
+  window.addEventListener("saptarishi-auth-changed", syncCompareToggleVisibility);
+
   if (compareToggleBtn) {
     compareToggleBtn.addEventListener("click", () => {
+      if (!isCompareAdmin()) return;
       const show = panel.hidden;
       panel.hidden = !show;
       compareToggleBtn.setAttribute("aria-expanded", show ? "true" : "false");
