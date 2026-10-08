@@ -3,7 +3,7 @@
 (function lordComparisonModule() {
   const CHROME = {
     top: {
-      heading: "Lord strength across top slots",
+      heading: "Top slots by kundali overall strength",
       lead: ""
     },
     compare: {
@@ -282,15 +282,25 @@
     }
   }
 
+  function slotStrengthText(source) {
+    const display = String(source?.kundali_strength_display || "").trim();
+    if (display) return display;
+    if (typeof source?.houses_strength_total === "number") {
+      return `Strength ${source.houses_strength_total}`;
+    }
+    return "";
+  }
+
   function appendDivisionalChartCell(tr, cell) {
     const td = document.createElement("td");
     td.className = "auspicious-lord-col auspicious-lord-col--divisional-chart";
     if (cell?.title) td.title = String(cell.title);
 
-    if (typeof cell?.houses_strength_total === "number") {
+    const divisionalStrength = slotStrengthText(cell);
+    if (divisionalStrength) {
       const total = document.createElement("span");
       total.className = "auspicious-lord-col__total auspicious-lord-col__total--divisional";
-      total.textContent = `Strength ${cell.houses_strength_total}`;
+      total.textContent = divisionalStrength;
       td.appendChild(total);
     }
 
@@ -426,9 +436,8 @@
 
       const total = document.createElement("span");
       total.className = "auspicious-lord-col__total";
-      if (typeof column.houses_strength_total === "number") {
-        total.textContent = `Strength ${column.houses_strength_total}`;
-      }
+      const headerStrength = slotStrengthText(column);
+      if (headerStrength) total.textContent = headerStrength;
 
       th.append(label);
       if (!chartOnlyHeader) th.append(total);
