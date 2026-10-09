@@ -1,5 +1,5 @@
 // Copyright © 2018-2026 ranjanravi.com. All rights reserved.
-/** Future page: favourable career / marriage / child windows from dasha + transit. */
+/** Future page: favourable dasha windows from natal houses, karakas, and transit. */
 (function futurePage() {
   const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
   const CU = window.SaptarishiCommonUtils || null;
@@ -39,7 +39,10 @@
   const EVENT_LABELS = {
     career: "Career",
     marriage: "Marriage",
-    child: "Child born"
+    child: "Child born",
+    land: "Land / vehicle",
+    foreign: "Foreign travel / migration",
+    wealth: "Wealth"
   };
 
   let selectedEvent = "";
@@ -514,7 +517,7 @@
   async function loadFuture() {
     const eventKey = selectedEvent || form?.dataset.event || "";
     if (!eventKey) {
-      showStatus("Choose Career, Marriage, or Child born first.", true);
+      showStatus("Choose a prediction topic first.", true);
       return;
     }
     const place = getBirthPlace();
