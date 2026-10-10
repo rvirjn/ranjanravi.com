@@ -1008,7 +1008,8 @@
       emptyEl: debilitatedRemedyEmpty,
       headingEl: debilitatedRemedyHeading,
       baseHeading: "Remedy for debilitated planet",
-      planetEntries: groups.debilitated
+      planetEntries: groups.debilitated,
+      buttonClassName: "remedy-navatara-btn--dosh"
     });
     renderPlanetRemedyTiles({
       groupKey: "low_strength",
@@ -1339,7 +1340,7 @@
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "remedy-navatara-btn";
+      btn.className = "remedy-navatara-btn remedy-navatara-btn--dosh";
       btn.dataset.navataraKey = normalizeText(def.name);
       btn.textContent = navataraResultLabel(def);
       btn.setAttribute("aria-pressed", "false");
