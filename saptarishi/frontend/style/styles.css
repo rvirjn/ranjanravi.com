@@ -6311,6 +6311,18 @@ body.premium-modal-open {
   white-space: pre-wrap;
 }
 
+.remedy-planet-detail-table tr.remedy-reading-row th,
+.remedy-planet-detail-table tr.remedy-reading-row td {
+  line-height: 1.65;
+  font-size: 1.05rem;
+}
+
+.remedy-planet-detail-table td.remedy-reading .remedy-reading-body {
+  display: block;
+  min-height: 4.95em;
+  line-height: 1.65;
+}
+
 .remedy-planet-detail-table td.remedy-mantra-value,
 .remedy-planet-detail-table .remedy-mantra-value {
   color: var(--planet-color-red, #b71c1c);

@@ -7,9 +7,14 @@
   if (!C) return;
 
   const PLANET_REMEDY_COLUMNS = C.PLANET_REMEDY_COLUMNS || [];
-  const DOSH_REMEDY_DETAIL_COLUMNS = PLANET_REMEDY_COLUMNS.filter(
+  const PLANET_REMEDY_DETAIL_COLUMNS = PLANET_REMEDY_COLUMNS.filter(
     (col) => col && col.key !== "planet"
   );
+  const DOSH_REMEDY_DETAIL_COLUMNS = [
+    { key: "desc", header: "Desc" },
+    { key: "rule", header: "Rule" },
+    ...PLANET_REMEDY_DETAIL_COLUMNS
+  ];
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
   /** Match kundali red strength tint (data.json ``red_at_or_below_percent`` = 49). */
   const LOW_STRENGTH_AT_OR_BELOW_PERCENT = 49;
@@ -697,11 +702,18 @@
 
     td.textContent = "";
     td.classList.toggle("remedy-how-to-chant", isHowTo);
+    const isReading = colKey === "desc" || colKey === "rule";
+    td.classList.toggle("remedy-reading", isReading);
+    const textHost = isReading ? document.createElement("div") : td;
+    if (isReading) {
+      textHost.className = "remedy-reading-body";
+      td.appendChild(textHost);
+    }
 
     if (paragraphs.length) {
-      fillRemedyParagraphs(td, paragraphs, { quoteMantras: isHowTo });
+      fillRemedyParagraphs(textHost, paragraphs, { quoteMantras: isHowTo });
     } else if (text) {
-      appendFormattedRemedyText(td, text, { quoteMantras: isHowTo });
+      appendFormattedRemedyText(textHost, text, { quoteMantras: isHowTo });
     }
 
     if (locked) blurLockedRemedyValueCell(td);
@@ -839,6 +851,9 @@
     for (const col of columns || []) {
       if (!col || !col.key) continue;
       const tr = document.createElement("tr");
+      if (col.key === "desc" || col.key === "rule") {
+        tr.classList.add("remedy-reading-row");
+      }
       const th = document.createElement("th");
       th.scope = "row";
       th.textContent = String(col.header || col.key || "");
@@ -859,7 +874,7 @@
   function createPlanetRemedyDetailTable(planetKey) {
     return createRemedyDetailTable(
       planetRemedyByName[planetKey] || {},
-      DOSH_REMEDY_DETAIL_COLUMNS
+      PLANET_REMEDY_DETAIL_COLUMNS
     );
   }
 
