@@ -1985,6 +1985,19 @@ function appendAdverseSheetRemedyHint(sheet, options = {}) {
   sheet.appendChild(wrap);
 }
 
+function appendPlanetDignityBeforeStatus(parent, section) {
+  const text = String(section?.dignity_effect || "").trim();
+  if (!text) return;
+  const dignity = document.createElement("p");
+  dignity.className = "house-planets-sheet__dignity";
+  const kind = String(section.dignity_effect_label || "").trim().toLowerCase();
+  if (kind === "exalted" || kind === "debilitated") {
+    dignity.classList.add(`house-planets-sheet__dignity--${kind}`);
+  }
+  dignity.textContent = text;
+  parent.appendChild(dignity);
+}
+
 function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet planet-status-sheet";
@@ -2223,6 +2236,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         const wrap = document.createElement("div");
         wrap.className = "house-planets-sheet__planet-read";
         const role = normalizeText(section.role);
+        appendPlanetDignityBeforeStatus(wrap, section);
         const title = document.createElement("p");
         title.className = "house-planets-sheet__planet-read-title";
         title.textContent = String(section.title || "").trim();

@@ -6008,6 +6008,25 @@ body.premium-modal-open {
   margin: 0 0 0.55rem;
 }
 
+.house-planets-sheet__dignity {
+  margin: 0 0 0.55rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.house-planets-sheet__dignity strong {
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.house-planets-sheet__dignity--exalted strong {
+  color: #1b7a3d;
+}
+
+.house-planets-sheet__dignity--debilitated strong {
+  color: #c62828;
+}
+
 .house-planets-sheet__planet-read-title {
   margin: 0 0 0.45rem;
   font-size: 1.12rem;
