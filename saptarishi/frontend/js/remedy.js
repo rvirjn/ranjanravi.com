@@ -8,8 +8,14 @@
 
   const PLANET_REMEDY_COLUMNS = C.PLANET_REMEDY_COLUMNS || [];
   const PLANET_REMEDY_DETAIL_COLUMNS = PLANET_REMEDY_COLUMNS.filter(
-    (col) => col && col.key !== "planet"
+    (col) => col && col.key !== "planet" && col.key !== "what_to_wear_in_finger"
   );
+  const PLANET_GEM_COLUMN = PLANET_REMEDY_COLUMNS.find(
+    (col) => col && col.key === "what_to_wear_in_finger"
+  );
+  const PLANET_ONLY_REMEDY_COLUMNS = PLANET_GEM_COLUMN
+    ? [...PLANET_REMEDY_DETAIL_COLUMNS, PLANET_GEM_COLUMN]
+    : PLANET_REMEDY_DETAIL_COLUMNS;
   const DOSH_REMEDY_DETAIL_COLUMNS = [
     { key: "desc", header: "Desc" },
     { key: "rule", header: "Rule" },
@@ -874,7 +880,7 @@
   function createPlanetRemedyDetailTable(planetKey) {
     return createRemedyDetailTable(
       planetRemedyByName[planetKey] || {},
-      PLANET_REMEDY_DETAIL_COLUMNS
+      PLANET_ONLY_REMEDY_COLUMNS
     );
   }
 

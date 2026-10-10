@@ -269,7 +269,8 @@ const SAPTARISHI_CONSTANTS = {
     { key: "how_to_do_mantra_chant", header: "How to chant" },
     { key: "things_to_donate", header: "Things to donate" },
     { key: "whom_to_respect_most", header: "Whom to respect most" },
-    { key: "feed_to_animal", header: "Feed to animal" }
+    { key: "feed_to_animal", header: "Feed to animal" },
+    { key: "what_to_wear_in_finger", header: "Gem" }
   ],
   /** Nakshatra remedy detail table headers (nava-tara panel). */
   REMEDY_NAKSHATRA_TABLE_HEADERS: [
