@@ -5338,7 +5338,6 @@ body.auth-modal-open {
 }
 
 .site-header__lang {
-  display: none;
   flex-shrink: 0;
   min-width: 2.15rem;
   padding: 0.28rem 0.45rem;

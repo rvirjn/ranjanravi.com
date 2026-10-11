@@ -332,6 +332,7 @@
     "brihaspati graha mantra": "बृहस्पति ग्रह मंत्र",
     "brihaspati graha beej mantra": "बृहस्पति ग्रह बीज मंत्र",
     guru: "गुरु",
+    aspect: "दृष्टि",
     "guru graha": "गुरु ग्रह",
     "guru graha mantra": "गुरु ग्रह मंत्र",
     "shukra graha": "शुक्र ग्रह",
@@ -440,13 +441,16 @@
   function doshName(value) {
     const text = String(value || "").trim();
     if (I18N.getLang() !== "hi") return text;
+    const whole = labelHi(text);
+    if (whole) return whole;
     const typed = text.match(/^(.+?) \(([^)]+)\)$/);
     if (typed) {
       const base = labelHi(typed[1]);
-      const type = labelHi(typed[2]) || typed[2];
-      if (base) return `${base} (${type})`;
+      const type = labelHi(typed[2]);
+      if (base && type) return `${base} (${type})`;
+      if (base) return base;
     }
-    return labelHi(text) || text;
+    return text;
   }
 
   function pacifyHi(clause) {

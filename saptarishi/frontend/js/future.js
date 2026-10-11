@@ -455,22 +455,22 @@
     article.className = `future-window${isBest ? " future-window--best" : ""}`;
     if (row.score_color) article.classList.add(`future-window--${row.score_color}`);
     const dasha = [row.mahadasha, row.antardasha, row.pratyantardasha]
-      .map((name) => chartText(name || "—"))
+      .map((name) => (typeof futureTimingPlanetHi === "function" && futureTimingPlanetHi(name)) || name || "—")
       .join(" – ");
     const why = Array.isArray(row.why) ? row.why.slice(0, 4) : [];
     const transitHits = Array.isArray(row.transit?.hits) ? row.transit.hits : [];
     article.innerHTML = `
       <header class="future-window__head">
         ${row.rank ? `<span class="future-window__rank">${escapeHtml(row.rank)}</span>` : ""}
-        <strong class="future-window__range">${escapeHtml(row.range || "")}</strong>
+        <strong class="future-window__range">${escapeHtml(typeof futureTimingRangeHi === "function" ? futureTimingRangeHi(row.range || "") : (row.range || ""))}</strong>
         <p class="future-window__dasha">${escapeHtml(dasha)}</p>
-        <p class="future-window__score">${escapeHtml(chartText(row.score_label || ""))} · ${escapeHtml(row.score ?? "")}</p>
+        <p class="future-window__score">${escapeHtml(typeof futureTimingScoreHi === "function" ? futureTimingScoreHi(row.score_label || "") : (row.score_label || ""))} · ${escapeHtml(row.score ?? "")}</p>
       </header>
       ${
         row.transit?.confirmed
           ? `<p class="future-window__transit">${escapeHtml(ft("future.transit"))}${
               transitHits.length
-                ? `: ${escapeHtml(transitHits.map((hit) => chartText(hit)).join("; "))}`
+                ? `: ${escapeHtml(transitHits.map((hit) => (typeof futureTimingLineHi === "function" ? futureTimingLineHi(hit) : hit)).join("; "))}`
                 : ""
             }</p>`
           : ""
@@ -479,7 +479,7 @@
       ${
         why.length
           ? `<ul class="future-window__why">${why
-              .map((item) => `<li>${escapeHtml(chartText(item))}</li>`)
+              .map((item) => `<li>${escapeHtml(typeof futureTimingLineHi === "function" ? futureTimingLineHi(item) : item)}</li>`)
               .join("")}</ul>`
           : ""
       }

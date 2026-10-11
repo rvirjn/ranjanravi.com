@@ -9,6 +9,327 @@ function chartText(value) {
   return I18N.chartText(value);
 }
 
+const PANEL_PLANET_HI = {
+  sun: "सूर्य",
+  moon: "चंद्र",
+  mars: "मंगल",
+  mercury: "बुध",
+  jupiter: "गुरु",
+  venus: "शुक्र",
+  saturn: "शनि",
+  rahu: "राहु",
+  ketu: "केतु",
+  lagna: "लग्न"
+};
+
+const ORD_HI = {
+  "1": "प्रथम",
+  "2": "द्वितीय",
+  "3": "तृतीय",
+  "4": "चतुर्थ",
+  "5": "पंचम",
+  "6": "षष्ठ",
+  "7": "सप्तम",
+  "8": "अष्टम",
+  "9": "नवम",
+  "10": "दशम",
+  "11": "एकादश",
+  "12": "द्वादश"
+};
+
+function ordHi(token) {
+  const raw = String(token || "").trim().toLowerCase().replace(/(?:st|nd|rd|th)$/, "");
+  return ORD_HI[raw] || "";
+}
+
+function panelBodyHi(name) {
+  const key = String(name || "").trim().toLowerCase();
+  if (key === "benefic" || key === "benefics") return "शुभ ग्रह";
+  if (key === "malefic" || key === "malefics") return "पाप ग्रह";
+  if (key === "planet" || key === "planets") return "ग्रह";
+  return panelPlanetHi(name);
+}
+
+const PANEL_BAND_HI = {
+  "very strong": "अति प्रबल",
+  good: "अच्छा",
+  normal: "सामान्य",
+  average: "मध्यम",
+  weak: "दुर्बल"
+};
+
+function panelPlanetHi(name) {
+  return PANEL_PLANET_HI[String(name || "").trim().toLowerCase()] || "";
+}
+
+function panelPlanetListHi(text) {
+  const parts = String(text || "")
+    .split(/\s*(?:,| and )\s*/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (!parts.length) return "";
+  const hi = parts.map(panelPlanetHi);
+  if (hi.some((part) => !part)) return "";
+  return hi.join(", ");
+}
+
+const PANEL_DIGNITY_HI = {
+  exalted: "उच्च राशि",
+  mooltrikona: "मूलत्रिकोण",
+  own: "अपनी राशि",
+  own_rashi: "अपनी राशि",
+  friend: "मित्र राशि",
+  friend_rashi: "मित्र राशि",
+  great_friend: "परम मित्र राशि",
+  great_friend_rashi: "परम मित्र राशि",
+  enemy: "शत्रु राशि",
+  enemy_rashi: "शत्रु राशि",
+  great_enemy: "परम शत्रु राशि",
+  great_enemy_rashi: "परम शत्रु राशि",
+  debilitated: "नीच राशि",
+  neutral: "सम राशि",
+  neutral_rashi: "सम राशि",
+  neecha_bhanga: "नीच भंग",
+  "neecha bhanga": "नीच भंग",
+  strong_neecha_bhanga: "प्रबल नीच भंग",
+  "strong neecha bhanga": "प्रबल नीच भंग"
+};
+
+const PANEL_SIGN_HI = {
+  aries: "मेष",
+  taurus: "वृषभ",
+  gemini: "मिथुन",
+  cancer: "कर्क",
+  leo: "सिंह",
+  virgo: "कन्या",
+  libra: "तुला",
+  scorpio: "वृश्चिक",
+  sagittarius: "धनु",
+  capricorn: "मकर",
+  aquarius: "कुंभ",
+  pisces: "मीन"
+};
+
+function panelSignPlaceHi(text) {
+  const match = String(text || "").trim().match(/^(.+?) in ([A-Za-z]+)$/i);
+  if (!match) return "";
+  const name = panelBodyHi(match[1]);
+  const sign = PANEL_SIGN_HI[match[2].toLowerCase()];
+  return name && sign ? `${name} ${sign} में` : "";
+}
+
+function panelDignityHi(text) {
+  const parts = String(text || "")
+    .split(/\s*,\s*/)
+    .map((part) => part.trim().toLowerCase().replace(/[._]+$/g, ""))
+    .filter(Boolean);
+  if (!parts.length) return "";
+  const hi = parts.map((part) => PANEL_DIGNITY_HI[part] || "");
+  return hi.filter(Boolean).join(" और ");
+}
+
+function panelDetailHi(text) {
+  const line = String(text || "").trim().replace(/\.$/, "").replace(/[–—]/g, "-");
+  const sentences = line.split(/\.\s+(?=[A-Z])/);
+  if (sentences.length > 1) {
+    const hi = sentences.map((part) => panelDetailHi(part));
+    if (hi.every(Boolean)) {
+      return hi
+        .map((part, index) => (index === 0 ? part : part.replace(/^अर्थात्\s+/, "")))
+        .join(" ");
+    }
+  }
+  let match = line.match(/^Lords of houses (\d+) and (\d+) \((.+?) and (.+?)\) are together in house (\d+)$/i);
+  if (match) {
+    const a = panelPlanetHi(match[3]);
+    const b = panelPlanetHi(match[4]);
+    return a && b
+      ? `अर्थात् भाव ${match[1]} और भाव ${match[2]} के स्वामी (${a} और ${b}) एक साथ भाव ${match[5]} में।`
+      : "";
+  }
+  match = line.match(/^Same lord (.+?) rules houses (\d+) and (\d+)$/i);
+  if (match) {
+    const name = panelPlanetHi(match[1]);
+    return name ? `अर्थात् एक ही स्वामी ${name} भाव ${match[2]} और भाव ${match[3]} दोनों का है।` : "";
+  }
+  match = line.match(/^Exchange between houses (\d+) and (\d+): (.+?) in house (\d+), (.+?) in house (\d+)$/i);
+  if (match) {
+    const a = panelPlanetHi(match[3]);
+    const b = panelPlanetHi(match[5]);
+    return a && b
+      ? `अर्थात् भाव ${match[1]} और भाव ${match[2]} का परिवर्तन: ${a} भाव ${match[4]} में, ${b} भाव ${match[6]} में।`
+      : "";
+  }
+  match = line.match(/^Lord of house (\d+) is (.+?) in house (\d+)(?:, (.+))?$/i);
+  if (match) {
+    const name = panelPlanetHi(match[2]);
+    if (!name) return "";
+    const dig = match[4] ? panelDignityHi(match[4]) : "";
+    const extra = dig ? ` ${dig} में` : "";
+    return `अर्थात् भाव ${match[1]} का स्वामी ${name} भाव ${match[3]} में${extra} है।`;
+  }
+  match = line.match(/^Lord of house (\d+) is (.+?) with strength (\d+(?:\.\d+)?)%$/i);
+  if (match) {
+    const name = panelPlanetHi(match[2]);
+    return name ? `अर्थात् भाव ${match[1]} का स्वामी ${name} है, बल ${match[3]}%।` : "";
+  }
+  match = line.match(/^(.+?) is in the (\d+(?:st|nd|rd|th)) house from (.+?) \(house (\d+) from house (\d+)\)$/i);
+  if (match) {
+    const name = panelBodyHi(match[1]);
+    const from = panelBodyHi(match[3]);
+    const ord = ordHi(match[2]);
+    return name && from && ord
+      ? `अर्थात् ${name} ${from} से ${ord} भाव में (भाव ${match[4]}, भाव ${match[5]} से)।`
+      : "";
+  }
+  match = line.match(/^(.+?) - all (odd|even) signs$/i);
+  if (match) {
+    const places = match[1].split(/\s*,\s*/).map(panelSignPlaceHi);
+    if (places.length && places.every(Boolean)) {
+      const parity = match[2].toLowerCase() === "odd" ? "विषम" : "सम";
+      const allWord = places.length === 3 ? "तीनों" : "सभी";
+      return `अर्थात् ${places.join(", ")}, ${allWord} ${parity} राशियों में।`;
+    }
+  }
+  const parts = line.split(/,\s+(?=[A-Z])/);
+  if (parts.length > 1) {
+    const hi = parts.map((part) => panelDetailHi(part));
+    if (hi.every(Boolean)) {
+      return hi
+        .map((part, index) => (index === 0 ? part : part.replace(/^अर्थात्\s+/, "")))
+        .join(" ");
+    }
+  }
+  match = line.match(/^(.+?) in the (\d+(?:st|nd|rd|th)) from (.+)$/i);
+  if (match) {
+    const name = panelBodyHi(match[1]);
+    const from = panelBodyHi(match[3]);
+    const ord = ordHi(match[2]);
+    return name && from && ord ? `अर्थात् ${name} ${from} से ${ord} भाव में।` : "";
+  }
+  match = line.match(/^(.+?) together in house (\d+)$/i);
+  if (match) {
+    const names = panelPlanetListHi(match[1]);
+    return names ? `अर्थात् ${names} एक साथ भाव ${match[2]} में।` : "";
+  }
+  match = line.match(/^(.+?) are together in house (\d+), not in mutual aspect$/i);
+  if (match) {
+    const names = panelPlanetListHi(match[1]);
+    return names ? `अर्थात् ${names} एक साथ भाव ${match[2]} में हैं, परस्पर दृष्टि में नहीं।` : "";
+  }
+  match = line.match(/^(.+?) and (.+?) aspect each other \(houses ([^)]+)\)$/i);
+  if (match) {
+    const a = panelPlanetHi(match[1]);
+    const b = panelPlanetHi(match[2]);
+    return a && b ? `अर्थात् ${a} और ${b} परस्पर दृष्टि में (भाव ${match[3]})।` : "";
+  }
+  match = line.match(/^(.+?) in house (\d+)(?:, (.+))?$/i);
+  if (match) {
+    const name = panelPlanetHi(match[1]);
+    if (!name) return "";
+    const dig = match[3] ? panelDignityHi(match[3]) : "";
+    const extra = dig ? ` ${dig} में` : "";
+    return `अर्थात् ${name} भाव ${match[2]} में${extra} है।`;
+  }
+  match = line.match(/^(.+?) dignity: (.+)$/i);
+  if (match) {
+    const name = panelPlanetHi(match[1]);
+    const dig = panelDignityHi(match[2]);
+    return name && dig ? `अर्थात् ${name} ${dig} में है।` : "";
+  }
+  return "";
+}
+
+function structuredPanelHi(text) {
+  const line = String(text || "").trim().replace(/[–—]/g, "-");
+  let match = line.match(/^Authority signature: lords of houses (\d+) and (\d+) conjunct\.?$/i);
+  if (match) return `अधिकार योग: भाव ${match[1]} और भाव ${match[2]} के स्वामी युति में।`;
+  match = line.match(/^Authority via mutual exchange of lords of (\d+) and (\d+)\.?$/i);
+  if (match) return `अधिकार योग: भाव ${match[1]} और भाव ${match[2]} के स्वामियों का परस्पर परिवर्तन।`;
+  match = line.match(/^(benefics?|malefics?|planets?) in (?:the )?(\d+(?:st|nd|rd|th)) from (.+?)(?:, excluding (.+))?\.?$/i);
+  if (match) {
+    const what = panelBodyHi(match[1]);
+    const ord = ordHi(match[2]);
+    const from = panelBodyHi(match[3]);
+    const skip = match[4] ? panelBodyHi(match[4]) : "";
+    if (what && ord && from) {
+      const excl = skip ? `, ${skip} को छोड़कर` : "";
+      return `${from} से ${ord} भाव में ${what}${excl}।`;
+    }
+  }
+  match = line.match(/^planets in both (\d+(?:st|nd|rd|th)) and (\d+(?:st|nd|rd|th)) from (.+?)\.?$/i);
+  if (match) {
+    const a = ordHi(match[1]);
+    const b = ordHi(match[2]);
+    const from = panelBodyHi(match[3]);
+    if (a && b && from) return `${from} से ${a} और ${b} दोनों भावों में ग्रह।`;
+  }
+  match = line.match(/^(.+?) in kendra from (.+?)\.?$/i);
+  if (match) {
+    const who = panelBodyHi(match[1]);
+    const from = panelBodyHi(match[2]);
+    if (who && from) return `${who} ${from} से केंद्र में।`;
+  }
+  match = line.match(/^(.+?) Mahapurusha\.?$/i);
+  if (match) {
+    const who = panelBodyHi(match[1]);
+    if (who) return `${who} महापुरुष।`;
+  }
+  match = line.match(/^(.+?)-(.+?) conjunction(?: \/ (.+))?\.?$/i);
+  if (match) {
+    const a = panelBodyHi(match[1]);
+    const b = panelBodyHi(match[2]);
+    if (a && b) return `${a}–${b} युति।`;
+  }
+  match = line.match(/^In your chart\s*:\s*(.+)$/i);
+  if (match) {
+    const bits = match[1].split(/\s*·\s*/).map((bit) => {
+      const house = bit.match(/^House\s+(.+)$/i);
+      if (house) return `भाव ${house[1].replace(/\s*,\s*/g, ", ").trim()}`;
+      return panelPlanetListHi(bit);
+    });
+    if (bits.some((bit) => !bit)) return "";
+    return `आपकी कुंडली में: ${bits.join(" · ")}`;
+  }
+  match = line.match(/^(Dosha strength|Yoga strength):\s*(.+)$/i);
+  if (match) {
+    const kind = /^dosha/i.test(match[1]) ? "दोष बल" : "योग बल";
+    const bits = match[2].split(/\s*·\s*/).map((bit) => PANEL_BAND_HI[bit.trim().toLowerCase()] || bit.trim());
+    return `${kind}: ${bits.join(" · ")}`;
+  }
+  match = line.match(/^([A-Za-z]+)-([A-Za-z]+)$/);
+  if (match) {
+    const a = panelBodyHi(match[1]);
+    const b = panelBodyHi(match[2]);
+    if (a && b) return `${a}–${b} युति।`;
+  }
+  match = line.match(/^i\.e\.\s+(.+)$/i);
+  if (match) return panelDetailHi(match[1]);
+  return panelDetailHi(line);
+}
+
+/** Full Hindi sentences for a dosha tile. Unmapped prose stays English, not word-swapped. */
+function doshPanelText(text) {
+  const raw = String(text || "").trim();
+  const I18N = window.SaptarishiI18n;
+  if (!raw || !I18N || !I18N.getLang || I18N.getLang() !== "hi") return raw;
+  const prefix = raw.match(/^(Desc|Rule):\s*/i);
+  const body = prefix ? raw.slice(prefix[0].length).trim() : raw;
+  if (I18N.remedyText) {
+    const hit = I18N.remedyText(body);
+    if (hit && hit !== body) {
+      if (prefix && /^desc/i.test(prefix[1])) return `विवरण: ${hit}`;
+      if (prefix && /^rule/i.test(prefix[1])) return `नियम: ${hit}`;
+      return hit;
+    }
+  }
+  const structured = structuredPanelHi(body);
+  if (!structured) return body;
+  if (prefix && /^desc/i.test(prefix[1])) return `विवरण: ${structured}`;
+  if (prefix && /^rule/i.test(prefix[1])) return `नियम: ${structured}`;
+  return structured;
+}
+
 function uiText(key) {
   const I18N = window.SaptarishiI18n;
   return I18N && I18N.t ? I18N.t(key) : key;
@@ -243,6 +564,272 @@ function summaryLabelMarkFromRow(label, row = {}) {
 }
 
 /** One label + value row for the summary facts table. */
+const SUMMARY_LABEL_HI = {
+  name: "नाम",
+  time: "समय",
+  weekday: "वार",
+  "moon tithi": "चंद्र तिथि",
+  "moon type": "चंद्र पक्ष",
+  "name/moon rashi": "नाम / चंद्र राशि",
+  "janma nakshatra": "जन्म नक्षत्र",
+  "starting name letter": "नामाक्षर",
+  "lagna rashi": "लग्न राशि",
+  "lagna lord": "लग्नेश",
+  "exalted planet": "उच्च ग्रह",
+  "vargottama planet": "वर्गोत्तम ग्रह",
+  "retrograde planet": "वक्री ग्रह",
+  "combust planet": "अस्त ग्रह",
+  "debilitated planet": "नीच ग्रह",
+  "planet in death degree": "मृत्यु अंश का ग्रह",
+  paya: "पाया",
+  mangalik: "मांगलिक",
+  gandmool: "गंडमूल",
+  "kundali strength": "कुंडली बल"
+};
+
+const SUMMARY_TOKEN_HI = {
+  movable: "चर",
+  fixed: "स्थिर",
+  dual: "द्विस्वभाव",
+  fire: "अग्नि",
+  earth: "पृथ्वी",
+  air: "वायु",
+  water: "जल",
+  benefic: "शुभ",
+  malefic: "पाप",
+  cruel: "क्रूर",
+  neutral: "सम",
+  deva: "देव",
+  manushya: "मनुष्य",
+  manush: "मनुष्य",
+  rakshasa: "राक्षस",
+  rakshas: "राक्षस",
+  sunday: "रविवार",
+  monday: "सोमवार",
+  tuesday: "मंगलवार",
+  wednesday: "बुधवार",
+  thursday: "गुरुवार",
+  friday: "शुक्रवार",
+  saturday: "शनिवार",
+  pratipada: "प्रतिपदा",
+  dwitiya: "द्वितीया",
+  tritiya: "तृतीया",
+  chaturthi: "चतुर्थी",
+  panchami: "पंचमी",
+  shashthi: "षष्ठी",
+  shashti: "षष्ठी",
+  saptami: "सप्तमी",
+  ashtami: "अष्टमी",
+  navami: "नवमी",
+  dashami: "दशमी",
+  ekadashi: "एकादशी",
+  ekadasi: "एकादशी",
+  dwadashi: "द्वादशी",
+  dwadasi: "द्वादशी",
+  trayodashi: "त्रयोदशी",
+  trayodasi: "त्रयोदशी",
+  chaturdashi: "चतुर्दशी",
+  purnima: "पूर्णिमा",
+  amavasya: "अमावस्या",
+  chu: "चु",
+  che: "चे",
+  cho: "चो",
+  la: "ला",
+  li: "लि",
+  lu: "लु",
+  le: "ले",
+  lo: "लो",
+  a: "अ",
+  i: "इ",
+  u: "उ",
+  e: "ए",
+  o: "ओ",
+  va: "व",
+  vi: "वि",
+  vu: "वु",
+  ve: "वे",
+  vo: "वो",
+  ka: "क",
+  ki: "कि",
+  ku: "कु",
+  gha: "घ",
+  ng: "ङ",
+  ke: "के",
+  ko: "को",
+  ha: "ह",
+  hi: "हि",
+  hu: "हु",
+  he: "हे",
+  ho: "हो",
+  di: "डि",
+  du: "डु",
+  de: "डे",
+  do: "डो",
+  ma: "म",
+  mi: "मि",
+  mu: "मु",
+  me: "मे",
+  mo: "मो",
+  pa: "प",
+  pi: "पि",
+  pu: "पु",
+  sha: "ष",
+  tha: "ठ",
+  pe: "पे",
+  po: "पो",
+  ra: "र",
+  ri: "रि",
+  ru: "रु",
+  re: "रे",
+  ro: "रो",
+  ni: "नि",
+  nu: "नु",
+  ne: "ने",
+  no: "नो",
+  ya: "य",
+  yi: "यि",
+  yu: "यु",
+  ye: "ये",
+  yo: "यो",
+  bha: "भ",
+  bhi: "भि",
+  bhu: "भु",
+  pha: "फ",
+  bhe: "भे",
+  bho: "भो",
+  ja: "ज",
+  ji: "जि",
+  khi: "खि",
+  khu: "खु",
+  khe: "खे",
+  kho: "खो",
+  ga: "ग",
+  gi: "गि",
+  gu: "गु",
+  ge: "गे",
+  go: "गो",
+  sa: "स",
+  si: "सि",
+  su: "सु",
+  se: "से",
+  so: "सो"
+};
+
+function summaryLangHi() {
+  const I18N = window.SaptarishiI18n;
+  return Boolean(I18N && I18N.getLang && I18N.getLang() === "hi");
+}
+
+function summaryWordHi(word) {
+  const key = String(word || "").trim().toLowerCase();
+  if (!key) return "";
+  if (SUMMARY_TOKEN_HI[key]) return SUMMARY_TOKEN_HI[key];
+  if (PANEL_PLANET_HI[key]) return PANEL_PLANET_HI[key];
+  if (PANEL_SIGN_HI[key]) return PANEL_SIGN_HI[key];
+  const via = chartText(String(word).trim());
+  return via && !/[A-Za-z]{2,}/.test(via) ? via : "";
+}
+
+function summaryPlanetListHi(text) {
+  const raw = String(text || "").trim();
+  if (/^none$/i.test(raw)) return "कोई नहीं";
+  const parts = raw.split(/\s*,\s*/).filter(Boolean);
+  const hi = parts.map((part) => PANEL_PLANET_HI[part.trim().toLowerCase()] || "");
+  return parts.length && hi.every(Boolean) ? hi.join(", ") : "";
+}
+
+function summaryRashiLineHi(text) {
+  const bits = String(text || "").split(/\s*·\s*/).filter(Boolean);
+  const hi = bits.map((bit, index) => {
+    if (index === 0) {
+      const named = bit.trim().match(/^([A-Za-z]+)/);
+      return named ? PANEL_SIGN_HI[named[1].toLowerCase()] || "" : "";
+    }
+    return SUMMARY_TOKEN_HI[bit.trim().toLowerCase()] || "";
+  });
+  return bits.length && hi.every(Boolean) ? hi.join(" · ") : "";
+}
+
+function summaryNakshatraHi(text) {
+  const raw = String(text || "").trim();
+  const match = raw.match(/^(.+?)\s*\(([^)]+)\)\s*·\s*Pada\s+(\d+)\s*·\s*(.+)$/i);
+  if (!match) return "";
+  const star = summaryWordHi(match[1]);
+  const gana = SUMMARY_TOKEN_HI[match[2].trim().toLowerCase()] || "";
+  const lord = summaryWordHi(match[4]);
+  return star && gana && lord ? `${star} (${gana}) · पाद ${match[3]} · ${lord}` : "";
+}
+
+function summaryTithiHi(text) {
+  const match = String(text || "").trim().match(/^([A-Za-z]+)\s*\((\d+)(?:st|nd|rd|th)\)$/i);
+  if (!match) return "";
+  const name = SUMMARY_TOKEN_HI[match[1].toLowerCase()];
+  return name ? `${name} (${match[2]})` : "";
+}
+
+function summaryPayaHi(text) {
+  const key = String(text || "").trim().toLowerCase();
+  if (key.startsWith("gold") || key.includes("swarna")) return "सुवर्ण";
+  if (key.startsWith("silver") || key.includes("rajat")) return "रजत";
+  if (key.startsWith("copper") || key.includes("tamra")) return "ताम्र";
+  if (key.startsWith("iron") || key.includes("loha")) return "लौह";
+  return "";
+}
+
+function summaryStrengthHi(text) {
+  const match = String(text || "").trim().match(
+    /^(\d+)\s*\[\s*Planets\s*\(([^)]+)\)\s*\+\s*Yogas\s*\(([^)]+)\)\s*\+\s*Dosha\s*\(([^)]+)\)\s*\+\s*Paya\s*\(([^)]+)\)\s*\+\s*Moon\s*\(([^)]+)\)\s*\]$/i
+  );
+  if (!match) return "";
+  return `${match[1]} [ग्रह (${match[2]}) + योग (${match[3]}) + दोष (${match[4]}) + पाया (${match[5]}) + चंद्र (${match[6]})]`;
+}
+
+function summaryLabelText(label) {
+  const titled = toTitleCaseWords(label);
+  if (!summaryLangHi()) return titled;
+  return SUMMARY_LABEL_HI[normalizeText(label)] || titled;
+}
+
+function summaryValueText(label, value) {
+  const formatted = formatSummaryCellValue(label, value);
+  if (!summaryLangHi()) return formatted;
+  const key = normalizeText(label);
+  if (key === "name" || key === "time") return formatted;
+  if (key === "weekday") return summaryWordHi(formatted) || formatted;
+  if (key === "moon tithi") return summaryTithiHi(formatted) || formatted;
+  if (key === "moon type") {
+    const paksha = normalizeText(formatted);
+    if (paksha.includes("krishna")) return "कृष्ण पक्ष";
+    if (paksha.includes("shukla") || paksha.includes("sukla")) return "शुक्ल पक्ष";
+  }
+  if (key === "name/moon rashi" || key === "lagna rashi") return summaryRashiLineHi(formatted) || formatted;
+  if (key === "janma nakshatra") return summaryNakshatraHi(formatted) || formatted;
+  if (key === "starting name letter") return SUMMARY_TOKEN_HI[normalizeText(formatted)] || formatted;
+  if (key === "lagna lord") {
+    const bits = String(formatted).split(/\s*·\s*/);
+    const hi = bits.map((bit) => summaryWordHi(bit));
+    if (bits.length && hi.every(Boolean)) return hi.join(" · ");
+  }
+  if (
+    key === "exalted planet" ||
+    key === "vargottama planet" ||
+    key === "retrograde planet" ||
+    key === "combust planet" ||
+    key === "debilitated planet" ||
+    key === "planet in death degree"
+  ) {
+    return summaryPlanetListHi(formatted) || formatted;
+  }
+  if (key === "paya") return summaryPayaHi(formatted) || formatted;
+  if (key === "mangalik" || key === "gandmool") {
+    const flag = normalizeText(formatted);
+    if (flag === "yes") return "हाँ";
+    if (flag === "no") return "नहीं";
+  }
+  if (key === "kundali strength") return summaryStrengthHi(formatted) || formatted;
+  return formatted;
+}
+
 function createSummaryLabelValueRow(label, value, row = {}) {
   const tr = document.createElement("tr");
   const th = document.createElement("th");
@@ -255,18 +842,18 @@ function createSummaryLabelValueRow(label, value, row = {}) {
   if (qaKey || markEl) {
     const wrap = document.createElement("span");
     wrap.className = "kundali-table-header-with-info";
-    wrap.appendChild(document.createTextNode(chartText(toTitleCaseWords(label))));
+    wrap.appendChild(document.createTextNode(summaryLabelText(label)));
     if (markEl) wrap.appendChild(markEl);
     if (qaKey) wrap.appendChild(createKundaliQaInfoButton(qaKey));
     th.appendChild(wrap);
   } else {
-    th.textContent = chartText(toTitleCaseWords(label));
+    th.textContent = summaryLabelText(label);
   }
   const td = document.createElement("td");
   const dumpedClass = String(row.value_class || "").trim();
   const valueClass = dumpedClass || summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
-  const displayValue = chartText(formatSummaryCellValue(label, value));
+  const displayValue = summaryValueText(label, value);
   const labelKey = normalizeText(label);
   const valueQaKey =
     labelKey === "gandmool" || labelKey === "mangalik"
@@ -2024,7 +2611,10 @@ function appendAdverseSheetRemedyHint(sheet, options = {}) {
   } else if (kind === "house") {
     bindUiFmt(text, "kundali.remedyHouse", { label: label || uiText("kundali.thisHouse") });
   } else if (kind === "dosh" && label) {
-    bindUiFmt(text, "kundali.remedyDosh", { label });
+    const shown = window.SaptarishiI18n && window.SaptarishiI18n.doshName
+      ? window.SaptarishiI18n.doshName(label)
+      : label;
+    bindUiFmt(text, "kundali.remedyDosh", { label: shown });
   } else {
     bindUiText(text, "kundali.remedyGeneric");
   }
@@ -3029,6 +3619,14 @@ function rashiNumberFromCell(cell) {
   return idx >= 0 ? idx + 1 : null;
 }
 
+/** Chart glyph for the current language (Su / सू). API cells always store the English short. */
+function localizeChartPlanetEntry(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const label = planetShortLabelFromJson(entry.name);
+  if (!label || label === entry.label) return entry;
+  return { ...entry, label };
+}
+
 /** Prefer API-ready ``kundali_chart.cells``; fall back to assembling from planets. */
 function buildNorthIndianChartFromPayload(payload) {
   const ready =
@@ -3055,7 +3653,9 @@ function buildNorthIndianChartFromPayload(payload) {
         return {
           ...cell,
           cx: cell.cx ?? pos.cx ?? 50,
-          cy: cell.cy ?? pos.cy ?? 50
+          cy: cell.cy ?? pos.cy ?? 50,
+          planets: (cell.planets || []).map(localizeChartPlanetEntry),
+          aspecting_planets: (cell.aspecting_planets || []).map(localizeChartPlanetEntry)
         };
       })
     };
@@ -3931,13 +4531,105 @@ function dateFromBirthAgeYears(birthDate, ageYears) {
   return new Date(birthDate.getTime() + ageYears * 365.2425 * 24 * 60 * 60 * 1000);
 }
 
+const DASHA_MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const DASHA_LEVEL_HI = {
+  mahadasha: "महादशा",
+  antardasha: "अंतरदशा",
+  pratyantardasha: "प्रत्यंतरदशा",
+  sookshmadasha: "सूक्ष्मदशा",
+  prana: "प्राण",
+  "prana dasha": "प्राण दशा"
+};
+
+function dashaMonthLabel(indexOrName) {
+  let index = -1;
+  if (typeof indexOrName === "number") index = indexOrName;
+  else {
+    const key = String(indexOrName || "").slice(0, 3).toLowerCase();
+    index = DASHA_MONTH_EN.findIndex((month) => month.toLowerCase() === key);
+  }
+  if (index < 0 || index > 11) return String(indexOrName ?? "");
+  if (summaryLangHi()) {
+    const hi = uiText(`month.dasha.${index}`);
+    if (hi && hi !== `month.dasha.${index}`) return hi;
+  }
+  return DASHA_MONTH_EN[index];
+}
+
+function dashaLevelText(label) {
+  const raw = String(label || "");
+  if (!summaryLangHi()) return raw;
+  return DASHA_LEVEL_HI[normalizeText(raw)] || raw;
+}
+
+function localizeEnglishMonths(text) {
+  return String(text || "").replace(
+    /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g,
+    (month) => dashaMonthLabel(month)
+  );
+}
+
+function localizeTransitHeading(text) {
+  const raw = String(text || "").trim();
+  if (!summaryLangHi()) return raw;
+  return localizeEnglishMonths(raw.replace(/^Planet Transit\b/i, "ग्रह गोचर"));
+}
+
+function futureTimingPlanetHi(name) {
+  if (!summaryLangHi()) return "";
+  return panelPlanetHi(name);
+}
+
+function futureTimingScoreHi(label) {
+  const raw = String(label || "");
+  if (!summaryLangHi()) return raw;
+  const bands = {
+    "very strong": "अति प्रबल",
+    strong: "प्रबल",
+    fair: "मध्यम",
+    weak: "दुर्बल"
+  };
+  return bands[normalizeText(raw)] || raw;
+}
+
+function futureTimingRangeHi(text) {
+  const raw = String(text || "");
+  if (!summaryLangHi()) return raw;
+  return localizeEnglishMonths(raw);
+}
+
+function futureTimingLineHi(text) {
+  const raw = String(text || "").trim();
+  if (!summaryLangHi() || !raw) return raw;
+  const line = raw.replace(/\.$/, "");
+  const planet = (name) => panelPlanetHi(name);
+  let match = line.match(/^(.+?) rules house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} भाव ${match[2]} का स्वामी है।`;
+  match = line.match(/^(.+?) sits in house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} भाव ${match[2]} में बैठा है।`;
+  match = line.match(/^(.+?) is a karaka$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} कारक है।`;
+  match = line.match(/^(.+?) aspects house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} भाव ${match[2]} पर दृष्टि रखता है।`;
+  match = line.match(/^(.+?) occupies dusthana house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} दुष्टान भाव ${match[2]} में बैठा है।`;
+  match = line.match(/^(.+?) rules dusthana house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} दुष्टान भाव ${match[2]} का स्वामी है।`;
+  match = line.match(/^(.+?) on karaka sign$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} कारक राशि पर है।`;
+  match = line.match(/^Transit (.+?) on a karaka sign$/i);
+  if (match && planet(match[1])) return `गोचर में ${planet(match[1])} कारक राशि पर है।`;
+  match = line.match(/^Transit (.+?) in house (\d+)$/i);
+  if (match && planet(match[1])) return `गोचर में ${planet(match[1])} भाव ${match[2]} में है।`;
+  match = line.match(/^(.+?) in house (\d+)$/i);
+  if (match && planet(match[1])) return `${planet(match[1])} भाव ${match[2]} में है।`;
+  return raw;
+}
+
 function formatDashaCalendarDate(date) {
   if (!date || Number.isNaN(date.getTime())) return "—";
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  return `${date.getDate()} ${dashaMonthLabel(date.getMonth())} ${date.getFullYear()}`;
 }
 
 function pad2(value) {
@@ -3945,11 +4637,7 @@ function pad2(value) {
 }
 
 function dashaMonthShort(date) {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  return months[date.getMonth()];
+  return dashaMonthLabel(date.getMonth());
 }
 
 function formatDashaYearRange(fromDate, toDate) {
@@ -4972,11 +5660,11 @@ function createDashaPathRow(levelIndex, period, payload, ctx) {
 
   const levelEl = document.createElement("span");
   levelEl.className = "dasha-path__level";
-  levelEl.textContent = level.label;
+  levelEl.textContent = dashaLevelText(level.label);
 
   const planetEl = document.createElement("strong");
   planetEl.className = "dasha-path__planet";
-  planetEl.textContent = name || "—";
+  planetEl.textContent = futureTimingPlanetHi(period.planet) || name || "—";
 
   btn.append(levelEl, planetEl);
   if (range) {
@@ -5199,32 +5887,69 @@ function qaEntryFromDatabase(db, qaKey) {
   return { question, answerParts };
 }
 
-function formatKundaliQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
+function qaParagraphText(text) {
+  const raw = String(text ?? "");
+  if (!summaryLangHi()) return raw;
+  const I18N = window.SaptarishiI18n;
+  if (I18N && typeof I18N.qaText === "function") {
+    const hit = I18N.qaText(raw);
+    if (hit && hit !== raw) return hit;
+  }
+  const rule = raw.match(/^Classical rule:\s*(.+)$/i);
+  if (rule && I18N && typeof I18N.remedyText === "function") {
+    const bodySrc = rule[1].trim();
+    const body = I18N.remedyText(bodySrc);
+    if (body && body !== bodySrc) return `शास्त्रीय नियम: ${body}`;
+  }
+  if (I18N && typeof I18N.remedyText === "function") {
+    const body = I18N.remedyText(raw);
+    if (body && body !== raw) return body;
+  }
+  return raw;
+}
+
+function qaQuestionText(question) {
+  const raw = String(question ?? "");
+  if (!summaryLangHi()) return raw;
+  const I18N = window.SaptarishiI18n;
+  if (I18N && typeof I18N.qaText === "function") {
+    const hit = I18N.qaText(raw);
+    if (hit && hit !== raw) return hit;
+  }
+  const match = raw.match(/^What is (.+)\?$/);
+  if (match && I18N && typeof I18N.doshName === "function") {
+    const name = I18N.doshName(match[1]);
+    if (name && name !== match[1]) return `${name} क्या है?`;
+  }
+  return raw;
+}
+
+function formatKundaliQaAnswerParagraph(text) {
   const p = document.createElement("p");
-  const isColorParagraph =
-    paragraphIndex === totalParagraphs - 1 && /\bgreen\b/i.test(text) && /\bred\b/i.test(text);
-  if (!isColorParagraph) {
-    p.textContent = chartText(text);
+  const shown = qaParagraphText(text);
+  const re = /\b(green|red)\b|(हरा|लाल)/gi;
+  if (!re.test(shown)) {
+    p.textContent = shown;
     return p;
   }
+  re.lastIndex = 0;
   const frag = document.createDocumentFragment();
-  const re = /\b(green|red)\b/gi;
   let last = 0;
   let match;
-  while ((match = re.exec(text)) !== null) {
+  while ((match = re.exec(shown)) !== null) {
     if (match.index > last) {
-      frag.appendChild(document.createTextNode(chartText(text.slice(last, match.index))));
+      frag.appendChild(document.createTextNode(shown.slice(last, match.index)));
     }
+    const word = match[1] || match[2];
     const span = document.createElement("span");
+    const kind = String(word).toLowerCase();
     span.className =
-      match[1].toLowerCase() === "green" ? "kundali-qa-popover__good" : "kundali-qa-popover__care";
-    span.textContent = chartText(match[1]);
+      kind === "green" || kind === "हरा" ? "kundali-qa-popover__good" : "kundali-qa-popover__care";
+    span.textContent = word;
     frag.appendChild(span);
     last = match.index + match[0].length;
   }
-  if (last < text.length) {
-    frag.appendChild(document.createTextNode(chartText(text.slice(last))));
-  }
+  if (last < shown.length) frag.appendChild(document.createTextNode(shown.slice(last)));
   p.appendChild(frag);
   return p;
 }
@@ -5295,7 +6020,7 @@ function renderKundaliQaPopover(db, qaKey) {
     return false;
   }
 
-  questionEl.textContent = entry.question;
+  questionEl.textContent = qaQuestionText(entry.question);
   answerEl.replaceChildren();
   entry.answerParts.forEach((text, index) => {
     answerEl.appendChild(formatKundaliQaAnswerParagraph(text, index, entry.answerParts.length));
@@ -5325,8 +6050,9 @@ function openKundaliQaPopover(qaKey, trigger) {
         trigger.setAttribute("aria-expanded", "true");
         const entry = qaEntryFromDatabase(db, key);
         if (entry?.question) {
-          trigger.setAttribute("aria-label", entry.question);
-          trigger.title = entry.question;
+          const question = qaQuestionText(entry.question);
+          trigger.setAttribute("aria-label", question);
+          trigger.title = question;
         }
       }
       positionKundaliQaPopover(trigger);
@@ -5533,8 +6259,9 @@ function renderPlanetTransitFromPayload(payload, host) {
   wrap.className = "planet-transit-chart summary-chart-row__chart";
   const heading = document.createElement("h3");
   heading.className = "result-heading kundali-chart-heading";
-  heading.textContent = String(transit.heading || transit.title || "Planet Transit").trim()
-    || "Planet Transit";
+  heading.textContent = localizeTransitHeading(
+    String(transit.heading || transit.title || "Planet Transit").trim() || "Planet Transit"
+  );
   const chartHost = document.createElement("div");
   chartHost.className = "kundali-chart-host planet-transit-chart__host";
   wrap.append(heading, chartHost);
@@ -5978,7 +6705,10 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     const nameText = String(item.name || item.key || ariaItemKind || headingLabel);
     const nameEl = document.createElement("span");
     nameEl.className = "kundali-yog-btn__name";
-    nameEl.textContent = chartText(nameText);
+    const named = options.fullHindiPanel && window.SaptarishiI18n && window.SaptarishiI18n.doshName
+      ? window.SaptarishiI18n.doshName(nameText)
+      : nameText;
+    nameEl.textContent = named !== nameText ? named : chartText(nameText);
     const isTopList =
       itemsKey === "yogas" &&
       String(item.is_under_top_list || "").trim().toLowerCase() === "yes";
@@ -6024,38 +6754,43 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     } else if (item.desc || item.summary) {
       descParts.push(String(item.desc || item.summary));
     }
+    const panelLine = options.fullHindiPanel ? doshPanelText : chartText;
     descParts.forEach((text) => {
       const desc = document.createElement("p");
       desc.className = "kundali-yog-panel__summary";
-      desc.textContent = chartText(text);
+      desc.textContent = panelLine(text);
       panel.appendChild(desc);
     });
 
     if (item.rule) {
       const rule = document.createElement("p");
       rule.className = "kundali-yog-panel__summary";
-      rule.textContent = String(item.rule);
+      rule.textContent = options.fullHindiPanel ? doshPanelText(String(item.rule)) : String(item.rule);
       panel.appendChild(rule);
     }
 
     if (item.chart) {
       const chart = document.createElement("p");
       chart.className = "kundali-yog-panel__meta";
-      chart.textContent = String(item.chart);
+      chart.textContent = options.fullHindiPanel ? doshPanelText(String(item.chart)) : String(item.chart);
       panel.appendChild(chart);
     }
 
     if (showYogaStrength && item.strength_text) {
       const strength = document.createElement("p");
       strength.className = "kundali-yog-panel__meta kundali-yog-panel__strength";
-      strength.textContent = chartText(String(item.strength_text));
+      strength.textContent = options.fullHindiPanel
+        ? doshPanelText(String(item.strength_text))
+        : chartText(String(item.strength_text));
       panel.appendChild(strength);
     }
 
     if (item.detail) {
       const detail = document.createElement("p");
       detail.className = "kundali-yog-panel__detail";
-      detail.textContent = chartText(String(item.detail));
+      detail.textContent = options.fullHindiPanel
+        ? doshPanelText(String(item.detail))
+        : chartText(String(item.detail));
       panel.appendChild(detail);
     }
 
@@ -6108,7 +6843,8 @@ function renderKundaliYogasFromPayload(payload) {
     ariaItemKind: "Yoga",
     isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad",
     blurAdverseTiles: true,
-    showYogaStrength: true
+    showYogaStrength: true,
+    fullHindiPanel: true
   });
 }
 
@@ -6201,7 +6937,7 @@ function renderCurrentDashaTilesFromPayload(payload) {
     if (levelText) {
       const levelEl = document.createElement("span");
       levelEl.className = "kundali-dasha-btn__level";
-      levelEl.textContent = chartText(levelText);
+      levelEl.textContent = dashaLevelText(levelText);
       btn.appendChild(levelEl);
     }
 
@@ -6277,7 +7013,8 @@ function renderKundaliDoshasFromPayload(payload) {
     blurAdverseTiles: true,
     showRemedyHint: true,
     showYogaStrength: true,
-    sortByStrength: false
+    sortByStrength: false,
+    fullHindiPanel: true
   });
 }
 
@@ -6861,6 +7598,23 @@ window.SaptarishiKundaliPage = {
 };
 
 document.addEventListener("saptarishi-lang-change", () => {
+  const openQaKey = kundaliQaPopoverState.openKey;
+  const openQaTrigger = kundaliQaPopoverState.trigger;
+  if (openQaKey && kundaliQaPopoverState.el && !kundaliQaPopoverState.el.hidden) {
+    ensurePlanetDatabase()
+      .then((db) => {
+        if (kundaliQaPopoverState.openKey !== openQaKey) return;
+        if (!renderKundaliQaPopover(db, openQaKey)) return;
+        const entry = qaEntryFromDatabase(db, openQaKey);
+        if (openQaTrigger && entry?.question) {
+          const question = qaQuestionText(entry.question);
+          openQaTrigger.setAttribute("aria-label", question);
+          openQaTrigger.title = question;
+        }
+        if (openQaTrigger) positionKundaliQaPopover(openQaTrigger);
+      })
+      .catch(() => {});
+  }
   if (!document.getElementById("kundali-chart")) return;
   if (!lastKundaliPayload || !resultsEl || resultsEl.hidden) return;
   renderKundaliResponseIntoPage(lastKundaliPayload);

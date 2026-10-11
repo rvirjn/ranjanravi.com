@@ -4,8 +4,8 @@
  */
 (function i18n(global) {
   const STORAGE_KEY = "saptarishi-lang";
-  // Off until Hindi covers the whole site without mixed sentences.
-  const LANG_SWITCH_ENABLED = false;
+  // Set false to hide the Hindi switch and keep the site in English.
+  const LANG_SWITCH_ENABLED = true;
 
   const STRINGS = {
     en: {
