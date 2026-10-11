@@ -3726,6 +3726,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
     renderDivisionalChartsFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
+    renderCurrentDashaTilesFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage("");
   }
@@ -5992,6 +5993,149 @@ function renderKundaliYogasFromPayload(payload) {
   });
 }
 
+/** Running Vimshottari tiles from ``current_dasha.tiles`` (after Doshas). */
+function renderCurrentDashaTilesFromPayload(payload) {
+  const section = document.getElementById("kundali-dasha-section");
+  const headingEl = document.getElementById("kundali-dasha-heading");
+  const listEl = document.getElementById("kundali-dasha-list");
+  if (!section || !listEl) return;
+
+  const tiles = (Array.isArray(payload?.current_dasha?.tiles) ? payload.current_dasha.tiles : [])
+    .filter((item) => item && String(item.name || item.planet_key || "").trim());
+  listEl.innerHTML = "";
+
+  if (!tiles.length) {
+    section.hidden = true;
+    if (headingEl) headingEl.textContent = "Your current dasha";
+    return;
+  }
+
+  section.hidden = false;
+  if (headingEl) headingEl.textContent = "Your current dasha";
+
+  let selectedKey = "";
+  const closeAllPanels = () => {
+    listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    listEl.querySelectorAll(".remedy-navatara-btn").forEach((btn) => {
+      btn.classList.remove("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-expanded", "false");
+    });
+  };
+
+  const showItemDetail = (item, itemEl) => {
+    const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
+    const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
+    const itemKey = String(item.key || item.name || "").trim();
+    if (selectedKey === itemKey && panel && !panel.hidden) {
+      closeAllPanels();
+      selectedKey = "";
+      return;
+    }
+    closeAllPanels();
+    selectedKey = itemKey;
+    if (btn) {
+      btn.classList.add("remedy-navatara-btn--active");
+      btn.setAttribute("aria-pressed", "true");
+      btn.setAttribute("aria-expanded", "true");
+    }
+    if (panel) {
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
+
+  for (const item of tiles) {
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-navatara-item";
+
+    const tone = String(item.tone || "").trim().toLowerCase();
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const toneClass =
+      tone === "bad"
+        ? "remedy-navatara-btn--dosh"
+        : tone === "mixed"
+          ? "remedy-navatara-btn--mixed"
+          : "";
+    btn.className = ["remedy-navatara-btn", "kundali-dasha-btn", toneClass]
+      .filter(Boolean)
+      .join(" ");
+    btn.dataset.dashaKey = String(item.key || "");
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "kundali-yog-btn__name kundali-dasha-btn__name";
+    nameEl.textContent = String(item.name || item.planet_key || "Dasha");
+    btn.appendChild(nameEl);
+
+    if (typeof item.strength_percent === "number" && Number.isFinite(item.strength_percent)) {
+      btn.classList.add("remedy-navatara-btn--with-strength");
+      const pctEl = document.createElement("span");
+      pctEl.className = "kundali-yog-btn__pct";
+      pctEl.textContent = `${item.strength_percent}%`;
+      btn.appendChild(pctEl);
+    }
+
+    const levelText = String(item.level || "").trim();
+    if (levelText) {
+      const levelEl = document.createElement("span");
+      levelEl.className = "kundali-dasha-btn__level";
+      levelEl.textContent = levelText;
+      btn.appendChild(levelEl);
+    }
+
+    const planetName = String(item.name || "planet");
+    const levelName = levelText || "Dasha";
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute(
+      "aria-label",
+      typeof item.strength_percent === "number"
+        ? `${levelName} ${planetName}, strength ${item.strength_percent} percent`
+        : `${levelName} ${planetName}`
+    );
+
+    const panel = document.createElement("div");
+    panel.className = "remedy-navatara-panel kundali-yog-panel";
+    panel.hidden = true;
+
+    const rangeText = String(item.range || "").trim();
+    if (rangeText) {
+      const range = document.createElement("p");
+      range.className = "kundali-yog-panel__meta";
+      range.textContent = rangeText;
+      panel.appendChild(range);
+    }
+
+    const descParts = [];
+    if (Array.isArray(item.desc_parts)) {
+      item.desc_parts.forEach((part) => {
+        const text = String(part || "").trim();
+        if (text) descParts.push(text);
+      });
+    }
+    descParts.forEach((text) => {
+      const desc = document.createElement("p");
+      desc.className = "kundali-yog-panel__detail";
+      desc.textContent = text;
+      panel.appendChild(desc);
+    });
+    if (!descParts.length) {
+      const empty = document.createElement("p");
+      empty.className = "kundali-yog-panel__detail";
+      empty.textContent = "No dasha result for this planet.";
+      panel.appendChild(empty);
+    }
+
+    btn.addEventListener("click", () => showItemDetail(item, wrap));
+    wrap.appendChild(btn);
+    wrap.appendChild(panel);
+    listEl.appendChild(wrap);
+  }
+}
+
 /** Render dosha tiles from ``kundali_dosh`` (same design as yogas; names in red). */
 function renderKundaliDoshasFromPayload(payload) {
   renderKundaliMatchTilesFromPayload(payload, {
@@ -6571,6 +6715,7 @@ window.SaptarishiKundaliView = {
   renderPlanetTransitFromPayload,
   renderKundaliYogasFromPayload,
   renderKundaliDoshasFromPayload,
+  renderCurrentDashaTilesFromPayload,
   renderHousePlanetsTiles,
   renderPlanetStatusTiles,
   applyKundaliPlanetsView,

@@ -5776,6 +5776,53 @@ body.premium-modal-open {
   color: var(--planet-color-red_text, #6d1010);
 }
 
+/* Current dasha whose planet strength is neither green nor red */
+.remedy-navatara-btn--mixed {
+  border-color: color-mix(in srgb, var(--color-heading, #1e3a5f) 28%, var(--color-surface-border));
+  background: #fffef8;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.remedy-navatara-btn--mixed:hover {
+  background: color-mix(in srgb, var(--color-accent, #c9a227) 12%, #fffef8);
+  border-color: color-mix(in srgb, var(--color-heading, #1e3a5f) 45%, var(--color-surface-border));
+  color: var(--color-heading, #1e3a5f);
+}
+
+.remedy-navatara-btn--mixed.remedy-navatara-btn--active {
+  background: color-mix(in srgb, var(--color-accent, #c9a227) 18%, #fffef8);
+  border-color: var(--color-accent, #c9a227);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #c9a227) 35%, transparent);
+  color: var(--color-heading, #1e3a5f);
+}
+
+#kundali-dasha-list.remedy-navatara-buttons {
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+}
+
+.kundali-dasha-btn {
+  aspect-ratio: auto;
+  min-height: 8.75rem;
+  padding: 0.7rem 0.6rem;
+}
+
+.kundali-dasha-btn__name {
+  -webkit-line-clamp: 2;
+  font-weight: 700;
+}
+
+.kundali-dasha-btn__level {
+  flex: 0 0 auto;
+  max-width: 100%;
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-transform: none;
+  opacity: 0.92;
+}
+
 .kundali-yog-btn__name-row {
   display: inline-flex;
   align-items: flex-start;
