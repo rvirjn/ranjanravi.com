@@ -1887,7 +1887,16 @@ function formatHouseStatusStrengthBreakdown(houseRows) {
         ? sample.house_status_strength_percent
         : null;
   if (!parts.length || total == null) return "";
-  return `${parts.join(" + ")} = ${total}%`;
+  const joined = parts.join(" + ");
+  const houseDivisor = Number(bd.house_divisor);
+  if (
+    houseDivisor > 1 &&
+    typeof bd.sum_percent === "number" &&
+    Number.isFinite(bd.sum_percent)
+  ) {
+    return `${joined} = ${bd.sum_percent} ÷ ${houseDivisor} = ${total}%`;
+  }
+  return `${joined} = ${total}%`;
 }
 
 /** Color kind for House Status tile: same as that house lord's planet strength. */
