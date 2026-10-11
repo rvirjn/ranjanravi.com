@@ -34,8 +34,8 @@
       "पितृ पक्ष (आश्विन कृष्ण पक्ष) सबसे उपयुक्त समय है। अमावस्या भी, विशेषकर सर्वपितृ अमावस्या, तथा पूर्वज की मृत्यु-तिथि।"
     ],
     [
-      "For Pitru Dosha shanti, the Chandra japa count is 0 and the Ketu japa count is 0. Nakshtra Tak's shanti is Shraddha and Tarpan in Pitru Paksha, offering water and food to the ancestors, feeding crows, cows, and the needy in their memory, and serving living parents and elders. Plant and water a Peepal where you can. Pind daan at a tirtha such as Gaya is traditional when a priest can perform it.",
-      "पितृ दोष की शांति में चंद्र-जप की संख्या 0 है और केतु-जप की संख्या 0 है। नक्षत्र तक के अनुसार शांति है पितृ पक्ष में श्राद्ध और तर्पण: पूर्वजों को जल और भोजन देना, उनकी स्मृति में कौआ, गाय और जरूरतमंद को खिलाना, तथा जीवित माता-पिता और बड़ों की सेवा करना। जहाँ हो सके पीपल लगाएँ और उसे जल दें। जब पुरोहित संपन्न कर सकें, तब गया जैसे तीर्थ पर पिंडदान परंपरा है।"
+      "For Pitru Dosha shanti, the Chandra japa count is 0 and the Ketu japa count is 0. The shanti is Shraddha and Tarpan in Pitru Paksha, offering water and food to the ancestors, feeding crows, cows, and the needy in their memory, and serving living parents and elders. Plant and water a Peepal where you can. Pind daan at a tirtha such as Gaya is traditional when a priest can perform it.",
+      "पितृ दोष की शांति में चंद्र-जप की संख्या 0 है और केतु-जप की संख्या 0 है। शांति है पितृ पक्ष में श्राद्ध और तर्पण: पूर्वजों को जल और भोजन देना, उनकी स्मृति में कौआ, गाय और जरूरतमंद को खिलाना, तथा जीवित माता-पिता और बड़ों की सेवा करना। जहाँ हो सके पीपल लगाएँ और उसे जल दें। जब पुरोहित संपन्न कर सकें, तब गया जैसे तीर्थ पर पिंडदान परंपरा है।"
     ],
     [
       "On every Amavasya (and other Pitru-related days), daan and helping someone in need are very important.",
