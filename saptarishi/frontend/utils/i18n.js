@@ -4,6 +4,8 @@
  */
 (function i18n(global) {
   const STORAGE_KEY = "saptarishi-lang";
+  // Off until Hindi covers the whole site without mixed sentences.
+  const LANG_SWITCH_ENABLED = false;
 
   const STRINGS = {
     en: {
@@ -655,6 +657,7 @@
   };
 
   function getLang() {
+    if (!LANG_SWITCH_ENABLED) return "en";
     try {
       return localStorage.getItem(STORAGE_KEY) === "hi" ? "hi" : "en";
     } catch (err) {
@@ -732,6 +735,7 @@
   }
 
   function setLang(next) {
+    if (!LANG_SWITCH_ENABLED) next = "en";
     const lang = next === "hi" ? "hi" : "en";
     try {
       localStorage.setItem(STORAGE_KEY, lang);
@@ -764,6 +768,7 @@
   }
 
   document.addEventListener("click", (event) => {
+    if (!LANG_SWITCH_ENABLED) return;
     const btn = event.target && event.target.closest && event.target.closest(".site-header__lang");
     if (!btn) return;
     event.preventDefault();
