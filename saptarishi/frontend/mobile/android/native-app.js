@@ -469,9 +469,10 @@
       <div class="site-header__meta">
         <button type="button" id="site-wallet-btn" class="site-header__wallet app-wallet" hidden title="Wallet">${ICONS.wallet}<span class="app-wallet__amt">₹0</span></button>
         <button type="button" class="app-avatar" id="app-profile-btn" aria-label="Select Birth details">IN</button>
-        <a href="${pageHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" hidden>Profile</a>
-        <button type="button" id="site-login-btn" class="site-header__login" hidden>Login</button>
-        <button type="button" id="site-logout-btn" class="site-header__logout" hidden>Logout</button>
+        <a href="${pageHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" data-i18n="nav.profile" hidden>Profile</a>
+        <button type="button" id="site-login-btn" class="site-header__login" data-i18n="header.login" hidden>Login</button>
+        <button type="button" id="site-logout-btn" class="site-header__logout" data-i18n="header.logout" hidden>Logout</button>
+        <button type="button" id="site-lang-btn" class="site-header__lang" aria-label="Switch to Hindi">हिं</button>
       </div>
     `;
     const walletBtn = header.querySelector("#site-wallet-btn");
@@ -492,6 +493,7 @@
       openProfiles();
     });
     refreshHeaderAuth();
+    if (global.SaptarishiI18n) global.SaptarishiI18n.apply(header);
   }
 
   function refreshHeaderAuth() {

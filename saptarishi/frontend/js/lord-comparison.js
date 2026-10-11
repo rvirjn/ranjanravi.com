@@ -3,20 +3,34 @@
 (function lordComparisonModule() {
   const CHROME = {
     top: {
+      headingKey: "muhurta.topSlots",
       heading: "Top slots by kundali overall strength",
       lead: ""
     },
     compare: {
+      headingKey: "kundali.lordCompare",
       heading: "Lord strength across compared births",
       lead: ""
     },
     yoga: {
+      headingKey: "muhurta.topYoga",
       heading: "Top 5 by more yoga",
       lead: ""
     }
   };
 
   let currentMode = "top";
+  let lastComparison = null;
+
+  function chartText(value) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.chartText ? I18N.chartText(value) : String(value ?? "");
+  }
+
+  function ui(key, fallback) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : fallback;
+  }
 
   function isLordComparisonContentLocked() {
     if (typeof canViewLockedPremiumContent === "function") {
@@ -183,7 +197,7 @@
     else if (toneAllowed && tone === "neutral")
       part.classList.add("auspicious-lord-relation--neutral");
     else if (tone === "total") part.classList.add("auspicious-lord-cell__total");
-    part.textContent = String(factor?.text || "");
+    part.textContent = chartText(String(factor?.text || ""));
     parent.appendChild(part);
     return part;
   }
@@ -330,7 +344,7 @@
         cell?.count != null ? String(cell.count) : String(cell?.text || "0");
     } else if (cell?.present) {
       td.classList.add("auspicious-lord-col--yoga-yes");
-      td.textContent = String(cell.text || "Yes");
+      td.textContent = chartText(String(cell.text || "Yes"));
     } else {
       td.classList.add("auspicious-lord-col--yoga-no");
       td.textContent = "—";
@@ -370,7 +384,7 @@
       chip.className = `lord-compare-chip lord-compare-chip--${nature === "bad" ? "bad" : "good"}`;
       const chipName = String(item?.name || item?.key || "").trim() || "—";
       const isTopYoga = String(item?.is_under_top_list || "").trim().toLowerCase() === "yes";
-      chip.textContent = isTopYoga ? `★ ${chipName}` : chipName;
+      chip.textContent = isTopYoga ? `★ ${chartText(chipName)}` : chartText(chipName);
       if (item?.summary) chip.title = String(item.summary);
       wrap.appendChild(chip);
     });
@@ -383,7 +397,10 @@
     const heading = document.getElementById("lord-comparison-heading");
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
     const cfg = CHROME[currentMode] || CHROME.top;
-    if (heading) heading.textContent = cfg.heading;
+    if (heading) {
+      heading.textContent = cfg.headingKey ? ui(cfg.headingKey, cfg.heading) : cfg.heading;
+      if (cfg.headingKey) heading.setAttribute("data-i18n", cfg.headingKey);
+    }
     if (lead) {
       const text = String(cfg.lead || "").trim();
       lead.innerHTML = text;
@@ -392,6 +409,7 @@
   }
 
   function renderTable(comparison) {
+    lastComparison = comparison || null;
     const section = document.getElementById("lord-comparison-section");
     const table = document.getElementById("lord-comparison-table");
     if (!section || !table) return;
@@ -421,8 +439,8 @@
     headerRow.appendChild(
       Object.assign(document.createElement("th"), {
         textContent: chartOnlyHeader
-          ? String(comparison?.corner_label || "Yoga")
-          : "Planet"
+          ? chartText(String(comparison?.corner_label || "Yoga"))
+          : ui("col.planet", "Planet")
       })
     );
 
@@ -449,6 +467,10 @@
         (Array.isArray(keys) ? keys : [])
           .map((key) => {
             const k = String(key || "").trim().toLowerCase();
+            const I18N = window.SaptarishiI18n;
+            if (I18N && I18N.getLang && I18N.getLang() === "hi" && I18N.planetShortHi && I18N.planetShortHi[k]) {
+              return I18N.planetShortHi[k];
+            }
             return shortMap[k] || k;
           })
           .filter(Boolean);
@@ -457,7 +479,7 @@
       if (!chartOnlyHeader && exaltedSymbols.length) {
         const exalted = document.createElement("span");
         exalted.className = "auspicious-lord-col__exalted";
-        exalted.textContent = `Exalted: ${exaltedSymbols.join(", ")}`;
+        exalted.textContent = `${chartText("Exalted")}: ${exaltedSymbols.join(", ")}`;
         th.appendChild(exalted);
       }
 
@@ -465,7 +487,7 @@
       if (!chartOnlyHeader && debilitatedSymbols.length) {
         const debilitated = document.createElement("span");
         debilitated.className = "auspicious-lord-col__debilitated";
-        debilitated.textContent = `Debilitated: ${debilitatedSymbols.join(", ")}`;
+        debilitated.textContent = `${chartText("Debilitated")}: ${debilitatedSymbols.join(", ")}`;
         th.appendChild(debilitated);
       }
 
@@ -505,7 +527,7 @@
 
       const planetTd = document.createElement("td");
       planetTd.className = "planets-td-planet";
-      planetTd.textContent = formatPlanetDisplayName(rowData.planet);
+      planetTd.textContent = chartText(formatPlanetDisplayName(rowData.planet));
       tr.appendChild(planetTd);
 
       if (isDivisional) {
@@ -541,4 +563,11 @@
     setChrome,
     renderTable
   };
+
+  document.addEventListener("saptarishi-lang-change", () => {
+    const section = document.getElementById("lord-comparison-section");
+    if (!section) return;
+    setChrome(currentMode);
+    if (lastComparison && !section.hidden) renderTable(lastComparison);
+  });
 })();

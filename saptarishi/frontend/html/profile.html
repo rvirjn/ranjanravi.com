@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=343">
+  <link rel="stylesheet" href="../style/styles.css?v=353">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -26,7 +26,7 @@
         <div class="profile-summary__right">
           <p id="profile-plans-note" class="paid-plans-note"></p>
           <div class="profile-summary__actions">
-            <button type="button" id="profile-add-wallet-btn" class="btn-secondary">Add money to wallet</button>
+            <button type="button" id="profile-add-wallet-btn" class="btn-secondary" data-i18n="profile.addWallet">Add money to wallet</button>
             <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
             <button type="button" id="profile-user-notes-btn" class="btn-secondary" hidden>See user notes</button>
           </div>
@@ -36,59 +36,59 @@
 
     <form id="profile-form" class="auth-form profile-form" autocomplete="on" novalidate hidden>
       <div class="form-field">
-        <label for="profile-name">Full name</label>
+        <label for="profile-name" data-i18n="profile.fullName">Full name</label>
         <input type="text" id="profile-name" name="name" autocomplete="name" required maxlength="120" />
       </div>
       <div class="form-field">
-        <label for="profile-mobile">Mobile number</label>
-        <input type="tel" id="profile-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+        <label for="profile-mobile" data-i18n="profile.mobile">Mobile number</label>
+        <input type="tel" id="profile-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" data-i18n-placeholder="profile.mobilePh" />
       </div>
       <div class="form-field">
-        <label for="profile-email">Email</label>
-        <input type="email" id="profile-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+        <label for="profile-email" data-i18n="profile.email">Email</label>
+        <input type="email" id="profile-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" data-i18n-placeholder="profile.emailPh" />
       </div>
       <div class="form-field form-field--life-events">
-        <label for="profile-life-events">Give 3 major life events with dates</label>
+        <label for="profile-life-events" data-i18n="profile.lifeEvents">Give 3 major life events with dates</label>
         <textarea id="profile-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
       </div>
       <div class="form-field form-field--submit">
-        <button type="submit">Save changes</button>
+        <button type="submit" data-i18n="profile.save">Save changes</button>
       </div>
     </form>
 
     <section id="profile-security" class="profile-security" hidden>
-      <h2 class="profile-security__title">Security</h2>
+      <h2 class="profile-security__title" data-i18n="profile.security">Security</h2>
       <form id="password-form" class="auth-form profile-form" autocomplete="off" novalidate>
         <div class="form-field">
-          <label for="profile-current-password">Current password</label>
+          <label for="profile-current-password" data-i18n="profile.currentPassword">Current password</label>
           <input type="password" id="profile-current-password" name="current-password" autocomplete="current-password" required minlength="4" />
         </div>
         <div class="form-field">
-          <label for="profile-new-password">New password</label>
-          <input type="password" id="profile-new-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" />
+          <label for="profile-new-password" data-i18n="profile.newPassword">New password</label>
+          <input type="password" id="profile-new-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" data-i18n-placeholder="profile.newPasswordPh" />
         </div>
         <div class="form-field">
-          <label for="profile-confirm-password">Confirm new password</label>
-          <input type="password" id="profile-confirm-password" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter new password" />
+          <label for="profile-confirm-password" data-i18n="profile.confirmPassword">Confirm new password</label>
+          <input type="password" id="profile-confirm-password" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter new password" data-i18n-placeholder="profile.confirmPasswordPh" />
         </div>
         <div class="form-field form-field--submit">
-          <button type="submit">Update password</button>
+          <button type="submit" data-i18n="profile.updatePassword">Update password</button>
         </div>
       </form>
       <p id="password-status" class="status" role="status" aria-live="polite" hidden></p>
 
       <div class="profile-danger" id="delete-account">
         <div class="profile-account-actions">
-          <button type="button" id="profile-logout-btn" class="btn-secondary">Logout</button>
-          <button type="button" id="profile-delete-start-btn" class="btn-danger">Delete account</button>
+          <button type="button" id="profile-logout-btn" class="btn-secondary" data-i18n="profile.logout">Logout</button>
+          <button type="button" id="profile-delete-start-btn" class="btn-danger" data-i18n="profile.delete">Delete account</button>
         </div>
         <form id="delete-account-form" class="auth-form profile-form" autocomplete="off" novalidate hidden>
           <div class="form-field">
-            <label for="profile-delete-password">Confirm with your password</label>
+            <label for="profile-delete-password" data-i18n="profile.confirmDelete">Confirm with your password</label>
             <input type="password" id="profile-delete-password" name="delete-password" autocomplete="current-password" required minlength="4" />
           </div>
           <div class="form-field form-field--submit">
-            <button type="submit" class="btn-danger">Delete my account</button>
+            <button type="submit" class="btn-danger" data-i18n="profile.deleteMine">Delete my account</button>
           </div>
         </form>
         <p id="delete-status" class="status" role="status" aria-live="polite" hidden></p>
@@ -171,11 +171,12 @@
   <script src="../utils/constant.js?v=85"></script>
   <script src="../js/auth.js?v=50"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=27"></script>
+  <script src="../js/auth-modal.js?v=28"></script>
   <script src="../js/premium-modal.js?v=13"></script>
-  <script src="../js/wallet-modal.js?v=23"></script>
-  <script src="../js/profile.js?v=35"></script>
-  <script src="../utils/common.js?v=106"></script>
+  <script src="../js/wallet-modal.js?v=24"></script>
+  <script src="../js/profile.js?v=36"></script>
+  <script src="../utils/i18n.js?v=2"></script>
+  <script src="../utils/common.js?v=108"></script>
   <script src="../js/ask-ai.js?v=17"></script>
 </body>
 </html>

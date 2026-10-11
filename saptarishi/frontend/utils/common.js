@@ -13,6 +13,16 @@
   const AUTH = global.SaptarishiAuth;
   const MODAL = global.SaptarishiAuthModal;
 
+  function t(key) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : key;
+  }
+
+  function tf(key, vars) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.tf ? I18N.tf(key, vars) : key;
+  }
+
   const isLoginPage =
     /^\/login\/?$/i.test(window.location.pathname) ||
     /login\.html$/i.test(window.location.pathname);
@@ -184,9 +194,9 @@
     const count = Number.isFinite(value) && value > 0 ? value : 12;
     if (count % 12 === 0) {
       const years = count / 12;
-      return years === 1 ? "1 year" : `${years} years`;
+      return years === 1 ? t("profile.oneYear") : tf("profile.years", { count: years });
     }
-    return count === 1 ? "1 month" : `${count} months`;
+    return count === 1 ? t("profile.oneMonth") : tf("profile.months", { count });
   }
 
   function paidPlanNote() {
@@ -194,11 +204,12 @@
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
     const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
-    return (
-      `Free Plan: ${freeBirths} kundali free\n` +
-      `Basic Plan: ₹${basicAmount} per kundali\n` +
-      `Advance Plan: ₹${advanceAmount} for unlimited access for ${duration}.`
-    );
+    return tf("profile.plans", {
+      free: freeBirths,
+      basic: basicAmount,
+      advance: advanceAmount,
+      duration
+    });
   }
 
   function contactPhone() {
@@ -213,9 +224,9 @@
     const places = Array.isArray(AC.BIRTH_PLACE_PRESETS) ? AC.BIRTH_PLACE_PRESETS : [];
     const custom = AC.PLACE_CUSTOM_VALUE || "__custom__";
     return [
-      { value: "", label: "Select Place…" },
+      { value: "", label: t("form.selectPlace") },
       ...places.map((place) => ({ value: place, label: place })),
-      { value: custom, label: "Other…" }
+      { value: custom, label: t("form.otherEllipsis") }
     ];
   }
 
@@ -242,9 +253,10 @@
     const placeMax = Number(AC.MAX_PLACE_QUERY_LENGTH) || 240;
     const pwMin = Number(AC.MIN_PASSWORD_LENGTH) || 4;
     const pwPlaceholder = `At least ${pwMin} characters`;
-    scope.querySelectorAll("#birth-name").forEach((el) => {
+    scope.querySelectorAll("#birth-name, .compare-birth-name").forEach((el) => {
       el.maxLength = nameMax;
-      el.placeholder = AC.NAME_PLACEHOLDER || el.placeholder;
+      el.setAttribute("data-i18n-placeholder", "form.enterName");
+      el.placeholder = t("form.enterName");
     });
     scope.querySelectorAll("#profile-name, #auth-modal-reg-name").forEach((el) => {
       el.maxLength = nameMax;
@@ -259,7 +271,8 @@
     });
     scope.querySelectorAll("#place-custom, .compare-place-custom").forEach((el) => {
       el.maxLength = placeMax;
-      el.placeholder = AC.PLACE_CUSTOM_PLACEHOLDER || el.placeholder;
+      el.setAttribute("data-i18n-placeholder", "form.customPlaceholder");
+      el.placeholder = t("form.customPlaceholder");
     });
     const lifeMax = Number(AC.MAX_LIFE_EVENTS_LENGTH) || 2000;
     scope.querySelectorAll("#auth-modal-reg-life-events, #profile-life-events").forEach((el) => {
@@ -529,7 +542,15 @@
     const metaEl = drawer.querySelector("#site-drawer-meta");
     const avatarEl = drawer.querySelector("#site-drawer-avatar");
     const loginLink = drawer.querySelector("#site-drawer-login");
-    if (nameEl) nameEl.textContent = user ? user.name || user.mobile || "Account" : "Guest";
+    if (nameEl) {
+      if (user) {
+        nameEl.removeAttribute("data-i18n");
+        nameEl.textContent = user.name || user.mobile || t("header.account");
+      } else {
+        nameEl.setAttribute("data-i18n", "drawer.guest");
+        nameEl.textContent = t("drawer.guest");
+      }
+    }
     if (avatarEl) avatarEl.textContent = avatarInitials(user);
     if (metaEl) {
       if (user) {
@@ -537,9 +558,11 @@
           AUTH && AUTH.getWalletBalance
             ? AUTH.getWalletBalance(usage || user)
             : Number(usage?.wallet_balance_inr) || 0;
-        metaEl.textContent = `Wallet ₹${bal}`;
+        metaEl.removeAttribute("data-i18n");
+        metaEl.textContent = tf("drawer.wallet", { amount: bal });
       } else {
-        metaEl.textContent = "Sign in to save charts";
+        metaEl.setAttribute("data-i18n", "drawer.signIn");
+        metaEl.textContent = t("drawer.signIn");
       }
     }
     if (loginLink) loginLink.hidden = Boolean(user);
@@ -555,45 +578,45 @@
     drawer.className = "site-drawer";
     drawer.setAttribute("aria-hidden", "true");
     drawer.innerHTML = `
-      <button type="button" class="site-drawer__backdrop" id="site-drawer-backdrop" tabindex="-1" aria-label="Close menu"></button>
+      <button type="button" class="site-drawer__backdrop" id="site-drawer-backdrop" tabindex="-1" data-i18n-aria="menu.close" aria-label="Close menu"></button>
       <div class="site-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
         <a class="site-drawer__user" id="site-drawer-user" href="${navHref("profile.html")}">
           <span class="site-drawer__avatar" id="site-drawer-avatar">S</span>
           <div class="site-drawer__user-text">
-            <strong class="site-drawer__user-name" id="site-drawer-name">Guest</strong>
-            <span class="site-drawer__user-meta" id="site-drawer-meta">Sign in to save charts</span>
+            <strong class="site-drawer__user-name" id="site-drawer-name" data-i18n="drawer.guest">Guest</strong>
+            <span class="site-drawer__user-meta" id="site-drawer-meta" data-i18n="drawer.signIn">Sign in to save charts</span>
           </div>
         </a>
         <nav class="site-drawer__nav" aria-label="Pages">
           <a href="${navHref("kundali.html")}" class="site-drawer__link" data-page="kundali">
             ${drawerIcon('<circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18"></path>')}
-            <span>Kundali</span>
+            <span data-i18n="nav.kundali">Kundali</span>
           </a>
           <a href="${navHref("remedy.html")}" class="site-drawer__link" data-page="remedy">
             ${drawerIcon('<path d="M5 19c8-1 14-8 14-15-7 1-14 6-14 15z"></path><path d="M8 14c2.2-2 5.2-4.2 9-5.2"></path>')}
-            <span>Remedy</span>
+            <span data-i18n="nav.remedy">Remedy</span>
           </a>
           <a href="${navHref("future.html")}" class="site-drawer__link" data-page="future">
             ${drawerIcon('<path d="M5 19l7-14 7 14"></path><path d="M8.5 13h7"></path>')}
-            <span>Prediction</span>
+            <span data-i18n="nav.prediction">Prediction</span>
           </a>
           <a href="${navHref("auspicious.html")}" class="site-drawer__link" data-page="auspicious">
             ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
-            <span>Muhurta</span>
+            <span data-i18n="nav.muhurta">Muhurta</span>
           </a>
         </nav>
         <nav class="site-drawer__nav" aria-label="Account">
           <a href="${navHref("profile.html")}" class="site-drawer__link" data-page="profile">
             ${drawerIcon('<circle cx="12" cy="8" r="3.2"></circle><path d="M5 19.2c.8-3.4 3.4-5.1 7-5.1s6.2 1.7 7 5.1"></path>')}
-            <span>Profile</span>
+            <span data-i18n="nav.profile">Profile</span>
           </a>
           <a href="${navHref("privacy.html")}" class="site-drawer__link" data-page="privacy">
             ${drawerIcon('<path d="M12 3l8 4v6c0 5-3.4 8.4-8 9.4C7.4 21.4 4 18 4 13V7z"></path>')}
-            <span>Privacy</span>
+            <span data-i18n="nav.privacy">Privacy</span>
           </a>
           <button type="button" class="site-drawer__link" id="site-drawer-login">
             ${drawerIcon('<path d="M10 17l5-5-5-5M15 12H4"></path><path d="M20 4v16"></path>')}
-            <span>Login</span>
+            <span data-i18n="nav.login">Login</span>
           </button>
         </nav>
       </div>
@@ -631,29 +654,30 @@
     const header = document.createElement("header");
     header.className = "site-header";
     header.innerHTML = `
-      <button type="button" class="site-header__menu-btn" id="site-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-drawer">
+      <button type="button" class="site-header__menu-btn" id="site-menu-btn" data-i18n-aria="menu.open" aria-label="Open menu" aria-expanded="false" aria-controls="site-drawer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <div class="site-header__brand">
         <a href="${navHref("kundali.html")}" class="site-header__logo">Saptarishi</a>
       </div>
       <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
-        <a href="${navHref("kundali.html")}" class="site-header__link">Kundali</a>
-        <a href="${navHref("remedy.html")}" class="site-header__link">Remedy</a>
-        <a href="${navHref("future.html")}" class="site-header__link">Prediction</a>
-        <a href="${navHref("auspicious.html")}" class="site-header__link">Muhurta</a>
+        <a href="${navHref("kundali.html")}" class="site-header__link" data-i18n="nav.kundali">Kundali</a>
+        <a href="${navHref("remedy.html")}" class="site-header__link" data-i18n="nav.remedy">Remedy</a>
+        <a href="${navHref("future.html")}" class="site-header__link" data-i18n="nav.prediction">Prediction</a>
+        <a href="${navHref("auspicious.html")}" class="site-header__link" data-i18n="nav.muhurta">Muhurta</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
-        <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden title="Wallet">₹0</button>
+        <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden data-i18n-title="header.wallet" title="Wallet">₹0</button>
         <div class="site-header__account" id="site-account-menu" hidden>
           <a href="${navHref("profile.html")}" id="site-account-btn" class="site-header__account-btn" title="Profile">
             <span id="site-account-name">Account</span>
           </a>
-          <button type="button" id="site-logout-btn" class="site-header__account-item" hidden>Logout</button>
+          <button type="button" id="site-logout-btn" class="site-header__account-item" data-i18n="header.logout" hidden>Logout</button>
         </div>
-        <button type="button" id="site-register-btn" class="site-header__premium">Register</button>
-        <button type="button" id="site-login-btn" class="site-header__login">Login</button>
+        <button type="button" id="site-register-btn" class="site-header__premium" data-i18n="header.register">Register</button>
+        <button type="button" id="site-login-btn" class="site-header__login" data-i18n="header.login">Login</button>
+        <button type="button" id="site-lang-btn" class="site-header__lang" aria-label="Switch to Hindi">हिं</button>
       </div>
     `;
     updateHeaderAuth(header, user, usage);
@@ -690,7 +714,7 @@
             : Number(displayUsage?.wallet_balance_inr) || 0;
         walletBtn.textContent = `₹${bal}`;
         walletBtn.hidden = false;
-        walletBtn.title = "Wallet";
+        walletBtn.title = t("header.wallet");
       } else {
         walletBtn.hidden = true;
       }
@@ -702,7 +726,7 @@
         accountName.textContent = resolvedUser.name || resolvedUser.mobile || "Account";
       }
       if (accountBtn) {
-        accountBtn.title = resolvedUser.name || resolvedUser.mobile || "Profile";
+        accountBtn.title = resolvedUser.name || resolvedUser.mobile || t("header.profile");
       }
       if (registerBtn) registerBtn.hidden = true;
       if (loginBtn) loginBtn.hidden = true;
@@ -736,7 +760,8 @@
     }
     if (menuBtn) {
       menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      menuBtn.setAttribute("aria-label", open ? t("menu.close") : t("menu.open"));
+      menuBtn.setAttribute("data-i18n-aria", open ? "menu.close" : "menu.open");
     }
     if (open) {
       setAccountMenuOpen(header, false);
@@ -793,7 +818,7 @@
           <span class="status-loader__ring"></span>
           <span class="status-loader__seconds">0</span>
         </span>
-        <span>Logging out…</span>
+        <span>${t("header.loggingOut")}</span>
       `;
       const secondsEl = logoutBtn.querySelector(".status-loader__seconds");
       const tick = () => {
@@ -804,7 +829,8 @@
       tick();
       logoutTimers.set(logoutBtn, window.setInterval(tick, 250));
     } else {
-      logoutBtn.textContent = "Logout";
+      logoutBtn.setAttribute("data-i18n", "header.logout");
+      logoutBtn.textContent = t("header.logout");
     }
   }
 
@@ -841,7 +867,9 @@
       const rate =
         astrologerConfig.call_rate_inr_per_min || AC.ASTROLOGER_CALL_RATE_INR_PER_MIN;
       const name = astrologerConfig.name || AC.ASTROLOGER_NAME;
-      rateLabel.textContent = `${name} · Call / Ask · ₹${rate}/min`;
+      rateLabel.dataset.rate = String(rate);
+      rateLabel.dataset.astroName = name;
+      rateLabel.textContent = tf("footer.rateNamed", { name, rate });
     };
 
     const setOpen = (open) => {
@@ -1038,30 +1066,31 @@
     footer.innerHTML = `
       <p class="site-footer__copy">© ${new Date().getFullYear()} ${AC.OPERATOR_NAME} · ${AC.SITE_NAME}</p>
       <div class="site-footer__meta">
-        <p class="site-footer__views site-footer__views--pending" title="Total site views">Site views: …</p>
+        <p class="site-footer__views site-footer__views--pending" data-i18n-title="footer.siteViewsTitle" title="Total site views">${t("footer.siteViewsPending")}</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
-        <button type="button" class="site-footer__contact-toggle" id="site-contact-toggle" aria-expanded="false" aria-controls="site-contact">Contact us</button>
+        <button type="button" class="site-footer__contact-toggle" id="site-contact-toggle" data-i18n="footer.contact" aria-expanded="false" aria-controls="site-contact">Contact us</button>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
         <span class="site-footer__connect">
           <button
             type="button"
             id="site-connect-astrologer-btn"
             class="site-footer__connect-toggle"
+            data-i18n="footer.connect"
             aria-expanded="false"
             aria-controls="site-connect-panel"
           >
-            Connect Astrologer
+            ${t("footer.connect")}
           </button>
           <div id="site-connect-panel" class="site-footer__connect-panel" hidden>
-            <p class="site-footer__connect-rate" id="site-astrologer-rate-label">Call / Ask · ₹${AC.ASTROLOGER_CALL_RATE_INR_PER_MIN}/min</p>
+            <p class="site-footer__connect-rate" id="site-astrologer-rate-label" data-rate="${AC.ASTROLOGER_CALL_RATE_INR_PER_MIN}" data-astro-name="${AC.ASTROLOGER_NAME}">${tf("footer.rateNamed", { name: AC.ASTROLOGER_NAME, rate: AC.ASTROLOGER_CALL_RATE_INR_PER_MIN })}</p>
             <div class="site-footer__connect-actions">
-              <button type="button" id="site-call-btn" class="site-footer__connect-action site-footer__connect-action--call">Call</button>
-              <button type="button" id="site-ask-btn" class="site-footer__connect-action site-footer__connect-action--ask">Ask</button>
+              <button type="button" id="site-call-btn" class="site-footer__connect-action site-footer__connect-action--call" data-i18n="footer.call">Call</button>
+              <button type="button" id="site-ask-btn" class="site-footer__connect-action site-footer__connect-action--ask" data-i18n="footer.ask">Ask</button>
             </div>
           </div>
         </span>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
-        <a class="site-footer__privacy-link" href="${navHref("privacy.html")}">Privacy Policy</a>
+        <a class="site-footer__privacy-link" href="${navHref("privacy.html")}" data-i18n="footer.privacy">Privacy Policy</a>
       </div>
       <p class="site-footer__credits"></p>
       <div id="site-contact" class="site-footer__support" hidden>
@@ -1144,12 +1173,16 @@
   function updateFooterViews(viewCount) {
     const viewsEl = document.querySelector(".site-footer__views");
     if (!viewsEl) return;
-    if (viewCount == null || viewCount === "") {
-      viewsEl.textContent = "Site views: …";
+    if (viewCount !== undefined) {
+      viewsEl.dataset.viewCount = viewCount == null || viewCount === "" ? "" : String(viewCount);
+    }
+    const stored = viewsEl.dataset.viewCount;
+    if (!stored) {
+      viewsEl.textContent = t("footer.siteViewsPending");
       viewsEl.classList.add("site-footer__views--pending");
       return;
     }
-    viewsEl.textContent = `Site views: ${viewCount}`;
+    viewsEl.textContent = tf("footer.siteViews", { count: stored });
     viewsEl.classList.remove("site-footer__views--pending");
   }
 
@@ -1301,16 +1334,24 @@
     return `${padBirthNum(d.getHours())}:${padBirthNum(d.getMinutes())}:${padBirthNum(d.getSeconds())}`;
   }
 
+  function monthShort(index) {
+    return t(`month.short.${index}`);
+  }
+
+  function monthLong(index) {
+    return t(`month.long.${index}`);
+  }
+
   function formatBirthDateLabel(iso) {
     const match = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return "Day - Month - Year";
-    return `${match[3]} - ${BIRTH_MONTHS_SHORT[Number(match[2]) - 1] || match[2]} - ${match[1]}`;
+    if (!match) return t("form.dayMonthYear");
+    return `${match[3]} - ${monthShort(Number(match[2]) - 1) || match[2]} - ${match[1]}`;
   }
 
   function formatBirthDateTitle(iso) {
     const match = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!match) return "";
-    const month = BIRTH_MONTHS_LONG[Number(match[2]) - 1] || match[2];
+    const month = monthLong(Number(match[2]) - 1) || match[2];
     return `${month} ${Number(match[3])}, ${match[1]}`;
   }
 
@@ -1325,7 +1366,7 @@
   }
 
   function formatBirthTimeLabel(value, withSeconds) {
-    if (!/^\d{1,2}:\d{2}/.test(String(value || "").trim())) return "Hour - Min - Sec";
+    if (!/^\d{1,2}:\d{2}/.test(String(value || "").trim())) return t("form.hourMinSec");
     const parts = parseBirthTimeParts(value);
     const ampm = parts.hours24 >= 12 ? "PM" : "AM";
     let hour = parts.hours24 % 12;
@@ -1517,11 +1558,11 @@
 
   function validateBirthPlaceValue(place, options) {
     const text = String(place || "").trim();
-    if (!text) return "Select Place.";
+    if (!text) return t("form.selectPlaceRequired");
     const parts = splitPlaceParts(text);
     const cityPart = parts.find((part) => !isPlaceCountryToken(part)) || "";
     if (!cityPart || normPlaceToken(cityPart).length < 3) {
-      return "Enter a city or district, not only the country.";
+      return t("form.enterCity");
     }
     if (!indiaPlaceCountries().length) return null;
     const canonical = canonicalizeBirthPlaceValue({ place: text });
@@ -1612,7 +1653,7 @@
 
   function splitBirthPlaceLabel(place) {
     const value = String(place || "").trim();
-    if (!value) return { title: "Select Place…", meta: "" };
+    if (!value) return { title: t("form.selectPlace"), meta: "" };
     const idx = value.lastIndexOf(",");
     if (idx > 0) {
       return {
@@ -1663,7 +1704,7 @@
       const placeBox = placeTitle.closest(".birth-place-box");
       if (placeBox) placeBox.classList.toggle("birth-box--placeholder", !place);
       if (!place) {
-        placeTitle.textContent = "Select Place…";
+        placeTitle.textContent = t("form.selectPlace");
         if (placeMeta) placeMeta.textContent = "";
         return;
       }
@@ -1917,7 +1958,7 @@
     const selected = Math.min(Number(day) || 1, max);
     const values = [];
     for (let i = 1; i <= max; i += 1) values.push({ value: String(i), label: padBirthNum(i) });
-    const next = makeWheelColumn("Day", values, String(selected));
+    const next = makeWheelColumn(t("form.day"), values, String(selected));
     const old = host.querySelector("[data-wheel='day']");
     next.col.setAttribute("data-wheel", "day");
     if (old) old.replaceWith(next.col);
@@ -1970,10 +2011,10 @@
     const maxYear = thisYear + (isRangeDate ? 5 : 1);
     const years = [];
     for (let y = 1900; y <= maxYear; y += 1) years.push({ value: String(y), label: String(y) });
-    const months = BIRTH_MONTHS_SHORT.map((label, idx) => ({ value: String(idx + 1), label }));
+    const months = Array.from({ length: 12 }, (_, idx) => ({ value: String(idx + 1), label: monthShort(idx) }));
     const dayScroller = { current: null };
-    const monthCol = makeWheelColumn("Month", months, String(month));
-    const yearCol = makeWheelColumn("Year", years, String(year));
+    const monthCol = makeWheelColumn(t("form.month"), months, String(month));
+    const yearCol = makeWheelColumn(t("form.year"), years, String(year));
     monthCol.col.setAttribute("data-wheel", "month");
     yearCol.col.setAttribute("data-wheel", "year");
     wheels.append(monthCol.col, yearCol.col);
@@ -2064,9 +2105,9 @@
       minutes.push({ value: String(i), label: padBirthNum(i) });
       seconds.push({ value: String(i), label: padBirthNum(i) });
     }
-    const hourCol = makeWheelColumn("Hour", hours, String(converted));
-    const minCol = makeWheelColumn("Min", minutes, String(parts.minutes));
-    const secCol = makeWheelColumn("Sec", seconds, String(parts.seconds));
+    const hourCol = makeWheelColumn(t("form.hour"), hours, String(converted));
+    const minCol = makeWheelColumn(t("form.min"), minutes, String(parts.minutes));
+    const secCol = makeWheelColumn(t("form.sec"), seconds, String(parts.seconds));
     const amCol = makeWheelColumn("\u00a0", [
       { value: "AM", label: "AM" },
       { value: "PM", label: "PM" }
@@ -2124,7 +2165,7 @@
 
   async function lookupPlaceFromApi(query) {
     const text = String(query || "").trim();
-    if (!text) throw new Error("Select Place.");
+    if (!text) throw new Error(t("form.selectPlaceRequired"));
     if (AUTH && typeof AUTH.requireLoginForCharts === "function") {
       const ok = await AUTH.requireLoginForCharts({
         message: "Register or sign in to look up a place."
@@ -2220,7 +2261,7 @@
   }
 
   function otherPlaceItem() {
-    return { value: PLACE_OTHER_VALUE, label: PLACE_OTHER_LABEL };
+    return { value: PLACE_OTHER_VALUE, label: t("form.otherShort") };
   }
 
   function namedPlaceItems(items) {
@@ -2269,10 +2310,10 @@
     const state = selectedPlaceState(country, stateName);
     const usingOther = placeWheelsUseOther(countryName, stateName, districtName);
     if (usingOther) {
-      return composeCustomPlace(country, state, custom) || "Enter a place";
+      return composeCustomPlace(country, state, custom) || t("form.enterPlace");
     }
     const district = state && findNamedPlace(state.districts || [], districtName);
-    return formatHierarchyPlace(country, state, district) || "Select Place…";
+    return formatHierarchyPlace(country, state, district) || t("form.selectPlace");
   }
 
   function pickWheelValue(values, selected, fallback) {
@@ -2296,7 +2337,7 @@
     const values = country ? namedPlaceItems(country.states) : [otherPlaceItem()];
     const fallbackState = country && country.name === DEFAULT_PLACE_COUNTRY ? DEFAULT_PLACE_STATE : "";
     const picked = pickWheelValue(values, selected, fallbackState);
-    const next = makeWheelColumn("State", values, picked);
+    const next = makeWheelColumn(t("form.state"), values, picked);
     next.col.setAttribute("data-wheel", "state");
     next.col.setAttribute("data-country-name", country ? country.name : PLACE_OTHER_VALUE);
     const old = overlay.querySelector("[data-wheel='state']");
@@ -2312,7 +2353,7 @@
     const values = state ? namedPlaceItems(state.districts) : [otherPlaceItem()];
     const fallbackDistrict = state && state.name === DEFAULT_PLACE_STATE ? DEFAULT_PLACE_DISTRICT : "";
     const picked = pickWheelValue(values, selected, fallbackDistrict);
-    const next = makeWheelColumn("District", values, picked);
+    const next = makeWheelColumn(t("form.district"), values, picked);
     next.col.setAttribute("data-wheel", "district");
     next.col.setAttribute("data-state-name", state ? state.name : PLACE_OTHER_VALUE);
     const old = overlay.querySelector("[data-wheel='district']");
@@ -2347,7 +2388,10 @@
     const customWrap = overlay.querySelector(".birth-picker__custom");
     const customInput = overlay.querySelector("[data-birth-place-custom]");
     if (customWrap) customWrap.hidden = !usingOther;
-    if (customInput) customInput.placeholder = AC.PLACE_CUSTOM_PLACEHOLDER || "Type city and country.";
+    if (customInput) {
+      customInput.setAttribute("data-i18n-placeholder", "form.customPlaceholder");
+      customInput.placeholder = t("form.customPlaceholder");
+    }
     overlay.querySelector(".birth-picker__title").textContent = placePickerSummary(overlay);
   }
 
@@ -2357,8 +2401,8 @@
     const customVal = AC.PLACE_CUSTOM_VALUE || "__custom__";
     if (!value.place) {
       const overlay = document.getElementById("birth-picker-overlay");
-      if (overlay) overlay.querySelector(".birth-picker__title").textContent = "Enter a place";
-      setPlacePickerHint(overlay, "Enter a city or district, not only the country.", true);
+      if (overlay) overlay.querySelector(".birth-picker__title").textContent = t("form.enterPlace");
+      setPlacePickerHint(overlay, t("form.enterCity"), true);
       overlay?.querySelector("[data-birth-place-custom]")?.focus();
       return false;
     }
@@ -2392,7 +2436,7 @@
     overlay.querySelector(".birth-picker__icon").innerHTML = iconSvg(
       '<path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.2"/>'
     );
-    overlay.querySelector(".birth-picker__title").textContent = "Select Place…";
+    overlay.querySelector(".birth-picker__title").textContent = t("form.selectPlace");
     const dialog = overlay.querySelector(".birth-picker__dialog");
     if (dialog) dialog.classList.add("birth-picker__dialog--place");
     const wheels = overlay.querySelector(".birth-picker__wheels");
@@ -2417,7 +2461,7 @@
     } catch {
       if (!birthPickerState || birthPickerState.form !== form) return;
       if (customWrap) customWrap.hidden = false;
-      overlay.querySelector(".birth-picker__title").textContent = "Enter a place";
+      overlay.querySelector(".birth-picker__title").textContent = t("form.enterPlace");
       birthPickerState = {
         kind: "place",
         form,
@@ -2451,7 +2495,7 @@
         ? PLACE_OTHER_VALUE
         : district && district.name;
     const countryValues = namedPlaceItems(countries);
-    const countryCol = makeWheelColumn("Countries", countryValues, countrySelected);
+    const countryCol = makeWheelColumn(t("form.countries"), countryValues, countrySelected);
     countryCol.col.setAttribute("data-wheel", "country");
     wheels.append(countryCol.col);
     rebuildPlaceStateWheel(
@@ -2543,8 +2587,8 @@
       const row = document.createElement("div");
       row.className = "birth-datetime-row";
       row.innerHTML =
-        '<button type="button" class="birth-box" data-birth-open="date" aria-label="Birth date"></button>' +
-        '<button type="button" class="birth-box" data-birth-open="time" aria-label="Birth time"></button>';
+        '<button type="button" class="birth-box" data-birth-open="date" data-i18n-aria="form.birthDate" aria-label="Birth date"></button>' +
+        '<button type="button" class="birth-box" data-birth-open="time" data-i18n-aria="form.birthTime" aria-label="Birth time"></button>';
       dateField.insertBefore(row, dateInput);
       row.querySelector("[data-birth-open='date']").addEventListener("click", () => openBirthDatePicker(form, dateInput));
       row.querySelector("[data-birth-open='time']").addEventListener("click", () => openBirthTimePicker(form));
@@ -2576,10 +2620,10 @@
         const row = document.createElement("div");
         row.className = "birth-datetime-row";
         row.innerHTML =
-          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-from" aria-label="From date">' +
-          '<span class="birth-box__hint">From</span><span data-birth-date-label></span></button>' +
-          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-to" aria-label="To date">' +
-          '<span class="birth-box__hint">To</span><span data-birth-date-label></span></button>';
+          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-from" data-i18n-aria="form.fromDate" aria-label="From date">' +
+          '<span class="birth-box__hint" data-i18n="form.from">From</span><span data-birth-date-label></span></button>' +
+          '<button type="button" class="birth-box" data-birth-open="date" data-date-input="#date-to" data-i18n-aria="form.toDate" aria-label="To date">' +
+          '<span class="birth-box__hint" data-i18n="form.to">To</span><span data-birth-date-label></span></button>';
         dateFromField.insertBefore(row, dateFromInput);
         row.querySelectorAll("[data-birth-open='date']").forEach((btn) => {
           btn.addEventListener("click", () => {
@@ -2595,7 +2639,9 @@
     const placeBtn = document.createElement("button");
     placeBtn.type = "button";
     placeBtn.className = "birth-box birth-place-box";
-    placeBtn.setAttribute("aria-label", form.id === "auspicious-form" ? "Place" : "Birth place");
+    const placeAriaKey = form.id === "auspicious-form" ? "form.place" : "form.birthPlace";
+    placeBtn.setAttribute("data-i18n-aria", placeAriaKey);
+    placeBtn.setAttribute("aria-label", t(placeAriaKey));
     placeBtn.innerHTML =
       '<strong data-birth-place-title></strong><span data-birth-place-meta></span>';
     placeField.insertBefore(placeBtn, placeSelect);
@@ -2697,6 +2743,29 @@
 
     refreshAuthState().catch(() => {
       /* keep header visible with cached session */
+    });
+
+    if (global.SaptarishiI18n) global.SaptarishiI18n.apply(document);
+
+    global.addEventListener("saptarishi-lang-change", () => {
+      const header = document.querySelector(".site-header");
+      updateHeaderAuth(header);
+      const menuBtn = header && header.querySelector("#site-menu-btn");
+      if (menuBtn) {
+        const open = header.classList.contains("site-header--menu-open");
+        menuBtn.setAttribute("data-i18n-aria", open ? "menu.close" : "menu.open");
+        menuBtn.setAttribute("aria-label", open ? t("menu.close") : t("menu.open"));
+      }
+      fillPlacePresetSelects(document);
+      refreshBirthChooserDisplays();
+      updateFooterViews();
+      const rateLabel = document.getElementById("site-astrologer-rate-label");
+      if (rateLabel && rateLabel.dataset.rate) {
+        rateLabel.textContent = tf("footer.rateNamed", {
+          name: rateLabel.dataset.astroName || "",
+          rate: rateLabel.dataset.rate
+        });
+      }
     });
   }
 

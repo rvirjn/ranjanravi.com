@@ -24,6 +24,67 @@
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
   /** Match kundali red strength tint (data.json ``red_at_or_below_percent`` = 49). */
   const LOW_STRENGTH_AT_OR_BELOW_PERCENT = 49;
+  const REMEDY_HEADER_KEYS = {
+    Desc: "remedy.col.desc",
+    Rule: "remedy.col.rule",
+    "Whom to worship": "remedy.col.worship",
+    "Day to fast": "remedy.col.fast",
+    "Mantra to chant": "remedy.col.mantra",
+    "Chant count": "remedy.col.count",
+    "How to chant": "remedy.col.how",
+    "Things to donate": "remedy.col.donate",
+    "Whom to respect most": "remedy.col.respect",
+    "Feed to animal": "remedy.col.feed",
+    Gem: "remedy.col.gem",
+    Nakshatra: "remedy.col.nakshatra",
+    Navatara: "remedy.col.navatara",
+    Symbol: "remedy.col.symbol",
+    "Ruling Planet": "remedy.col.ruling",
+    Deity: "remedy.col.deity",
+    Tree: "remedy.col.tree",
+    Directions: "remedy.col.directions",
+    "Lunar Month": "remedy.col.lunar",
+    Tithi: "remedy.col.tithi",
+    Remedy: "remedy.col.remedy",
+    Mantra: "remedy.col.mantraWord",
+    Animal: "remedy.col.animal",
+    Colors: "remedy.col.colors",
+    Number: "remedy.col.number",
+    Day: "remedy.col.day",
+    Time: "remedy.col.time"
+  };
+
+  function rt(key) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : key;
+  }
+
+  function rtf(key, vars) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.tf ? I18N.tf(key, vars) : key;
+  }
+
+  function chartText(value) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.chartText ? I18N.chartText(value) : String(value ?? "");
+  }
+
+  function remedyHeader(label) {
+    const key = REMEDY_HEADER_KEYS[String(label || "").trim()];
+    return key ? rt(key) : chartText(label);
+  }
+
+  function setCountedHeading(el, key, count) {
+    if (!el || !key) return;
+    el.setAttribute("data-i18n", key);
+    if (count) {
+      el.setAttribute("data-i18n-suffix", `(${count})`);
+      el.textContent = `${rt(key)}(${count})`;
+    } else {
+      el.removeAttribute("data-i18n-suffix");
+      el.textContent = rt(key);
+    }
+  }
 
   const form = document.getElementById("remedy-form");
   if (!form) return;
@@ -61,6 +122,9 @@
   const KV = window.SaptarishiKundaliView;
   let birthMode = "open";
   let cachedNakshatraRows = [];
+  let lastRemedyPayload = null;
+  let lastNavataraDefs = [];
+  let suppressRemedyScroll = false;
   let selectedNavataraKey = "";
   let selectedRemedyTileKeyByHost = {
     dusthana: "",
@@ -261,12 +325,12 @@
       }
       return;
     }
-    if (!window.confirm(`Delete saved birth details for ${label}?`)) return;
+    if (!window.confirm(rtf("form.deleteConfirm", { name: label }))) return;
     try {
       await SaptarishiAuth.deleteBirthView(label);
       await loadOpenBirthViews();
     } catch (err) {
-      window.alert(err.message || "Could not delete saved birth details.");
+      window.alert(err.message || rt("form.deleteFailed"));
     }
   }
 
@@ -280,14 +344,16 @@
     if (!allViews.length) {
       const empty = document.createElement("p");
       empty.className = "birth-open-list__empty";
-      empty.textContent = "No saved birth details yet.";
+      empty.textContent = rt("form.noSaved");
       savedBirthList.appendChild(empty);
       return;
     }
     if (!filtered.length) {
       const empty = document.createElement("p");
       empty.className = "birth-open-list__empty";
-      empty.textContent = `No births match “${String(savedBirthSearch?.value || "").trim()}”.`;
+      empty.textContent = rtf("form.noMatch", {
+        query: String(savedBirthSearch?.value || "").trim()
+      });
       savedBirthList.appendChild(empty);
       return;
     }
@@ -320,8 +386,8 @@
         const del = document.createElement("button");
         del.type = "button";
         del.className = "birth-open-list__delete";
-        del.textContent = "Delete";
-        del.setAttribute("aria-label", `Delete ${birthViewOptionLabel(view)}`);
+        del.textContent = rt("form.delete");
+        del.setAttribute("aria-label", rtf("form.deleteNamed", { name: birthViewOptionLabel(view) }));
         del.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -699,9 +765,25 @@
     });
   }
 
+  function translateRemedyField(text, col) {
+    if (isMantraColumn(col)) return text;
+    const I18N = window.SaptarishiI18n;
+    const render = (part) => (I18N && I18N.remedyText ? I18N.remedyText(part) : part);
+    const raw = normalizeRemedyText(text);
+    if (!raw) return "";
+    const whole = render(raw);
+    if (whole !== raw) return whole;
+    if (!raw.includes("\n")) return raw;
+    return raw
+      .split(/\n+/)
+      .map((part) => render(part.trim()))
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
   function fillRemedyValueCell(td, col, cellText, locked) {
     if (!td) return;
-    const text = normalizeRemedyText(cellText);
+    const text = translateRemedyField(cellText, col);
     const colKey = String(col?.key || "");
     const isHowTo = colKey === "how_to_do_mantra_chant";
     const paragraphs = splitRemedyParagraphs(text, colKey);
@@ -862,7 +944,7 @@
       }
       const th = document.createElement("th");
       th.scope = "row";
-      th.textContent = String(col.header || col.key || "");
+      th.textContent = remedyHeader(col.header || col.key || "");
       const td = document.createElement("td");
       if (isMantraColumn(col)) {
         td.classList.add("remedy-mantra-value");
@@ -918,7 +1000,7 @@
     }
     if (panel) {
       panel.hidden = false;
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (!suppressRemedyScroll) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }
 
@@ -928,6 +1010,7 @@
       buttonsHost,
       emptyEl,
       headingEl,
+      headingKey,
       baseHeading,
       planetEntries,
       buttonClassName,
@@ -949,7 +1032,8 @@
       .filter((entry) => entry.key);
     const keys = entries.map((entry) => entry.key);
     if (headingEl) {
-      headingEl.textContent = keys.length ? `${baseHeading}(${keys.length})` : baseHeading;
+      if (headingKey) setCountedHeading(headingEl, headingKey, keys.length);
+      else headingEl.textContent = keys.length ? `${baseHeading}(${keys.length})` : baseHeading;
     }
 
     if (!keys.length) {
@@ -966,7 +1050,7 @@
     for (const entry of entries) {
       const planetKey = entry.key;
       const priority = entry.priority;
-      const name = toTitleCaseWords(planetKey);
+      const name = chartText(toTitleCaseWords(planetKey));
       const tileLabel =
         showPriority && /^P\d+$/.test(priority) ? `${name} (${priority})` : name;
 
@@ -1013,7 +1097,7 @@
       buttonsHost: debilitatedRemedyButtons,
       emptyEl: debilitatedRemedyEmpty,
       headingEl: debilitatedRemedyHeading,
-      baseHeading: "Remedy for debilitated planet",
+      headingKey: "remedy.debilitated",
       planetEntries: groups.debilitated,
       buttonClassName: "remedy-navatara-btn--dosh"
     });
@@ -1022,7 +1106,7 @@
       buttonsHost: lowStrengthRemedyButtons,
       emptyEl: lowStrengthRemedyEmpty,
       headingEl: lowStrengthRemedyHeading,
-      baseHeading: "Remedy for low-strength planet",
+      headingKey: "remedy.low",
       planetEntries: groups.low_strength,
       buttonClassName: "remedy-navatara-btn--dosh",
       showPriorityWhenMultiple: true
@@ -1032,7 +1116,7 @@
       buttonsHost: dusthanaRemedyButtons,
       emptyEl: dusthanaRemedyEmpty,
       headingEl: dusthanaRemedyHeading,
-      baseHeading: "Remedy for planet in dusthana 6/8/12 houses",
+      headingKey: "remedy.dusthana",
       planetEntries: groups.dusthana,
       buttonClassName: "remedy-navatara-btn--dosh",
       showPriorityWhenMultiple: true
@@ -1150,12 +1234,7 @@
     selectedRemedyTileKeyByHost.dosh = "";
 
     const doshas = presentDoshEntriesFromKundali(kundaliPayload);
-    const baseHeading = "Remedy for kundali dosh";
-    if (doshRemedyHeading) {
-      doshRemedyHeading.textContent = doshas.length
-        ? `${baseHeading}(${doshas.length})`
-        : baseHeading;
-    }
+    setCountedHeading(doshRemedyHeading, "remedy.dosh", doshas.length);
 
     if (!doshas.length) {
       doshRemedyButtons.hidden = true;
@@ -1167,7 +1246,10 @@
     if (doshRemedyEmpty) doshRemedyEmpty.hidden = true;
 
     for (const dosh of doshas) {
-      const label = String(dosh.name || dosh.key || "Dosha").trim() || "Dosha";
+      const rawDoshName = String(dosh.name || dosh.key || "Dosha").trim() || "Dosha";
+      const label = window.SaptarishiI18n && window.SaptarishiI18n.doshName
+        ? window.SaptarishiI18n.doshName(rawDoshName)
+        : chartText(rawDoshName);
       const itemKey = String(dosh.key || dosh.name || label).trim();
       const remedy = dosh.remedy && typeof dosh.remedy === "object" ? dosh.remedy : {};
       const priority = String(dosh.priority || "").trim().toUpperCase();
@@ -1225,7 +1307,8 @@
   function navataraResultLabel(def) {
     const result = String(def.result || "").trim();
     if (!result) return "";
-    return /^for\s/i.test(result) ? result : `For ${result}`;
+    const line = /^for\s/i.test(result) ? result : `For ${result}`;
+    return chartText(line);
   }
 
   function auspiciousNavataraDefinitions(definitions) {
@@ -1260,7 +1343,7 @@
     const headRow = document.createElement("tr");
     for (const label of REMEDY_TABLE_HEADERS) {
       const th = document.createElement("th");
-      th.textContent = label;
+      th.textContent = remedyHeader(label);
       if (normalizeText(label) === "mantra") {
         th.classList.add("nakshatra-th-mantra");
       }
@@ -1324,7 +1407,7 @@
     }
 
     showRemedyStatus("");
-    if (panel) {
+    if (panel && !suppressRemedyScroll) {
       panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }
@@ -1336,7 +1419,7 @@
 
     const auspicious = navataraDefinitionsForTiles(definitions, cachedNakshatraRows);
     if (!auspicious.length) {
-      buttonsHost.textContent = "No auspicious nava-tara definitions found.";
+      buttonsHost.textContent = rt("remedy.noNavatara");
       return;
     }
 
@@ -1386,6 +1469,52 @@
     return { text: `Failed to load remedy: ${msg}`, limitReached: false };
   }
 
+  function paintRemedyResults(kundaliPayload, db) {
+    lastRemedyPayload = kundaliPayload;
+    planetRemedyByName = buildPlanetRemedyLookup(db);
+    cachedNakshatraRows = kundaliPayload.nakshatras || [];
+    lastNavataraDefs = (db.nava_tara && db.nava_tara.navatara) || [];
+    renderPlanetRemedyTables(kundaliPayload);
+    renderDoshRemedyTiles(kundaliPayload);
+    renderNavataraButtons(lastNavataraDefs);
+  }
+
+  function collectOpenRemedyTiles() {
+    const open = [];
+    document.querySelectorAll("#results .remedy-navatara-panel").forEach((panel) => {
+      if (panel.hidden) return;
+      const item = panel.closest(".remedy-navatara-item");
+      const host = item && item.parentElement;
+      const btn = item && item.querySelector(".remedy-navatara-btn");
+      if (!host || !btn || !host.id) return;
+      open.push({
+        hostId: host.id,
+        planet: btn.dataset.planetKey || "",
+        dosh: btn.dataset.doshKey || "",
+        navatara: btn.dataset.navataraKey || ""
+      });
+    });
+    return open;
+  }
+
+  function reopenRemedyTiles(open) {
+    for (const tile of open || []) {
+      const host = document.getElementById(tile.hostId);
+      if (!host) continue;
+      const attr = tile.planet
+        ? "data-planet-key"
+        : tile.dosh
+          ? "data-dosh-key"
+          : tile.navatara
+            ? "data-navatara-key"
+            : "";
+      const value = tile.planet || tile.dosh || tile.navatara;
+      if (!attr || !value) continue;
+      const btn = host.querySelector(`[${attr}="${value}"]`);
+      if (btn) btn.click();
+    }
+  }
+
   async function handleRemedyFormSubmit(event) {
     event.preventDefault();
     const place = getBirthPlaceFromRemedyForm();
@@ -1411,11 +1540,7 @@
         loadPlanetDatabase()
       ]);
 
-      planetRemedyByName = buildPlanetRemedyLookup(db);
-      cachedNakshatraRows = kundaliPayload.nakshatras || [];
-      renderPlanetRemedyTables(kundaliPayload);
-      renderDoshRemedyTiles(kundaliPayload);
-      renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
+      paintRemedyResults(kundaliPayload, db);
       refreshSavedBirthDropdown();
       focusPendingRemedyPlanet();
 
@@ -1444,11 +1569,7 @@
               ),
               loadPlanetDatabase()
             ]);
-            planetRemedyByName = buildPlanetRemedyLookup(db);
-            cachedNakshatraRows = kundaliPayload.nakshatras || [];
-            renderPlanetRemedyTables(kundaliPayload);
-            renderDoshRemedyTiles(kundaliPayload);
-            renderNavataraButtons((db.nava_tara && db.nava_tara.navatara) || []);
+            paintRemedyResults(kundaliPayload, db);
             refreshSavedBirthDropdown();
             focusPendingRemedyPlanet();
             if (resultsEl) resultsEl.hidden = false;
@@ -1488,4 +1609,16 @@
   refreshRemedySavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);
   consumeRemedyHandoffAndRun();
+
+  document.addEventListener("saptarishi-lang-change", () => {
+    refreshSavedBirthDropdown();
+    if (!lastRemedyPayload || !resultsEl || resultsEl.hidden) return;
+    const open = collectOpenRemedyTiles();
+    suppressRemedyScroll = true;
+    renderPlanetRemedyTables(lastRemedyPayload);
+    renderDoshRemedyTiles(lastRemedyPayload);
+    renderNavataraButtons(lastNavataraDefs);
+    reopenRemedyTiles(open);
+    suppressRemedyScroll = false;
+  });
 })();

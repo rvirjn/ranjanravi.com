@@ -161,18 +161,24 @@
       registerBtn.type = "button";
       registerBtn.id = "ios-register-btn";
       registerBtn.className = "app-ios-auth app-ios-auth--register";
-      registerBtn.textContent = "Register";
+      if (global.SaptarishiI18n) global.SaptarishiI18n.bind(registerBtn, "header.register");
+      else registerBtn.textContent = "Register";
       registerBtn.addEventListener("click", () => openAuth("register"));
-      meta.appendChild(registerBtn);
+      const langBtn = meta.querySelector(".site-header__lang");
+      if (langBtn) meta.insertBefore(registerBtn, langBtn);
+      else meta.appendChild(registerBtn);
     }
     if (!loginBtn) {
       loginBtn = document.createElement("button");
       loginBtn.type = "button";
       loginBtn.id = "ios-login-btn";
       loginBtn.className = "app-ios-auth app-ios-auth--login";
-      loginBtn.textContent = "Login";
+      if (global.SaptarishiI18n) global.SaptarishiI18n.bind(loginBtn, "header.login");
+      else loginBtn.textContent = "Login";
       loginBtn.addEventListener("click", () => openAuth("login"));
-      meta.appendChild(loginBtn);
+      const langBtn = meta.querySelector(".site-header__lang");
+      if (langBtn) meta.insertBefore(loginBtn, langBtn);
+      else meta.appendChild(loginBtn);
     }
     registerBtn.hidden = !!user;
     loginBtn.hidden = !!user;

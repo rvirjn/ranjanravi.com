@@ -5337,6 +5337,29 @@ body.auth-modal-open {
   background: #fff3e0;
 }
 
+.site-header__lang {
+  flex-shrink: 0;
+  min-width: 2.15rem;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.site-header__lang:hover {
+  background: #fff;
+}
+
+html.lang-hi body {
+  font-family: "Nirmala UI", "Mangal", "Noto Sans Devanagari", var(--font-ui);
+}
+
 body.premium-modal-open {
   overflow: hidden;
 }

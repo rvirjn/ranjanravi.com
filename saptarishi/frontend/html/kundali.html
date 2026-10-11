@@ -8,14 +8,14 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=352">
+  <link rel="stylesheet" href="../style/styles.css?v=353">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
     <nav class="topic-crumb birth-change-nav" hidden aria-label="Kundali">
-      <button type="button" class="auspicious-back birth-change-btn">← kundali : change birth</button>
+      <button type="button" class="auspicious-back birth-change-btn" data-i18n="form.changeBirth">← kundali : change birth</button>
     </nav>
-    <div class="kundali-tabs" role="tablist" aria-label="Birth details options">
+    <div class="kundali-tabs" role="tablist" data-i18n-aria="form.birthOptions" aria-label="Birth details options">
       <button
         type="button"
         class="kundali-tabs__item"
@@ -23,6 +23,7 @@
         role="tab"
         aria-selected="false"
         data-kundali-mode="open"
+        data-i18n="form.openBirth"
       >
         Open birth details
       </button>
@@ -33,6 +34,7 @@
         role="tab"
         aria-selected="true"
         data-kundali-mode="new"
+        data-i18n="form.newBirth"
       >
         New birth details
       </button>
@@ -40,63 +42,65 @@
 
     <form id="birth-form" class="search-form kundali-form" autocomplete="off">
       <div class="form-field birth-open-list-wrap" id="open-kundali-wrap" hidden>
-        <label class="birth-open-search-label" for="saved-kundali-search">Search saved births</label>
+        <label class="birth-open-search-label" for="saved-kundali-search" data-i18n="form.searchSaved">Search saved births</label>
         <input
           type="search"
           id="saved-kundali-search"
           class="birth-open-search"
           placeholder="Search by name, place, or date…"
+          data-i18n-placeholder="form.searchPlaceholder"
           autocomplete="off"
           enterkeyhint="search"
+          data-i18n-aria="form.searchAria"
           aria-label="Search saved birth details"
         />
         <select id="saved-kundali-select" hidden aria-hidden="true">
-          <option value="">Select saved name…</option>
+          <option value="" data-i18n="form.selectSaved">Select saved name…</option>
         </select>
-        <div id="saved-kundali-list" class="birth-open-list" role="listbox" aria-label="Saved birth details"></div>
+        <div id="saved-kundali-list" class="birth-open-list" role="listbox" data-i18n-aria="form.savedList" aria-label="Saved birth details"></div>
       </div>
       <div id="new-kundali-fields">
       <div class="form-field" id="birth-name-wrap">
-        <label for="birth-name">Name</label>
-        <input type="text" id="birth-name" maxlength="120" placeholder="Enter Name" aria-label="Name" />
+        <label for="birth-name" data-i18n="form.name">Name</label>
+        <input type="text" id="birth-name" maxlength="120" placeholder="Enter Name" data-i18n-placeholder="form.enterName" data-i18n-aria="form.name" aria-label="Name" />
       </div>
       <div class="form-field">
-        <label for="place-preset">Place</label>
+        <label for="place-preset" data-i18n="form.place">Place</label>
         <select id="place-preset">
-          <option value="">Select Place…</option>
-          <option value="__custom__">Other…</option>
+          <option value="" data-i18n="form.selectPlace">Select Place…</option>
+          <option value="__custom__" data-i18n="form.otherEllipsis">Other…</option>
         </select>
       </div>
       <div class="form-field" id="custom-place-wrap" hidden>
-        <label for="place-custom">Custom Place</label>
-          <input type="text" id="place-custom" maxlength="240" placeholder="Type city and country." />
+        <label for="place-custom" data-i18n="form.customPlace">Custom Place</label>
+          <input type="text" id="place-custom" maxlength="240" placeholder="Type city and country." data-i18n-placeholder="form.customPlaceholder" />
       </div>
       <div class="form-field">
-        <label for="birth-date">Date</label>
+        <label for="birth-date" data-i18n="form.date">Date</label>
         <input type="date" id="birth-date" required />
       </div>
       <div class="form-field">
-        <label for="birth-time">Time</label>
+        <label for="birth-time" data-i18n="form.time">Time</label>
         <input type="time" id="birth-time" step="1" required />
       </div>
       <div class="form-field form-field--save" id="save-birth-wrap">
         <label class="save-birth-label" for="save-birth">
           <input type="checkbox" id="save-birth" class="save-birth-check" checked>
-          Save
+          <span data-i18n="form.save">Save</span>
         </label>
       </div>
       <div class="form-field form-field--submit form-field--actions">
         <div class="form-actions">
-          <button type="submit" id="submit-btn">Show</button>
-          <button type="button" id="compare-toggle-btn" hidden>Kundali compare</button>
+          <button type="submit" id="submit-btn" data-i18n="form.show">Show</button>
+          <button type="button" id="compare-toggle-btn" data-i18n="form.compare" hidden>Kundali compare</button>
         </div>
       </div>
       </div>
     </form>
 
     <section id="kundali-compare-panel" class="kundali-compare-panel" hidden>
-      <p class="lead">Enter another birth details</p>
-      <p class="kundali-compare-hint">
+      <p class="lead" data-i18n="form.compareLead">Enter another birth details</p>
+      <p class="kundali-compare-hint" data-i18n-html="form.compareHint">
         Birth 1 uses the form above — choose <strong>Open birth details</strong> to pick a saved profile.
         For Birth 2 and below, pick from <strong>Saved birth details</strong> or enter a <strong>Name</strong> with place, date, and time.
       </p>
@@ -105,8 +109,8 @@
         <div class="search-form kundali-form kundali-compare-actions">
           <div class="form-field form-field--submit form-field--actions">
             <div class="form-actions">
-              <button type="button" id="compare-add-btn" class="btn-secondary">+ Add More</button>
-              <button type="submit" id="compare-show-btn">Show</button>
+              <button type="button" id="compare-add-btn" class="btn-secondary" data-i18n="form.addMore">+ Add More</button>
+              <button type="submit" id="compare-show-btn" data-i18n="form.show">Show</button>
             </div>
           </div>
         </div>
@@ -119,42 +123,44 @@
       <div id="kundali-single-results">
       <div class="summary-chart-row">
         <div class="summary-chart-row__summary table-wrap">
-          <h3 class="result-heading kundali-chart-heading">Summary</h3>
+          <h3 class="result-heading kundali-chart-heading" data-i18n="kundali.summary">Summary</h3>
           <div class="summary-chart-row__summary-body">
             <table id="summary-table" class="navatara-data-table kundali-table"><tbody></tbody></table>
           </div>
         </div>
         <div class="summary-chart-row__chart">
           <div class="kundali-chart-picker">
-            <select id="kundali-chart-select" class="kundali-chart-select" aria-label="Chart">
-              <option value="birth">D1 — Lagna (Birth Chart)</option>
-              <option value="D10">D10 — Dasamsa (Career Chart)</option>
-              <option value="D9">D9 — Navamsa (Marriage Chart)</option>
-              <option value="D60">D60 — Shashtiamsa (Past-life Chart)</option>
-              <option value="D30">D30 — Trimsamsa (Misfortunes Chart)</option>
+            <select id="kundali-chart-select" class="kundali-chart-select" data-i18n-aria="kundali.chart" aria-label="Chart">
+              <option value="birth" data-i18n="chart.d1">D1 — Lagna (Birth Chart)</option>
+              <option value="D10" data-i18n="chart.d10">D10 — Dasamsa (Career Chart)</option>
+              <option value="D9" data-i18n="chart.d9">D9 — Navamsa (Marriage Chart)</option>
+              <option value="D60" data-i18n="chart.d60">D60 — Shashtiamsa (Past-life Chart)</option>
+              <option value="D30" data-i18n="chart.d30">D30 — Trimsamsa (Misfortunes Chart)</option>
             </select>
           </div>
           <div id="kundali-chart" class="kundali-chart-host"></div>
         </div>
       </div>
 
-      <section class="planets-status-section" aria-label="Planet and house status">
+      <section class="planets-status-section" data-i18n-aria="kundali.sectionAria" aria-label="Planet and house status">
       <div class="planets-status-block planets-status-block--planet">
-        <h2 class="result-heading">Planet Status</h2>
+        <h2 class="result-heading" data-i18n="kundali.planetStatus">Planet Status</h2>
         <div
           id="planet-status-tiles"
           class="house-planets-tiles planet-status-tiles"
           role="group"
+          data-i18n-aria="kundali.planetsAria"
           aria-label="Birth time planets by planet"
           hidden
         ></div>
       </div>
       <div class="planets-status-block planets-status-block--house">
-        <h2 class="result-heading">House Status</h2>
+        <h2 class="result-heading" data-i18n="kundali.houseStatus">House Status</h2>
         <div
           id="house-planets-tiles"
           class="house-planets-tiles"
           role="group"
+          data-i18n-aria="kundali.housesAria"
           aria-label="Birth time planets by house"
           hidden
         ></div>
@@ -163,21 +169,21 @@
         <table id="planets-table" class="navatara-data-table kundali-table">
           <thead>
             <tr>
-              <th>Planet</th>
-              <th>Aspected By</th>
-              <th>Conjunction</th>
-              <th>Nakshatra</th>
-              <th>In House</th>
-              <th>In House Rashi</th>
-              <th>In House Lord</th>
-              <th>Mahadasha on Age</th>
-              <th>Karakwaqt</th>
-              <th>Malefic 6/8/12</th>
-              <th>Benefic 1/5/9</th>
-              <th>Nakshatra navatara</th>
-              <th>Degree</th>
-              <th>Death Degree</th>
-              <th>Lagna Lord Enemy</th>
+              <th data-i18n="col.planet">Planet</th>
+              <th data-i18n="col.aspected">Aspected By</th>
+              <th data-i18n="col.conjunction">Conjunction</th>
+              <th data-i18n="col.nakshatra">Nakshatra</th>
+              <th data-i18n="col.house">In House</th>
+              <th data-i18n="col.houseRashi">In House Rashi</th>
+              <th data-i18n="col.houseLord">In House Lord</th>
+              <th data-i18n="col.mahadasha">Mahadasha on Age</th>
+              <th data-i18n="col.karakwaqt">Karakwaqt</th>
+              <th data-i18n="col.malefic">Malefic 6/8/12</th>
+              <th data-i18n="col.benefic">Benefic 1/5/9</th>
+              <th data-i18n="col.navatara">Nakshatra navatara</th>
+              <th data-i18n="col.degree">Degree</th>
+              <th data-i18n="col.deathDegree">Death Degree</th>
+              <th data-i18n="col.lagnaEnemy">Lagna Lord Enemy</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -186,26 +192,26 @@
       </section>
 
       <section id="kundali-yog-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-yog-heading" class="result-heading">Yogas</h2>
+        <h2 id="kundali-yog-heading" class="result-heading" data-i18n="kundali.yogas">Yogas</h2>
         <p id="kundali-yog-summary" class="kundali-yog-summary"></p>
-        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present yogas"></div>
+        <div id="kundali-yog-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" data-i18n-aria="kundali.yogasAria" aria-label="Present yogas"></div>
       </section>
 
       <section id="kundali-dosh-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-dosh-heading" class="result-heading">Doshas</h2>
+        <h2 id="kundali-dosh-heading" class="result-heading" data-i18n="kundali.doshas">Doshas</h2>
         <p id="kundali-dosh-summary" class="kundali-yog-summary"></p>
-        <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Present doshas"></div>
+        <div id="kundali-dosh-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" data-i18n-aria="kundali.doshasAria" aria-label="Present doshas"></div>
       </section>
 
       <section id="kundali-dasha-section" class="kundali-yog-section" hidden>
-        <h2 id="kundali-dasha-heading" class="result-heading">Your current dasha</h2>
-        <div id="kundali-dasha-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" aria-label="Your current dasha"></div>
+        <h2 id="kundali-dasha-heading" class="result-heading" data-i18n="kundali.dasha">Your current dasha</h2>
+        <div id="kundali-dasha-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" data-i18n-aria="kundali.dasha" aria-label="Your current dasha"></div>
       </section>
 
       </div>
 
       <div id="lord-comparison-section" hidden>
-        <h2 id="lord-comparison-heading" class="result-heading">Lord strength across compared births</h2>
+        <h2 id="lord-comparison-heading" class="result-heading" data-i18n="kundali.lordCompare">Lord strength across compared births</h2>
         <div class="table-wrap">
           <table id="lord-comparison-table" class="navatara-data-table kundali-table">
             <thead></thead>
@@ -219,13 +225,15 @@
   <script src="../utils/constant.js?v=86"></script>
   <script src="../js/auth.js?v=50"></script>
   <script src="../utils/loading.js?v=2"></script>
-  <script src="../js/auth-modal.js?v=27"></script>
+  <script src="../js/auth-modal.js?v=28"></script>
   <script src="../js/premium-modal.js?v=13"></script>
-  <script src="../js/wallet-modal.js?v=23"></script>
-  <script src="../utils/common.js?v=106"></script>
+  <script src="../js/wallet-modal.js?v=24"></script>
+  <script src="../utils/i18n.js?v=2"></script>
+  <script src="../utils/i18n-chart.js?v=5"></script>
+  <script src="../utils/common.js?v=108"></script>
   <script src="../js/ask-ai.js?v=17"></script>
-  <script src="../js/kundali.js?v=366"></script>
-  <script src="../js/lord-comparison.js?v=27"></script>
-  <script src="../js/kundali-compare.js?v=20"></script>
+  <script src="../js/kundali.js?v=373"></script>
+  <script src="../js/lord-comparison.js?v=28"></script>
+  <script src="../js/kundali-compare.js?v=21"></script>
 </body>
 </html>

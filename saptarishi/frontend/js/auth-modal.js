@@ -6,8 +6,10 @@
   if (!AUTH) return;
 
   const LOADING = global.SaptarishiLoading;
-  const FORGOT_LEAD =
-    "Enter the mobile number and email on your account. If they match, we email you a temporary password.";
+  function at(key) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : key;
+  }
 
   function formUtils() {
     return global.SaptarishiCommonUtils || {};
@@ -33,77 +35,77 @@
     overlay.setAttribute("role", "presentation");
     overlay.innerHTML = `
       <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-        <button type="button" class="auth-modal__close" id="auth-modal-close" aria-label="Close">&times;</button>
+        <button type="button" class="auth-modal__close" id="auth-modal-close" data-i18n-aria="auth.close" aria-label="Close">&times;</button>
         <h2 id="auth-modal-title" class="auth-modal__title">Saptarishi</h2>
         <p id="auth-modal-lead" class="auth-modal__lead" hidden></p>
         <div class="auth-tabs" role="tablist">
-          <button type="button" class="auth-tabs__btn auth-tabs__btn--active" data-tab="login" role="tab" aria-selected="true">Login</button>
-          <button type="button" class="auth-tabs__btn" data-tab="register" role="tab" aria-selected="false">Register</button>
+          <button type="button" class="auth-tabs__btn auth-tabs__btn--active" data-tab="login" role="tab" aria-selected="true" data-i18n="auth.login">Login</button>
+          <button type="button" class="auth-tabs__btn" data-tab="register" role="tab" aria-selected="false" data-i18n="auth.register">Register</button>
         </div>
         <div id="auth-modal-panel-login" class="auth-modal__panel">
           <form id="auth-modal-login-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
-              <label for="auth-modal-login-mobile">Mobile number</label>
-              <input type="tel" id="auth-modal-login-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+              <label for="auth-modal-login-mobile" data-i18n="profile.mobile">Mobile number</label>
+              <input type="tel" id="auth-modal-login-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" data-i18n-placeholder="profile.mobilePh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-login-password">Password</label>
-              <input type="password" id="auth-modal-login-password" name="password" autocomplete="current-password" required minlength="4" placeholder="Enter your password" />
+              <label for="auth-modal-login-password" data-i18n="auth.password">Password</label>
+              <input type="password" id="auth-modal-login-password" name="password" autocomplete="current-password" required minlength="4" placeholder="Enter your password" data-i18n-placeholder="auth.passwordPh" />
             </div>
             <p class="auth-modal__forgot-wrap">
-              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-link">Forgot password?</button>
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-link" data-i18n="auth.forgot">Forgot password?</button>
             </p>
             <div class="form-field form-field--submit">
-              <button type="submit">Sign in</button>
+              <button type="submit" data-i18n="auth.signIn">Sign in</button>
             </div>
           </form>
         </div>
         <div id="auth-modal-panel-forgot" class="auth-modal__panel auth-modal__panel--hidden" hidden>
           <form id="auth-modal-forgot-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
-              <label for="auth-modal-forgot-mobile">Mobile number</label>
-              <input type="tel" id="auth-modal-forgot-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+              <label for="auth-modal-forgot-mobile" data-i18n="profile.mobile">Mobile number</label>
+              <input type="tel" id="auth-modal-forgot-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" data-i18n-placeholder="profile.mobilePh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-forgot-email">Email</label>
-              <input type="email" id="auth-modal-forgot-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+              <label for="auth-modal-forgot-email" data-i18n="profile.email">Email</label>
+              <input type="email" id="auth-modal-forgot-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" data-i18n-placeholder="profile.emailPh" />
             </div>
             <div class="form-field form-field--submit">
-              <button type="submit">Send temporary password</button>
+              <button type="submit" data-i18n="auth.sendTemp">Send temporary password</button>
             </div>
             <p class="auth-modal__forgot-wrap">
-              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-back">Back to sign in</button>
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-forgot-back" data-i18n="auth.backSignIn">Back to sign in</button>
             </p>
           </form>
         </div>
         <div id="auth-modal-panel-register" class="auth-modal__panel auth-modal__panel--hidden" hidden>
           <form id="auth-modal-register-form" class="auth-form" autocomplete="on" novalidate>
             <div class="form-field">
-              <label for="auth-modal-reg-name">Full name</label>
-              <input type="text" id="auth-modal-reg-name" name="name" autocomplete="name" required maxlength="120" placeholder="Your full name" />
+              <label for="auth-modal-reg-name" data-i18n="profile.fullName">Full name</label>
+              <input type="text" id="auth-modal-reg-name" name="name" autocomplete="name" required maxlength="120" placeholder="Your full name" data-i18n-placeholder="auth.namePh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-reg-mobile">Mobile number</label>
-              <input type="tel" id="auth-modal-reg-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" />
+              <label for="auth-modal-reg-mobile" data-i18n="profile.mobile">Mobile number</label>
+              <input type="tel" id="auth-modal-reg-mobile" name="mobile" inputmode="numeric" autocomplete="tel" required placeholder="e.g. 9876543210" data-i18n-placeholder="profile.mobilePh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-reg-email">Email</label>
-              <input type="email" id="auth-modal-reg-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" />
+              <label for="auth-modal-reg-email" data-i18n="profile.email">Email</label>
+              <input type="email" id="auth-modal-reg-email" name="email" autocomplete="email" required maxlength="240" placeholder="you@example.com" data-i18n-placeholder="profile.emailPh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-reg-password">Password</label>
-              <input type="password" id="auth-modal-reg-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" />
+              <label for="auth-modal-reg-password" data-i18n="auth.password">Password</label>
+              <input type="password" id="auth-modal-reg-password" name="new-password" autocomplete="new-password" required minlength="4" placeholder="At least 4 characters" data-i18n-placeholder="profile.newPasswordPh" />
             </div>
             <div class="form-field">
-              <label for="auth-modal-reg-password-confirm">Confirm password</label>
-              <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" />
+              <label for="auth-modal-reg-password-confirm" data-i18n="auth.confirmPassword">Confirm password</label>
+              <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" data-i18n-placeholder="auth.confirmPh" />
             </div>
             <div class="form-field form-field--life-events">
-              <label for="auth-modal-reg-life-events">Give 3 major life events with dates (optional)</label>
+              <label for="auth-modal-reg-life-events" data-i18n="auth.lifeOptional">Give 3 major life events with dates (optional)</label>
               <textarea id="auth-modal-reg-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
             </div>
             <div class="form-field form-field--submit">
-              <button type="submit">Create account</button>
+              <button type="submit" data-i18n="auth.create">Create account</button>
             </div>
           </form>
         </div>
@@ -111,6 +113,7 @@
       </div>
     `;
     document.body.appendChild(overlay);
+    if (global.SaptarishiI18n && global.SaptarishiI18n.apply) global.SaptarishiI18n.apply(overlay);
     const utils = global.SaptarishiCommonUtils;
     if (utils && utils.applyFormFieldLimits) utils.applyFormFieldLimits(overlay);
 
@@ -313,7 +316,8 @@
       forgotPanel.classList.toggle("auth-modal__panel--hidden", !isForgot);
     }
 
-    setLeadText(isForgot ? FORGOT_LEAD : overlay.dataset.lead || "");
+    if (isForgot) overlay.dataset.leadKey = "auth.forgotLead";
+    setLeadText(isForgot ? at("auth.forgotLead") : overlay.dataset.lead || "");
     showStatus("");
   }
 
@@ -374,7 +378,9 @@
     const tab =
       options.tab === "register" ? "register" : options.tab === "forgot" ? "forgot" : "login";
 
-    const lead = options.message || (tab === "forgot" ? FORGOT_LEAD : "Sign in to continue.");
+    const leadKey = options.message ? "" : tab === "forgot" ? "auth.forgotLead" : "auth.signInContinue";
+    const lead = options.message || at(leadKey);
+    overlay.dataset.leadKey = leadKey;
     overlay.dataset.lead = lead;
     setLeadText(lead);
 
@@ -403,6 +409,13 @@
   // Backward-compatible aliases for existing callers.
   const open = openAuthModal;
   const hide = hideAuthModal;
+  document.addEventListener("saptarishi-lang-change", () => {
+    if (!overlay || !overlay.dataset.leadKey) return;
+    const text = at(overlay.dataset.leadKey);
+    overlay.dataset.lead = text;
+    setLeadText(text);
+  });
+
   global.SaptarishiAuthModal = {
     openAuthModal,
     close,

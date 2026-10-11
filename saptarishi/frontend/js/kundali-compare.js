@@ -229,7 +229,8 @@
     const savedField = document.createElement("div");
     savedField.className = "form-field compare-saved-wrap";
     const savedLabel = document.createElement("label");
-    savedLabel.textContent = "Saved birth details";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(savedLabel, "form.savedBirth");
+    else savedLabel.textContent = "Saved birth details";
     const savedSelect = document.createElement("select");
     savedSelect.className = "compare-saved-birth";
     populateCompareSavedSelect(savedSelect);
@@ -238,17 +239,22 @@
     const nameField = document.createElement("div");
     nameField.className = "form-field compare-name-wrap";
     const nameLabel = document.createElement("label");
-    nameLabel.textContent = "Name";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(nameLabel, "form.name");
+    else nameLabel.textContent = "Name";
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "compare-birth-name";
     nameInput.maxLength = 120;
-    nameInput.placeholder = "Enter name";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(nameInput, "form.enterName", "placeholder");
+    else nameInput.placeholder = "Enter name";
     nameField.append(nameLabel, nameInput);
 
     const placeField = document.createElement("div");
     placeField.className = "form-field";
-    placeField.innerHTML = "<label>Place</label>";
+    const placeLabel = document.createElement("label");
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(placeLabel, "form.place");
+    else placeLabel.textContent = "Place";
+    placeField.appendChild(placeLabel);
     const placeSelect = buildPlaceSelectElement("");
     placeField.appendChild(placeSelect);
 
@@ -256,17 +262,22 @@
     customWrap.className = "form-field compare-custom-place-wrap";
     customWrap.hidden = true;
     const customLabel = document.createElement("label");
-    customLabel.textContent = "Custom Place";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(customLabel, "form.customPlace");
+    else customLabel.textContent = "Custom Place";
     const customInput = document.createElement("input");
     customInput.type = "text";
     customInput.className = "compare-place-custom";
     customInput.maxLength = C.MAX_PLACE_QUERY_LENGTH;
-    customInput.placeholder = C.PLACE_CUSTOM_PLACEHOLDER || "Type city and country.";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(customInput, "form.customPlaceholder", "placeholder");
+    else customInput.placeholder = C.PLACE_CUSTOM_PLACEHOLDER || "Type city and country.";
     customWrap.append(customLabel, customInput);
 
     const dateField = document.createElement("div");
     dateField.className = "form-field";
-    dateField.innerHTML = "<label>Date</label>";
+    const dateLabel = document.createElement("label");
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(dateLabel, "form.date");
+    else dateLabel.textContent = "Date";
+    dateField.appendChild(dateLabel);
     const dateInput = document.createElement("input");
     dateInput.type = "date";
     dateInput.className = "compare-birth-date";
@@ -275,7 +286,10 @@
 
     const timeField = document.createElement("div");
     timeField.className = "form-field";
-    timeField.innerHTML = "<label>Time</label>";
+    const timeLabel = document.createElement("label");
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(timeLabel, "form.time");
+    else timeLabel.textContent = "Time";
+    timeField.appendChild(timeLabel);
     const timeInput = document.createElement("input");
     timeInput.type = "time";
     timeInput.step = "1";
@@ -287,10 +301,16 @@
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.className = "btn-secondary";
-    removeBtn.textContent = "Remove";
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(removeBtn, "form.remove");
+    else removeBtn.textContent = "Remove";
     removeBtn.addEventListener("click", () => {
       if (compareBirthsHost.querySelectorAll(".kundali-compare-birth").length <= COMPARE_MIN_EXTRA_ROWS) {
-        showStatus(`At least ${COMPARE_MIN_EXTRA_ROWS} more birth is required for compare.`, true);
+        showStatus(
+          window.SaptarishiI18n
+            ? window.SaptarishiI18n.tf("form.compareMin", { count: COMPARE_MIN_EXTRA_ROWS })
+            : `At least ${COMPARE_MIN_EXTRA_ROWS} more birth is required for compare.`,
+          true
+        );
         return;
       }
       row.remove();
@@ -308,7 +328,10 @@
     saveInput.type = "checkbox";
     saveInput.className = "save-birth-check compare-save-birth";
     saveInput.checked = true;
-    saveLabel.append(saveInput, document.createTextNode(" Save"));
+    const saveText = document.createElement("span");
+    if (window.SaptarishiI18n) window.SaptarishiI18n.bind(saveText, "form.save");
+    else saveText.textContent = "Save";
+    saveLabel.append(saveInput, document.createTextNode(" "), saveText);
     saveField.appendChild(saveLabel);
 
     placeSelect.addEventListener("change", () => syncCompareCustomPlace(row));
@@ -466,7 +489,10 @@
         message: "Register or sign in to compare kundalis."
       });
       if (!ok) {
-        showStatus("Register or sign in to compare kundalis.", true);
+        showStatus(
+          window.SaptarishiI18n ? window.SaptarishiI18n.t("form.compareSignIn") : "Register or sign in to compare kundalis.",
+          true
+        );
         return;
       }
     }
@@ -490,7 +516,10 @@
       }
       if (!comparison.rows?.length) {
         if (resultsEl) resultsEl.hidden = true;
-        showStatus("No lord strength data returned for these births.", true);
+        showStatus(
+          window.SaptarishiI18n ? window.SaptarishiI18n.t("form.compareEmpty") : "No lord strength data returned for these births.",
+          true
+        );
         return;
       }
       if (resultsEl) resultsEl.hidden = false;

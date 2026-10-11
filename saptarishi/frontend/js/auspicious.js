@@ -9,6 +9,17 @@
   const rangeView = document.getElementById("auspicious-range-view");
   const optionsGrid = optionsView && optionsView.querySelector(".auspicious-grid");
   const backBtn = document.getElementById("auspicious-back-btn");
+  const MUHURTA_KEYS = {
+    "Baby Birth": "muhurta.baby",
+    Marriage: "muhurta.marriage",
+    "Buy Home": "muhurta.home",
+    "Buy Vehicle": "muhurta.vehicle",
+    Travelling: "muhurta.travel",
+    "Business Start": "muhurta.business",
+    Naming: "muhurta.naming",
+    "Job Joining": "muhurta.job",
+    Mundan: "muhurta.mundan"
+  };
   const selectedTitleEl = document.getElementById("auspicious-selected-title");
   const leadOptionEl = document.getElementById("auspicious-lead-option");
   const auspiciousForm = document.getElementById("auspicious-form");
@@ -189,7 +200,17 @@
     return payload;
   }
 
+  let lastAuspiciousPayload = null;
+
+  function muhurtaLabel(option) {
+    const key = MUHURTA_KEYS[option];
+    const I18N = window.SaptarishiI18n;
+    if (key && I18N && I18N.t) return I18N.t(key);
+    return option || (I18N && I18N.t ? I18N.t("muhurta.crumb") : "Muhurta");
+  }
+
   function renderAuspiciousResponseIntoPage(payload) {
+    lastAuspiciousPayload = payload || null;
     const rankBy = String(payload?.rank_by || "").trim().toLowerCase();
     const focusResult = rankBy === "yoga";
     const summaryRenderer = window.SaptarishiKundaliView?.renderSummaryTable;
@@ -307,8 +328,8 @@
 
   function showRangeView(optionLabel) {
     selectedOption = optionLabel || "";
-    if (selectedTitleEl) selectedTitleEl.textContent = selectedOption || "Muhurta";
-    if (leadOptionEl) leadOptionEl.textContent = selectedOption || "muhurta";
+    if (selectedTitleEl) selectedTitleEl.textContent = muhurtaLabel(selectedOption);
+    if (leadOptionEl) leadOptionEl.textContent = muhurtaLabel(selectedOption);
     if (auspiciousForm) auspiciousForm.dataset.option = selectedOption;
     const babyBirth = selectedOption === "Baby Birth";
     const yogaBtn = document.getElementById("submit-yoga-btn");
@@ -358,4 +379,11 @@
   if (window.SaptarishiKundaliView) {
     window.SaptarishiKundaliView.ensurePlanetDatabase().catch(() => {});
   }
+
+  document.addEventListener("saptarishi-lang-change", () => {
+    if (selectedOption && selectedTitleEl) selectedTitleEl.textContent = muhurtaLabel(selectedOption);
+    if (selectedOption && leadOptionEl) leadOptionEl.textContent = muhurtaLabel(selectedOption);
+    if (!lastAuspiciousPayload || !auspiciousResultsEl || auspiciousResultsEl.hidden) return;
+    renderAuspiciousResponseIntoPage(lastAuspiciousPayload);
+  });
 })();

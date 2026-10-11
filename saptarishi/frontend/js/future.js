@@ -44,8 +44,37 @@
     foreign: "Foreign travel / migration",
     wealth: "Wealth"
   };
+  const EVENT_KEYS = {
+    career: "future.career",
+    marriage: "future.marriage",
+    child: "future.child",
+    land: "future.land",
+    foreign: "future.foreign",
+    wealth: "future.wealth"
+  };
 
   let selectedEvent = "";
+  let lastFuturePayload = null;
+
+  function ft(key) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : key;
+  }
+
+  function ftf(key, vars) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.tf ? I18N.tf(key, vars) : key;
+  }
+
+  function chartText(value) {
+    const I18N = window.SaptarishiI18n;
+    return I18N && I18N.chartText ? I18N.chartText(value) : String(value ?? "");
+  }
+
+  function eventLabel(eventKey) {
+    const key = EVENT_KEYS[eventKey];
+    return key ? ft(key) : EVENT_LABELS[eventKey] || eventKey || ft("future.crumb");
+  }
   let birthMode = "open";
   let birthChooserHidden = false;
 
@@ -197,7 +226,9 @@
     if (!allViews.length || !filtered.length) {
       const empty = document.createElement("p");
       empty.className = "birth-open-list__empty";
-      empty.textContent = allViews.length ? "No births match that search." : "No saved birth details yet.";
+      empty.textContent = allViews.length
+        ? ftf("form.noMatch", { query: String(savedBirthSearch?.value || "").trim() })
+        : ft("form.noSaved");
       savedBirthList.appendChild(empty);
       return;
     }
@@ -240,7 +271,7 @@
     savedBirthSelect.replaceChildren();
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
+    placeholder.textContent = views.length ? ft("form.selectSaved") : ft("form.noSaved");
     savedBirthSelect.appendChild(placeholder);
     views.forEach((view) => {
       const key = birthViewSelectKey(view);
@@ -423,7 +454,9 @@
     const article = document.createElement("article");
     article.className = `future-window${isBest ? " future-window--best" : ""}`;
     if (row.score_color) article.classList.add(`future-window--${row.score_color}`);
-    const dasha = `${row.mahadasha || "—"} – ${row.antardasha || "—"} – ${row.pratyantardasha || "—"}`;
+    const dasha = [row.mahadasha, row.antardasha, row.pratyantardasha]
+      .map((name) => chartText(name || "—"))
+      .join(" – ");
     const why = Array.isArray(row.why) ? row.why.slice(0, 4) : [];
     const transitHits = Array.isArray(row.transit?.hits) ? row.transit.hits : [];
     article.innerHTML = `
@@ -431,20 +464,22 @@
         ${row.rank ? `<span class="future-window__rank">${escapeHtml(row.rank)}</span>` : ""}
         <strong class="future-window__range">${escapeHtml(row.range || "")}</strong>
         <p class="future-window__dasha">${escapeHtml(dasha)}</p>
-        <p class="future-window__score">${escapeHtml(row.score_label || "")} · ${escapeHtml(row.score ?? "")}</p>
+        <p class="future-window__score">${escapeHtml(chartText(row.score_label || ""))} · ${escapeHtml(row.score ?? "")}</p>
       </header>
       ${
         row.transit?.confirmed
-          ? `<p class="future-window__transit">Transit confirmed${
-              transitHits.length ? `: ${escapeHtml(transitHits.join("; "))}` : ""
+          ? `<p class="future-window__transit">${escapeHtml(ft("future.transit"))}${
+              transitHits.length
+                ? `: ${escapeHtml(transitHits.map((hit) => chartText(hit)).join("; "))}`
+                : ""
             }</p>`
           : ""
       }
-      ${row.is_current ? `<p class="future-window__now">Running now</p>` : ""}
+      ${row.is_current ? `<p class="future-window__now">${escapeHtml(ft("future.runningNow"))}</p>` : ""}
       ${
         why.length
           ? `<ul class="future-window__why">${why
-              .map((item) => `<li>${escapeHtml(item)}</li>`)
+              .map((item) => `<li>${escapeHtml(chartText(item))}</li>`)
               .join("")}</ul>`
           : ""
       }
@@ -453,6 +488,7 @@
   }
 
   function renderFuturePayload(payload) {
+    lastFuturePayload = payload || null;
     if (!resultsEl) return;
     resultsEl.hidden = false;
     if (bestEl) {
@@ -460,7 +496,7 @@
       if (payload.best) {
         const heading = document.createElement("h2");
         heading.className = "result-heading";
-        heading.textContent = "Best favourable window";
+        heading.textContent = ft("future.best");
         bestEl.append(heading, windowCard(payload.best, true));
         bestEl.hidden = false;
       } else {
@@ -504,7 +540,7 @@
 
   function showDetailView(eventKey) {
     selectedEvent = eventKey || "";
-    const label = EVENT_LABELS[selectedEvent] || selectedEvent || "Prediction";
+    const label = eventLabel(selectedEvent);
     if (selectedTitleEl) selectedTitleEl.textContent = label;
     if (form) form.dataset.event = selectedEvent;
     if (optionsView) optionsView.hidden = true;
@@ -624,4 +660,11 @@
   if (form) form.addEventListener("submit", handleSubmit);
   setBirthMode("open");
   if (CU && CU.enhanceBirthChooser) CU.enhanceBirthChooser(form);
+
+  document.addEventListener("saptarishi-lang-change", () => {
+    if (selectedEvent && selectedTitleEl) selectedTitleEl.textContent = eventLabel(selectedEvent);
+    refreshSavedBirthDropdown();
+    if (!lastFuturePayload || !resultsEl || resultsEl.hidden) return;
+    renderFuturePayload(lastFuturePayload);
+  });
 })();

@@ -2,6 +2,37 @@
 
 const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
 const CU = window.SaptarishiCommonUtils || null;
+
+function chartText(value) {
+  const I18N = window.SaptarishiI18n;
+  if (!I18N || typeof I18N.chartText !== "function") return value == null ? "" : String(value);
+  return I18N.chartText(value);
+}
+
+function uiText(key) {
+  const I18N = window.SaptarishiI18n;
+  return I18N && I18N.t ? I18N.t(key) : key;
+}
+
+function uiTextFmt(key, vars) {
+  const I18N = window.SaptarishiI18n;
+  return I18N && I18N.tf ? I18N.tf(key, vars) : key;
+}
+
+function bindUiText(el, key, attr) {
+  const I18N = window.SaptarishiI18n;
+  if (I18N && I18N.bind) return I18N.bind(el, key, attr);
+  if (el) el.textContent = key;
+  return el;
+}
+
+function bindUiFmt(el, key, vars) {
+  if (!el) return el;
+  el.setAttribute("data-i18n", key);
+  el.setAttribute("data-i18n-vars", JSON.stringify(vars || {}));
+  el.textContent = uiTextFmt(key, vars);
+  return el;
+}
 if (!C) {
   throw new Error("SAPTARISHI_CONSTANTS is required");
 }
@@ -224,18 +255,18 @@ function createSummaryLabelValueRow(label, value, row = {}) {
   if (qaKey || markEl) {
     const wrap = document.createElement("span");
     wrap.className = "kundali-table-header-with-info";
-    wrap.appendChild(document.createTextNode(toTitleCaseWords(label)));
+    wrap.appendChild(document.createTextNode(chartText(toTitleCaseWords(label))));
     if (markEl) wrap.appendChild(markEl);
     if (qaKey) wrap.appendChild(createKundaliQaInfoButton(qaKey));
     th.appendChild(wrap);
   } else {
-    th.textContent = toTitleCaseWords(label);
+    th.textContent = chartText(toTitleCaseWords(label));
   }
   const td = document.createElement("td");
   const dumpedClass = String(row.value_class || "").trim();
   const valueClass = dumpedClass || summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
-  const displayValue = formatSummaryCellValue(label, value);
+  const displayValue = chartText(formatSummaryCellValue(label, value));
   const labelKey = normalizeText(label);
   const valueQaKey =
     labelKey === "gandmool" || labelKey === "mangalik"
@@ -481,10 +512,10 @@ function getStrengthRulesForTableColumn(rowData, columnKey) {
 }
 
 function formatStrengthRuleDisplayLabel(rule) {
-  if (rule?.label) return String(rule.label);
+  if (rule?.label) return chartText(String(rule.label));
   const ruleId = String(rule?.rule || "");
-  if (STRENGTH_RULE_FALLBACK_LABELS[ruleId]) return STRENGTH_RULE_FALLBACK_LABELS[ruleId];
-  return toTitleCaseWords(ruleId.replace(/_/g, " "));
+  if (STRENGTH_RULE_FALLBACK_LABELS[ruleId]) return chartText(STRENGTH_RULE_FALLBACK_LABELS[ruleId]);
+  return chartText(toTitleCaseWords(ruleId.replace(/_/g, " ")));
 }
 
 /** Render cell text plus one bracket per rule (never sum unlike rules into one bracket). */
@@ -756,6 +787,24 @@ function formatTableCellForDisplay(key, cell) {
   if (key === "symbol" || key === "animal") return toTitleCaseWords(text);
   return text;
 }
+
+formatTableCellForDisplay = (function wrapFormatTableCellForDisplay(base) {
+  return function (key, cell) {
+    const value = base(key, cell);
+    if (value == null || value === "" || value === "—" || value === "-") return value;
+    if (
+      key === "degree" ||
+      key === "dasha_age" ||
+      key === "lucky_time" ||
+      key === "strength" ||
+      key === "house_lord_strength" ||
+      key === "mantra"
+    ) {
+      return value;
+    }
+    return chartText(value);
+  };
+})(formatTableCellForDisplay);
 
 /** Normalize text for CSS class / comparison (lowercase, collapsed spaces). */
 function normalizeText(value) {
@@ -1343,11 +1392,13 @@ function navataraIntensity(_navataraName, isHelpful) {
 }
 
 function formatHouseForList(text) {
-  return String(text ?? "")
-    .split(",")
-    .map((part) => toTitleCaseWords(part.trim()))
-    .filter(Boolean)
-    .join(", ");
+  return chartText(
+    String(text ?? "")
+      .split(",")
+      .map((part) => toTitleCaseWords(part.trim()))
+      .filter(Boolean)
+      .join(", ")
+  );
 }
 
 function houseFromTableRow(rowData) {
@@ -1555,7 +1606,7 @@ function formatRashiDisplayFromHouseMeta(houseMeta) {
   const sa = C.RASHI_IN_SANSKRIT?.[ri] || "";
   const enTitle = toTitleCaseWords(eng);
   if (!enTitle) return "—";
-  return sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle;
+  return chartText(sa ? `${enTitle} (${toTitleCaseWords(sa)})` : enTitle);
 }
 
 /** Planets-table columns that show rule +/- (excluding total on Planet Strength). */
@@ -1675,7 +1726,7 @@ function pickHouseTileRepresentativeRow(houseRows) {
 function planetsTableRowDisplayForColumn(rowData, col) {
   if (col.key === "planet") {
     const text = formatTableCellForDisplay("planet", rowData.planet);
-    if (!text || text === "No planet") return "";
+    if (isPlaceholderPlanetLabel(rowData.planet) || isPlaceholderPlanetLabel(text)) return "";
     const strength = planetsTableStrengthCellText(rowData);
     if (strength && strength !== "—") return `${text} (${strength})`;
     return text;
@@ -1747,7 +1798,7 @@ function houseColumnDisplayForRows(houseRows, col) {
   if (col.key === "planet") {
     const names = planetRows
       .map((row) => formatTableCellForDisplay("planet", row.planet))
-      .filter((name) => name && name !== "No planet");
+      .filter((name) => !isPlaceholderPlanetLabel(name));
     return names.length ? names.join(", ") : "—";
   }
   if (col.key === "strength") {
@@ -1859,15 +1910,18 @@ function applyPlanetStatusTileStyle(btn, rowData) {
   applyPlanetTableCellStyle(btn, rowData?.cell_styles?.strength || "", "strength");
 }
 
+/** True for a blank house row, in English or Hindi. */
+function isPlaceholderPlanetLabel(text) {
+  const key = normalizeText(text);
+  return !key || key === "no planet" || key === "कोई ग्रह नहीं";
+}
+
 /** Planet rows only (skip empty-house placeholder rows), strongest first. */
 function listPlanetStatusRows(rows) {
   const order = C.PLANET_DISPLAY_ORDER || C.VIMSHOTTARI_PLANET_ORDER || [];
   const rank = new Map(order.map((p, i) => [normalizeText(p), i]));
   return (Array.isArray(rows) ? rows : [])
-    .filter((row) => {
-      const name = formatTableCellForDisplay("planet", row?.planet);
-      return Boolean(name && name !== "No planet");
-    })
+    .filter((row) => !isPlaceholderPlanetLabel(row?.planet))
     .sort((a, b) => {
       const ds = planetRowStrengthSortValue(b) - planetRowStrengthSortValue(a);
       if (ds !== 0) return ds;
@@ -1957,20 +2011,21 @@ function appendAdverseSheetRemedyHint(sheet, options = {}) {
   const text = document.createElement("p");
   text.className = "house-planets-sheet__remedy-text";
   if (kind === "planet" && label) {
-    text.textContent = `${label} is under strain. Refer to remedy for ways to reduce its negative impact.`;
+    bindUiFmt(text, "kundali.remedyPlanet", { label });
   } else if (kind === "house") {
-    text.textContent = `${label || "This house"} is under strain. Refer to remedy for ways to reduce its negative impact.`;
+    bindUiFmt(text, "kundali.remedyHouse", { label: label || uiText("kundali.thisHouse") });
   } else if (kind === "dosh" && label) {
-    text.textContent = `${label} is present. Refer to remedy for ways to reduce its negative impact.`;
+    bindUiFmt(text, "kundali.remedyDosh", { label });
   } else {
-    text.textContent = "Refer to remedy for ways to reduce its negative impact.";
+    bindUiText(text, "kundali.remedyGeneric");
   }
 
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "house-planets-sheet__remedy-btn";
-  btn.textContent = "Open Remedy";
-  btn.setAttribute("aria-label", "Open Remedy with these birth details");
+  bindUiText(btn, "kundali.openRemedy");
+  btn.setAttribute("data-i18n-aria", "kundali.openRemedyAria");
+  btn.setAttribute("aria-label", uiText("kundali.openRemedyAria"));
   btn.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -1997,14 +2052,14 @@ function appendPlanetDignityBeforeStatus(parent, section) {
   const phrase = String(section?.dignity_effect_phrase || "").trim();
   const at = phrase ? text.toLowerCase().indexOf(phrase.toLowerCase()) : -1;
   if (at >= 0) {
-    if (at > 0) dignity.appendChild(document.createTextNode(text.slice(0, at)));
+    if (at > 0) dignity.appendChild(document.createTextNode(chartText(text.slice(0, at))));
     const strong = document.createElement("strong");
-    strong.textContent = text.slice(at, at + phrase.length);
+    strong.textContent = chartText(text.slice(at, at + phrase.length));
     dignity.appendChild(strong);
     const after = text.slice(at + phrase.length);
-    if (after) dignity.appendChild(document.createTextNode(after));
+    if (after) dignity.appendChild(document.createTextNode(chartText(after)));
   } else {
-    dignity.textContent = text;
+    dignity.textContent = chartText(text);
   }
   parent.appendChild(dignity);
 }
@@ -2250,7 +2305,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         appendPlanetDignityBeforeStatus(wrap, section);
         const title = document.createElement("p");
         title.className = "house-planets-sheet__planet-read-title";
-        title.textContent = String(section.title || "").trim();
+        title.textContent = chartText(String(section.title || "").trim());
         if (title.textContent) wrap.appendChild(title);
         // One-row table after status title / before Pros-Cons (house lord + sitting planets).
         // Aspected By = who aspects *this house* (not the lord's own house).
@@ -2273,11 +2328,11 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         p.className = "house-planets-sheet__detail";
         if (label && text.toLowerCase().startsWith(`${label.toLowerCase()}:`)) {
           const strong = document.createElement("strong");
-          strong.textContent = `${label}:`;
+          strong.textContent = chartText(`${label}:`);
           p.appendChild(strong);
-          p.appendChild(document.createTextNode(text.slice(label.length + 1)));
+          p.appendChild(document.createTextNode(chartText(text.slice(label.length + 1))));
         } else {
-          p.textContent = text;
+          p.textContent = chartText(text);
         }
         descEl.appendChild(p);
         continue;
@@ -2287,7 +2342,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
       const p = document.createElement("p");
       if (section.kind === "themes") p.className = "house-planets-sheet__themes";
       if (section.kind === "intro") p.className = "house-planets-sheet__intro";
-      p.textContent = text;
+      p.textContent = chartText(text);
       descEl.appendChild(p);
     }
     return descEl.children.length > 0;
@@ -2297,7 +2352,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
     : [];
   for (const text of paragraphs) {
     const p = document.createElement("p");
-    p.textContent = text;
+    p.textContent = chartText(text);
     descEl.appendChild(p);
   }
   return paragraphs.length > 0;
@@ -2352,7 +2407,7 @@ function appendPlacementEffectsBeforePros(parent, section) {
     line.className = "house-planets-sheet__placement";
     if (tone === "good") line.classList.add("house-planets-sheet__placement--good");
     if (tone === "bad") line.classList.add("house-planets-sheet__placement--bad");
-    line.textContent = text;
+    line.textContent = chartText(text);
     parent.appendChild(line);
   }
 }
@@ -2366,7 +2421,7 @@ function appendHouseDescriptionLabeledList(parent, label, items) {
   heading.className = "house-planets-sheet__pc-label";
   if (kind === "pros") heading.classList.add("house-planets-sheet__pc-label--pros");
   if (kind === "cons") heading.classList.add("house-planets-sheet__pc-label--cons");
-  heading.textContent = label;
+  heading.textContent = chartText(label);
   const list = document.createElement("ol");
   list.className = "house-planets-sheet__pc-list";
   for (const item of items) {
@@ -2391,32 +2446,32 @@ function appendProsConsLineContent(li, item) {
       if (idx >= 0) {
         const before = text.slice(0, idx);
         const after = text.slice(idx + matchName.length);
-        if (before) li.appendChild(document.createTextNode(before));
+        if (before) li.appendChild(document.createTextNode(chartText(before)));
         const nameWrap = document.createElement("span");
         nameWrap.className = "house-planets-sheet__match-with-info";
         const nameEl = document.createElement("span");
         nameEl.className = "house-planets-sheet__match-name";
-        nameEl.textContent = matchName;
+        nameEl.textContent = chartText(matchName);
         nameWrap.append(nameEl, createKundaliQaInfoButton(qaKey));
         li.appendChild(nameWrap);
-        if (after) li.appendChild(document.createTextNode(after));
+        if (after) li.appendChild(document.createTextNode(chartText(after)));
         return true;
       }
     }
     if (qaKey) {
       const row = document.createElement("span");
       row.className = "house-planets-sheet__match-with-info";
-      row.appendChild(document.createTextNode(text));
+      row.appendChild(document.createTextNode(chartText(text)));
       row.appendChild(createKundaliQaInfoButton(qaKey));
       li.appendChild(row);
       return true;
     }
-    li.textContent = text;
+    li.textContent = chartText(text);
     return true;
   }
   const text = String(item || "").trim();
   if (!text) return false;
-  li.textContent = text;
+  li.textContent = chartText(text);
   return true;
 }
 
@@ -2437,7 +2492,7 @@ function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}
   const paragraphs = houseGridDescriptionParagraphs({ [String(houseNum)]: entry }, houseNum);
   for (const text of paragraphs) {
     const p = document.createElement("p");
-    p.textContent = text;
+    p.textContent = chartText(text);
     descEl.appendChild(p);
   }
   return paragraphs.length > 0;
@@ -2475,7 +2530,7 @@ function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
     btn.type = "button";
     btn.className = "house-planets-sheet__divisional-btn";
     btn.setAttribute("aria-expanded", "false");
-    btn.textContent = `Show ${key} chart`;
+    btn.textContent = chartText(`Show ${key} chart`);
 
     const host = document.createElement("div");
     host.className = "kundali-chart-host house-planets-sheet__divisional-host";
@@ -2487,7 +2542,7 @@ function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
       const open = host.hidden;
       host.hidden = !open;
       btn.setAttribute("aria-expanded", open ? "true" : "false");
-      btn.textContent = open ? `Hide ${key} chart` : `Show ${key} chart`;
+      btn.textContent = chartText(open ? `Hide ${key} chart` : `Show ${key} chart`);
       if (open && !rendered) {
         const chartPayload = {
           planets: chart.planets,
@@ -2520,7 +2575,7 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   const title = document.createElement("div");
   title.className = "house-planets-sheet__title";
   const houseLabel = document.createElement("strong");
-  houseLabel.textContent = `House ${houseNum}`;
+  houseLabel.textContent = chartText(`House ${houseNum}`);
   title.appendChild(houseLabel);
   head.appendChild(title);
 
@@ -2661,7 +2716,7 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
       const hasLord = Boolean(lordName && lordName !== "—");
       appendAdverseSheetRemedyHint(sheet, {
         kind: "house",
-        label: hasLord ? `House ${houseLabel} Lord ${lordName}` : `House ${houseLabel}`,
+        label: chartText(hasLord ? `House ${houseLabel} Lord ${lordName}` : `House ${houseLabel}`),
         house: houseNum,
         planet: hasLord ? normalizeText(lordRaw || lordName) : ""
       });
@@ -2828,14 +2883,14 @@ function appendNakshatraNavataraCell(tr, rowData) {
   if (name) {
     const nameEl = document.createElement("div");
     nameEl.className = "nakshatra-navatara-name";
-    nameEl.textContent = name;
+    nameEl.textContent = chartText(name);
     td.appendChild(nameEl);
   }
   const about = formatNavataraAbout(rowData.about);
   if (about) {
     const aboutEl = document.createElement("div");
     aboutEl.className = "nakshatra-navatara-about";
-    aboutEl.textContent = about;
+    aboutEl.textContent = chartText(about);
     td.appendChild(aboutEl);
   }
   tr.appendChild(td);
@@ -2871,6 +2926,10 @@ function renderNakshatraTableWithColors(tbody, rows) {
 /** Planet short label from output JSON ``planets[].name`` (no retrograde brackets). */
 function planetShortLabelFromJson(name) {
   const key = String(name || "").toLowerCase();
+  const I18N = window.SaptarishiI18n;
+  if (I18N && I18N.getLang && I18N.getLang() === "hi" && I18N.planetShortHi && I18N.planetShortHi[key]) {
+    return I18N.planetShortHi[key];
+  }
   return C.PLANET_SHORT[key] || "";
 }
 
@@ -3663,12 +3722,12 @@ function formatChartBirthDetails(payload) {
 /** Format ``Birth Chart : TIME  DOB  city`` from kundali API payload. */
 function formatBirthChartHeading(payload) {
   const details = formatChartBirthDetails(payload);
-  return details ? `Birth Chart : ${details}` : "Birth Chart";
+  return chartText(details ? `Birth Chart : ${details}` : "Birth Chart");
 }
 
 function formatMainChartMenuLabel(title, payload) {
   const details = formatChartBirthDetails(payload);
-  return details ? `${title} : ${details}` : title;
+  return chartText(details ? `${title} : ${details}` : title);
 }
 
 function updateBirthChartHeading(payload, chartHeadingId) {
@@ -4492,7 +4551,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   line.className = "dasha-age__line";
   const yearLabel = document.createElement("span");
   yearLabel.className = "dasha-age__row-label";
-  yearLabel.textContent = "Planet";
+  bindUiText(yearLabel, "dasha.planet");
   const track = document.createElement("div");
   track.className = "dasha-age__track";
   track.setAttribute("role", "slider");
@@ -4501,8 +4560,8 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   track.setAttribute(
     "aria-label",
     birthYear && endYear
-      ? `Planet dasha line from year ${birthYear} to ${endYear}`
-      : "Planet dasha line from age 0 to 120"
+      ? uiTextFmt("dasha.line", { from: birthYear, to: endYear })
+      : uiText("dasha.lineAge")
   );
   track.setAttribute("aria-valuemin", "0");
   track.setAttribute("aria-valuemax", String(DASHA_AGE_LINE_MAX));
@@ -4527,10 +4586,10 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
     } else {
       seg.style.width = `${Math.min(100 - left, width)}%`;
     }
-    seg.title = `${toTitleCaseWords(period.planet)} mahadasha`;
+    seg.title = chartText(`${toTitleCaseWords(period.planet)} mahadasha`);
     applyPlanetStatusCellColorIntensity(seg);
     const label = document.createElement("em");
-    label.textContent = toTitleCaseWords(period.planet);
+    label.textContent = chartText(toTitleCaseWords(period.planet));
     seg.appendChild(label);
     fill.appendChild(seg);
   });
@@ -4542,7 +4601,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const you = document.createElement("span");
   you.className = "dasha-age__you";
   you.style.left = dashaAgeLifePercent(liveAge);
-  you.title = "Your age now";
+  bindUiText(you, "dasha.yourAge", "title");
   track.append(needle, you);
   line.append(yearLabel, track);
   wrap.appendChild(line);
@@ -4551,7 +4610,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   calYearsRow.className = "dasha-age__years-row";
   const calYearLabel = document.createElement("span");
   calYearLabel.className = "dasha-age__years-label";
-  calYearLabel.textContent = "Year";
+  bindUiText(calYearLabel, "dasha.year");
   const calYears = document.createElement("div");
   calYears.className = "dasha-age__years";
   calYearsRow.append(calYearLabel, calYears);
@@ -4582,7 +4641,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   yearsRow.className = "dasha-age__years-row";
   const ageLabel = document.createElement("span");
   ageLabel.className = "dasha-age__years-label";
-  ageLabel.textContent = "Age";
+  bindUiText(ageLabel, "dasha.age");
   const years = document.createElement("div");
   years.className = "dasha-age__years";
   yearsRow.append(ageLabel, years);
@@ -4611,13 +4670,13 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   months.className = "dasha-age__months";
   const monthsLabel = document.createElement("span");
   monthsLabel.className = "dasha-age__row-label";
-  monthsLabel.textContent = "Months";
+  bindUiText(monthsLabel, "dasha.months");
   months.appendChild(monthsLabel);
-  const monthButtons = DASHA_MONTH_LABELS.map((label, monthIndex) => {
+  const monthButtons = DASHA_MONTH_LABELS.map((_, monthIndex) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "dasha-month";
-    btn.textContent = label;
+    bindUiText(btn, `month.dasha.${monthIndex}`);
     btn.addEventListener("click", () => {
       const asOf = dateFromBirthAgeYears(birthDate, selectedAge);
       const calYear = asOf && !Number.isNaN(asOf.getTime()) ? asOf.getFullYear() : new Date().getFullYear();
@@ -4640,8 +4699,8 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   const nowBtn = document.createElement("button");
   nowBtn.type = "button";
   nowBtn.className = "dasha-age__tool";
-  nowBtn.textContent = "Now";
-  nowBtn.title = "Jump to your age now";
+  bindUiText(nowBtn, "dasha.now");
+  bindUiText(nowBtn, "dasha.jumpNow", "title");
   months.appendChild(nowBtn);
   wrap.appendChild(months);
 
@@ -4649,7 +4708,7 @@ function createDashaAgeLine(mahadashas, payload, liveAge, onPickAge) {
   days.className = "dasha-age__days";
   const dateLabel = document.createElement("span");
   dateLabel.className = "dasha-age__row-label";
-  dateLabel.textContent = "Date";
+  bindUiText(dateLabel, "dasha.date");
   days.appendChild(dateLabel);
   const dayButtons = [];
   for (let day = 1; day <= 31; day += 1) {
@@ -4993,7 +5052,7 @@ function renderDashaAgeStack(host, ageYears, payload, ctx) {
   if (!path.length) {
     const empty = document.createElement("p");
     empty.className = "dasha-age__empty";
-    empty.textContent = "No dasha at this age.";
+    bindUiText(empty, "dasha.empty");
     host.appendChild(empty);
     return;
   }
@@ -5136,7 +5195,7 @@ function formatKundaliQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
   const isColorParagraph =
     paragraphIndex === totalParagraphs - 1 && /\bgreen\b/i.test(text) && /\bred\b/i.test(text);
   if (!isColorParagraph) {
-    p.textContent = text;
+    p.textContent = chartText(text);
     return p;
   }
   const frag = document.createDocumentFragment();
@@ -5145,17 +5204,17 @@ function formatKundaliQaAnswerParagraph(text, paragraphIndex, totalParagraphs) {
   let match;
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) {
-      frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+      frag.appendChild(document.createTextNode(chartText(text.slice(last, match.index))));
     }
     const span = document.createElement("span");
     span.className =
       match[1].toLowerCase() === "green" ? "kundali-qa-popover__good" : "kundali-qa-popover__care";
-    span.textContent = match[1];
+    span.textContent = chartText(match[1]);
     frag.appendChild(span);
     last = match.index + match[0].length;
   }
   if (last < text.length) {
-    frag.appendChild(document.createTextNode(text.slice(last)));
+    frag.appendChild(document.createTextNode(chartText(text.slice(last))));
   }
   p.appendChild(frag);
   return p;
@@ -5273,8 +5332,8 @@ function createKundaliQaInfoButton(qaKey) {
   btn.dataset.qaKey = String(qaKey || "").trim();
   btn.setAttribute("aria-expanded", "false");
   btn.setAttribute("aria-controls", KUNDALI_QA_POPOVER_ID);
-  btn.title = "More info";
-  btn.setAttribute("aria-label", "More info");
+  btn.title = chartText("More info");
+  btn.setAttribute("aria-label", chartText("More info"));
   btn.innerHTML = '<span class="kundali-info-btn__glyph" aria-hidden="true">i</span>';
   btn.addEventListener("click", (event) => {
     event.preventDefault();
@@ -5287,13 +5346,13 @@ function createKundaliQaInfoButton(qaKey) {
 function createPlanetsTableHeaderCell(label, qaKey) {
   const th = document.createElement("th");
   const resolvedKey = qaKey || KUNDALI_PLANETS_HEADER_QA_KEYS[label] || "";
-  if (!resolvedKey) {
-    th.textContent = label;
+    if (!resolvedKey) {
+    th.textContent = chartText(label);
     return th;
   }
   const wrap = document.createElement("span");
   wrap.className = "kundali-table-header-with-info";
-  wrap.appendChild(document.createTextNode(label));
+  wrap.appendChild(document.createTextNode(chartText(label)));
   wrap.appendChild(createKundaliQaInfoButton(resolvedKey));
   th.appendChild(wrap);
   return th;
@@ -5829,7 +5888,11 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
 
   if (!items.length) {
     section.hidden = true;
-    if (headingEl) headingEl.textContent = headingLabel;
+    if (headingEl) {
+      headingEl.removeAttribute("data-i18n-suffix");
+      if (options.headingKey) headingEl.setAttribute("data-i18n", options.headingKey);
+      headingEl.textContent = headingLabel;
+    }
     if (summaryEl) {
       summaryEl.textContent = "";
       summaryEl.hidden = true;
@@ -5838,7 +5901,11 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
   }
 
   section.hidden = false;
-  if (headingEl) headingEl.textContent = `${headingLabel}(${items.length})`;
+  if (headingEl) {
+    if (options.headingKey) headingEl.setAttribute("data-i18n", options.headingKey);
+    headingEl.setAttribute("data-i18n-suffix", `(${items.length})`);
+    headingEl.textContent = `${headingLabel}(${items.length})`;
+  }
   if (summaryEl) {
     summaryEl.textContent = "";
     summaryEl.hidden = true;
@@ -5902,7 +5969,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     const nameText = String(item.name || item.key || ariaItemKind || headingLabel);
     const nameEl = document.createElement("span");
     nameEl.className = "kundali-yog-btn__name";
-    nameEl.textContent = nameText;
+    nameEl.textContent = chartText(nameText);
     const isTopList =
       itemsKey === "yogas" &&
       String(item.is_under_top_list || "").trim().toLowerCase() === "yes";
@@ -5951,7 +6018,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     descParts.forEach((text) => {
       const desc = document.createElement("p");
       desc.className = "kundali-yog-panel__summary";
-      desc.textContent = text;
+      desc.textContent = chartText(text);
       panel.appendChild(desc);
     });
 
@@ -5972,21 +6039,22 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     if (showYogaStrength && item.strength_text) {
       const strength = document.createElement("p");
       strength.className = "kundali-yog-panel__meta kundali-yog-panel__strength";
-      strength.textContent = String(item.strength_text);
+      strength.textContent = chartText(String(item.strength_text));
       panel.appendChild(strength);
     }
 
     if (item.detail) {
       const detail = document.createElement("p");
       detail.className = "kundali-yog-panel__detail";
-      detail.textContent = String(item.detail);
+      detail.textContent = chartText(String(item.detail));
       panel.appendChild(detail);
     }
 
     if (!panel.childNodes.length) {
       const empty = document.createElement("p");
       empty.className = "kundali-yog-panel__detail";
-      empty.textContent = emptyDetail || `No extra detail for this ${ariaItemKind || "item"}.`;
+      if (options.emptyDetailKey) bindUiText(empty, options.emptyDetailKey);
+      else empty.textContent = emptyDetail || `No extra detail for this ${ariaItemKind || "item"}.`;
       panel.appendChild(empty);
     }
 
@@ -6024,8 +6092,10 @@ function renderKundaliYogasFromPayload(payload) {
     listId: "kundali-yog-list",
     blockKey: "kundali_yog",
     itemsKey: "yogas",
-    headingLabel: "Yogas",
-    emptyDetail: "No extra detail for this yoga.",
+    headingKey: "kundali.yogas",
+    headingLabel: uiText("kundali.yogas"),
+    emptyDetailKey: "kundali.yogaEmpty",
+    emptyDetail: uiText("kundali.yogaEmpty"),
     ariaItemKind: "Yoga",
     isBadItem: (item) => String(item?.nature || "good").toLowerCase() === "bad",
     blurAdverseTiles: true,
@@ -6046,12 +6116,12 @@ function renderCurrentDashaTilesFromPayload(payload) {
 
   if (!tiles.length) {
     section.hidden = true;
-    if (headingEl) headingEl.textContent = "Your current dasha";
+    if (headingEl) bindUiText(headingEl, "kundali.dasha");
     return;
   }
 
   section.hidden = false;
-  if (headingEl) headingEl.textContent = "Your current dasha";
+  if (headingEl) bindUiText(headingEl, "kundali.dasha");
 
   let selectedKey = "";
   const closeAllPanels = () => {
@@ -6107,7 +6177,7 @@ function renderCurrentDashaTilesFromPayload(payload) {
 
     const nameEl = document.createElement("span");
     nameEl.className = "kundali-yog-btn__name kundali-dasha-btn__name";
-    nameEl.textContent = String(item.name || item.planet_key || "Dasha");
+    nameEl.textContent = chartText(String(item.name || item.planet_key || "Dasha"));
     btn.appendChild(nameEl);
 
     if (typeof item.strength_percent === "number" && Number.isFinite(item.strength_percent)) {
@@ -6122,7 +6192,7 @@ function renderCurrentDashaTilesFromPayload(payload) {
     if (levelText) {
       const levelEl = document.createElement("span");
       levelEl.className = "kundali-dasha-btn__level";
-      levelEl.textContent = levelText;
+      levelEl.textContent = chartText(levelText);
       btn.appendChild(levelEl);
     }
 
@@ -6145,7 +6215,7 @@ function renderCurrentDashaTilesFromPayload(payload) {
     if (rangeText) {
       const range = document.createElement("p");
       range.className = "kundali-yog-panel__meta";
-      range.textContent = rangeText;
+      range.textContent = chartText(rangeText);
       panel.appendChild(range);
     }
 
@@ -6162,13 +6232,13 @@ function renderCurrentDashaTilesFromPayload(payload) {
       if (tone === "mixed" && index === 0) {
         desc.classList.add("kundali-dasha-panel__lead");
       }
-      desc.textContent = text;
+      desc.textContent = chartText(text);
       panel.appendChild(desc);
     });
     if (!descParts.length) {
       const empty = document.createElement("p");
       empty.className = "kundali-yog-panel__detail";
-      empty.textContent = "No dasha result for this planet.";
+      bindUiText(empty, "dasha.noResult");
       panel.appendChild(empty);
     }
 
@@ -6188,8 +6258,10 @@ function renderKundaliDoshasFromPayload(payload) {
     listId: "kundali-dosh-list",
     blockKey: "kundali_dosh",
     itemsKey: "dosh",
-    headingLabel: "Doshas",
-    emptyDetail: "No extra detail for this dosha.",
+    headingKey: "kundali.doshas",
+    headingLabel: uiText("kundali.doshas"),
+    emptyDetailKey: "kundali.doshEmpty",
+    emptyDetail: uiText("kundali.doshEmpty"),
     ariaItemKind: "Dosha",
     buttonClassName: "remedy-navatara-btn--dosh",
     blurPanelText: true,
@@ -6464,17 +6536,17 @@ async function deleteSavedKundaliBirth(name) {
       await SaptarishiAuth.ensureAuth({
         tab: "login",
         required: true,
-        message: "Sign in to delete saved birth details."
+        message: uiText("form.deleteSignIn")
       });
     }
     return;
   }
-  if (!window.confirm(`Delete saved birth details for ${label}?`)) return;
+  if (!window.confirm(uiTextFmt("form.deleteConfirm", { name: label }))) return;
   try {
     await SaptarishiAuth.deleteBirthView(label);
     await loadOpenKundaliBirthViews();
   } catch (err) {
-    window.alert(err.message || "Could not delete saved birth details.");
+    window.alert(err.message || uiText("form.deleteFailed"));
   }
 }
 
@@ -6488,14 +6560,14 @@ function renderSavedKundaliList(views) {
   if (!allViews.length) {
     const empty = document.createElement("p");
     empty.className = "birth-open-list__empty";
-    empty.textContent = "No saved birth details yet.";
+    bindUiText(empty, "form.noSaved");
     savedKundaliList.appendChild(empty);
     return;
   }
   if (!filtered.length) {
     const empty = document.createElement("p");
     empty.className = "birth-open-list__empty";
-    empty.textContent = `No births match “${String(savedKundaliSearch?.value || "").trim()}”.`;
+    bindUiFmt(empty, "form.noMatch", { query: String(savedKundaliSearch?.value || "").trim() });
     savedKundaliList.appendChild(empty);
     return;
   }
@@ -6528,8 +6600,10 @@ function renderSavedKundaliList(views) {
       const del = document.createElement("button");
       del.type = "button";
       del.className = "birth-open-list__delete";
-      del.textContent = "Delete";
-      del.setAttribute("aria-label", `Delete ${birthViewOptionLabel(view)}`);
+      bindUiText(del, "form.delete");
+      del.setAttribute("data-i18n-aria", "form.deleteNamed");
+      del.setAttribute("data-i18n-vars", JSON.stringify({ name: birthViewOptionLabel(view) }));
+      del.setAttribute("aria-label", uiTextFmt("form.deleteNamed", { name: birthViewOptionLabel(view) }));
       del.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -6776,3 +6850,9 @@ window.SaptarishiKundaliPage = {
   },
   refreshSavedViews: refreshKundaliSavedViews
 };
+
+document.addEventListener("saptarishi-lang-change", () => {
+  if (!document.getElementById("kundali-chart")) return;
+  if (!lastKundaliPayload || !resultsEl || resultsEl.hidden) return;
+  renderKundaliResponseIntoPage(lastKundaliPayload);
+});

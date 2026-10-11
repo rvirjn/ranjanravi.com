@@ -30,6 +30,17 @@
   const addWalletBtn = document.getElementById("profile-add-wallet-btn");
   const sendCouponBtn = document.getElementById("profile-send-coupon-btn");
   const userNotesBtn = document.getElementById("profile-user-notes-btn");
+  let lastProfileSummary = null;
+
+  function pt(key) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.t ? I18N.t(key) : key;
+  }
+
+  function ptf(key, vars) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.tf ? I18N.tf(key, vars) : key;
+  }
   const couponOverlay = document.getElementById("send-coupon-overlay");
   const couponForm = document.getElementById("send-coupon-form");
   const couponClose = document.getElementById("send-coupon-close");
@@ -177,6 +188,7 @@
 
   function renderProfileSummary(profile, usage) {
     if (!summaryEl) return;
+    lastProfileSummary = { profile, usage };
     summaryEl.hidden = false;
 
     const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
@@ -207,14 +219,14 @@
 
     if (planEl) {
       if (isAdvance) {
-        setCurrentPlanLine(planEl, "Advance Plan");
+        setCurrentPlanLine(planEl, pt("profile.advance"));
       } else if (bal === 0 && freeLeft > 0) {
         setCurrentPlanLine(
           planEl,
-          `Free Plan · ${freeLeft} of ${freeLimit} birth${freeLimit === 1 ? "" : "s"} left`
+          ptf("profile.freeLeft", { left: freeLeft, limit: freeLimit })
         );
       } else {
-        setCurrentPlanLine(planEl, "Basic Plan");
+        setCurrentPlanLine(planEl, pt("profile.basic"));
       }
       planEl.classList.toggle(
         "profile-summary__plan--premium",
@@ -244,7 +256,7 @@
     }
 
     if (walletEl) {
-      walletEl.textContent = `Wallet Balance: ₹${bal}`;
+      walletEl.textContent = ptf("profile.wallet", { amount: bal });
       walletEl.hidden = false;
     }
 
@@ -257,7 +269,7 @@
             ? Number(usage.queries_used)
             : (Number(usage.kundali_used) || 0) + (Number(usage.auspicious_used) || 0);
         const limit = usage.query_limit ?? C?.MAX_FREE_QUERIES_PER_GUEST ?? 2;
-        usageEl.textContent = `Usage: ${used}/${limit} queries`;
+        usageEl.textContent = ptf("profile.usage", { used, limit });
         usageEl.hidden = false;
       }
     } else if (usageEl) {
@@ -266,7 +278,7 @@
 
     if (memberEl) {
       const joined = formatDate(profile.created_at);
-      memberEl.textContent = joined ? `Member since ${joined}` : "";
+      memberEl.textContent = joined ? ptf("profile.member", { date: joined }) : "";
       memberEl.hidden = !joined;
     }
 
@@ -822,6 +834,11 @@
   global.addEventListener("saptarishi-auth-changed", () => {
     const user = AUTH.getUser();
     if (user) renderProfileSummary(user, AUTH.getUsage() || user);
+  });
+
+  document.addEventListener("saptarishi-lang-change", () => {
+    if (!lastProfileSummary) return;
+    renderProfileSummary(lastProfileSummary.profile, lastProfileSummary.usage);
   });
 
   if (document.readyState === "loading") {

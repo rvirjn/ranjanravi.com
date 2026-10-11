@@ -165,8 +165,8 @@
     overlay.setAttribute("role", "presentation");
     overlay.innerHTML = `
       <div class="premium-modal premium-modal--wallet" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
-        <button type="button" class="premium-modal__close" id="wallet-modal-close" aria-label="Close">&times;</button>
-        <h2 id="wallet-modal-title" class="premium-modal__title">Wallet</h2>
+        <button type="button" class="premium-modal__close" id="wallet-modal-close" data-i18n-aria="auth.close" aria-label="Close">&times;</button>
+        <h2 id="wallet-modal-title" class="premium-modal__title" data-i18n="wallet.title">Wallet</h2>
         <p id="wallet-modal-lead" class="premium-modal__lead" hidden></p>
         <div id="wallet-modal-summary-panel" class="premium-modal__wallet-summary profile-summary__grid">
           <div class="profile-summary__left">
@@ -177,14 +177,14 @@
           <div class="profile-summary__right">
             <p id="wallet-modal-plans-note" class="paid-plans-note"></p>
             <div class="profile-summary__actions">
-              <button type="button" id="wallet-modal-add-btn" class="btn-secondary">Add money to wallet</button>
+              <button type="button" id="wallet-modal-add-btn" class="btn-secondary" data-i18n="profile.addWallet">Add money to wallet</button>
             </div>
           </div>
         </div>
         <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
-          <button type="button" class="premium-modal__back" id="wallet-modal-back">← wallet</button>
-          <h3 class="premium-modal__add-title">Add money to wallet</h3>
-          <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" aria-label="Choose amount"></div>
+          <button type="button" class="premium-modal__back" id="wallet-modal-back" data-i18n="wallet.back">← wallet</button>
+          <h3 class="premium-modal__add-title" data-i18n="profile.addWallet">Add money to wallet</h3>
+          <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" data-i18n-aria="wallet.choose" aria-label="Choose amount"></div>
           <div class="premium-modal__qr-wrap">
             <img
               id="wallet-modal-qr"
@@ -196,7 +196,7 @@
             />
           </div>
           <p class="premium-modal__amount">
-            Amount: <strong id="wallet-modal-amount">₹${DEFAULT_PLANS[0]?.amount_inr || AC.PREMIUM_PACK_AMOUNT_INR}</strong>
+            <span data-i18n="wallet.amount">Amount:</span> <strong id="wallet-modal-amount">₹${DEFAULT_PLANS[0]?.amount_inr || AC.PREMIUM_PACK_AMOUNT_INR}</strong>
           </p>
           <p id="wallet-modal-plan-summary" class="premium-modal__plan-summary"></p>
           <ol class="premium-modal__steps" id="wallet-modal-upi-steps">
@@ -213,7 +213,7 @@
           </div>
           <form id="wallet-modal-form" class="premium-modal__form" autocomplete="off">
             <div class="form-field">
-              <label for="wallet-modal-coupon">Enter coupon code</label>
+              <label for="wallet-modal-coupon" data-i18n="wallet.coupon">Enter coupon code</label>
               <input
                 type="text"
                 id="wallet-modal-coupon"
@@ -226,18 +226,19 @@
               />
             </div>
             <div class="form-field form-field--submit">
-              <button type="submit" id="wallet-modal-submit">Verify</button>
+              <button type="submit" id="wallet-modal-submit" data-i18n="wallet.verify">Verify</button>
             </div>
           </form>
         </div>
         <div id="wallet-modal-success-panel" class="premium-modal__panel premium-modal__panel--success" hidden>
-          <p class="premium-modal__success">Wallet updated.</p>
-          <button type="button" class="premium-modal__done" id="wallet-modal-done">Continue</button>
+          <p class="premium-modal__success" data-i18n="wallet.updated">Wallet updated.</p>
+          <button type="button" class="premium-modal__done" id="wallet-modal-done" data-i18n="wallet.continue">Continue</button>
         </div>
         <p id="wallet-modal-status" class="status premium-modal__status" role="status" aria-live="polite" hidden></p>
       </div>
     `;
     document.body.appendChild(overlay);
+    if (global.SaptarishiI18n && global.SaptarishiI18n.apply) global.SaptarishiI18n.apply(overlay);
 
     statusEl = overlay.querySelector("#wallet-modal-status");
     leadEl = overlay.querySelector("#wallet-modal-lead");
