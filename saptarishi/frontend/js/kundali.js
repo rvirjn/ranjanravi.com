@@ -1994,7 +1994,18 @@ function appendPlanetDignityBeforeStatus(parent, section) {
   if (kind === "exalted" || kind === "debilitated") {
     dignity.classList.add(`house-planets-sheet__dignity--${kind}`);
   }
-  dignity.textContent = text;
+  const phrase = String(section?.dignity_effect_phrase || "").trim();
+  const at = phrase ? text.toLowerCase().indexOf(phrase.toLowerCase()) : -1;
+  if (at >= 0) {
+    if (at > 0) dignity.appendChild(document.createTextNode(text.slice(0, at)));
+    const strong = document.createElement("strong");
+    strong.textContent = text.slice(at, at + phrase.length);
+    dignity.appendChild(strong);
+    const after = text.slice(at + phrase.length);
+    if (after) dignity.appendChild(document.createTextNode(after));
+  } else {
+    dignity.textContent = text;
+  }
   parent.appendChild(dignity);
 }
 
@@ -2248,6 +2259,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
           const tableEl = createHouseSheetPlanetTableElement(planetRow, allRows, houseAspect);
           if (tableEl) wrap.appendChild(tableEl);
         }
+        appendPlacementEffectsBeforePros(wrap, section);
         appendHouseDescriptionLabeledList(wrap, "Pros:", section.pros);
         appendHouseDescriptionLabeledList(wrap, "Cons:", section.cons);
         if (wrap.children.length) descEl.appendChild(wrap);
@@ -2322,6 +2334,27 @@ function houseGridDescriptionParagraphs(descriptions, houseNum) {
   }
   const text = String(entry.text || "").trim();
   return text ? [text] : [];
+}
+
+function appendPlacementEffectsBeforePros(parent, section) {
+  const items = Array.isArray(section?.placement_effects) ? section.placement_effects : [];
+  for (const raw of items) {
+    let text = "";
+    let tone = "";
+    if (raw && typeof raw === "object") {
+      text = String(raw.text || "").trim();
+      tone = String(raw.tone || "").trim().toLowerCase();
+    } else {
+      text = String(raw || "").trim();
+    }
+    if (!text) continue;
+    const line = document.createElement("p");
+    line.className = "house-planets-sheet__placement";
+    if (tone === "good") line.classList.add("house-planets-sheet__placement--good");
+    if (tone === "bad") line.classList.add("house-planets-sheet__placement--bad");
+    line.textContent = text;
+    parent.appendChild(line);
+  }
 }
 
 function appendHouseDescriptionLabeledList(parent, label, items) {

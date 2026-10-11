@@ -5984,9 +5984,11 @@ body.premium-modal-open {
   white-space: pre-line;
 }
 
-.house-planets-sheet__themes {
-  font-weight: 600;
-  color: var(--color-heading, #1e3a5f);
+.house-planets-sheet__desc p.house-planets-sheet__themes {
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-muted, #5a6a7f);
 }
 
 .house-planets-sheet__detail {
@@ -6006,6 +6008,21 @@ body.premium-modal-open {
 
 .house-planets-sheet__planet-read .house-planets-sheet__table-wrap {
   margin: 0 0 0.55rem;
+}
+
+.house-planets-sheet__placement {
+  margin: 0 0 0.55rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.house-planets-sheet__placement--good {
+  color: var(--planet-color-green_text, #1b5e20);
+}
+
+.house-planets-sheet__placement--bad {
+  color: var(--planet-color-red_text, #6d1010);
 }
 
 .house-planets-sheet__dignity {
