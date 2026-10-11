@@ -3634,8 +3634,8 @@ function createStandardKundaliPanelElement(options = {}) {
   return panel;
 }
 
-/** Format ``Birth Chart : TIME  DOB  city`` from kundali API payload. */
-function formatBirthChartHeading(payload) {
+/** Time, date, and place from the kundali payload (``HH:MM  D Mon YYYY  city``). */
+function formatChartBirthDetails(payload) {
   const iso = String(payload?.datetime_local_iso || "").trim();
   let timePart = "";
   let dobPart = "";
@@ -3657,14 +3657,114 @@ function formatBirthChartHeading(payload) {
     payload?.place_query ||
     "";
   const cityPart = String(place).split(",")[0].trim();
-  const details = [timePart, dobPart, cityPart].filter(Boolean).join("  ");
+  return [timePart, dobPart, cityPart].filter(Boolean).join("  ");
+}
+
+/** Format ``Birth Chart : TIME  DOB  city`` from kundali API payload. */
+function formatBirthChartHeading(payload) {
+  const details = formatChartBirthDetails(payload);
   return details ? `Birth Chart : ${details}` : "Birth Chart";
+}
+
+function formatMainChartMenuLabel(title, payload) {
+  const details = formatChartBirthDetails(payload);
+  return details ? `${title} : ${details}` : title;
 }
 
 function updateBirthChartHeading(payload, chartHeadingId) {
   const el = document.getElementById(chartHeadingId || "kundali-chart-heading");
-  if (!el) return;
+  if (!el || el.tagName === "SELECT") return;
   el.textContent = formatBirthChartHeading(payload);
+}
+
+/** Options for the chart beside the summary. D1 stays first (birth chart with aspects). */
+const MAIN_CHART_BIRTH_LABEL = "D1 — Lagna (Birth Chart)";
+const MAIN_CHART_MENU = [
+  { key: "D10", label: "D10 — Dasamsa (Career Chart)" },
+  { key: "D9", label: "D9 — Navamsa (Marriage Chart)" },
+  { key: "D60", label: "D60 — Shashtiamsa (Past-life Chart)" },
+  { key: "D30", label: "D30 — Trimsamsa (Misfortunes Chart)" }
+];
+
+let mainChartPickerPayload = null;
+
+function ensureMainChartPickerBound() {
+  const select = document.getElementById("kundali-chart-select");
+  if (!select || select.dataset.bound === "1") return;
+  select.dataset.bound = "1";
+  select.addEventListener("change", () => {
+    renderMainKundaliChart(select.value);
+  });
+}
+
+function syncMainKundaliChartPicker(payload) {
+  const select = document.getElementById("kundali-chart-select");
+  if (!select) return;
+  mainChartPickerPayload = payload || null;
+  ensureMainChartPickerBound();
+
+  const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
+  const byKey = new Map(
+    charts
+      .filter((chart) => chart && chart.key)
+      .map((chart) => [String(chart.key).toUpperCase(), chart])
+  );
+
+  select.replaceChildren();
+  const birth = document.createElement("option");
+  birth.value = "birth";
+  birth.textContent = formatMainChartMenuLabel(MAIN_CHART_BIRTH_LABEL, payload);
+  select.appendChild(birth);
+  for (const item of MAIN_CHART_MENU) {
+    if (!byKey.has(item.key)) continue;
+    const opt = document.createElement("option");
+    opt.value = item.key;
+    opt.textContent = formatMainChartMenuLabel(item.label, payload);
+    select.appendChild(opt);
+  }
+  select.value = "birth";
+  select.title = birth.textContent;
+}
+
+function chartSourceForMainSelection(payload, key) {
+  if (!payload) return null;
+  const normalized = String(key || "birth").trim().toUpperCase();
+  if (!normalized || normalized === "BIRTH") {
+    return {
+      source: payload.kundali_chart || payload,
+      title: formatMainChartMenuLabel(MAIN_CHART_BIRTH_LABEL, payload)
+    };
+  }
+  const chart = (payload.divisional_charts || []).find(
+    (item) => String(item?.key || "").toUpperCase() === normalized
+  );
+  if (!chart || !Array.isArray(chart.planets)) return null;
+  const strengthMax =
+    typeof chart.strength_max === "number"
+      ? chart.strength_max
+      : typeof payload.strength_max === "number"
+        ? payload.strength_max
+        : strengthMaxFromPayload(payload);
+  const menuLabel = MAIN_CHART_MENU.find((item) => item.key === normalized)?.label;
+  const label = formatMainChartMenuLabel(menuLabel || chart.title || normalized, payload);
+  return {
+    source: {
+      planets: chart.planets,
+      strength_max: strengthMax
+    },
+    title: label
+  };
+}
+
+function renderMainKundaliChart(key) {
+  const host = document.getElementById("kundali-chart");
+  const select = document.getElementById("kundali-chart-select");
+  if (!host || !mainChartPickerPayload) return;
+  const picked = chartSourceForMainSelection(mainChartPickerPayload, key);
+  if (!picked) return;
+  renderKundaliChart(buildNorthIndianChartFromPayload(picked.source), host);
+  bindKundaliChartZoom(host, picked.source, picked.title);
+  if (select) select.title = picked.title;
 }
 
 /** Fill summary table from API ``summary_table`` rows (built in kundali.py). */
@@ -3688,13 +3788,18 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   renderSummaryTableFromApiRows(summaryBody, kundaliPayload.summary_table);
   updateBirthChartHeading(kundaliPayload, viewTargets.chartHeading || "kundali-chart-heading");
   if (chartHostEl) {
-    const chartSource = kundaliPayload.kundali_chart || kundaliPayload;
-    renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHostId);
-    bindKundaliChartZoom(
-      chartHostEl,
-      chartSource,
-      formatBirthChartHeading(kundaliPayload) || "Birth chart"
-    );
+    if (chartHostId === "kundali-chart" && document.getElementById("kundali-chart-select")) {
+      syncMainKundaliChartPicker(kundaliPayload);
+      renderMainKundaliChart("birth");
+    } else {
+      const chartSource = kundaliPayload.kundali_chart || kundaliPayload;
+      renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHostId);
+      bindKundaliChartZoom(
+        chartHostEl,
+        chartSource,
+        formatBirthChartHeading(kundaliPayload) || "Birth chart"
+      );
+    }
   }
   const planetsRows = kundaliPayload.planets_table || [];
   renderPlanetsTableWithColors(planetsBody, planetsRows);
@@ -3723,21 +3828,12 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
   }
 
   if (!viewTargets.skipShellUpdates) {
-    renderDivisionalChartsFromPayload(kundaliPayload);
     renderKundaliYogasFromPayload(kundaliPayload);
     renderKundaliDoshasFromPayload(kundaliPayload);
     renderCurrentDashaTilesFromPayload(kundaliPayload);
     if (resultsEl) resultsEl.hidden = false;
     showStatusMessage("");
   }
-}
-
-/** Collapse divisional charts expand panel (keeps last-rendered SVGs). */
-function collapseDivisionalChartsPanel() {
-  const panel = document.getElementById("divisional-charts-panel");
-  const toggle = document.getElementById("divisional-charts-toggle");
-  if (panel) panel.hidden = true;
-  if (toggle) toggle.setAttribute("aria-expanded", "false");
 }
 
 const VIMSHOTTARI_TOTAL_YEARS = 120;
@@ -5540,75 +5636,19 @@ function bindKundaliChartZoom(host, chartPayload, title) {
   host.setAttribute("role", "button");
   host.setAttribute("aria-label", `Enlarge ${title || "chart"}`);
   host.title = "Click to enlarge";
+  host._kundaliZoomPayload = chartPayload;
+  host._kundaliZoomTitle = title || "Chart";
+  if (host.dataset.zoomBound === "1") return;
+  host.dataset.zoomBound = "1";
   const open = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    openKundaliChartZoom(chartPayload, title);
+    openKundaliChartZoom(host._kundaliZoomPayload, host._kundaliZoomTitle);
   };
   host.addEventListener("click", open);
   host.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") open(event);
   });
-}
-
-/** Render D1/D9/D10/D30/D60 North Indian charts from ``divisional_charts`` JSON. */
-function renderDivisionalChartsFromPayload(payload) {
-  const grid = document.getElementById("divisional-charts-grid");
-  const section = document.getElementById("divisional-charts-section");
-  if (!grid) return;
-
-  collapseDivisionalChartsPanel();
-  grid.innerHTML = "";
-
-  const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
-  const divisionalToggle = document.getElementById("divisional-charts-toggle");
-  if (divisionalToggle) divisionalToggle.hidden = charts.length === 0;
-  if (section) {
-    section.dataset.hasCharts = charts.length ? "1" : "0";
-    section.hidden = charts.length === 0;
-  }
-  if (!charts.length) return;
-
-  const strengthMax =
-    typeof payload?.strength_max === "number"
-      ? payload.strength_max
-      : strengthMaxFromPayload(payload);
-
-  for (const chart of charts) {
-    if (!chart || !Array.isArray(chart.planets)) continue;
-    const key = String(chart.key || "Dx").toLowerCase();
-    const hostId = `divisional-chart-${key}`;
-
-    const card = document.createElement("article");
-    card.className = "divisional-chart-card";
-    card.dataset.chartKey = chart.key || "";
-
-    const heading = document.createElement("h3");
-    heading.className = "result-heading kundali-chart-heading divisional-chart-card__title";
-    heading.textContent = chart.title || chart.key || "Chart";
-    card.appendChild(heading);
-
-    if (chart.focus) {
-      const focus = document.createElement("p");
-      focus.className = "divisional-chart-card__focus";
-      focus.textContent = chart.focus;
-      card.appendChild(focus);
-    }
-
-    const host = document.createElement("div");
-    host.id = hostId;
-    host.className = "kundali-chart-host divisional-chart-card__host";
-    card.appendChild(host);
-
-    grid.appendChild(card);
-
-    const chartPayload = {
-      planets: chart.planets,
-      strength_max: typeof chart.strength_max === "number" ? chart.strength_max : strengthMax
-    };
-    renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
-    bindKundaliChartZoom(host, chartPayload, chart.title || chart.key || "Chart");
-  }
 }
 
 /**
@@ -6157,19 +6197,6 @@ function renderKundaliDoshasFromPayload(payload) {
   });
 }
 
-/** Toggle expand/collapse for the divisional charts block. */
-function toggleDivisionalChartsPanel() {
-  const panel = document.getElementById("divisional-charts-panel");
-  const toggle = document.getElementById("divisional-charts-toggle");
-  if (!panel || !toggle) return;
-  const show = panel.hidden;
-  panel.hidden = !show;
-  toggle.setAttribute("aria-expanded", show ? "true" : "false");
-  if (show) {
-    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-}
-
 function shouldSaveBirthDetails() {
   if (kundaliMode === "open") return false;
   return !saveBirth || saveBirth.checked;
@@ -6671,10 +6698,6 @@ if (document.getElementById("birth-form")) {
     form.addEventListener("submit", handleBirthFormSubmit);
     ensureKundaliQaUi().catch(() => {});
   }
-  const divisionalToggle = document.getElementById("divisional-charts-toggle");
-  if (divisionalToggle) {
-    divisionalToggle.addEventListener("click", toggleDivisionalChartsPanel);
-  }
   if (tabOpenKundali) {
     tabOpenKundali.addEventListener("click", () => setKundaliMode("open"));
   }
@@ -6709,7 +6732,6 @@ window.SaptarishiKundaliView = {
   createStandardPanel: createStandardKundaliPanelElement,
   buildNorthIndianChartFromPayload,
   renderKundaliChart,
-  renderDivisionalChartsFromPayload,
   computeCurrentDashaSnapshot,
   renderCurrentDashaFromPayload,
   renderPlanetTransitFromPayload,

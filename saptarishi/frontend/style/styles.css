@@ -1592,6 +1592,58 @@ tbody tr:last-child td {
   overflow-wrap: anywhere;
 }
 
+.kundali-chart-picker {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0 0 var(--space-xs);
+}
+
+.kundali-chart-picker::after {
+  content: "▾";
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-52%);
+  pointer-events: none;
+  font-size: 0.72rem;
+  line-height: 1;
+  color: var(--color-primary);
+}
+
+.kundali-chart-select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.2rem 1.55rem 0.2rem 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  text-align-last: center;
+  color: var(--color-primary);
+  background: #fff;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.kundali-chart-select:hover,
+.kundali-chart-select:focus {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-surface-border));
+  outline: none;
+}
+
+.kundali-chart-select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  outline-offset: 1px;
+}
+
 .summary-chart-row__summary-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -1759,56 +1811,6 @@ tbody tr:last-child td {
     min-width: 0;
     max-width: 100%;
   }
-}
-
-/* ---------- Divisional charts (D1 / D9 / D10 / D30 / D60) ---------- */
-
-.divisional-charts-section {
-  margin-top: var(--space-lg);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-surface-border);
-}
-
-.kundali-expand-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  align-items: center;
-}
-
-.divisional-charts-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 1rem;
-  font-family: var(--font-ui);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-heading);
-  background: #fff;
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  box-shadow: inset 0 1px 2px rgba(30, 58, 95, 0.06);
-}
-
-.divisional-charts-toggle::after {
-  content: "▾";
-  font-size: 0.75rem;
-  opacity: 0.75;
-  transition: transform 0.15s ease;
-}
-
-.divisional-charts-toggle[aria-expanded="true"]::after {
-  transform: rotate(-180deg);
-}
-
-.divisional-charts-toggle:hover {
-  border-color: color-mix(in srgb, var(--color-heading) 35%, var(--color-surface-border));
-}
-
-.divisional-charts-panel {
-  margin-top: var(--space-md);
 }
 
 .planet-active-dasha-header {
@@ -2482,48 +2484,6 @@ tbody tr:last-child td {
   margin: 0;
   font-size: 0.95rem;
   color: var(--color-muted, #5a6a7a);
-}
-
-.divisional-charts-lead {
-  margin: 0 0 var(--space-md);
-  max-width: 42rem;
-}
-
-.divisional-charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-md);
-}
-
-.divisional-chart-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.divisional-chart-card__title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.divisional-chart-card__focus {
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.35;
-  color: var(--color-muted, #5a6a7a);
-}
-
-.divisional-chart-card__host {
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 100%;
-}
-
-@media (max-width: 720px) {
-  .divisional-charts-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ---------- Kundali yogas (same tile + click panel as Remedy navatara) ---------- */
@@ -5865,7 +5825,9 @@ body.premium-modal-open {
 }
 
 .planets-status-block + .planets-status-block {
-  margin-top: var(--space-md);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-surface-border);
 }
 
 .planets-status-block .result-heading {
@@ -6248,10 +6210,6 @@ body.premium-modal-open {
 .kundali-yog-panel .house-planets-sheet__remedy {
   margin-top: 0.7rem;
   border-radius: var(--radius-sm);
-}
-
-.planets-status-divisional {
-  margin-top: 0.85rem;
 }
 
 .house-planets-sheet__desc p:last-child {
