@@ -2648,17 +2648,19 @@ function appendPlanetDignityBeforeStatus(parent, section) {
   if (kind === "exalted" || kind === "debilitated") {
     dignity.classList.add(`house-planets-sheet__dignity--${kind}`);
   }
+  const full = chartText(text);
   const phrase = String(section?.dignity_effect_phrase || "").trim();
-  const at = phrase ? text.toLowerCase().indexOf(phrase.toLowerCase()) : -1;
+  const phraseHi = phrase ? chartText(phrase) : "";
+  const at = phraseHi && phraseHi !== phrase ? full.indexOf(phraseHi) : -1;
   if (at >= 0) {
-    if (at > 0) dignity.appendChild(document.createTextNode(chartText(text.slice(0, at))));
+    if (at > 0) dignity.appendChild(document.createTextNode(full.slice(0, at)));
     const strong = document.createElement("strong");
-    strong.textContent = chartText(text.slice(at, at + phrase.length));
+    strong.textContent = phraseHi;
     dignity.appendChild(strong);
-    const after = text.slice(at + phrase.length);
-    if (after) dignity.appendChild(document.createTextNode(chartText(after)));
+    const after = full.slice(at + phraseHi.length);
+    if (after) dignity.appendChild(document.createTextNode(after));
   } else {
-    dignity.textContent = chartText(text);
+    dignity.textContent = full;
   }
   parent.appendChild(dignity);
 }

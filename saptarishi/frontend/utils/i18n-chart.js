@@ -298,6 +298,7 @@
     fame: "यश",
     authority: "अधिकार",
     government: "सरकार",
+    state: "राज्य",
     mother: "माता",
     comfort: "सुख-सुविधा",
     comforts: "सुख-सुविधा",
@@ -960,7 +961,7 @@
       const lord = match[4] ? `, स्वामी ${hiToken(match[4].trim())}` : "";
       const sitting = /^no planet$/i.test(match[5].trim()) ? "कोई ग्रह नहीं" : replacePhrases(match[5]);
       const aspects = match[6] ? ` और इस पर ${replacePhrases(match[6])} की दृष्टि है` : "";
-      return `${name}आपका ${ordinal(match[2])} भाव ${hiToken(match[3])} है${lord}. इसमें ${sitting} है${aspects}.`;
+      return `${name}आपका ${ordinal(match[2])} भाव ${hiToken(match[3])} है${lord}। इसमें ${sitting} है${aspects}।`;
     }
 
     match = text.match(
@@ -971,7 +972,7 @@
       const planet = replacePhrases(match[2]);
       const bits = [];
       if (match[3]) bits.push(`${hiToken(match[3].replace(/\s*\([^)]*\)/, ""))} राशि में`);
-      if (match[4]) bits.push(`${ordinal(match[4])} भाव में`);
+      if (match[4]) bits.push(`भाव ${match[4]} में`);
       const where = bits.length ? ` ${bits.join(" ")}` : "";
       const aspects = match[5] ? ` इस पर ${replacePhrases(match[5])} की दृष्टि है।` : "";
       return `${name}आपका ${planet}${where} है।${aspects}`.replace(/\s+/g, " ").trim();
@@ -1066,6 +1067,13 @@
     match = text.match(/^(Strong )?Neecha Bhanga cancels this debilitation(.*)$/i);
     if (match) return `${match[1] ? "प्रबल " : ""}नीच भंग यह नीचता काटता है${match[2]}`;
 
+    match = text.match(/^(.+?) forms (.+?)\.?$/i);
+    if (match) {
+      const label = typeof I18N.doshName === "function" ? I18N.doshName(match[2].trim()) : match[2].trim();
+      const shown = label && label !== match[2].trim() ? label : replacePhrases(match[2].trim());
+      return `${replacePhrases(match[1])} ${shown} बनाता है।`;
+    }
+
     match = text.match(/^(.+?) is (?:an? )?(.+?) planet(.*?) for this kundali\.?$/i);
     if (match) return `${replacePhrases(match[1])} इस कुंडली का ${replacePhrases(match[2])} ग्रह है${match[3]}।`;
 
@@ -1119,6 +1127,13 @@
     return null;
   }
 
+  function leftoverLatin(original, translated) {
+    let body = String(translated || "");
+    const name = String(original || "").match(/^([^,\n]+),\s+/);
+    if (name && body.startsWith(name[1])) body = body.slice(name[1].length);
+    return /[A-Za-z]{3,}/.test(body);
+  }
+
   function chartText(value) {
     if (I18N.getLang() !== "hi") return value == null ? "" : String(value);
     const text = String(value ?? "");
@@ -1132,9 +1147,13 @@
     let body = whole;
     if (!body) {
       const parts = trimmed.split(/(?<=[.!?])\s+(?=[A-Z])/);
-      body = parts.length > 1
-        ? parts.map((part) => tryPatterns(part) || replacePhrases(part)).join(" ")
-        : replacePhrases(trimmed);
+      const speak = (part) => {
+        const via = tryPatterns(part) || replacePhrases(part);
+        return leftoverLatin(part, via) ? part : via;
+      };
+      body = parts.length > 1 ? parts.map(speak).join(" ") : speak(trimmed);
+    } else if (leftoverLatin(trimmed, body)) {
+      body = trimmed;
     }
     return `${lead}${body}${tail}`;
   }
