@@ -6156,9 +6156,12 @@ function renderCurrentDashaTilesFromPayload(payload) {
         if (text) descParts.push(text);
       });
     }
-    descParts.forEach((text) => {
+    descParts.forEach((text, index) => {
       const desc = document.createElement("p");
       desc.className = "kundali-yog-panel__detail";
+      if (tone === "mixed" && index === 0) {
+        desc.classList.add("kundali-dasha-panel__lead");
+      }
       desc.textContent = text;
       panel.appendChild(desc);
     });

@@ -2528,6 +2528,13 @@ tbody tr:last-child td {
   color: var(--color-muted, #5a6a7a);
 }
 
+.kundali-dasha-panel__lead {
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .kundali-yog-panel__strength {
   font-weight: 600;
   color: var(--color-heading, #1e3a5f);
