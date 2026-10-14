@@ -2766,6 +2766,48 @@ tbody tr:last-child td {
   fill: #8b6914;
 }
 
+.kundali-chart-host--house-picks.kundali-chart-host--zoomable {
+  cursor: pointer;
+}
+
+.kundali-chart-house-hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+  cursor: pointer;
+  outline: none;
+}
+
+.kundali-chart-house-hit:hover {
+  fill: rgba(30, 58, 95, 0.07);
+}
+
+.kundali-chart-house-hit:focus,
+.kundali-chart-house-hit:focus-visible {
+  outline: none;
+}
+
+.kundali-chart-house-highlight {
+  fill: none;
+  stroke: #111;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.kundali-chart-house-detail {
+  margin: 0 0 var(--space-md);
+  padding: 0.75rem 0.9rem 1rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.kundali-chart-house-detail[hidden] {
+  display: none;
+}
+
 /* ---------- Kundali page: compact tables (no horizontal scroll) ---------- */
 /* Website: fit tables to the window (same approach as commit "add privacy page").
    Mobile/app scroll behavior lives in native-shell.css only. */

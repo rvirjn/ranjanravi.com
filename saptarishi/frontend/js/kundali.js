@@ -3953,6 +3953,162 @@ function appendHouseAspectEyes(houseGroup, cell, planetOpts) {
 }
 
 /** Traditional North Indian chart: diagonals + diamond house regions (SVG). */
+/** North Indian house boxes (viewBox 0–100), matching the chart diagonals. */
+const BIRTH_LAGNA_HOUSE_POLYGONS = {
+  1: "50,0 75,25 50,50 25,25",
+  2: "0,0 50,0 25,25",
+  3: "0,0 25,25 0,50",
+  4: "0,50 25,25 50,50 25,75",
+  5: "0,50 25,75 0,100",
+  6: "0,100 50,100 25,75",
+  7: "25,75 50,50 75,75 50,100",
+  8: "50,100 100,100 75,75",
+  9: "100,100 100,50 75,75",
+  10: "50,50 75,25 100,50 75,75",
+  11: "100,0 100,50 75,25",
+  12: "50,0 100,0 75,25"
+};
+
+function appendBirthLagnaHouseHits(svg, cells) {
+  const ns = "http://www.w3.org/2000/svg";
+  const hits = document.createElementNS(ns, "g");
+  hits.setAttribute("class", "kundali-chart-house-hits");
+  for (const cell of cells || []) {
+    const points = BIRTH_LAGNA_HOUSE_POLYGONS[cell.house];
+    if (!points) continue;
+    const poly = document.createElementNS(ns, "polygon");
+    poly.setAttribute("points", points);
+    poly.setAttribute("class", "kundali-chart-house-hit");
+    poly.dataset.house = String(cell.house);
+    poly.setAttribute("role", "button");
+    poly.setAttribute("tabindex", "0");
+    poly.setAttribute("aria-label", chartText(`House ${cell.house}`));
+    hits.appendChild(poly);
+  }
+  const highlight = document.createElementNS(ns, "polygon");
+  highlight.setAttribute("class", "kundali-chart-house-highlight");
+  highlight.setAttribute("pointer-events", "none");
+  svg.appendChild(hits);
+  svg.appendChild(highlight);
+}
+
+function birthChartHouseDetailPanel(chartHost) {
+  const id = `${chartHost.id || "kundali-chart"}-house-detail`;
+  const existing = document.getElementById(id);
+  if (existing) return existing;
+  const panel = document.createElement("div");
+  panel.id = id;
+  panel.className = "kundali-chart-house-detail";
+  panel.hidden = true;
+  const row = chartHost.closest(".summary-chart-row");
+  if (row) row.insertAdjacentElement("afterend", panel);
+  else chartHost.insertAdjacentElement("afterend", panel);
+  return panel;
+}
+
+function hideBirthChartHouseDetail(chartHost) {
+  if (!chartHost) return;
+  const panel = document.getElementById(`${chartHost.id || "kundali-chart"}-house-detail`);
+  if (!panel) return;
+  panel.hidden = true;
+  panel.replaceChildren();
+}
+
+function buildBirthLagnaHouseDetail(houseNum, payload) {
+  const allRows = Array.isArray(payload?.planets_table) ? payload.planets_table : [];
+  const houseRows = groupPlanetsTableRowsByHouse(allRows)[houseNum] || [];
+  const representativeRow = pickHouseTileRepresentativeRow(houseRows);
+  const sample = houseRows[0];
+  const num = sample ? houseFromTableRow(sample).number : houseNum;
+  const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
+  const strengthText = formatHouseTileStrengthPercent(houseRows, allRows);
+  const sheet = createHousePlanetsSheetElement(
+    houseLabel,
+    strengthText,
+    houseRows,
+    payload?.house_grid_descriptions || null,
+    {
+      divisionalCharts: payload?.divisional_charts,
+      strengthMax: typeof payload?.strength_max === "number" ? payload.strength_max : undefined,
+      allRows
+    }
+  );
+  const adverse = housePlanetsTileIsAdverse(houseRows, representativeRow, allRows);
+  if (adverse) {
+    const lordRaw = houseLordNameFromRow(representativeRow);
+    const lordName =
+      formatTableCellForDisplay(
+        "house_lord",
+        planetsTableCellText("house_lord", representativeRow)
+      ) || toTitleCaseWords(lordRaw);
+    const hasLord = Boolean(lordName && lordName !== "—");
+    appendAdverseSheetRemedyHint(sheet, {
+      kind: "house",
+      label: chartText(hasLord ? `House ${houseLabel} Lord ${lordName}` : `House ${houseLabel}`),
+      house: houseNum,
+      planet: hasLord ? normalizeText(lordRaw || lordName) : ""
+    });
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "kundali-chart-house-detail__body";
+  wrap.appendChild(sheet);
+  if (adverse) applyAdverseHouseTileContentLock(wrap, wrap);
+  return wrap;
+}
+
+/** Click a birth-lagna house box to show that house's reading under the chart. */
+function bindBirthLagnaHouseDetails(chartHost, payload) {
+  if (!chartHost || !payload) return;
+  const svg = chartHost.querySelector(".kundali-chart-svg");
+  const panel = birthChartHouseDetailPanel(chartHost);
+  if (!svg || !panel) return;
+  let selected = "";
+
+  const clearSelection = () => {
+    selected = "";
+    svg.querySelectorAll(".kundali-chart-house-hit--active").forEach((el) => {
+      el.classList.remove("kundali-chart-house-hit--active");
+      el.setAttribute("aria-pressed", "false");
+    });
+    const highlight = svg.querySelector(".kundali-chart-house-highlight");
+    if (highlight) highlight.setAttribute("points", "");
+    panel.hidden = true;
+    panel.replaceChildren();
+  };
+
+  const selectHouse = (houseNum, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const key = String(houseNum);
+    if (selected === key && !panel.hidden) {
+      clearSelection();
+      return;
+    }
+    clearSelection();
+    selected = key;
+    const hit = svg.querySelector(`.kundali-chart-house-hit[data-house="${key}"]`);
+    const highlight = svg.querySelector(".kundali-chart-house-highlight");
+    if (hit) {
+      hit.classList.add("kundali-chart-house-hit--active");
+      hit.setAttribute("aria-pressed", "true");
+      if (highlight) {
+        highlight.setAttribute("points", hit.getAttribute("points") || "");
+        svg.appendChild(highlight);
+      }
+    }
+    panel.hidden = false;
+    panel.replaceChildren(buildBirthLagnaHouseDetail(Number(houseNum), payload));
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  svg.querySelectorAll(".kundali-chart-house-hit").forEach((poly) => {
+    poly.addEventListener("click", (event) => selectHouse(poly.dataset.house, event));
+    poly.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") selectHouse(poly.dataset.house, event);
+    });
+  });
+}
+
 function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}) {
   const host =
     typeof chartHost === "string" ? document.getElementById(chartHost) : chartHost;
@@ -4167,6 +4323,14 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
   }
 
   svg.appendChild(labelsGroup);
+  if (options.houseHits) {
+    appendBirthLagnaHouseHits(svg, chartData.cells);
+    svg.setAttribute("role", "group");
+    svg.setAttribute("aria-label", "Birth lagna chart");
+    host.classList.add("kundali-chart-host--house-picks");
+  } else {
+    host.classList.remove("kundali-chart-host--house-picks");
+  }
   host.appendChild(svg);
 }
 
@@ -4434,8 +4598,13 @@ function renderMainKundaliChart(key) {
   if (!host || !mainChartPickerPayload) return;
   const picked = chartSourceForMainSelection(mainChartPickerPayload, key);
   if (!picked) return;
-  renderKundaliChart(buildNorthIndianChartFromPayload(picked.source), host);
+  const isBirth = String(key || "birth").trim().toLowerCase() === "birth";
+  renderKundaliChart(buildNorthIndianChartFromPayload(picked.source), host, {
+    houseHits: isBirth
+  });
   bindKundaliChartZoom(host, picked.source, picked.title);
+  if (isBirth) bindBirthLagnaHouseDetails(host, mainChartPickerPayload);
+  else hideBirthChartHouseDetail(host);
   if (select) select.title = picked.title;
 }
 
@@ -4465,12 +4634,15 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
       renderMainKundaliChart("birth");
     } else {
       const chartSource = kundaliPayload.kundali_chart || kundaliPayload;
-      renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHostId);
+      renderKundaliChart(buildNorthIndianChartFromPayload(chartSource), chartHostId, {
+        houseHits: true
+      });
       bindKundaliChartZoom(
         chartHostEl,
         chartSource,
         formatBirthChartHeading(kundaliPayload) || "Birth chart"
       );
+      bindBirthLagnaHouseDetails(chartHostEl, kundaliPayload);
     }
   }
   const planetsRows = kundaliPayload.planets_table || [];
@@ -6431,15 +6603,24 @@ function bindKundaliChartZoom(host, chartPayload, title) {
   const hasPlanets = Array.isArray(chartPayload.planets) && chartPayload.planets.length;
   if (!hasCells && !hasPlanets) return;
   host.classList.add("kundali-chart-host--zoomable");
-  host.tabIndex = 0;
-  host.setAttribute("role", "button");
-  host.setAttribute("aria-label", `Enlarge ${title || "chart"}`);
-  host.title = "Click to enlarge";
+  const housePicks = host.classList.contains("kundali-chart-host--house-picks");
+  if (housePicks) {
+    host.removeAttribute("role");
+    host.removeAttribute("tabindex");
+    host.removeAttribute("aria-label");
+    host.title = "Click a house for details";
+  } else {
+    host.tabIndex = 0;
+    host.setAttribute("role", "button");
+    host.setAttribute("aria-label", `Enlarge ${title || "chart"}`);
+    host.title = "Click to enlarge";
+  }
   host._kundaliZoomPayload = chartPayload;
   host._kundaliZoomTitle = title || "Chart";
   if (host.dataset.zoomBound === "1") return;
   host.dataset.zoomBound = "1";
   const open = (event) => {
+    if (event.target?.closest?.(".kundali-chart-house-hit")) return;
     event.preventDefault();
     event.stopPropagation();
     openKundaliChartZoom(host._kundaliZoomPayload, host._kundaliZoomTitle);
