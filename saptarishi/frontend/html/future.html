@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Prediction by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=355">
+  <link rel="stylesheet" href="../style/styles.css?v=356">
   <link rel="stylesheet" href="../style/future.css?v=17">
 </head>
 <body class="saptarishi-page">
@@ -95,7 +95,7 @@
             <option value="" data-i18n="form.selectSaved">Select saved name…</option>
           </select>
           <div id="saved-birth-list" class="birth-open-list" role="listbox" data-i18n-aria="form.savedList" aria-label="Saved birth details"></div>
-          <p id="open-birth-status" class="status" role="status" aria-live="polite" hidden></p>
+          <p id="open-birth-status" class="status birth-open-status" role="status" aria-live="polite" hidden></p>
         </div>
         <div id="new-birth-fields" hidden>
         <div class="form-field" id="birth-name-wrap">
@@ -180,6 +180,6 @@
   <script src="../utils/common.js?v=108"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=386"></script>
-  <script src="../js/future.js?v=15"></script>
+  <script src="../js/future.js?v=16"></script>
 </body>
 </html>

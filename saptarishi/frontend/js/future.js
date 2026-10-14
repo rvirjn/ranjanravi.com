@@ -77,6 +77,7 @@
   }
   let birthMode = "open";
   let birthChooserHidden = false;
+  let openBirthLoadSeq = 0;
 
   function activeStatusEl() {
     if (birthChooserHidden) return statusEl;
@@ -287,7 +288,28 @@
     renderSavedBirthList(views);
   }
 
+  function setOpenBirthListLoading(loading) {
+    if (openBirthWrap) openBirthWrap.classList.toggle("is-birth-loading", Boolean(loading));
+    if (!openBirthStatusEl) return;
+    if (loading) {
+      if (CU && CU.startStatusLoading) CU.startStatusLoading(openBirthStatusEl);
+      else if (window.SaptarishiLoading) window.SaptarishiLoading.start(openBirthStatusEl);
+      return;
+    }
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(openBirthStatusEl, "");
+      return;
+    }
+    if (window.SaptarishiLoading) window.SaptarishiLoading.stop(openBirthStatusEl);
+    openBirthStatusEl.textContent = "";
+    openBirthStatusEl.hidden = true;
+    openBirthStatusEl.classList.remove("status--loading");
+  }
+
   async function loadOpenBirthViews() {
+    const seq = ++openBirthLoadSeq;
+    const showSpinner = birthMode === "open" && !birthChooserHidden;
+    if (showSpinner) setOpenBirthListLoading(true);
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.ensureOpenBirthViews) {
       try {
         await SaptarishiAuth.ensureOpenBirthViews({ refresh: true });
@@ -295,7 +317,9 @@
         /* keep cached births */
       }
     }
+    if (seq !== openBirthLoadSeq) return;
     refreshSavedBirthDropdown();
+    if (showSpinner && seq === openBirthLoadSeq) setOpenBirthListLoading(false);
   }
 
   function applySavedBirthSelection() {
@@ -345,7 +369,10 @@
     }
     if (openBirthWrap) {
       openBirthWrap.hidden = !isOpen;
-      if (!isOpen) openBirthWrap.classList.remove("is-loading");
+      if (!isOpen) {
+        openBirthWrap.classList.remove("is-loading");
+        setOpenBirthListLoading(false);
+      }
     }
     if (newBirthFields) newBirthFields.hidden = isOpen;
     if (saveBirth && !isOpen) saveBirth.checked = true;

@@ -112,6 +112,7 @@
   const birthName = document.getElementById("birth-name");
   const saveBirth = document.getElementById("save-birth");
   const openBirthWrap = document.getElementById("open-birth-wrap");
+  const openBirthStatusEl = document.getElementById("open-birth-status");
   const savedBirthSelect = document.getElementById("saved-birth-select");
   const savedBirthList = document.getElementById("saved-birth-list");
   const savedBirthSearch = document.getElementById("saved-birth-search");
@@ -121,6 +122,7 @@
 
   const KV = window.SaptarishiKundaliView;
   let birthMode = "open";
+  let openBirthLoadSeq = 0;
   let cachedNakshatraRows = [];
   let lastRemedyPayload = null;
   let lastNavataraDefs = [];
@@ -435,7 +437,28 @@
     renderSavedBirthList(views);
   }
 
+  function setOpenBirthListLoading(loading) {
+    if (openBirthWrap) openBirthWrap.classList.toggle("is-birth-loading", Boolean(loading));
+    if (!openBirthStatusEl) return;
+    if (loading) {
+      if (CU && CU.startStatusLoading) CU.startStatusLoading(openBirthStatusEl);
+      else if (window.SaptarishiLoading) window.SaptarishiLoading.start(openBirthStatusEl);
+      return;
+    }
+    if (CU && CU.setStatusMessage) {
+      CU.setStatusMessage(openBirthStatusEl, "");
+      return;
+    }
+    if (window.SaptarishiLoading) window.SaptarishiLoading.stop(openBirthStatusEl);
+    openBirthStatusEl.textContent = "";
+    openBirthStatusEl.hidden = true;
+    openBirthStatusEl.classList.remove("status--loading");
+  }
+
   async function loadOpenBirthViews() {
+    const seq = ++openBirthLoadSeq;
+    const showSpinner = birthMode === "open";
+    if (showSpinner) setOpenBirthListLoading(true);
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.ensureOpenBirthViews) {
       try {
         await SaptarishiAuth.ensureOpenBirthViews({ refresh: true });
@@ -443,6 +466,7 @@
         /* keep own saved births */
       }
     }
+    if (seq !== openBirthLoadSeq) return;
     if (savedBirthSearch) {
       const adminList =
         typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.isAdmin && SaptarishiAuth.isAdmin();
@@ -451,6 +475,7 @@
         : "Search by name, place, or date…";
     }
     refreshSavedBirthDropdown();
+    if (showSpinner && seq === openBirthLoadSeq) setOpenBirthListLoading(false);
   }
 
   function applySavedBirthSelection() {
@@ -486,6 +511,7 @@
       tabNewBirth.setAttribute("aria-selected", !isOpen ? "true" : "false");
     }
     if (openBirthWrap) openBirthWrap.hidden = !isOpen;
+    if (!isOpen) setOpenBirthListLoading(false);
     if (newBirthFields) newBirthFields.hidden = isOpen;
     if (saveBirth && !isOpen) saveBirth.checked = true;
     if (isOpen) {

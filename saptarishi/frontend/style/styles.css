@@ -291,6 +291,20 @@ body.saptarishi-page {
   background: transparent;
 }
 
+.birth-open-list-wrap > .birth-open-status {
+  width: 100%;
+  margin: 0;
+}
+
+.birth-open-list-wrap.is-birth-loading .birth-open-list {
+  display: none;
+}
+
+.birth-open-list-wrap.is-birth-loading > .birth-open-status.status--loading {
+  justify-content: center;
+  min-height: 5.5rem;
+}
+
 .birth-open-list__empty {
   margin: 0;
   padding: 1rem 0.95rem;

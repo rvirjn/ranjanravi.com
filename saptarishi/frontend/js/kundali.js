@@ -378,6 +378,7 @@ const birthNameWrap = document.getElementById("birth-name-wrap");
 const saveBirth = document.getElementById("save-birth");
 const saveBirthWrap = document.getElementById("save-birth-wrap");
 const openKundaliWrap = document.getElementById("open-kundali-wrap");
+const openKundaliStatusEl = document.getElementById("open-kundali-status");
 const savedKundaliSelect = document.getElementById("saved-kundali-select");
 const savedKundaliList = document.getElementById("saved-kundali-list");
 const savedKundaliSearch = document.getElementById("saved-kundali-search");
@@ -386,6 +387,7 @@ const tabOpenKundali = document.getElementById("tab-open-kundali");
 const tabNewKundali = document.getElementById("tab-new-kundali");
 
 let kundaliMode = "new";
+let openKundaliLoadSeq = 0;
 
 /** True when UI is opened from localhost (Docker nginx on :9999 or file://). */
 function isLocalDevUi() {
@@ -7399,7 +7401,28 @@ function refreshSavedKundaliDropdown() {
   renderSavedKundaliList(views);
 }
 
+function setOpenKundaliListLoading(loading) {
+  if (openKundaliWrap) openKundaliWrap.classList.toggle("is-birth-loading", Boolean(loading));
+  if (!openKundaliStatusEl) return;
+  if (loading) {
+    if (CU && CU.startStatusLoading) CU.startStatusLoading(openKundaliStatusEl);
+    else if (window.SaptarishiLoading) window.SaptarishiLoading.start(openKundaliStatusEl);
+    return;
+  }
+  if (CU && CU.setStatusMessage) {
+    CU.setStatusMessage(openKundaliStatusEl, "");
+    return;
+  }
+  if (window.SaptarishiLoading) window.SaptarishiLoading.stop(openKundaliStatusEl);
+  openKundaliStatusEl.textContent = "";
+  openKundaliStatusEl.hidden = true;
+  openKundaliStatusEl.classList.remove("status--loading");
+}
+
 async function loadOpenKundaliBirthViews() {
+  const seq = ++openKundaliLoadSeq;
+  const showSpinner = kundaliMode === "open";
+  if (showSpinner) setOpenKundaliListLoading(true);
   if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.ensureOpenBirthViews) {
     try {
       await SaptarishiAuth.ensureOpenBirthViews({ refresh: true });
@@ -7407,6 +7430,7 @@ async function loadOpenKundaliBirthViews() {
       /* keep own saved births */
     }
   }
+  if (seq !== openKundaliLoadSeq) return;
   if (savedKundaliSearch) {
     const adminList =
       typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.isAdmin && SaptarishiAuth.isAdmin();
@@ -7415,6 +7439,7 @@ async function loadOpenKundaliBirthViews() {
       : "Search by name, place, or date…";
   }
   refreshSavedKundaliDropdown();
+  if (showSpinner && seq === openKundaliLoadSeq) setOpenKundaliListLoading(false);
 }
 
 function applySavedKundaliSelection() {
@@ -7450,6 +7475,7 @@ function setKundaliMode(mode) {
     tabNewKundali.setAttribute("aria-selected", !isOpen ? "true" : "false");
   }
   if (openKundaliWrap) openKundaliWrap.hidden = !isOpen;
+  if (!isOpen) setOpenKundaliListLoading(false);
   if (newKundaliFields) newKundaliFields.hidden = isOpen;
   if (saveBirth && !isOpen) saveBirth.checked = true;
   if (isOpen) {
