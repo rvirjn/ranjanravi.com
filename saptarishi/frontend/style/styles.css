@@ -7225,7 +7225,8 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
-    padding-top: 0.4rem !important;
+    /* Room above the letterhead for "change birth" and the loading spinner. */
+    padding-top: 3.35rem !important;
     padding-bottom: calc(176 / 836 * 100cqw) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
@@ -7238,7 +7239,7 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
-    top: 0.4rem;
+    top: 3.35rem;
     /* Overlap the letterhead by a few pixels so the join does not gap.
        Shift by the same crop as the letterhead so the outer edge and
        thickness match the first page. */
@@ -7260,11 +7261,29 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
-    top: 0.4rem !important;
+    top: 3.35rem !important;
     margin-top: calc(499 / 836 * 100cqw) !important;
     left: calc((208 - 40) / 836 * 100cqw) !important;
     width: calc(500 / 836 * 100cqw) !important;
     height: calc(220 / 836 * 100cqw) !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
+    top: 0.8rem;
+    left: 0.7rem;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #status.status--loading {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.55rem;
+    z-index: 4;
+    margin: 0;
+    min-height: 0;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) .birth-change-nav {
+    left: 3.25rem;
   }
 
   body.kundali-page:has(#birth-form[hidden]) #results {

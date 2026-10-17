@@ -1576,7 +1576,7 @@ html.saptarishi-native-app .ask-ai__bubble {
 @media (max-width: 720px), (max-device-width: 720px) {
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell,
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell--with-chrome {
-  padding: 0.4rem 0 calc(176 / 836 * 100cqw) !important;
+  padding: 3.35rem 0 calc(176 / 836 * 100cqw) !important;
   background-color: #f4e6c6 !important;
   background-image: url("../../images/kundali_content_bg.png?v=377") !important;
   background-repeat: no-repeat !important;
