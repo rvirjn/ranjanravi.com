@@ -350,7 +350,7 @@
     return payload;
   }
 
-  async function register(name, mobile, email, password, confirmPassword, lifeEvents) {
+  async function register(name, mobile, email, password, confirmPassword) {
     const payload = await apiFetch(AC.API_AUTH_REGISTER_PATH, {
       method: "POST",
       body: JSON.stringify({
@@ -358,8 +358,7 @@
         mobile,
         email,
         password,
-        confirm_password: confirmPassword,
-        [AC.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates"]: lifeEvents
+        confirm_password: confirmPassword
       })
     });
     setSession(payload.token, payload.user);

@@ -117,14 +117,13 @@
     return validateMobileNumber(mobile) || validatePasswordValue(password);
   }
 
-  function validateRegisterInput(name, mobile, email, password, confirmPassword, lifeEvents) {
+  function validateRegisterInput(name, mobile, email, password, confirmPassword) {
     return (
       validatePersonName(name) ||
       validateMobileNumber(mobile) ||
       validateEmailAddress(email) ||
       validatePasswordValue(password) ||
-      (String(password) !== String(confirmPassword) ? "Passwords do not match." : null) ||
-      validateLifeEvents(lifeEvents)
+      (String(password) !== String(confirmPassword) ? "Passwords do not match." : null)
     );
   }
 
@@ -275,16 +274,13 @@
       el.placeholder = t("form.customPlaceholder");
     });
     const lifeMax = Number(AC.MAX_LIFE_EVENTS_LENGTH) || 2000;
-    scope.querySelectorAll("#auth-modal-reg-life-events, #profile-life-events").forEach((el) => {
+    scope.querySelectorAll("#profile-life-events").forEach((el) => {
       el.maxLength = lifeMax;
       el.placeholder = AC.LIFE_EVENTS_PLACEHOLDER || el.placeholder;
     });
     const lifeLabel = AC.LIFE_EVENTS_LABEL || "Give 3 major life events with dates";
     scope.querySelectorAll("label[for='profile-life-events']").forEach((el) => {
       el.textContent = lifeLabel;
-    });
-    scope.querySelectorAll("label[for='auth-modal-reg-life-events']").forEach((el) => {
-      el.textContent = `${lifeLabel} (optional)`;
     });
     scope.querySelectorAll(
       'input[type="password"][minlength], #profile-current-password, #profile-new-password, #profile-confirm-password, #profile-delete-password, #auth-modal-login-password, #auth-modal-reg-password, #auth-modal-reg-password-confirm'

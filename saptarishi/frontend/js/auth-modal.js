@@ -100,10 +100,6 @@
               <label for="auth-modal-reg-password-confirm" data-i18n="auth.confirmPassword">Confirm password</label>
               <input type="password" id="auth-modal-reg-password-confirm" name="confirm-password" autocomplete="new-password" required minlength="4" placeholder="Re-enter password" data-i18n-placeholder="auth.confirmPh" />
             </div>
-            <div class="form-field form-field--life-events">
-              <label for="auth-modal-reg-life-events" data-i18n="auth.lifeOptional">Give 3 major life events with dates (optional)</label>
-              <textarea id="auth-modal-reg-life-events" name="life_events" rows="10" maxlength="2000"></textarea>
-            </div>
             <div class="form-field form-field--submit">
               <button type="submit" data-i18n="auth.create">Create account</button>
             </div>
@@ -178,9 +174,8 @@
       const email = overlay.querySelector("#auth-modal-reg-email").value;
       const password = overlay.querySelector("#auth-modal-reg-password").value;
       const confirmPassword = overlay.querySelector("#auth-modal-reg-password-confirm").value;
-      const lifeEvents = overlay.querySelector("#auth-modal-reg-life-events").value;
       const registerError = formUtils().validateRegisterInput
-        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword, lifeEvents)
+        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword)
         : password !== confirmPassword
           ? "Passwords do not match."
           : null;
@@ -190,7 +185,7 @@
       }
       startAuthLoading();
       try {
-        await AUTH.register(name, mobile, email, password, confirmPassword, lifeEvents);
+        await AUTH.register(name, mobile, email, password, confirmPassword);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
