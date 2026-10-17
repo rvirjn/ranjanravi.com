@@ -586,15 +586,15 @@
         <nav class="site-drawer__nav" aria-label="Pages">
           <a href="${navHref("kundali.html")}" class="site-drawer__link" data-page="kundali">
             ${drawerIcon('<circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18"></path>')}
-            <span data-i18n="nav.kundali">Kundali</span>
+            <span data-i18n="nav.kundali">Full Kundali</span>
           </a>
           <a href="${navHref("remedy.html")}" class="site-drawer__link" data-page="remedy">
             ${drawerIcon('<path d="M5 19c8-1 14-8 14-15-7 1-14 6-14 15z"></path><path d="M8 14c2.2-2 5.2-4.2 9-5.2"></path>')}
-            <span data-i18n="nav.remedy">Remedy</span>
+            <span data-i18n="nav.remedy">Only Remedy</span>
           </a>
           <a href="${navHref("future.html")}" class="site-drawer__link" data-page="future">
             ${drawerIcon('<path d="M5 19l7-14 7 14"></path><path d="M8.5 13h7"></path>')}
-            <span data-i18n="nav.prediction">Prediction</span>
+            <span data-i18n="nav.prediction">Timeline</span>
           </a>
           <a href="${navHref("auspicious.html")}" class="site-drawer__link" data-page="auspicious">
             ${drawerIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 10h17"></path>')}
@@ -657,14 +657,13 @@
         <a href="${navHref("kundali.html")}" class="site-header__logo">Saptarishi</a>
       </div>
       <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
-        <a href="${navHref("kundali.html")}" class="site-header__link" data-i18n="nav.kundali">Kundali</a>
-        <a href="${navHref("remedy.html")}" class="site-header__link" data-i18n="nav.remedy">Remedy</a>
-        <a href="${navHref("future.html")}" class="site-header__link" data-i18n="nav.prediction">Prediction</a>
+        <a href="${navHref("kundali.html")}" class="site-header__link" data-i18n="nav.kundali">Full Kundali</a>
+        <a href="${navHref("remedy.html")}" class="site-header__link" data-i18n="nav.remedy">Only Remedy</a>
+        <a href="${navHref("future.html")}" class="site-header__link" data-i18n="nav.prediction">Timeline</a>
         <a href="${navHref("auspicious.html")}" class="site-header__link" data-i18n="nav.muhurta">Muhurta</a>
       </nav>
       <div class="site-header__meta">
         <span class="site-header__usage" hidden></span>
-        <button type="button" id="site-wallet-btn" class="site-header__wallet" hidden data-i18n-title="header.wallet" title="Wallet">₹0</button>
         <div class="site-header__account" id="site-account-menu" hidden>
           <a href="${navHref("profile.html")}" id="site-account-btn" class="site-header__account-btn" title="Profile">
             <span id="site-account-name">Account</span>
@@ -695,26 +694,11 @@
     const resolvedUser = resolveHeaderUser(user);
     const displayUsage = usage || resolvedUser || (AUTH ? AUTH.getUsage() : null);
     const usageEl = header.querySelector(".site-header__usage");
-    const walletBtn = header.querySelector("#site-wallet-btn");
     const accountMenu = header.querySelector("#site-account-menu");
     const accountBtn = header.querySelector("#site-account-btn");
     const accountName = header.querySelector("#site-account-name");
     const registerBtn = header.querySelector("#site-register-btn");
     const loginBtn = header.querySelector("#site-login-btn");
-
-    if (walletBtn) {
-      if (resolvedUser) {
-        const bal =
-          AUTH && AUTH.getWalletBalance
-            ? AUTH.getWalletBalance(displayUsage || resolvedUser)
-            : Number(displayUsage?.wallet_balance_inr) || 0;
-        walletBtn.textContent = `₹${bal}`;
-        walletBtn.hidden = false;
-        walletBtn.title = t("header.wallet");
-      } else {
-        walletBtn.hidden = true;
-      }
-    }
 
     if (resolvedUser) {
       if (accountMenu) accountMenu.hidden = false;
@@ -1000,20 +984,8 @@
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
     const registerBtn = header.querySelector("#site-register-btn");
-    const walletBtn = header.querySelector("#site-wallet-btn");
     const accountMenu = header.querySelector("#site-account-menu");
     const accountBtn = header.querySelector("#site-account-btn");
-
-    if (walletBtn) {
-      walletBtn.addEventListener("click", () => {
-        if (AUTH.openWalletFlow) {
-          AUTH.openWalletFlow({ required: true });
-          return;
-        }
-        const modal = global.SaptarishiWalletModal;
-        if (modal && modal.open) modal.open();
-      });
-    }
 
     if (registerBtn) {
       registerBtn.addEventListener("click", () => {
@@ -2836,6 +2808,14 @@
     return window.matchMedia("(max-width: 980px), (pointer: coarse) and (max-width: 1200px)").matches;
   }
 
+  function gestureOnChart(event) {
+    if (document.documentElement.classList.contains("kundali-chart-pinch-open")) return true;
+    var node = event.target;
+    if (!node || typeof node.closest !== "function") node = node && node.parentElement;
+    if (!node || typeof node.closest !== "function") return false;
+    return Boolean(node.closest(".kundali-chart-svg, .kundali-chart-host, .kundali-chart-pinch"));
+  }
+
   function fingerDist(touches) {
     var dx = touches[0].clientX - touches[1].clientX;
     var dy = touches[0].clientY - touches[1].clientY;
@@ -2886,7 +2866,7 @@
   document.addEventListener(
     "touchstart",
     function (event) {
-      if (!allowPinchZoom() || event.touches.length !== 2) return;
+      if (!allowPinchZoom() || event.touches.length !== 2 || gestureOnChart(event)) return;
       var mid = fingerMid(event.touches);
       pinching = true;
       startDist = fingerDist(event.touches) || 1;
@@ -2928,6 +2908,7 @@
     if (!allowPinchZoom() && scale !== 1) resetZoom();
   });
   window.addEventListener("beforeprint", resetZoom);
+  window.SaptarishiPinchZoom = { reset: resetZoom };
 
   document.addEventListener(
     "gesturestart",

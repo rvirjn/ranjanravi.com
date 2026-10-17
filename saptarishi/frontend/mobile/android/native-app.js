@@ -449,11 +449,6 @@
     return (user && (user.name || user.mobile)) || "";
   }
 
-  function walletBalance() {
-    if (AUTH && AUTH.getWalletBalance) return AUTH.getWalletBalance();
-    return 0;
-  }
-
   function rebuildHeader() {
     let header = document.querySelector(".site-header");
     if (!header) {
@@ -467,7 +462,6 @@
       <button type="button" class="app-menu-btn" id="app-menu-btn" aria-label="Open menu">${ICONS.menu}</button>
       <a class="app-brand" href="${brandHref}">SAPTARISHI</a>
       <div class="site-header__meta">
-        <button type="button" id="site-wallet-btn" class="site-header__wallet app-wallet" hidden title="Wallet">${ICONS.wallet}<span class="app-wallet__amt">₹0</span></button>
         <button type="button" class="app-avatar" id="app-profile-btn" aria-label="Select Birth details">IN</button>
         <a href="${pageHref("profile.html")}" class="site-header__link site-header__profile" id="site-profile-link" data-i18n="nav.profile" hidden>Profile</a>
         <button type="button" id="site-login-btn" class="site-header__login" data-i18n="header.login" hidden>Login</button>
@@ -475,12 +469,6 @@
         <button type="button" id="site-lang-btn" class="site-header__lang" aria-label="Switch to Hindi">हिं</button>
       </div>
     `;
-    const walletBtn = header.querySelector("#site-wallet-btn");
-    if (walletBtn) {
-      walletBtn.addEventListener("click", () => {
-        if (AUTH && AUTH.openWalletFlow) AUTH.openWalletFlow();
-      });
-    }
     header.querySelector("#app-menu-btn")?.addEventListener("click", openDrawer);
     header.querySelector("#app-profile-btn")?.addEventListener("click", async () => {
       if (!AUTH) return;
@@ -500,21 +488,10 @@
     const header = document.querySelector(".site-header");
     if (!header) return;
     const user = AUTH ? AUTH.getUser() : null;
-    const walletBtn = header.querySelector("#site-wallet-btn");
     const avatar = header.querySelector("#app-profile-btn");
     const loginBtn = header.querySelector("#site-login-btn");
     const logoutBtn = header.querySelector("#site-logout-btn");
     const profileLink = header.querySelector("#site-profile-link");
-    if (walletBtn) {
-      if (user) {
-        walletBtn.hidden = false;
-        const amt = walletBtn.querySelector(".app-wallet__amt");
-        if (amt) amt.textContent = `₹${walletBalance()}`;
-        else walletBtn.innerHTML = `${ICONS.wallet}<span class="app-wallet__amt">₹${walletBalance()}</span>`;
-      } else {
-        walletBtn.hidden = true;
-      }
-    }
     if (avatar) {
       const chart = getActiveChart();
       const chartName = String(chart?.name || "").trim();
@@ -1566,17 +1543,17 @@
       <div class="app-service-grid">
         <a class="app-service app-service--dark" data-app-screen="kundali" href="${screenHref("kundali")}">
           <svg viewBox="0 0 24 24"><path d="M12 3.5 13.2 8.2 18 7.4 14.4 11 18 14.8l-4.8-.8L12 20.5l-1.2-6.5-4.8.8L9.6 11 6 7.4l4.8.8z"/></svg>
-          <strong>Kundali</strong>
+          <strong>Full Kundali</strong>
           <span>Open birth chart</span>
         </a>
         <a class="app-service" href="${pageHref("remedy.html")}">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M8 12h8M12 8c2 1.4 2 6.6 0 8-2-1.4-2-6.6 0-8z"/></svg>
-          <strong>Remedy</strong>
+          <strong>Only Remedy</strong>
           <span>Planet support</span>
         </a>
         <a class="app-service" href="${pageHref("future.html")}">
           <svg viewBox="0 0 24 24"><path d="M5 19l7-14 7 14"/><path d="M8.5 13h7"/></svg>
-          <strong>Prediction</strong>
+          <strong>Timeline</strong>
           <span>Career, marriage, wealth</span>
         </a>
         <a class="app-service" href="${pageHref("auspicious.html")}">

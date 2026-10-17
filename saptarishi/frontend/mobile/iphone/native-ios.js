@@ -110,9 +110,9 @@
     if (!dock || dock.dataset.iosDock === "1") return;
     const page = currentScreen();
     const tabs = [
-      ["kundali", "Kundali", "kundali.html"],
-      ["remedy", "Remedy", "remedy.html"],
-      ["future", "Prediction", "future.html"],
+      ["kundali", "Full Kundali", "kundali.html"],
+      ["remedy", "Only Remedy", "remedy.html"],
+      ["future", "Timeline", "future.html"],
       ["auspicious", "Muhurta", "auspicious.html"]
     ];
     dock.innerHTML = tabs
@@ -199,9 +199,9 @@
     const scroll = document.querySelector("#app-drawer .app-drawer-scroll");
     if (!scroll || scroll.dataset.iosMenu === "1") return;
     const items = [
-      ["kundali.html", "Kundali"],
-      ["remedy.html", "Remedy"],
-      ["future.html", "Prediction"],
+      ["kundali.html", "Full Kundali"],
+      ["remedy.html", "Only Remedy"],
+      ["future.html", "Timeline"],
       ["auspicious.html", "Muhurta"],
       ["profile.html", "Profile"],
       ["privacy.html", "Privacy"]

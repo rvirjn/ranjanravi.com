@@ -193,28 +193,6 @@ html.saptarishi-native-app .site-header.app-topbar .site-header__meta {
   justify-content: flex-end;
 }
 
-html.saptarishi-native-app #site-wallet-btn.site-header__wallet,
-html.saptarishi-native-app #site-wallet-btn.app-wallet {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 0.28rem;
-  min-height: 2.05rem;
-  padding: 0.28rem 0.7rem 0.28rem 0.55rem;
-  border: none;
-  border-radius: 999px;
-  background: #fff;
-  color: var(--app-brown);
-  font-family: var(--app-font);
-  font-size: 0.88rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(61, 42, 20, 0.1);
-  cursor: pointer;
-}
-
-html.saptarishi-native-app #site-wallet-btn.site-header__wallet[hidden] {
-  display: none !important;
-}
-
 html.saptarishi-native-app .app-wallet__icon {
   width: 1rem;
   height: 1rem;

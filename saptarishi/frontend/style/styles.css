@@ -4738,8 +4738,7 @@ body.user-notes-open {
 
 .site-header__login[hidden],
 .site-header__logout[hidden],
-.site-header__premium[hidden],
-.site-header__wallet[hidden] {
+.site-header__premium[hidden] {
   display: none !important;
 }
 
@@ -5376,21 +5375,6 @@ body.auth-modal-open {
 
 .site-header__premium:hover {
   background: #fff3cc;
-}
-
-.site-header__wallet {
-  padding: 0.35rem 0.7rem;
-  border: 1px solid #c4a574;
-  border-radius: 999px;
-  background: #fffaf2;
-  color: #5c3d1e;
-  cursor: pointer;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.site-header__wallet:hover {
-  background: #fff3e0;
 }
 
 .site-header__lang {
@@ -7563,5 +7547,70 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body {
     touch-action: pan-x pan-y;
   }
+}
+
+/* Phone: pinch a chart to read planet symbols and degrees. */
+.kundali-chart-pinch {
+  position: fixed;
+  inset: 0;
+  z-index: 1450;
+  background: rgba(255, 248, 220, 0.98);
+  touch-action: none;
+  overflow: hidden;
+}
+
+.kundali-chart-pinch[hidden] {
+  display: none !important;
+}
+
+.kundali-chart-pinch__stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.kundali-chart-pinch__stage .kundali-chart-svg {
+  width: min(96vw, 96vh);
+  height: min(96vw, 96vh);
+  width: min(96vw, 96dvh);
+  height: min(96vw, 96dvh);
+  max-width: none;
+  max-height: none;
+  background: #fffef8;
+  box-shadow: 0 10px 32px rgba(61, 42, 20, 0.16);
+  transform-origin: center center;
+}
+
+.kundali-chart-pinch__close {
+  position: absolute;
+  top: max(0.55rem, env(safe-area-inset-top));
+  right: 0.65rem;
+  z-index: 2;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: none;
+  border-radius: 999px;
+  background: #4a371f;
+  color: #fffef8;
+  font-size: 1.55rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.kundali-chart-pinch__hint {
+  position: absolute;
+  left: 0.8rem;
+  right: 3.4rem;
+  top: max(0.85rem, env(safe-area-inset-top));
+  z-index: 2;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: #6b5235;
+  pointer-events: none;
 }
 

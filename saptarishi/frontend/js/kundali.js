@@ -7754,6 +7754,260 @@ window.SaptarishiKundaliPage = {
   refreshSavedViews: refreshKundaliSavedViews
 };
 
+/**
+ * Phone pinch on a chart box. Opens that chart large enough to read the
+ * planet symbols and degrees, then pinch further and drag to a house.
+ */
+function installKundaliChartPinch() {
+  if (document.documentElement.dataset.chartPinchBound === "1") return;
+  document.documentElement.dataset.chartPinchBound = "1";
+
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 6;
+  let overlay = null;
+  let stage = null;
+  let svgEl = null;
+  let open = false;
+  let scale = 1;
+  let tx = 0;
+  let ty = 0;
+  let box = 0;
+  let pinching = false;
+  let panning = false;
+  let startDist = 0;
+  let startScale = 1;
+  let focusX = 50;
+  let focusY = 50;
+  let panX = 0;
+  let panY = 0;
+  let panTx = 0;
+  let panTy = 0;
+  let swallowClick = false;
+  let swallowTimer = 0;
+
+  function allow() {
+    const root = document.documentElement;
+    if (root.classList.contains("saptarishi-native-app") || root.classList.contains("saptarishi-native-ios")) {
+      return true;
+    }
+    return window.matchMedia("(max-width: 980px), (pointer: coarse) and (max-width: 1200px)").matches;
+  }
+
+  function ensureOverlay() {
+    if (overlay) return overlay;
+    overlay = document.createElement("div");
+    overlay.className = "kundali-chart-pinch";
+    overlay.hidden = true;
+    overlay.innerHTML =
+      '<p class="kundali-chart-pinch__hint">Pinch to read planets and degrees · drag to move</p>' +
+      '<button type="button" class="kundali-chart-pinch__close" aria-label="Close chart">×</button>' +
+      '<div class="kundali-chart-pinch__stage"></div>';
+    document.body.appendChild(overlay);
+    stage = overlay.querySelector(".kundali-chart-pinch__stage");
+    overlay.querySelector(".kundali-chart-pinch__close")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeReader();
+    });
+    return overlay;
+  }
+
+  function chartBoxSize() {
+    return Math.min(window.innerWidth, window.innerHeight) * 0.96;
+  }
+
+  function readableOpenScale() {
+    const degreeAtOne = chartBoxSize() * (6 / 300);
+    if (!degreeAtOne) return 2.6;
+    return Math.min(3.4, Math.max(2.3, 22 / degreeAtOne));
+  }
+
+  function applyTransform() {
+    if (!svgEl) return;
+    const limit = (box * scale) / 2;
+    tx = Math.max(-limit, Math.min(limit, tx));
+    ty = Math.max(-limit, Math.min(limit, ty));
+    svgEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+
+  function placeFocus(nextScale, clientX, clientY) {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
+    tx = clientX - cx - ((focusX - 50) / 100) * box * scale;
+    ty = clientY - cy - ((focusY - 50) / 100) * box * scale;
+    applyTransform();
+  }
+
+  function svgUserPoint(svg, clientX, clientY) {
+    const ctm = svg.getScreenCTM?.();
+    if (!ctm) return { x: 50, y: 50 };
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const mapped = pt.matrixTransform(ctm.inverse());
+    const x = Number.isFinite(mapped.x) ? mapped.x : 50;
+    const y = Number.isFinite(mapped.y) ? mapped.y : 50;
+    return {
+      x: Math.min(100, Math.max(0, x)),
+      y: Math.min(100, Math.max(0, y))
+    };
+  }
+
+  function sourceSvg(event) {
+    const node = event.target instanceof Element ? event.target : event.target?.parentElement;
+    if (!node?.closest) return null;
+    if (node.closest(".kundali-chart-pinch")) return null;
+    const direct = node.closest(".kundali-chart-svg");
+    if (direct) return direct;
+    const host = node.closest(".kundali-chart-host, #kundali-chart, [id$='-kundali-chart']");
+    return host?.querySelector?.(".kundali-chart-svg") || null;
+  }
+
+  function closeReader() {
+    open = false;
+    pinching = false;
+    panning = false;
+    scale = 1;
+    tx = 0;
+    ty = 0;
+    document.documentElement.classList.remove("kundali-chart-pinch-open");
+    document.body.classList.remove("kundali-chart-pinch-open");
+    if (overlay) overlay.hidden = true;
+    if (stage) stage.replaceChildren();
+    svgEl = null;
+  }
+
+  function openReader(source, user, clientX, clientY) {
+    ensureOverlay();
+    if (window.SaptarishiPinchZoom && typeof window.SaptarishiPinchZoom.reset === "function") {
+      window.SaptarishiPinchZoom.reset();
+    }
+    stage.replaceChildren();
+    const copy = source.cloneNode(true);
+    copy.removeAttribute("id");
+    copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    copy.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    copy.style.width = "";
+    copy.style.height = "";
+    copy.style.transform = "";
+    stage.appendChild(copy);
+    svgEl = copy;
+    box = chartBoxSize();
+    focusX = user.x;
+    focusY = user.y;
+    overlay.hidden = false;
+    open = true;
+    document.documentElement.classList.add("kundali-chart-pinch-open");
+    document.body.classList.add("kundali-chart-pinch-open");
+    placeFocus(readableOpenScale(), clientX, clientY);
+  }
+
+  function fingerDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy) || 1;
+  }
+
+  function fingerMid(touches) {
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+  }
+
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      if (!allow() || !event.touches) return;
+      if (event.touches.length === 2) {
+        const mid = fingerMid(event.touches);
+        if (open) {
+          pinching = true;
+          panning = false;
+          startDist = fingerDist(event.touches);
+          startScale = scale;
+          const user = svgEl ? svgUserPoint(svgEl, mid.x, mid.y) : { x: focusX, y: focusY };
+          focusX = user.x;
+          focusY = user.y;
+          if (event.cancelable) event.preventDefault();
+          return;
+        }
+        const svg = sourceSvg(event);
+        if (!svg) return;
+        swallowClick = true;
+        window.clearTimeout(swallowTimer);
+        swallowTimer = window.setTimeout(() => {
+          swallowClick = false;
+        }, 500);
+        const user = svgUserPoint(svg, mid.x, mid.y);
+        openReader(svg, user, mid.x, mid.y);
+        pinching = true;
+        panning = false;
+        startDist = fingerDist(event.touches);
+        startScale = scale;
+        if (event.cancelable) event.preventDefault();
+        return;
+      }
+      if (open && event.touches.length === 1) {
+        panning = true;
+        pinching = false;
+        panX = event.touches[0].clientX;
+        panY = event.touches[0].clientY;
+        panTx = tx;
+        panTy = ty;
+        if (event.cancelable) event.preventDefault();
+      }
+    },
+    { capture: true, passive: false }
+  );
+
+  document.addEventListener(
+    "touchmove",
+    (event) => {
+      if (!open) return;
+      if (pinching && event.touches.length === 2) {
+        if (event.cancelable) event.preventDefault();
+        const mid = fingerMid(event.touches);
+        const next = startScale * (fingerDist(event.touches) / startDist);
+        placeFocus(next, mid.x, mid.y);
+        return;
+      }
+      if (panning && event.touches.length === 1) {
+        if (event.cancelable) event.preventDefault();
+        tx = panTx + (event.touches[0].clientX - panX);
+        ty = panTy + (event.touches[0].clientY - panY);
+        applyTransform();
+      }
+    },
+    { capture: true, passive: false }
+  );
+
+  function endGesture(event) {
+    if (event.touches && event.touches.length >= 2) return;
+    pinching = false;
+    if (!event.touches || event.touches.length === 0) panning = false;
+  }
+
+  document.addEventListener("touchend", endGesture, { capture: true, passive: true });
+  document.addEventListener("touchcancel", endGesture, { capture: true, passive: true });
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!swallowClick) return;
+      swallowClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    true
+  );
+  document.addEventListener("keydown", (event) => {
+    if (open && event.key === "Escape") closeReader();
+  });
+}
+
+installKundaliChartPinch();
+
 document.addEventListener("saptarishi-lang-change", () => {
   const openQaKey = kundaliQaPopoverState.openKey;
   const openQaTrigger = kundaliQaPopoverState.trigger;
