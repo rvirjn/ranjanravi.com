@@ -7239,8 +7239,17 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
     top: 0.4rem;
-    margin-top: calc(1700 / 836 * 100cqw);
+    /* Overlap the letterhead by a few pixels so the join does not gap.
+       Shift by the same crop as the letterhead so the outer edge and
+       thickness match the first page. */
+    margin-top: calc((1700 - 8) / 836 * 100cqw);
     bottom: calc(152 / 836 * 100cqw);
+    background-repeat: repeat-y, repeat-y;
+    /* Tile pixel 0 sits on image x=0. The right tile's right edge
+       sits on image x=916, so both outer edges match the letterhead. */
+    background-position:
+      calc(-40 / 836 * 100cqw) 0,
+      calc(700 / 836 * 100cqw) 0;
     background-size: calc(176 / 836 * 100cqw) auto, calc(176 / 836 * 100cqw) auto;
   }
 
