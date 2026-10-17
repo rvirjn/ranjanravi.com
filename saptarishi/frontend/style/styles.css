@@ -7555,3 +7555,13 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 }
 
+/* Phone and tablet: two-finger zoom is handled in common.js.
+   Leaving pinch to the browser as well would scale the page twice.
+   Desktop trackpad and Ctrl-wheel zoom stay on the browser. */
+@media (max-width: 980px), ((pointer: coarse) and (max-width: 1200px)) {
+  html,
+  body {
+    touch-action: pan-x pan-y;
+  }
+}
+

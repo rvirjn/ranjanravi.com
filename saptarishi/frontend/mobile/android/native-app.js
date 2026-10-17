@@ -1020,10 +1020,17 @@
     const hero = root.querySelector(".app-hero");
     if (hero) {
       let startX = 0;
+      let multiTouch = false;
       hero.addEventListener("touchstart", (event) => {
+        if (event.touches.length > 1) {
+          multiTouch = true;
+          return;
+        }
+        multiTouch = false;
         startX = event.changedTouches[0]?.clientX || 0;
       }, { passive: true });
       hero.addEventListener("touchend", (event) => {
+        if (multiTouch || event.touches.length > 0) return;
         const x = event.changedTouches[0]?.clientX || 0;
         if (x - startX > 40) slide = (slide + slides.length - 1) % slides.length;
         else if (startX - x > 40) slide = (slide + 1) % slides.length;

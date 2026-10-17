@@ -264,6 +264,13 @@
     communication: "संवाद",
     "short travel": "अल्प यात्रा",
     writing: "लेखन",
+    "writing and transactions": "लेखन और लेनदेन",
+    transactions: "लेनदेन",
+    disputes: "विवाद",
+    "vehicles and disputes": "वाहन और विवाद",
+    spending: "खर्च",
+    "relationships and spending": "संबंध और खर्च",
+    "religious and money decisions": "धार्मिक और धन के निर्णय",
     skills: "कौशल",
     skill: "कौशल",
     enemies: "शत्रु",
@@ -856,6 +863,7 @@
     "happiness in marriage, vehicles and property, and recognition in art, entertainment, fashion, or beauty": "विवाह में सुख, वाहन और संपत्ति, और कला, मनोरंजन, फैशन या सौंदर्य में पहचान मिलती है।",
     "marital discord, health loss from excess, diabetes or urinary trouble, and ups and downs in an art business": "वैवाहिक कलह, अति से स्वास्थ्य हानि, मधुमेह या मूत्र रोग, और कला-व्यापार में उतार-चढ़ाव होता है।",
     "foreign travel, politics, media, technology, and a sudden large gain": "विदेश यात्रा, राजनीति, मीडिया, तकनीक, और अचानक बड़ा लाभ मिलता है।",
+    "when rahu is in house 3, 6, 10, or 11, or joined with a benefic": "जब राहु भाव 3, 6, 10 या 11 में हो, या शुभ ग्रह के साथ हो",
     "when rahu is in house 3, 6, 10, or 11, or joined with a benefic: foreign travel, politics, media, technology, and a sudden large gain": "जब राहु भाव 3, 6, 10 या 11 में हो, या शुभ ग्रह के साथ हो: विदेश यात्रा, राजनीति, मीडिया, तकनीक, और अचानक बड़ा लाभ मिलता है।",
     "illusion, addiction, fraud and lawsuits, disgrace, insomnia, and fear": "भ्रम, लत, छल और मुकदमे, अपयश, अनिद्रा, और भय रहता है।",
     "keep the ambition, and do not drop the ethical limit": "महत्वाकांक्षा रखें, और नैतिक सीमा न छोड़ें।",
@@ -950,7 +958,9 @@
     match = text.match(/^(.+?) during your (.+?) mahadasha(?: \(([^)]+)\))?(?:,\s*([^:]+))?:\s*(.+)$/i);
     if (match && !/^during\b/i.test(match[1])) {
       const span = match[3] ? ` (${yearPhrase(match[3])})` : "";
-      const condition = match[4] ? `${translateDashaClause(match[4])} ` : "";
+      const condition = match[4]
+        ? `${translateDashaClause(match[4]).replace(/[।:]\s*$/, "")}: `
+        : "";
       return `${match[1]}, आपकी ${replacePhrases(match[2])} की महादशा${span} में ${condition}${translateDashaClauses(match[5])}`;
     }
 
