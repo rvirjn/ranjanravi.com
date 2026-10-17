@@ -7834,6 +7834,13 @@ function installKundaliChartPinch() {
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight / 2;
     scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
+    if (scale <= 1.02) {
+      scale = 1;
+      tx = 0;
+      ty = 0;
+      applyTransform();
+      return;
+    }
     tx = clientX - cx - ((focusX - 50) / 100) * box * scale;
     ty = clientY - cy - ((focusY - 50) / 100) * box * scale;
     applyTransform();
@@ -7996,6 +8003,7 @@ function installKundaliChartPinch() {
     (event) => {
       if (!swallowClick) return;
       swallowClick = false;
+      if (event.target?.closest?.(".kundali-chart-pinch__close")) return;
       event.preventDefault();
       event.stopPropagation();
     },
