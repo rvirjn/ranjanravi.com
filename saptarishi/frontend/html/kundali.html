@@ -8,9 +8,9 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=357">
+  <link rel="stylesheet" href="../style/styles.css?v=379">
 </head>
-<body class="saptarishi-page">
+<body class="saptarishi-page kundali-page">
   <div id="saptarishi" class="container main-shell">
     <nav class="topic-crumb birth-change-nav" hidden aria-label="Kundali">
       <button type="button" class="auspicious-back birth-change-btn" data-i18n="form.changeBirth">← kundali : change birth</button>
@@ -143,18 +143,7 @@
         </div>
       </div>
 
-      <section class="planets-status-section" data-i18n-aria="kundali.sectionAria" aria-label="Planet and house status">
-      <div class="planets-status-block planets-status-block--planet">
-        <h2 class="result-heading" data-i18n="kundali.planetStatus">Planet Status</h2>
-        <div
-          id="planet-status-tiles"
-          class="house-planets-tiles planet-status-tiles"
-          role="group"
-          data-i18n-aria="kundali.planetsAria"
-          aria-label="Birth time planets by planet"
-          hidden
-        ></div>
-      </div>
+      <section class="planets-status-section" data-i18n-aria="kundali.housesAria" aria-label="House status">
       <div class="planets-status-block planets-status-block--house">
         <h2 class="result-heading" data-i18n="kundali.houseStatus">House Status</h2>
         <div
@@ -238,7 +227,7 @@
   <script src="../utils/i18n-qa.js?v=1"></script>
   <script src="../utils/common.js?v=108"></script>
   <script src="../js/ask-ai.js?v=17"></script>
-  <script src="../js/kundali.js?v=388"></script>
+  <script src="../js/kundali.js?v=393"></script>
   <script src="../js/lord-comparison.js?v=28"></script>
   <script src="../js/kundali-compare.js?v=21"></script>
 </body>

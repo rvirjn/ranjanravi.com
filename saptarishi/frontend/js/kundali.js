@@ -1873,9 +1873,11 @@ function chartPlanetExponentParts(entry) {
 const CHART_PLANET_EXPONENT_DY = "-2.05";
 const CHART_PLANET_EXPONENT_RESET_DY = "2.05";
 
-function appendChartPlanetExponent(textEl, entry) {
+function appendChartPlanetExponent(textEl, entry, exponentDy) {
   const parts = chartPlanetExponentParts(entry);
   if (!parts.length) return;
+  const up = exponentDy || CHART_PLANET_EXPONENT_DY;
+  const down = exponentDy ? String(Math.abs(Number(exponentDy))) : CHART_PLANET_EXPONENT_RESET_DY;
   parts.forEach((part, i) => {
     const el = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
     if (part.colorFromPlanet) {
@@ -1884,12 +1886,12 @@ function appendChartPlanetExponent(textEl, entry) {
     } else {
       el.setAttribute("class", part.className);
     }
-    if (i === 0) el.setAttribute("dy", CHART_PLANET_EXPONENT_DY);
+    if (i === 0) el.setAttribute("dy", up);
     el.textContent = part.text;
     textEl.appendChild(el);
   });
   const reset = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-  reset.setAttribute("dy", CHART_PLANET_EXPONENT_RESET_DY);
+  reset.setAttribute("dy", down);
   reset.textContent = "\u200b";
   textEl.appendChild(reset);
 }
@@ -1903,7 +1905,7 @@ function appendSittingPlanetTspans(textEl, entry, prefix, layout, options) {
   textEl.appendChild(label);
 
   if (!options.showHouseMarks) return;
-  appendChartPlanetExponent(textEl, entry);
+  appendChartPlanetExponent(textEl, entry, options.exponentDy);
 }
 
 /** Per-planet colored tspans; x/dy only on line/row starts (same layout as plain text rows). */
@@ -1915,11 +1917,12 @@ function appendColoredPlanetsToText(textEl, planets, anchorX, options = {}) {
     rowDy = showHouseMarks ? "1.2em" : "1.05em",
     gap = showHouseMarks ? "  " : " ",
     leadGap = false,
-    strengthMax
+    strengthMax,
+    exponentDy
   } = options;
   const list = planets || [];
   if (!list.length) return;
-  const planetOpts = { strengthMax, showHouseMarks };
+  const planetOpts = { strengthMax, showHouseMarks, exponentDy };
 
   if (rowMode) {
     const perRow = Math.max(1, Number(options.perRow) || 2);
@@ -3762,7 +3765,7 @@ function estimateAspectEyeHalfSize(aspectCount, crowded) {
 /**
  * Place the aspect eye clear of sitting planets / rashi labels (toward chart center / free corner).
  */
-function aspectClusterOriginForHouse(cell, sittingCount, aspectCount) {
+function aspectClusterOriginForHouse(cell, sittingCount, aspectCount, manuscriptFit) {
   const cx = cell.cx ?? 50;
   const cy = cell.cy ?? 50;
   const crowded = sittingCount > 0;
@@ -3833,6 +3836,27 @@ function aspectClusterOriginForHouse(cell, sittingCount, aspectCount) {
     default:
       y = cy + (crowded ? 8 : 5);
       break;
+  }
+
+  if (manuscriptFit) {
+    const pull = {
+      1: [0, 4],
+      2: [-4, -2],
+      3: [-2, 2],
+      4: [4, 0],
+      5: [-2, 1],
+      6: [-3, -4],
+      7: [0, -4],
+      8: [3, -4],
+      9: [2, 1],
+      10: [-4, 0],
+      11: [2, 2],
+      12: [4, -2]
+    }[cell.house];
+    if (pull) {
+      x += pull[0];
+      y += pull[1];
+    }
   }
 
   x = Math.min(96, Math.max(4, x));
@@ -3945,7 +3969,12 @@ function appendHouseAspectEyes(houseGroup, cell, planetOpts) {
   const aspects = cell.aspecting_planets || [];
   if (!aspects.length) return;
   const sittingCount = (cell.planets || []).length;
-  const origin = aspectClusterOriginForHouse(cell, sittingCount, aspects.length);
+  const origin = aspectClusterOriginForHouse(
+    cell,
+    sittingCount,
+    aspects.length,
+    planetOpts && planetOpts.manuscriptFit
+  );
   appendAspectEyeWithPlanets(houseGroup, aspects, origin.x, origin.y, {
     ...planetOpts,
     crowded: Boolean(origin.crowded)
@@ -4109,6 +4138,29 @@ function bindBirthLagnaHouseDetails(chartHost, payload) {
   });
 }
 
+/** Pull sitting labels off the printed lines into the open part of each house. */
+function nudgeManuscriptHouseLabel(house, cx, cy) {
+  const shift = {
+    1: [0, 8],
+    2: [-6, -1],
+    3: [-2, 5],
+    4: [9, -2],
+    5: [-1, 2],
+    6: [-5, -7],
+    7: [0, -8],
+    8: [5, -7],
+    9: [1, 2],
+    10: [-9, -2],
+    11: [2, 5],
+    12: [6, -1]
+  }[house];
+  if (!shift) return { x: cx, y: cy };
+  return {
+    x: Math.min(94, Math.max(6, cx + shift[0])),
+    y: Math.min(94, Math.max(6, cy + shift[1]))
+  };
+}
+
 function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}) {
   const host =
     typeof chartHost === "string" ? document.getElementById(chartHost) : chartHost;
@@ -4120,13 +4172,31 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
 
   const showHouseMarks = options.showHouseMarks !== false;
   const strengthMax = chartData.strength_max;
-  const planetOpts = { strengthMax, showHouseMarks };
+  const hostIdEarly = typeof chartHost === "string" ? chartHost : chartHost && chartHost.id;
+  const manuscriptFit =
+    hostIdEarly === "kundali-chart" &&
+    document.body &&
+    document.body.classList.contains("kundali-page");
+  const planetOpts = {
+    strengthMax,
+    showHouseMarks,
+    manuscriptFit,
+    exponentDy: manuscriptFit ? "-1.15" : undefined
+  };
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("class", "kundali-chart-svg");
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "North Indian kundali chart");
+  const hostId = typeof chartHost === "string" ? chartHost : chartHost && chartHost.id;
+  if (
+    hostId === "kundali-chart" &&
+    document.body &&
+    document.body.classList.contains("kundali-page")
+  ) {
+    svg.setAttribute("preserveAspectRatio", "none");
+  }
 
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   frame.setAttribute("x", "0");
@@ -4166,8 +4236,8 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
     g.setAttribute("class", "kundali-chart-house");
     if (cell.is_lagna_house) g.classList.add("kundali-chart-house--lagna");
 
-    const cx = cell.cx ?? 50;
-    const cy = cell.cy ?? 50;
+    let cx = cell.cx ?? 50;
+    let cy = cell.cy ?? 50;
     const housePlanets = cell.planets || [];
     const rowCount = Math.ceil(housePlanets.length / 2);
     const rashiNum = rashiNumberFromCell(cell);
@@ -4175,6 +4245,11 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
 
     // Draw aspect eye first (behind), then sitting planets on top.
     appendHouseAspectEyes(g, cell, planetOpts);
+    if (manuscriptFit) {
+      const nudged = nudgeManuscriptHouseLabel(cell.house, cx, cy);
+      cx = nudged.x;
+      cy = nudged.y;
+    }
 
     /** Houses 1, 2, 12 (top row): sign number up, planets below. */
     if (cell.house === 1 || cell.house === 2 || cell.house === 12) {
@@ -4189,13 +4264,19 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
         g.appendChild(plEl);
       }
     } else if (cell.house === 6 || cell.house === 8) {
-      /** Houses 6 & 8: sign up, planets down; 6 left, 8 right. */
-      const labelX = cell.house === 6 ? cx - 3 : cx + 3;
+      /** Houses 6 & 8: sign up, planets down; 6 left, 8 right.
+          On the wide printed chart the sign was landing on the diagonals
+          at the triangle tip, so sit it in the open middle instead. */
+      const labelX = manuscriptFit
+        ? (cell.house === 6 ? 26 : 74)
+        : (cell.house === 6 ? cx - 3 : cx + 3);
+      const signY = manuscriptFit ? 87 : cy - 1;
+      const planetY = manuscriptFit ? 93 : cy + 5;
       if (rashiNum != null) {
-        appendChartRashiNumber(g, labelX, cy - 1, rashiNum, cell);
+        appendChartRashiNumber(g, labelX, signY, rashiNum, cell);
       }
       if (housePlanets.length) {
-        const plEl = createPlanetTextEl(labelX, cy + 5, "middle", densePlanets);
+        const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
         appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
@@ -4425,25 +4506,7 @@ function createStandardKundaliPanelElement(options = {}) {
 
   const planetsSection = document.createElement("section");
   planetsSection.className = "planets-status-section";
-  planetsSection.setAttribute(
-    "aria-label",
-    `${KUNDALI_PLANET_STATUS_HEADING} and ${KUNDALI_HOUSE_STATUS_HEADING}`
-  );
-
-  const planetBlock = document.createElement("div");
-  planetBlock.className = "planets-status-block planets-status-block--planet";
-  planetBlock.appendChild(Object.assign(document.createElement("h2"), {
-    className: "result-heading",
-    textContent: KUNDALI_PLANET_STATUS_HEADING
-  }));
-  const planetTiles = document.createElement("div");
-  planetTiles.id = kundaliElementId(idPrefix, "planet-status-tiles");
-  planetTiles.className = "house-planets-tiles planet-status-tiles";
-  planetTiles.setAttribute("role", "group");
-  planetTiles.setAttribute("aria-label", "Birth time planets by planet");
-  planetTiles.hidden = true;
-  planetBlock.appendChild(planetTiles);
-  planetsSection.appendChild(planetBlock);
+  planetsSection.setAttribute("aria-label", KUNDALI_HOUSE_STATUS_HEADING);
 
   const houseBlock = document.createElement("div");
   houseBlock.className = "planets-status-block planets-status-block--house";
@@ -4598,13 +4661,10 @@ function renderMainKundaliChart(key) {
   if (!host || !mainChartPickerPayload) return;
   const picked = chartSourceForMainSelection(mainChartPickerPayload, key);
   if (!picked) return;
-  const isBirth = String(key || "birth").trim().toLowerCase() === "birth";
   renderKundaliChart(buildNorthIndianChartFromPayload(picked.source), host, {
-    houseHits: isBirth
+    houseHits: false
   });
-  bindKundaliChartZoom(host, picked.source, picked.title);
-  if (isBirth) bindBirthLagnaHouseDetails(host, mainChartPickerPayload);
-  else hideBirthChartHouseDetail(host);
+  hideBirthChartHouseDetail(host);
   if (select) select.title = picked.title;
 }
 
