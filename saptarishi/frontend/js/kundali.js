@@ -3137,7 +3137,13 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
     pct.textContent = strengthText;
     pctWrap.appendChild(pct);
     const equation = formatHouseStatusStrengthBreakdown(rows);
-    if (equation) pctWrap.appendChild(createHouseStrengthInfoButton(equation));
+    if (equation) {
+      pctWrap.appendChild(createHouseStrengthInfoButton(equation));
+      const printed = document.createElement("span");
+      printed.className = "house-planets-sheet__calc-print";
+      printed.textContent = equation;
+      pctWrap.appendChild(printed);
+    }
     head.appendChild(pctWrap);
   }
 
@@ -7626,6 +7632,25 @@ function bindSummaryNestedScroll() {
 
 bindSummaryNestedScroll();
 
+function kundaliPdfTitle() {
+  const named = String(birthName?.value || "").trim();
+  if (named) return `${named} Kundali`;
+  const summaryName = document.querySelector("#summary-table tbody tr");
+  const text = String(summaryName?.textContent || "").replace(/\s+/g, " ").trim();
+  return text ? `Kundali ${text.slice(0, 80)}` : "Kundali";
+}
+
+function downloadKundaliPdf() {
+  const previousTitle = document.title;
+  document.title = kundaliPdfTitle();
+  const cleanup = () => {
+    document.title = previousTitle;
+    window.removeEventListener("afterprint", cleanup);
+  };
+  window.addEventListener("afterprint", cleanup);
+  window.print();
+}
+
 if (document.getElementById("birth-form")) {
   if (placePreset) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
@@ -7650,6 +7675,10 @@ if (document.getElementById("birth-form")) {
     savedKundaliSearch.addEventListener("keydown", (event) => {
       if (event.key === "Enter") event.preventDefault();
     });
+  }
+  const downloadPdfBtn = document.getElementById("kundali-download-pdf");
+  if (downloadPdfBtn) {
+    downloadPdfBtn.addEventListener("click", downloadKundaliPdf);
   }
   setKundaliMode("new");
   refreshKundaliSavedViews();

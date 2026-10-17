@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Kundali by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=388">
+  <link rel="stylesheet" href="../style/styles.css?v=394">
 </head>
 <body class="saptarishi-page kundali-page">
   <div id="saptarishi" class="container main-shell">
@@ -200,6 +200,10 @@
         <div id="kundali-next-dasha-list" class="remedy-navatara-buttons kundali-yog-buttons" role="group" data-i18n-aria="kundali.nextDasha" aria-label="Your next mahadasha" hidden></div>
       </section>
 
+      <div class="kundali-pdf-bar">
+        <button type="button" id="kundali-download-pdf" class="kundali-pdf-btn" data-i18n="kundali.downloadPdf">Download whole kundali PDF</button>
+      </div>
+
       </div>
 
       <div id="lord-comparison-section" hidden>
@@ -212,6 +216,7 @@
         </div>
       </div>
     </div>
+    <div class="kundali-print-closer" aria-hidden="true"></div>
   </div>
 
   <script src="../utils/constant.js?v=86"></script>
@@ -220,7 +225,7 @@
   <script src="../js/auth-modal.js?v=28"></script>
   <script src="../js/premium-modal.js?v=13"></script>
   <script src="../js/wallet-modal.js?v=24"></script>
-  <script src="../utils/i18n.js?v=6"></script>
+  <script src="../utils/i18n.js?v=8"></script>
   <script src="../utils/i18n-chart.js?v=8"></script>
   <script src="../utils/i18n-desc.js?v=1"></script>
   <script src="../utils/i18n-remedy.js?v=3"></script>
@@ -229,7 +234,7 @@
   <script src="../utils/i18n-qa.js?v=1"></script>
   <script src="../utils/common.js?v=108"></script>
   <script src="../js/ask-ai.js?v=17"></script>
-  <script src="../js/kundali.js?v=400"></script>
+  <script src="../js/kundali.js?v=401"></script>
   <script src="../js/lord-comparison.js?v=28"></script>
   <script src="../js/kundali-compare.js?v=21"></script>
 </body>

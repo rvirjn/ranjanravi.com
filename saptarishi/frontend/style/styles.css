@@ -7192,3 +7192,185 @@ body.kundali-page:has(#birth-form[hidden]) #kundali-chart text {
   transform: scale(0.58, 1.29);
 }
 
+.kundali-pdf-bar {
+  margin: 1.75rem 0 0.25rem;
+  text-align: center;
+}
+
+.kundali-pdf-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.65rem 1.45rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary, #1e3a5f);
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kundali-pdf-btn:hover {
+  background: var(--color-primary-hover, #163054);
+}
+
+.house-planets-sheet__calc-print,
+.kundali-print-closer {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 5mm;
+  }
+
+  body.kundali-page,
+  body.kundali-page * ,
+  body.kundali-page *::before,
+  body.kundali-page *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.kundali-page,
+  body.kundali-page:has(#birth-form[hidden]) {
+    background: #fce8bb !important;
+    background-image: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Paint the letterhead and side florals on the shell so they continue
+     on every printed page. The bottom closer is in normal flow below. */
+  body.kundali-page #saptarishi.main-shell,
+  body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding-top: 2.15rem !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    background-color: #fce8bb !important;
+    background-image:
+      url("../images/kundali_content_bg.png?v=377"),
+      url("../images/kundali_border_left.png?v=378"),
+      url("../images/kundali_border_right.png?v=378") !important;
+    background-repeat: no-repeat, repeat-y, repeat-y !important;
+    background-position:
+      top center,
+      left calc(1700 / 916 * 100cqw),
+      right calc(1700 / 916 * 100cqw) !important;
+    background-size:
+      100% auto,
+      calc(176 / 916 * 100cqw) auto,
+      calc(176 / 916 * 100cqw) auto !important;
+    background-origin: content-box !important;
+    background-clip: content-box !important;
+  }
+
+  body.kundali-page #saptarishi.main-shell::before,
+  body.kundali-page #saptarishi.main-shell::after,
+  body.kundali-page .kundali-tabs,
+  body.kundali-page #birth-form,
+  body.kundali-page #kundali-compare-panel,
+  body.kundali-page .birth-change-nav,
+  body.kundali-page #status,
+  body.kundali-page .kundali-pdf-bar,
+  body.kundali-page .kundali-chart-picker,
+  body.kundali-page .ask-ai,
+  body.kundali-page .kundali-info-btn,
+  body.kundali-page .house-planets-sheet__remedy-btn {
+    display: none !important;
+  }
+
+  body.kundali-page #results,
+  body.kundali-page:has(#birth-form[hidden]) #results {
+    display: block !important;
+  }
+
+  body.kundali-page .kundali-print-closer {
+    display: block !important;
+    height: calc(92 / 916 * 100cqw);
+    margin: 0.15rem calc(57 / 916 * 100cqw) 0 calc(60 / 916 * 100cqw);
+    background-image:
+      url("../images/kundali_border_bottom.png?v=387"),
+      url("../images/kundali_border_bottom.png?v=387");
+    background-repeat: repeat-x, no-repeat;
+    background-position:
+      left calc(-24 / 916 * 100cqw),
+      right calc(-24 / 916 * 100cqw);
+    background-size: auto calc(176 / 916 * 100cqw), auto calc(176 / 916 * 100cqw);
+    overflow: hidden;
+    break-before: avoid;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.kundali-page .house-planets-sheet,
+  body.kundali-page .kundali-open-card {
+    overflow: visible !important;
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  body.kundali-page .house-planets-sheet__table-wrap {
+    overflow: visible !important;
+  }
+
+  body.kundali-page #results .house-planets-sheet__table.kundali-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+  }
+
+  body.kundali-page #results .house-planets-sheet__table.kundali-table th,
+  body.kundali-page #results .house-planets-sheet__table.kundali-table td,
+  body.kundali-page #summary-table.kundali-table th,
+  body.kundali-page #summary-table.kundali-table td {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    font-size: 8pt !important;
+    padding: 0.2rem 0.28rem !important;
+  }
+
+  body.kundali-page .house-planets-sheet__pct-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  body.kundali-page .house-planets-sheet__calc-print {
+    display: block;
+    max-width: 16rem;
+    font-size: 8pt;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: right;
+    white-space: normal;
+  }
+
+  body.kundali-page .house-planets-sheet__head,
+  body.kundali-page .kundali-open-card__head,
+  body.kundali-page .house-planets-sheet__head.planet-cell--high,
+  body.kundali-page .house-planets-sheet__head.planet-cell--low,
+  body.kundali-page .house-planets-sheet__head.planet-cell--friend,
+  body.kundali-page .house-planets-sheet__head.planet-cell--enemy,
+  body.kundali-page .house-planets-sheet__head.planet-cell--own {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
