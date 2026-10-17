@@ -7289,8 +7289,8 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page:has(#birth-form[hidden]) #results {
     /* Clear the chart dropdown, which hangs below the diamond. */
     margin-top: calc(751 / 836 * 100cqw + 2.5rem) !important;
-    margin-left: calc((190 - 40) / 836 * 100cqw) !important;
-    margin-right: calc((190 - 40) / 836 * 100cqw) !important;
+    margin-left: calc((164 - 40) / 836 * 100cqw) !important;
+    margin-right: calc((164 - 40) / 836 * 100cqw) !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__summary.table-wrap,
