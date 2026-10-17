@@ -1133,11 +1133,22 @@
     return null;
   }
 
-  function leftoverLatin(original, translated) {
+  function stripPreservedName(original, translated) {
     let body = String(translated || "");
-    const name = String(original || "").match(/^([^,\n]+),\s+/);
-    if (name && body.startsWith(name[1])) body = body.slice(name[1].length);
-    return /[A-Za-z]{3,}/.test(body);
+    const source = String(original || "");
+    const commaName = source.match(/^([^,\n]+),\s+/);
+    if (commaName && body.startsWith(commaName[1])) return body.slice(commaName[1].length);
+    // "Name during your Ketu mahadasha" is kept as "Name, आपकी ..."
+    const duringName = source.match(/^(.+?)\s+during your\b/i);
+    if (duringName) {
+      const token = duringName[1].trim();
+      if (token && body.startsWith(token)) return body.slice(token.length);
+    }
+    return body;
+  }
+
+  function leftoverLatin(original, translated) {
+    return /[A-Za-z]{3,}/.test(stripPreservedName(original, translated));
   }
 
   function chartText(value) {

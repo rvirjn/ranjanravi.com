@@ -7105,6 +7105,12 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
   background-size: auto 100%, auto 100%;
 }
 
+/* The shell is only padding tall while the chart loads, so this strip
+   would sit under the spinner. Keep it off until the reading is in. */
+body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell::after {
+  display: none;
+}
+
 body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
   position: absolute;
   top: 0.35rem;
@@ -7265,7 +7271,9 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
        Shift by the same crop as the letterhead so the outer edge and
        thickness match the first page. */
     margin-top: calc((1700 - 8) / 836 * 100cqw);
-    bottom: calc(152 / 836 * 100cqw);
+    /* Reach the footer's floral (it starts 32px into the 176px tile)
+       so the sides meet the strip instead of stopping short. */
+    bottom: calc((176 - 32) / 836 * 100cqw);
     background-repeat: repeat-y, repeat-y;
     /* Tile pixel 0 sits on image x=0. The right tile's right edge
        sits on image x=916, so both outer edges match the letterhead. */
@@ -7276,9 +7284,18 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
-    left: 0;
-    right: 0;
+    /* The footer tile is floral to its edges. The side florals, after the
+       40px crop, still start at image x=61 and end at image x=818.
+       Inset the strip to those edges so the corners meet. */
+    left: calc((61 - 40) / 836 * 100%);
+    right: calc((836 - (700 + 118)) / 836 * 100%);
     height: calc(176 / 836 * 100cqw);
+  }
+
+  body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
+  html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
+  html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell--with-chrome {
+    padding-bottom: 0 !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
@@ -7320,36 +7337,35 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
     overflow: visible !important;
   }
 
+  /* Same row as the desktop table: key on the left, value beside it. */
   body.kundali-page:has(#birth-form[hidden]) #summary-table,
-  body.kundali-page:has(#birth-form[hidden]) #summary-table tbody,
-  body.kundali-page:has(#birth-form[hidden]) #summary-table tr,
+  body.kundali-page:has(#birth-form[hidden]) [id$="-summary-table"] {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+  }
+
   body.kundali-page:has(#birth-form[hidden]) #summary-table th,
-  body.kundali-page:has(#birth-form[hidden]) #summary-table td {
-    display: block;
-    width: 100% !important;
-    max-width: 100%;
+  body.kundali-page:has(#birth-form[hidden]) #summary-table td,
+  body.kundali-page:has(#birth-form[hidden]) [id$="-summary-table"] th,
+  body.kundali-page:has(#birth-form[hidden]) [id$="-summary-table"] td {
+    display: table-cell;
+    width: auto;
+    max-width: none;
     min-width: 0 !important;
     white-space: normal !important;
     overflow-wrap: anywhere;
     word-break: break-word;
     box-sizing: border-box;
+    vertical-align: middle;
+    padding: 0.28rem 0.35rem;
+    font-size: 0.72rem;
+    line-height: 1.3;
   }
 
-  body.kundali-page:has(#birth-form[hidden]) #summary-table tr {
-    padding: 0.35rem 0.15rem;
-    border-bottom: 1px solid rgba(30, 58, 95, 0.12);
-  }
-
-  body.kundali-page:has(#birth-form[hidden]) #summary-table th {
-    padding: 0 0 0.12rem;
-    border: 0;
-    font-size: 0.68rem;
-  }
-
-  body.kundali-page:has(#birth-form[hidden]) #summary-table td {
-    padding: 0;
-    border: 0;
-    font-size: 0.78rem;
+  body.kundali-page:has(#birth-form[hidden]) #summary-table th[scope="row"],
+  body.kundali-page:has(#birth-form[hidden]) [id$="-summary-table"] th[scope="row"] {
+    width: 44%;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .kundali-chart-select {

@@ -4687,7 +4687,7 @@ function dashaMonthLabel(indexOrName) {
 function dashaLevelText(label) {
   const raw = String(label || "");
   if (!summaryLangHi()) return raw;
-  return DASHA_LEVEL_HI[normalizeText(raw)] || raw;
+  return DASHA_LEVEL_HI[normalizeText(raw)] || chartText(raw);
 }
 
 function localizeEnglishMonths(text) {
