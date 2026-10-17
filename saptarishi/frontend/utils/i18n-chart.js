@@ -915,6 +915,7 @@
   }
 
   function tryPatterns(text) {
+    if (text === "Calculation") return "गणना";
     let match = text.match(/^Running from the past (.+?) till (.+?)\.?$/i);
     if (match) return `पिछले ${yearPhrase(match[1])} से चल रही है, आगे ${yearPhrase(match[2])} तक।`;
     match = text.match(/^Running from this year till (.+?)\.?$/i);
@@ -1066,6 +1067,11 @@
     if (match) return `${replacePhrases(match[1])} का नक्षत्र नवातार ${replacePhrases(match[2].trim())} है।`;
     match = text.match(/^(Strong )?Neecha Bhanga cancels this debilitation(.*)$/i);
     if (match) return `${match[1] ? "प्रबल " : ""}नीच भंग यह नीचता काटता है${match[2]}`;
+
+    match = text.match(/^(.+?) Planet Pros in your kundali:?$/i);
+    if (match) return `आपकी कुंडली में ${replacePhrases(match[1].trim())} ग्रह के पक्ष`;
+    match = text.match(/^(.+?) Planet Cons in your kundali:?$/i);
+    if (match) return `आपकी कुंडली में ${replacePhrases(match[1].trim())} ग्रह के विपक्ष`;
 
     match = text.match(/^(.+?) forms (.+?)\.?$/i);
     if (match) {

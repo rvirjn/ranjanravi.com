@@ -2247,15 +2247,6 @@ const KUNDALI_PLANETS_GRID_TABLE_HEADERS = KUNDALI_PLANETS_TABLE_COLUMNS_WITHOUT
 const KUNDALI_PLANET_STATUS_HEADING = "Planet Status";
 const KUNDALI_HOUSE_STATUS_HEADING = "House Status";
 
-/** Grid-house → linked divisional chart keys (D1 stays in Full-view strip only). */
-const HOUSE_DIVISIONAL_CHART_KEYS = {
-  6: ["D30"],
-  8: ["D30"],
-  9: ["D9"],
-  10: ["D10"],
-  12: ["D60"]
-};
-
 /** Group ``planets_table`` rows by whole-sign house number (1–12). */
 function groupPlanetsTableRowsByHouse(rows) {
   const byHouse = {};
@@ -2427,18 +2418,6 @@ function formatHouseTileStrengthPercent(houseRows, allRows) {
     return `${sample.house_status_strength_percent}%`;
   }
   return houseLordStrengthCellText(sample, allRows || houseRows);
-}
-
-function houseTileStrengthSortValue(houseRows, allRows) {
-  const sample = Array.isArray(houseRows) && houseRows.length ? houseRows[0] : null;
-  if (typeof sample?.house_status_strength_percent === "number") {
-    return sample.house_status_strength_percent;
-  }
-  const n = Number.parseInt(
-    String(formatHouseTileStrengthPercent(houseRows, allRows) || "").replace(/%/g, ""),
-    10
-  );
-  return Number.isFinite(n) ? n : Number.NEGATIVE_INFINITY;
 }
 
 /** Header equation: ``Sun 135 + Mars 66 + Jupiter 185 = 386%``. */
@@ -2921,8 +2900,18 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
           if (tableEl) wrap.appendChild(tableEl);
         }
         appendPlacementEffectsBeforePros(wrap, section);
-        appendHouseDescriptionLabeledList(wrap, "Pros:", section.pros);
-        appendHouseDescriptionLabeledList(wrap, "Cons:", section.cons);
+        appendHouseDescriptionLabeledList(
+          wrap,
+          planetProsConsHeading(section, "pros"),
+          section.pros,
+          "pros"
+        );
+        appendHouseDescriptionLabeledList(
+          wrap,
+          planetProsConsHeading(section, "cons"),
+          section.cons,
+          "cons"
+        );
         if (wrap.children.length) descEl.appendChild(wrap);
         continue;
       }
@@ -3018,19 +3007,38 @@ function appendPlacementEffectsBeforePros(parent, section) {
   }
 }
 
-function appendHouseDescriptionLabeledList(parent, label, items) {
+function planetProsConsHeading(section, kind) {
+  const fromApi = String(
+    (kind === "cons" ? section?.cons_heading : section?.pros_heading) || ""
+  ).trim();
+  if (fromApi) return fromApi;
+  const planet = String(section?.planet || "").trim();
+  const word = kind === "cons" ? "Cons" : "Pros";
+  return planet ? `${planet} Planet ${word} in your kundali` : `${word}:`;
+}
+
+/** Yoga and dosha lines are listed in their own sections, so skip them here. */
+function isPlanetFormedMatchLine(item) {
+  const text = item && typeof item === "object" && !Array.isArray(item)
+    ? String(item.text || "")
+    : String(item || "");
+  return /^.+\sforms\s.+\.?$/i.test(text.trim());
+}
+
+function appendHouseDescriptionLabeledList(parent, label, items, kind) {
   if (!Array.isArray(items) || !items.length) return;
   const wrap = document.createElement("div");
   wrap.className = "house-planets-sheet__pc";
   const heading = document.createElement("strong");
-  const kind = normalizeText(label).replace(/:$/, "");
+  const tone = normalizeText(kind || label).replace(/:$/, "");
   heading.className = "house-planets-sheet__pc-label";
-  if (kind === "pros") heading.classList.add("house-planets-sheet__pc-label--pros");
-  if (kind === "cons") heading.classList.add("house-planets-sheet__pc-label--cons");
+  if (tone === "pros") heading.classList.add("house-planets-sheet__pc-label--pros");
+  if (tone === "cons") heading.classList.add("house-planets-sheet__pc-label--cons");
   heading.textContent = chartText(label);
   const list = document.createElement("ol");
   list.className = "house-planets-sheet__pc-list";
   for (const item of items) {
+    if (isPlanetFormedMatchLine(item)) continue;
     const li = document.createElement("li");
     const rendered = appendProsConsLineContent(li, item);
     if (rendered) list.appendChild(li);
@@ -3104,70 +3112,6 @@ function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}
   return paragraphs.length > 0;
 }
 
-function findDivisionalChartByKey(charts, key) {
-  const want = String(key || "").trim().toUpperCase();
-  if (!want) return null;
-  return (Array.isArray(charts) ? charts : []).find(
-    (chart) => String(chart?.key || "").trim().toUpperCase() === want
-  ) || null;
-}
-
-function appendHouseDivisionalChartControls(sheet, houseNum, options = {}) {
-  const keys = HOUSE_DIVISIONAL_CHART_KEYS[Number(houseNum)] || [];
-  if (!keys.length) return;
-  const charts = Array.isArray(options.divisionalCharts) ? options.divisionalCharts : [];
-  const strengthMax =
-    typeof options.strengthMax === "number" ? options.strengthMax : undefined;
-  const matched = keys
-    .map((key) => findDivisionalChartByKey(charts, key))
-    .filter(Boolean);
-  if (!matched.length) return;
-
-  const wrap = document.createElement("div");
-  wrap.className = "house-planets-sheet__divisional";
-
-  for (const chart of matched) {
-    const key = String(chart.key || "Dx").toUpperCase();
-    const title = chart.title || key;
-    const block = document.createElement("div");
-    block.className = "house-planets-sheet__divisional-item";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "house-planets-sheet__divisional-btn";
-    btn.setAttribute("aria-expanded", "false");
-    btn.textContent = chartText(`Show ${key} chart`);
-
-    const host = document.createElement("div");
-    host.className = "kundali-chart-host house-planets-sheet__divisional-host";
-    host.hidden = true;
-    host.setAttribute("aria-label", title);
-
-    let rendered = false;
-    btn.addEventListener("click", () => {
-      const open = host.hidden;
-      host.hidden = !open;
-      btn.setAttribute("aria-expanded", open ? "true" : "false");
-      btn.textContent = chartText(open ? `Hide ${key} chart` : `Show ${key} chart`);
-      if (open && !rendered) {
-        const chartPayload = {
-          planets: chart.planets,
-          strength_max:
-            typeof chart.strength_max === "number" ? chart.strength_max : strengthMax
-        };
-        renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
-        bindKundaliChartZoom(host, chartPayload, title);
-        rendered = true;
-      }
-    });
-
-    block.append(btn, host);
-    wrap.appendChild(block);
-  }
-
-  sheet.appendChild(wrap);
-}
-
 function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descriptions, options = {}) {
   const sheet = document.createElement("div");
   sheet.className = "house-planets-sheet";
@@ -3186,12 +3130,15 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   head.appendChild(title);
 
   if (strengthText && strengthText !== "—") {
+    const pctWrap = document.createElement("span");
+    pctWrap.className = "house-planets-sheet__pct-wrap";
     const pct = document.createElement("span");
     pct.className = "house-planets-sheet__pct";
+    pct.textContent = strengthText;
+    pctWrap.appendChild(pct);
     const equation = formatHouseStatusStrengthBreakdown(rows);
-    pct.textContent = equation || strengthText;
-    if (equation) pct.title = equation;
-    head.appendChild(pct);
+    if (equation) pctWrap.appendChild(createHouseStrengthInfoButton(equation));
+    head.appendChild(pctWrap);
   }
 
   sheet.appendChild(head);
@@ -3220,99 +3167,43 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
     sheet.appendChild(desc);
   }
 
-  appendHouseDivisionalChartControls(sheet, houseNum, options);
-
   return sheet;
 }
 
-/** Render 12 house tiles (heading from In House; tint/% from House Lord Strength). */
+/** Render every house open. The tile color sits on that house's table header. */
 function renderHousePlanetsTiles(container, rows, options = {}) {
   if (!container) return;
   container.innerHTML = "";
+  container.classList.add("house-planets-tiles--open");
   const allRows = Array.isArray(rows) ? rows : [];
   if (!allRows.length) return;
 
   const byHouse = groupPlanetsTableRowsByHouse(allRows);
   const descriptions = options.descriptions || null;
-  const divisionalCharts = Array.isArray(options.divisionalCharts) ? options.divisionalCharts : [];
-  const strengthMax = typeof options.strengthMax === "number" ? options.strengthMax : undefined;
-  let selectedHouse = "";
-
-  const closeAllPanels = () => {
-    container.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
-      btn.classList.remove("house-planets-tile-btn--active");
-      btn.setAttribute("aria-pressed", "false");
-      btn.setAttribute("aria-expanded", "false");
-    });
-    container.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
-      panel.hidden = true;
-    });
-  };
 
   const houseNums = [];
   for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
     if (byHouse[houseNum]?.[0]) houseNums.push(houseNum);
   }
-  houseNums.sort((a, b) => {
-    const ds =
-      houseTileStrengthSortValue(byHouse[b], allRows) -
-      houseTileStrengthSortValue(byHouse[a], allRows);
-    return ds !== 0 ? ds : a - b;
-  });
 
   for (const houseNum of houseNums) {
     const houseRows = byHouse[houseNum];
     const sampleRow = houseRows[0];
     if (!sampleRow) continue;
 
-    const { number: num, for: forRaw } = houseFromTableRow(sampleRow);
-    const forText = formatHouseForList(forRaw);
+    const { number: num } = houseFromTableRow(sampleRow);
     const representativeRow = pickHouseTileRepresentativeRow(houseRows);
     const strengthText = formatHouseTileStrengthPercent(houseRows, allRows);
-    const planetNames = houseColumnDisplayForRows(houseRows, { key: "planet" });
-    const displayPlanetNames = planetNames && planetNames !== "—" ? planetNames : "";
     const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
+    const adverse = housePlanetsTileIsAdverse(houseRows, representativeRow, allRows);
 
-    const wrap = document.createElement("div");
-    wrap.className = "house-planets-tile-item";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "house-planets-tile-btn";
-    btn.dataset.house = String(houseNum);
-    btn.setAttribute("aria-pressed", "false");
-    btn.setAttribute("aria-expanded", "false");
-    btn.title = [houseLabel, forText, strengthText].filter(Boolean).join(" · ");
-    applyHousePlanetsTileStyle(btn, representativeRow, allRows);
-
-    const numEl = document.createElement("span");
-    numEl.className = "house-planets-tile-btn__num";
-    numEl.textContent = houseLabel;
-    btn.appendChild(numEl);
-
-    if (forText) {
-      const forEl = document.createElement("span");
-      forEl.className = "house-planets-tile-btn__for";
-      forEl.textContent = forText;
-      btn.appendChild(forEl);
-    }
-
-    if (strengthText) {
-      const pctEl = document.createElement("span");
-      pctEl.className = "house-planets-tile-btn__pct";
-      pctEl.textContent = strengthText;
-      btn.appendChild(pctEl);
-    }
-
-    const panel = document.createElement("div");
-    panel.className = "house-planets-tile-panel";
-    panel.hidden = true;
     const sheet = createHousePlanetsSheetElement(houseLabel, strengthText, houseRows, descriptions, {
-      divisionalCharts,
-      strengthMax,
       allRows
     });
-    if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
+    const head = sheet.querySelector(".house-planets-sheet__head");
+    applyHousePlanetsTileStyle(head, representativeRow, allRows);
+
+    if (adverse) {
       const lordRaw = houseLordNameFromRow(representativeRow);
       const lordName =
         formatTableCellForDisplay(
@@ -3326,31 +3217,10 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
         house: houseNum,
         planet: hasLord ? normalizeText(lordRaw || lordName) : ""
       });
-    }
-    panel.appendChild(sheet);
-
-    if (housePlanetsTileIsAdverse(houseRows, representativeRow, allRows)) {
-      applyAdverseHouseTileContentLock(btn, panel);
+      applyAdverseHouseTileContentLock(head, sheet);
     }
 
-    btn.addEventListener("click", () => {
-      const houseKey = String(houseNum);
-      if (selectedHouse === houseKey && !panel.hidden) {
-        closeAllPanels();
-        selectedHouse = "";
-        return;
-      }
-      closeAllPanels();
-      selectedHouse = houseKey;
-      btn.classList.add("house-planets-tile-btn--active");
-      btn.setAttribute("aria-pressed", "true");
-      btn.setAttribute("aria-expanded", "true");
-      panel.hidden = false;
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-
-    wrap.append(btn, panel);
-    container.appendChild(wrap);
+    container.appendChild(sheet);
   }
 }
 
@@ -6256,6 +6126,7 @@ function renderKundaliQaPopover(db, qaKey) {
     return false;
   }
 
+  questionEl.hidden = false;
   questionEl.textContent = qaQuestionText(entry.question);
   answerEl.replaceChildren();
   entry.answerParts.forEach((text, index) => {
@@ -6294,6 +6165,56 @@ function openKundaliQaPopover(qaKey, trigger) {
       positionKundaliQaPopover(trigger);
     })
     .catch(() => {});
+}
+
+function openHouseStrengthCalcPopover(equation, trigger) {
+  const text = String(equation || "").trim();
+  if (!text) return;
+  bindKundaliQaGlobalInteractions();
+  const key = `calc:${text}`;
+  if (kundaliQaPopoverState.openKey === key && kundaliQaPopoverState.trigger === trigger) {
+    closeKundaliQaPopover();
+    return;
+  }
+
+  const pop = ensureKundaliQaPopoverElement();
+  const questionEl = pop.querySelector(".kundali-qa-popover__question");
+  const answerEl = pop.querySelector(".kundali-qa-popover__answer");
+  if (!questionEl || !answerEl) return;
+
+  questionEl.hidden = false;
+  questionEl.textContent = chartText("Calculation");
+  answerEl.replaceChildren();
+  const line = document.createElement("p");
+  line.textContent = text;
+  answerEl.appendChild(line);
+  pop.setAttribute("aria-labelledby", questionEl.id);
+
+  kundaliQaPopoverState.openKey = key;
+  if (kundaliQaPopoverState.trigger && kundaliQaPopoverState.trigger !== trigger) {
+    kundaliQaPopoverState.trigger.setAttribute("aria-expanded", "false");
+  }
+  kundaliQaPopoverState.trigger = trigger || null;
+  if (trigger) trigger.setAttribute("aria-expanded", "true");
+  positionKundaliQaPopover(trigger);
+}
+
+function createHouseStrengthInfoButton(equation) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "kundali-info-btn house-planets-sheet__calc-btn";
+  btn.dataset.calc = String(equation || "").trim();
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", KUNDALI_QA_POPOVER_ID);
+  btn.title = chartText("Calculation");
+  btn.setAttribute("aria-label", chartText("Calculation"));
+  btn.innerHTML = '<span class="kundali-info-btn__glyph" aria-hidden="true">i</span>';
+  btn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openHouseStrengthCalcPopover(btn.dataset.calc, btn);
+  });
+  return btn;
 }
 
 function createKundaliQaInfoButton(qaKey) {
@@ -6793,11 +6714,14 @@ function housePlanetsTileIsAdverse(houseRows, representativeRow, allRows) {
 }
 
 function applyAdverseHouseTileContentLock(btn, panel) {
-  if (!btn || canViewLockedPremiumContent()) return;
-  btn.classList.add("house-planets-tile-btn--content-locked");
-  btn
-    .querySelectorAll(".house-planets-tile-btn__for, .house-planets-tile-btn__pct")
-    .forEach((el) => blurLockedTextElement(el));
+  if (canViewLockedPremiumContent()) return;
+  if (!btn && !panel) return;
+  if (btn) {
+    btn.classList.add("house-planets-tile-btn--content-locked");
+    btn
+      .querySelectorAll(".house-planets-tile-btn__for, .house-planets-tile-btn__pct")
+      .forEach((el) => blurLockedTextElement(el));
+  }
   if (!panel) return;
   panel.classList.add("house-planets-tile-panel--locked");
   panel
@@ -6866,6 +6790,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     });
   }
   listEl.innerHTML = "";
+  listEl.classList.add("kundali-open-list");
 
   if (!items.length) {
     section.hidden = true;
@@ -6892,64 +6817,24 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     summaryEl.hidden = true;
   }
 
-  let selectedKey = "";
   const contentLocked = !canViewLockedPremiumContent();
   const lockAllPanels = Boolean(blurPanelText) && contentLocked;
 
-  const closeAllPanels = () => {
-    listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
-      panel.hidden = true;
-    });
-    listEl.querySelectorAll(".remedy-navatara-btn").forEach((btn) => {
-      btn.classList.remove("remedy-navatara-btn--active");
-      btn.setAttribute("aria-pressed", "false");
-      btn.setAttribute("aria-expanded", "false");
-    });
-  };
-
-  const showItemDetail = (item, itemEl) => {
-    const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
-    const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
-    const itemKey = String(item.key || item.name || "").trim();
-
-    if (selectedKey === itemKey && panel && !panel.hidden) {
-      closeAllPanels();
-      selectedKey = "";
-      return;
-    }
-
-    closeAllPanels();
-    selectedKey = itemKey;
-
-    if (btn) {
-      btn.classList.add("remedy-navatara-btn--active");
-      btn.setAttribute("aria-pressed", "true");
-      btn.setAttribute("aria-expanded", "true");
-    }
-    if (panel) {
-      panel.hidden = false;
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  };
-
   for (const item of items) {
-    const wrap = document.createElement("div");
-    wrap.className = "remedy-navatara-item";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
     const itemIsBad =
       typeof isBadItem === "function"
         ? Boolean(isBadItem(item))
         : Boolean(buttonClassName && /dosh/i.test(buttonClassName));
-    const extraBtnClass = itemIsBad
-      ? "remedy-navatara-btn--dosh"
-      : buttonClassName;
-    btn.className = ["remedy-navatara-btn", extraBtnClass].filter(Boolean).join(" ");
-    btn.dataset.matchKey = String(item.key || "");
+    const wrap = document.createElement("article");
+    wrap.className = "kundali-open-card";
+
+    const head = document.createElement("div");
+    head.className = "kundali-open-card__head";
+    if (itemIsBad) head.classList.add("kundali-open-card__head--bad");
+    head.dataset.matchKey = String(item.key || "");
     const nameText = String(item.name || item.key || ariaItemKind || headingLabel);
     const nameEl = document.createElement("span");
-    nameEl.className = "kundali-yog-btn__name";
+    nameEl.className = "kundali-yog-btn__name kundali-open-card__name";
     const named = options.fullHindiPanel && window.SaptarishiI18n && window.SaptarishiI18n.doshName
       ? window.SaptarishiI18n.doshName(nameText)
       : nameText;
@@ -6957,6 +6842,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     const isTopList =
       itemsKey === "yogas" &&
       String(item.is_under_top_list || "").trim().toLowerCase() === "yes";
+    const title = document.createElement("div");
+    title.className = "kundali-open-card__title";
     if (isTopList) {
       const nameRow = document.createElement("span");
       nameRow.className = "kundali-yog-btn__name-row";
@@ -6966,29 +6853,25 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       starEl.textContent = "★";
       starEl.setAttribute("aria-hidden", "true");
       nameRow.appendChild(starEl);
-      btn.appendChild(nameRow);
-      btn.classList.add("kundali-yog-btn--top-list");
-      btn.title = `${nameText} — top 15 yoga`;
+      title.appendChild(nameRow);
+      head.title = `${nameText} — top 15 yoga`;
     } else {
-      btn.appendChild(nameEl);
+      title.appendChild(nameEl);
     }
+    head.appendChild(title);
     if (
       showYogaStrength &&
       typeof item.strength_percent === "number" &&
       Number.isFinite(item.strength_percent)
     ) {
-      btn.classList.add("remedy-navatara-btn--with-strength");
       const pctEl = document.createElement("span");
-      pctEl.className = "kundali-yog-btn__pct";
+      pctEl.className = "kundali-yog-btn__pct kundali-open-card__pct";
       pctEl.textContent = `${item.strength_percent}%`;
-      btn.appendChild(pctEl);
+      head.appendChild(pctEl);
     }
-    btn.setAttribute("aria-pressed", "false");
-    btn.setAttribute("aria-expanded", "false");
 
     const panel = document.createElement("div");
-    panel.className = "remedy-navatara-panel kundali-yog-panel";
-    panel.hidden = true;
+    panel.className = "remedy-navatara-panel kundali-yog-panel kundali-open-card__body";
 
     const descParts = [];
     if (Array.isArray(item.desc_parts) && item.desc_parts.length) {
@@ -7054,7 +6937,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       panel.querySelectorAll("p").forEach((el) => blurLockedTextElement(el));
     }
     if (lockAdverse || (lockAllPanels && itemIsBad)) {
-      blurMatchTileButtonLabel(btn);
+      blurMatchTileButtonLabel(head);
     }
 
     if (showRemedyHint) {
@@ -7065,9 +6948,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       });
     }
 
-    btn.addEventListener("click", () => showItemDetail(item, wrap));
-    wrap.appendChild(btn);
-    wrap.appendChild(panel);
+    wrap.append(head, panel);
     listEl.appendChild(wrap);
   }
 }
@@ -7098,108 +6979,71 @@ function renderCurrentDashaTilesFromPayload(payload) {
   const section = document.getElementById("kundali-dasha-section");
   const headingEl = document.getElementById("kundali-dasha-heading");
   const listEl = document.getElementById("kundali-dasha-list");
+  const nextHeadingEl = document.getElementById("kundali-next-dasha-heading");
+  const nextListEl = document.getElementById("kundali-next-dasha-list");
   if (!section || !listEl) return;
 
   const tiles = (Array.isArray(payload?.current_dasha?.tiles) ? payload.current_dasha.tiles : [])
     .filter((item) => item && String(item.name || item.planet_key || "").trim());
   listEl.innerHTML = "";
+  listEl.classList.add("kundali-open-list");
+  if (nextListEl) {
+    nextListEl.innerHTML = "";
+    nextListEl.classList.add("kundali-open-list");
+  }
 
   if (!tiles.length) {
     section.hidden = true;
     if (headingEl) bindUiText(headingEl, "kundali.dasha");
+    if (nextHeadingEl) nextHeadingEl.hidden = true;
+    if (nextListEl) nextListEl.hidden = true;
     return;
   }
 
   section.hidden = false;
   if (headingEl) bindUiText(headingEl, "kundali.dasha");
-
-  let selectedKey = "";
-  const closeAllPanels = () => {
-    listEl.querySelectorAll(".remedy-navatara-panel").forEach((panel) => {
-      panel.hidden = true;
-    });
-    listEl.querySelectorAll(".remedy-navatara-btn").forEach((btn) => {
-      btn.classList.remove("remedy-navatara-btn--active");
-      btn.setAttribute("aria-pressed", "false");
-      btn.setAttribute("aria-expanded", "false");
-    });
-  };
-
-  const showItemDetail = (item, itemEl) => {
-    const panel = itemEl && itemEl.querySelector(".remedy-navatara-panel");
-    const btn = itemEl && itemEl.querySelector(".remedy-navatara-btn");
-    const itemKey = String(item.key || item.name || "").trim();
-    if (selectedKey === itemKey && panel && !panel.hidden) {
-      closeAllPanels();
-      selectedKey = "";
-      return;
-    }
-    closeAllPanels();
-    selectedKey = itemKey;
-    if (btn) {
-      btn.classList.add("remedy-navatara-btn--active");
-      btn.setAttribute("aria-pressed", "true");
-      btn.setAttribute("aria-expanded", "true");
-    }
-    if (panel) {
-      panel.hidden = false;
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  };
+  const hasNext = tiles.some((item) => String(item.key || "").trim().toLowerCase() === "next");
+  if (nextHeadingEl) {
+    nextHeadingEl.hidden = !hasNext;
+    if (hasNext) bindUiText(nextHeadingEl, "kundali.nextDasha");
+  }
+  if (nextListEl) nextListEl.hidden = !hasNext;
 
   for (const item of tiles) {
-    const wrap = document.createElement("div");
-    wrap.className = "remedy-navatara-item";
-
     const tone = String(item.tone || "").trim().toLowerCase();
-    const btn = document.createElement("button");
-    btn.type = "button";
-    const toneClass =
-      tone === "bad"
-        ? "remedy-navatara-btn--dosh"
-        : tone === "mixed"
-          ? "remedy-navatara-btn--mixed"
-          : "";
-    btn.className = ["remedy-navatara-btn", "kundali-dasha-btn", toneClass]
-      .filter(Boolean)
-      .join(" ");
-    btn.dataset.dashaKey = String(item.key || "");
+    const wrap = document.createElement("article");
+    wrap.className = "kundali-open-card";
 
+    const head = document.createElement("div");
+    head.className = "kundali-open-card__head";
+    if (tone === "bad") head.classList.add("kundali-open-card__head--bad");
+    else if (tone === "mixed") head.classList.add("kundali-open-card__head--mixed");
+    head.dataset.dashaKey = String(item.key || "");
+
+    const title = document.createElement("div");
+    title.className = "kundali-open-card__title";
     const nameEl = document.createElement("span");
-    nameEl.className = "kundali-yog-btn__name kundali-dasha-btn__name";
+    nameEl.className = "kundali-yog-btn__name kundali-open-card__name";
     nameEl.textContent = chartText(String(item.name || item.planet_key || "Dasha"));
-    btn.appendChild(nameEl);
-
-    if (typeof item.strength_percent === "number" && Number.isFinite(item.strength_percent)) {
-      btn.classList.add("remedy-navatara-btn--with-strength");
-      const pctEl = document.createElement("span");
-      pctEl.className = "kundali-yog-btn__pct";
-      pctEl.textContent = `${item.strength_percent}%`;
-      btn.appendChild(pctEl);
-    }
-
+    title.appendChild(nameEl);
     const levelText = String(item.level || "").trim();
     if (levelText) {
       const levelEl = document.createElement("span");
       levelEl.className = "kundali-dasha-btn__level";
       levelEl.textContent = dashaLevelText(levelText);
-      btn.appendChild(levelEl);
+      title.appendChild(levelEl);
+    }
+    head.appendChild(title);
+
+    if (typeof item.strength_percent === "number" && Number.isFinite(item.strength_percent)) {
+      const pctEl = document.createElement("span");
+      pctEl.className = "kundali-yog-btn__pct kundali-open-card__pct";
+      pctEl.textContent = `${item.strength_percent}%`;
+      head.appendChild(pctEl);
     }
 
-    const planetName = String(item.name || "planet");
-    const levelName = levelText || "Dasha";
-    btn.setAttribute("aria-pressed", "false");
-    btn.setAttribute("aria-expanded", "false");
-    btn.setAttribute(
-      "aria-label",
-      typeof item.strength_percent === "number"
-        ? `${levelName} ${planetName}, strength ${item.strength_percent} percent`
-        : `${levelName} ${planetName}`
-    );
-
     const panel = document.createElement("div");
-    panel.className = "remedy-navatara-panel kundali-yog-panel";
-    panel.hidden = true;
+    panel.className = "remedy-navatara-panel kundali-yog-panel kundali-open-card__body";
 
     const rangeText = String(item.range || "").trim();
     if (rangeText) {
@@ -7232,10 +7076,10 @@ function renderCurrentDashaTilesFromPayload(payload) {
       panel.appendChild(empty);
     }
 
-    btn.addEventListener("click", () => showItemDetail(item, wrap));
-    wrap.appendChild(btn);
-    wrap.appendChild(panel);
-    listEl.appendChild(wrap);
+    wrap.append(head, panel);
+    const isNext = String(item.key || "").trim().toLowerCase() === "next";
+    const host = isNext && nextListEl ? nextListEl : listEl;
+    host.appendChild(wrap);
   }
 }
 
