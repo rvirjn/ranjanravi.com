@@ -2827,6 +2827,7 @@
   var startScrollY = 0;
   var startMidX = 0;
   var startMidY = 0;
+  var restorePull = false;
 
   function allowPinchZoom() {
     var root = document.documentElement;
@@ -2898,6 +2899,7 @@
       startScrollY = window.scrollY || window.pageYOffset || 0;
       startMidX = mid.x;
       startMidY = mid.y;
+      restorePull = true;
       setPullToRefresh(false);
       if (event.cancelable) event.preventDefault();
     },
@@ -2915,9 +2917,11 @@
   );
 
   function endPinch(event) {
-    if (!pinching) return;
     if (event.touches && event.touches.length >= 2) return;
     pinching = false;
+    if (event.touches && event.touches.length > 0) return;
+    if (!restorePull) return;
+    restorePull = false;
     setPullToRefresh(!askAiOpen());
   }
 
@@ -2927,6 +2931,7 @@
   window.addEventListener("resize", function () {
     if (!allowPinchZoom() && scale !== 1) resetZoom();
   });
+  window.addEventListener("beforeprint", resetZoom);
 
   document.addEventListener(
     "gesturestart",
