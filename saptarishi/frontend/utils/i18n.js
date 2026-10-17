@@ -704,6 +704,7 @@
     const label = lang === "hi" ? "EN" : "हिं";
     const aria = t(lang === "hi" ? "lang.toEn" : "lang.toHi");
     (root || document).querySelectorAll(".site-header__lang").forEach((btn) => {
+      if (btn.classList.contains("is-busy")) return;
       btn.textContent = label;
       btn.title = aria;
       btn.setAttribute("aria-label", aria);
@@ -779,8 +780,18 @@
     document.querySelectorAll(".site-header__lang").forEach((el) => {
       el.classList.toggle("is-busy", busy);
       el.disabled = busy;
-      if (busy) el.setAttribute("aria-busy", "true");
-      else el.removeAttribute("aria-busy");
+      if (busy) {
+        el.setAttribute("aria-busy", "true");
+        el.textContent = "";
+        const spin = document.createElement("span");
+        spin.className = "site-header__lang-spin";
+        spin.setAttribute("aria-hidden", "true");
+        el.appendChild(spin);
+        return;
+      }
+      el.removeAttribute("aria-busy");
+      const spin = el.querySelector(".site-header__lang-spin");
+      if (spin) spin.remove();
     });
   }
 
@@ -792,16 +803,17 @@
     langSwitching = true;
     const next = getLang() === "hi" ? "en" : "hi";
     setLangButtonsBusy(true);
-    // Paint the spinner before the synchronous language rebuild blocks the thread.
+    // Let this frame paint the spinner before the language rebuild blocks the thread.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         try {
           setLang(next);
         } finally {
           setLangButtonsBusy(false);
+          syncLangButtons(document);
           langSwitching = false;
         }
-      });
+      }, 0);
     });
   });
 

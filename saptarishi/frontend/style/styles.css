@@ -5415,22 +5415,19 @@ body.auth-modal-open {
 
 .site-header__lang:disabled,
 .site-header__lang.is-busy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 1;
-  color: transparent;
   pointer-events: none;
 }
 
-.site-header__lang.is-busy::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0.85rem;
-  height: 0.85rem;
-  margin-top: -0.425rem;
-  margin-left: -0.425rem;
+.site-header__lang-spin {
+  display: block;
+  width: 0.95rem;
+  height: 0.95rem;
   box-sizing: border-box;
-  border: 2px solid rgba(139, 105, 20, 0.22);
+  border: 2px solid rgba(139, 105, 20, 0.28);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: status-loader-spin 0.7s linear infinite;
