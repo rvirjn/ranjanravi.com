@@ -4279,6 +4279,21 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
     labelsGroup.appendChild(g);
   }
 
+  /* Un-stretch glyphs in the wide printed chart. An SVG transform stays on
+     each label's own anchor. A CSS scale does not on Android, and it
+     slides the planets off their houses. */
+  if (manuscriptFit) {
+    labelsGroup.querySelectorAll("text").forEach((el) => {
+      const x = Number(el.getAttribute("x"));
+      const y = Number(el.getAttribute("y"));
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      el.setAttribute(
+        "transform",
+        `translate(${x} ${y}) scale(0.58 1.29) translate(${-x} ${-y})`
+      );
+    });
+  }
+
   svg.appendChild(labelsGroup);
   if (options.houseHits) {
     appendBirthLagnaHouseHits(svg, chartData.cells);

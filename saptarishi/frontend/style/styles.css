@@ -7107,11 +7107,11 @@ body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
   position: absolute;
   z-index: 2;
   top: 2.15rem;
-  margin-top: calc(499 / 916 * 100%);
-  left: calc(208 / 916 * 100%);
-  width: calc(500 / 916 * 100%);
-  height: auto;
-  aspect-ratio: 500 / 220;
+  margin-top: calc(499 / 916 * 100cqw);
+  left: calc(208 / 916 * 100cqw);
+  width: calc(500 / 916 * 100cqw);
+  height: calc(220 / 916 * 100cqw);
+  aspect-ratio: auto;
   margin-bottom: 0;
   margin-left: 0;
   margin-right: 0;
@@ -7187,9 +7187,124 @@ body.kundali-page:has(#birth-form[hidden]) #kundali-chart .kundali-chart-line {
 body.kundali-page:has(#birth-form[hidden]) #kundali-chart .kundali-chart-label,
 body.kundali-page:has(#birth-form[hidden]) #kundali-chart text {
   stroke: #f4e6c6;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0.58, 1.29);
+  transform: none;
+}
+
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row #summary-table,
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row [id$="-summary-table"] {
+  table-layout: fixed;
+  width: 100%;
+}
+
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row #summary-table th,
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row #summary-table td,
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row [id$="-summary-table"] th,
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row [id$="-summary-table"] td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row #summary-table th[scope="row"],
+body.kundali-page:has(#birth-form[hidden]) .summary-chart-row [id$="-summary-table"] th[scope="row"] {
+  width: 44%;
+  white-space: normal;
+}
+
+body.kundali-page:has(#birth-form[hidden]) #summary-table th,
+body.kundali-page:has(#birth-form[hidden]) #summary-table td {
+  min-width: 0 !important;
+}
+
+/* Phone: drop the page gutter and crop the letterhead's outer cream so
+   the floral border meets the screen. Chart and text use the same crop. */
+@media (max-width: 720px), (max-device-width: 720px) {
+  body.kundali-page:has(#birth-form[hidden]) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
+    padding-top: 0.4rem !important;
+    padding-bottom: calc(176 / 836 * 100cqw) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    background-color: #f4e6c6 !important;
+    background-image: url("../images/kundali_content_bg.png?v=377") !important;
+    background-repeat: no-repeat !important;
+    background-position: calc(-40 / 836 * 100cqw) 0 !important;
+    background-size: calc(916 / 836 * 100%) auto !important;
+    background-origin: content-box !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
+    top: 0.4rem;
+    margin-top: calc(1700 / 836 * 100cqw);
+    bottom: calc(152 / 836 * 100cqw);
+    background-size: calc(176 / 836 * 100cqw) auto, calc(176 / 836 * 100cqw) auto;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
+    left: 0;
+    right: 0;
+    height: calc(176 / 836 * 100cqw);
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
+    top: 0.4rem !important;
+    margin-top: calc(499 / 836 * 100cqw) !important;
+    left: calc((208 - 40) / 836 * 100cqw) !important;
+    width: calc(500 / 836 * 100cqw) !important;
+    height: calc(220 / 836 * 100cqw) !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #results {
+    margin-top: calc(751 / 836 * 100cqw + 1.15rem) !important;
+    margin-left: calc((190 - 40) / 836 * 100cqw) !important;
+    margin-right: calc((190 - 40) / 836 * 100cqw) !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__summary.table-wrap,
+  body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__summary-body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #summary-table,
+  body.kundali-page:has(#birth-form[hidden]) #summary-table tbody,
+  body.kundali-page:has(#birth-form[hidden]) #summary-table tr,
+  body.kundali-page:has(#birth-form[hidden]) #summary-table th,
+  body.kundali-page:has(#birth-form[hidden]) #summary-table td {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-sizing: border-box;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #summary-table tr {
+    padding: 0.35rem 0.15rem;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.12);
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #summary-table th {
+    padding: 0 0 0.12rem;
+    border: 0;
+    font-size: 0.68rem;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) #summary-table td {
+    padding: 0;
+    border: 0;
+    font-size: 0.78rem;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]) .kundali-chart-select {
+    font-size: clamp(0.68rem, 3.1vw, 0.84rem);
+  }
 }
 
 .kundali-pdf-bar {
