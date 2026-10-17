@@ -773,12 +773,36 @@
     return el;
   }
 
+  let langSwitching = false;
+
+  function setLangButtonsBusy(busy) {
+    document.querySelectorAll(".site-header__lang").forEach((el) => {
+      el.classList.toggle("is-busy", busy);
+      el.disabled = busy;
+      if (busy) el.setAttribute("aria-busy", "true");
+      else el.removeAttribute("aria-busy");
+    });
+  }
+
   document.addEventListener("click", (event) => {
-    if (!LANG_SWITCH_ENABLED) return;
+    if (!LANG_SWITCH_ENABLED || langSwitching) return;
     const btn = event.target && event.target.closest && event.target.closest(".site-header__lang");
     if (!btn) return;
     event.preventDefault();
-    setLang(getLang() === "hi" ? "en" : "hi");
+    langSwitching = true;
+    const next = getLang() === "hi" ? "en" : "hi";
+    setLangButtonsBusy(true);
+    // Paint the spinner before the synchronous language rebuild blocks the thread.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          setLang(next);
+        } finally {
+          setLangButtonsBusy(false);
+          langSwitching = false;
+        }
+      });
+    });
   });
 
   global.SaptarishiI18n = { getLang, t, tf, apply, setLang, bind, syncLangButtons };

@@ -5394,6 +5394,7 @@ body.auth-modal-open {
 }
 
 .site-header__lang {
+  position: relative;
   flex-shrink: 0;
   min-width: 2.15rem;
   padding: 0.28rem 0.45rem;
@@ -5410,6 +5411,29 @@ body.auth-modal-open {
 
 .site-header__lang:hover {
   background: #fff;
+}
+
+.site-header__lang:disabled,
+.site-header__lang.is-busy {
+  opacity: 1;
+  color: transparent;
+  pointer-events: none;
+}
+
+.site-header__lang.is-busy::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: -0.425rem;
+  margin-left: -0.425rem;
+  box-sizing: border-box;
+  border: 2px solid rgba(139, 105, 20, 0.22);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: status-loader-spin 0.7s linear infinite;
 }
 
 html.lang-hi body {
