@@ -665,9 +665,10 @@
   function getLang() {
     if (!LANG_SWITCH_ENABLED) return "en";
     try {
-      return localStorage.getItem(STORAGE_KEY) === "hi" ? "hi" : "en";
+      // Hindi until the visitor explicitly chooses English.
+      return localStorage.getItem(STORAGE_KEY) === "en" ? "en" : "hi";
     } catch (err) {
-      return "en";
+      return "hi";
     }
   }
 
