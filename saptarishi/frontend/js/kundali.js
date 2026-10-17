@@ -7755,8 +7755,8 @@ window.SaptarishiKundaliPage = {
 };
 
 /**
- * Phone pinch on a chart box. Opens that chart large enough to read the
- * planet symbols and degrees, then pinch further and drag to a house.
+ * Phone pinch on a chart. The chart grows in place so planet symbols and
+ * degrees can be read. Pinch back to normal. No extra screen to close.
  */
 function installKundaliChartPinch() {
   if (document.documentElement.dataset.chartPinchBound === "1") return;
@@ -7764,24 +7764,10 @@ function installKundaliChartPinch() {
 
   const MIN_SCALE = 1;
   const MAX_SCALE = 6;
-  let overlay = null;
-  let stage = null;
-  let svgEl = null;
-  let open = false;
-  let scale = 1;
-  let tx = 0;
-  let ty = 0;
-  let box = 0;
+  const charts = new WeakMap();
+  let active = null;
   let pinching = false;
   let panning = false;
-  let startDist = 0;
-  let startScale = 1;
-  let focusX = 50;
-  let focusY = 50;
-  let panX = 0;
-  let panY = 0;
-  let panTx = 0;
-  let panTy = 0;
   let swallowClick = false;
   let swallowTimer = 0;
 
@@ -7793,57 +7779,19 @@ function installKundaliChartPinch() {
     return window.matchMedia("(max-width: 980px), (pointer: coarse) and (max-width: 1200px)").matches;
   }
 
-  function ensureOverlay() {
-    if (overlay) return overlay;
-    overlay = document.createElement("div");
-    overlay.className = "kundali-chart-pinch";
-    overlay.hidden = true;
-    overlay.innerHTML =
-      '<p class="kundali-chart-pinch__hint">Pinch to read planets and degrees · drag to move</p>' +
-      '<button type="button" class="kundali-chart-pinch__close" aria-label="Close chart">×</button>' +
-      '<div class="kundali-chart-pinch__stage"></div>';
-    document.body.appendChild(overlay);
-    stage = overlay.querySelector(".kundali-chart-pinch__stage");
-    overlay.querySelector(".kundali-chart-pinch__close")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      closeReader();
-    });
-    return overlay;
-  }
-
-  function chartBoxSize() {
-    return Math.min(window.innerWidth, window.innerHeight) * 0.96;
-  }
-
-  function readableOpenScale() {
-    const degreeAtOne = chartBoxSize() * (6 / 300);
-    if (!degreeAtOne) return 2.6;
-    return Math.min(3.4, Math.max(2.3, 22 / degreeAtOne));
-  }
-
-  function applyTransform() {
-    if (!svgEl) return;
-    const limit = (box * scale) / 2;
-    tx = Math.max(-limit, Math.min(limit, tx));
-    ty = Math.max(-limit, Math.min(limit, ty));
-    svgEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-  }
-
-  function placeFocus(nextScale, clientX, clientY) {
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
-    if (scale <= 1.02) {
-      scale = 1;
-      tx = 0;
-      ty = 0;
-      applyTransform();
-      return;
+  function ensure(svg) {
+    let state = charts.get(svg);
+    if (!state) {
+      state = {
+        scale: 1,
+        tx: 0,
+        ty: 0,
+        originX: 50,
+        originY: 50
+      };
+      charts.set(svg, state);
     }
-    tx = clientX - cx - ((focusX - 50) / 100) * box * scale;
-    ty = clientY - cy - ((focusY - 50) / 100) * box * scale;
-    applyTransform();
+    return state;
   }
 
   function svgUserPoint(svg, clientX, clientY) {
@@ -7864,50 +7812,79 @@ function installKundaliChartPinch() {
   function sourceSvg(event) {
     const node = event.target instanceof Element ? event.target : event.target?.parentElement;
     if (!node?.closest) return null;
-    if (node.closest(".kundali-chart-pinch")) return null;
     const direct = node.closest(".kundali-chart-svg");
     if (direct) return direct;
     const host = node.closest(".kundali-chart-host, #kundali-chart, [id$='-kundali-chart']");
     return host?.querySelector?.(".kundali-chart-svg") || null;
   }
 
-  function closeReader() {
-    open = false;
-    pinching = false;
-    panning = false;
-    scale = 1;
-    tx = 0;
-    ty = 0;
-    document.documentElement.classList.remove("kundali-chart-pinch-open");
-    document.body.classList.remove("kundali-chart-pinch-open");
-    if (overlay) overlay.hidden = true;
-    if (stage) stage.replaceChildren();
-    svgEl = null;
+  function restoreClip(svg) {
+    const saved = svg._pinchClip;
+    if (!saved) return;
+    saved.forEach((item) => {
+      item.node.style.overflow = item.overflow;
+      item.node.style.zIndex = item.zIndex;
+      item.node.style.position = item.position;
+    });
+    svg._pinchClip = null;
   }
 
-  function openReader(source, user, clientX, clientY) {
-    ensureOverlay();
-    if (window.SaptarishiPinchZoom && typeof window.SaptarishiPinchZoom.reset === "function") {
-      window.SaptarishiPinchZoom.reset();
+  function liftClip(svg) {
+    if (svg._pinchClip) return;
+    const saved = [];
+    let node = svg.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      const style = window.getComputedStyle(node);
+      const clips = style.overflow !== "visible" || style.overflowX !== "visible" || style.overflowY !== "visible";
+      if (clips || style.position === "static") {
+        saved.push({
+          node,
+          overflow: node.style.overflow,
+          zIndex: node.style.zIndex,
+          position: node.style.position
+        });
+        if (clips) node.style.overflow = "visible";
+        if (style.position === "static") node.style.position = "relative";
+        const current = Number.parseInt(style.zIndex, 10);
+        if (!Number.isFinite(current) || current < 20) node.style.zIndex = "30";
+      }
+      node = node.parentElement;
     }
-    stage.replaceChildren();
-    const copy = source.cloneNode(true);
-    copy.removeAttribute("id");
-    copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-    copy.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    copy.style.width = "";
-    copy.style.height = "";
-    copy.style.transform = "";
-    stage.appendChild(copy);
-    svgEl = copy;
-    box = chartBoxSize();
-    focusX = user.x;
-    focusY = user.y;
-    overlay.hidden = false;
-    open = true;
-    document.documentElement.classList.add("kundali-chart-pinch-open");
-    document.body.classList.add("kundali-chart-pinch-open");
-    placeFocus(readableOpenScale(), clientX, clientY);
+    svg._pinchClip = saved;
+  }
+
+  function resetSvg(svg) {
+    if (!svg) return;
+    const state = charts.get(svg);
+    if (state) {
+      state.scale = 1;
+      state.tx = 0;
+      state.ty = 0;
+    }
+    svg.style.transform = "";
+    svg.style.transformOrigin = "";
+    svg.classList.remove("kundali-chart-svg--pinched");
+    restoreClip(svg);
+    if (active === svg) active = null;
+  }
+
+  function apply(svg) {
+    const state = ensure(svg);
+    if (state.scale <= 1.02) {
+      resetSvg(svg);
+      return;
+    }
+    const width = state.baseWidth || svg.getBoundingClientRect().width || 200;
+    const limit = Math.max(80, width * Math.max(0, state.scale - 1));
+    if (!Number.isFinite(state.tx)) state.tx = 0;
+    if (!Number.isFinite(state.ty)) state.ty = 0;
+    state.tx = Math.max(-limit, Math.min(limit, state.tx));
+    state.ty = Math.max(-limit, Math.min(limit, state.ty));
+    svg.classList.add("kundali-chart-svg--pinched");
+    liftClip(svg);
+    svg.style.transformOrigin = `${state.originX}% ${state.originY}%`;
+    svg.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+    active = svg;
   }
 
   function fingerDist(touches) {
@@ -7923,48 +7900,57 @@ function installKundaliChartPinch() {
     };
   }
 
+  function armSwallow() {
+    swallowClick = true;
+    window.clearTimeout(swallowTimer);
+    swallowTimer = window.setTimeout(() => {
+      swallowClick = false;
+    }, 500);
+  }
+
   document.addEventListener(
     "touchstart",
     (event) => {
       if (!allow() || !event.touches) return;
       if (event.touches.length === 2) {
-        const mid = fingerMid(event.touches);
-        if (open) {
-          pinching = true;
-          panning = false;
-          startDist = fingerDist(event.touches);
-          startScale = scale;
-          const user = svgEl ? svgUserPoint(svgEl, mid.x, mid.y) : { x: focusX, y: focusY };
-          focusX = user.x;
-          focusY = user.y;
-          if (event.cancelable) event.preventDefault();
-          return;
-        }
         const svg = sourceSvg(event);
         if (!svg) return;
-        swallowClick = true;
-        window.clearTimeout(swallowTimer);
-        swallowTimer = window.setTimeout(() => {
-          swallowClick = false;
-        }, 500);
-        const user = svgUserPoint(svg, mid.x, mid.y);
-        openReader(svg, user, mid.x, mid.y);
+        if (active && active !== svg) resetSvg(active);
+        const state = ensure(svg);
+        const mid = fingerMid(event.touches);
+        if (state.scale <= 1.02) {
+          const user = svgUserPoint(svg, mid.x, mid.y);
+          state.originX = user.x;
+          state.originY = user.y;
+          state.tx = 0;
+          state.ty = 0;
+          state.baseWidth = svg.getBoundingClientRect().width || 200;
+        }
+        state.startDist = fingerDist(event.touches);
+        state.startScale = state.scale || 1;
+        state.startTx = state.tx;
+        state.startTy = state.ty;
+        state.startMidX = mid.x;
+        state.startMidY = mid.y;
+        active = svg;
         pinching = true;
         panning = false;
-        startDist = fingerDist(event.touches);
-        startScale = scale;
+        armSwallow();
         if (event.cancelable) event.preventDefault();
         return;
       }
-      if (open && event.touches.length === 1) {
-        panning = true;
-        pinching = false;
-        panX = event.touches[0].clientX;
-        panY = event.touches[0].clientY;
-        panTx = tx;
-        panTy = ty;
-        if (event.cancelable) event.preventDefault();
-      }
+      if (event.touches.length !== 1) return;
+      const svg = sourceSvg(event);
+      const state = svg && charts.get(svg);
+      if (!svg || !state || state.scale <= 1.02) return;
+      panning = true;
+      pinching = false;
+      active = svg;
+      state.panX = event.touches[0].clientX;
+      state.panY = event.touches[0].clientY;
+      state.panTx = state.tx;
+      state.panTy = state.ty;
+      if (event.cancelable) event.preventDefault();
     },
     { capture: true, passive: false }
   );
@@ -7972,19 +7958,24 @@ function installKundaliChartPinch() {
   document.addEventListener(
     "touchmove",
     (event) => {
-      if (!open) return;
+      if (!active) return;
+      const state = charts.get(active);
+      if (!state) return;
       if (pinching && event.touches.length === 2) {
         if (event.cancelable) event.preventDefault();
         const mid = fingerMid(event.touches);
-        const next = startScale * (fingerDist(event.touches) / startDist);
-        placeFocus(next, mid.x, mid.y);
+        const next = state.startScale * (fingerDist(event.touches) / state.startDist);
+        state.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, next));
+        state.tx = state.startTx + (mid.x - state.startMidX);
+        state.ty = state.startTy + (mid.y - state.startMidY);
+        apply(active);
         return;
       }
       if (panning && event.touches.length === 1) {
         if (event.cancelable) event.preventDefault();
-        tx = panTx + (event.touches[0].clientX - panX);
-        ty = panTy + (event.touches[0].clientY - panY);
-        applyTransform();
+        state.tx = state.panTx + (event.touches[0].clientX - state.panX);
+        state.ty = state.panTy + (event.touches[0].clientY - state.panY);
+        apply(active);
       }
     },
     { capture: true, passive: false }
@@ -8003,15 +7994,11 @@ function installKundaliChartPinch() {
     (event) => {
       if (!swallowClick) return;
       swallowClick = false;
-      if (event.target?.closest?.(".kundali-chart-pinch__close")) return;
       event.preventDefault();
       event.stopPropagation();
     },
     true
   );
-  document.addEventListener("keydown", (event) => {
-    if (open && event.key === "Escape") closeReader();
-  });
 }
 
 installKundaliChartPinch();

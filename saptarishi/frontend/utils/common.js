@@ -567,6 +567,12 @@
   function ensureSiteDrawer(header) {
     if (isNativeAppShell() || !header) return null;
     let drawer = document.getElementById("site-drawer");
+    // The Android app injects an older drawer (Kundali / Remedy / Auspicious)
+    // before this script runs. Replace that menu with the current one.
+    if (drawer && !drawer.querySelector('[data-page="future"]')) {
+      drawer.remove();
+      drawer = null;
+    }
     if (drawer) return drawer;
 
     drawer = document.createElement("div");
@@ -643,6 +649,7 @@
         if (loginBtn) loginBtn.click();
       });
     }
+    if (global.SaptarishiI18n) global.SaptarishiI18n.apply(drawer);
     return drawer;
   }
 
@@ -2809,11 +2816,10 @@
   }
 
   function gestureOnChart(event) {
-    if (document.documentElement.classList.contains("kundali-chart-pinch-open")) return true;
     var node = event.target;
     if (!node || typeof node.closest !== "function") node = node && node.parentElement;
     if (!node || typeof node.closest !== "function") return false;
-    return Boolean(node.closest(".kundali-chart-svg, .kundali-chart-host, .kundali-chart-pinch"));
+    return Boolean(node.closest(".kundali-chart-svg, .kundali-chart-host"));
   }
 
   function fingerDist(touches) {
