@@ -6156,8 +6156,28 @@ body.premium-modal-open {
   overflow-x: auto;
 }
 
-.house-planets-sheet__table {
-  min-width: 56rem;
+body.kundali-page #results .house-planets-sheet__table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.kundali-page #results .house-planets-sheet__table.kundali-table {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  table-layout: auto;
+}
+
+body.kundali-page #results .house-planets-sheet__table.kundali-table th,
+body.kundali-page #results .house-planets-sheet__table.kundali-table td {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  padding: 0.4rem 0.55rem;
 }
 
 .house-planets-sheet__desc {
@@ -7020,7 +7040,7 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
   border: 0;
   box-shadow: none;
   padding-top: 2.15rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: calc(176 / 916 * 100cqw);
   padding-left: 0;
   padding-right: 0;
   background-origin: content-box;
@@ -7037,13 +7057,31 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
   right: 0;
   top: 2.15rem;
   margin-top: calc(1700 / 916 * 100%);
-  bottom: 0;
+  bottom: calc(152 / 916 * 100cqw);
   background-image:
     url("../images/kundali_border_left.png?v=378"),
     url("../images/kundali_border_right.png?v=378");
   background-repeat: repeat-y, repeat-y;
   background-position: left top, right top;
   background-size: calc(176 / 916 * 100%) auto, calc(176 / 916 * 100%) auto;
+}
+
+/* Close the frame with the same floral border turned along the bottom. */
+body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  left: calc(60 / 916 * 100%);
+  right: calc(57 / 916 * 100%);
+  bottom: 0;
+  height: calc(176 / 916 * 100cqw);
+  background-image:
+    url("../images/kundali_border_bottom.png?v=387"),
+    url("../images/kundali_border_bottom.png?v=387");
+  background-repeat: repeat-x, no-repeat;
+  background-position: left bottom, right bottom;
+  background-size: auto 100%, auto 100%;
 }
 
 body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
