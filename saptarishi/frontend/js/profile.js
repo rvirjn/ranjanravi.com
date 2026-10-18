@@ -293,7 +293,9 @@
   function populateProfileForm(profile) {
     if (!form) return;
     document.getElementById("profile-name").value = profile.name || "";
-    document.getElementById("profile-mobile").value = profile.mobile || "";
+    const mobileInput = document.getElementById("profile-mobile");
+    if (formUtils().writePhoneField) formUtils().writePhoneField(mobileInput, profile.mobile || "");
+    else mobileInput.value = profile.mobile || "";
     document.getElementById("profile-email").value = profile.email || "";
     const lifeEl = document.getElementById("profile-life-events");
     const lifeKey = C?.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates";
@@ -566,13 +568,16 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const name = document.getElementById("profile-name").value;
-      const mobile = document.getElementById("profile-mobile").value;
+      const mobileInput = document.getElementById("profile-mobile");
+      const mobile = formUtils().readPhoneField
+        ? formUtils().readPhoneField(mobileInput)
+        : { dial: "91", local: mobileInput.value, stored: mobileInput.value };
       const email = document.getElementById("profile-email").value;
       const lifeEvents = document.getElementById("profile-life-events")
         ? document.getElementById("profile-life-events").value
         : "";
       const profileError = formUtils().validateProfileInput
-        ? formUtils().validateProfileInput(name, mobile, email, lifeEvents)
+        ? formUtils().validateProfileInput(name, mobile.local, email, lifeEvents, mobile.dial)
         : null;
       if (profileError) {
         showStatus(profileError, true);
@@ -588,7 +593,7 @@
       }
 
       try {
-        const payload = await AUTH.updateProfile(name, mobile, email, lifeEvents);
+        const payload = await AUTH.updateProfile(name, mobile.stored, email, lifeEvents);
         renderProfileSummary(payload.profile || {}, payload.usage || payload.user || {});
         populateProfileForm(payload.profile || {});
         showStatus(payload.message || "Profile updated.", false);

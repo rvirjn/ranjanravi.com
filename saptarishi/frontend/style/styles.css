@@ -5172,9 +5172,15 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
   padding-right: 2.65rem;
 }
 
+.password-field__input--masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
 .password-field__toggle {
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   right: 0.28rem;
   z-index: 1;
   display: inline-flex;
@@ -5182,13 +5188,14 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
   justify-content: center;
   width: 2.1rem;
   height: 2.1rem;
+  margin-top: auto;
+  margin-bottom: auto;
   padding: 0;
   border: 0;
   border-radius: 6px;
   background: transparent;
   color: #6b5235;
   cursor: pointer;
-  transform: translateY(-50%);
 }
 
 .password-field__toggle:hover:not(:disabled) {
@@ -5214,6 +5221,157 @@ body.saptarishi-page:has(.site-header):has(.site-footer) .site-footer {
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.phone-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid rgba(120, 90, 10, 0.22);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 2px rgba(31, 24, 6, 0.05);
+}
+
+.phone-field:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-accent-soft),
+    inset 0 1px 2px rgba(31, 24, 6, 0.05);
+}
+
+.phone-field__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+  margin: 0.28rem 0 0.28rem 0.28rem;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid rgba(120, 90, 10, 0.35);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--color-heading);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.phone-field__code svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.phone-field__code:disabled,
+.phone-field:has(input:disabled) .phone-field__code {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.auth-form .phone-field__number,
+.phone-field__number {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-form .phone-field__number:hover,
+.auth-form .phone-field__number:focus,
+.phone-field__number:focus {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.phone-field__menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  overflow: hidden;
+  padding: 0.4rem;
+  background: #fff;
+  border: 1px solid rgba(120, 90, 10, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(31, 24, 6, 0.18);
+}
+
+.phone-field__menu[hidden] {
+  display: none !important;
+}
+
+.phone-field__search-wrap {
+  flex: 0 0 auto;
+  margin-bottom: 0.3rem;
+}
+
+.auth-form .phone-field__search,
+.phone-field__search {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(120, 90, 10, 0.18);
+  border-radius: 8px;
+  background: #f6f7f9;
+  box-shadow: none;
+  font-size: 0.875rem;
+}
+
+.auth-form .phone-field__search:focus,
+.phone-field__search:focus {
+  border-color: var(--color-primary);
+  background: #fff;
+  box-shadow: none;
+}
+
+.phone-field__list {
+  flex: 1 1 auto;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phone-field__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.48rem 0.55rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-heading);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.phone-field__option:hover,
+.phone-field__option--selected {
+  background: rgba(139, 105, 20, 0.12);
+}
+
+.phone-field__option-code {
+  flex: 0 0 auto;
+  color: #3d4d63;
+  font-weight: 600;
+}
+
+.phone-field__empty {
+  padding: 0.55rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
 .auth-form .form-field--submit {

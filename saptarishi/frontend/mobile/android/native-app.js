@@ -153,10 +153,10 @@
     const waLink = document.getElementById("support-whatsapp");
     if (!emailLink && !waLink) return;
     const email = String((AC && (AC.SUPPORT_EMAIL || AC.CONTACT_EMAIL)) || "").trim();
-    const local = String((AC && (AC.CONTACT_PHONE || AC.PREMIUM_CONTACT_PHONE)) || "")
-      .replace(/\D/g, "")
-      .replace(/^91/, "")
-      .slice(-10);
+    let local = String((AC && (AC.CONTACT_PHONE || AC.PREMIUM_CONTACT_PHONE)) || "").replace(/\D/g, "");
+    if (local.length === 11 && local.startsWith("0")) local = local.slice(1);
+    if (local.length > 10 && local.startsWith("91")) local = local.slice(2);
+    local = local.slice(-10);
     const mailSubject = encodeURIComponent(String((AC && AC.SUPPORT_EMAIL_SUBJECT) || "Saptarishi support"));
     const mailBody = encodeURIComponent(String((AC && AC.SUPPORT_EMAIL_BODY) || ""));
     const waText = encodeURIComponent(String((AC && AC.SUPPORT_WHATSAPP_MESSAGE) || ""));

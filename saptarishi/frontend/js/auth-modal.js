@@ -15,6 +15,13 @@
     return global.SaptarishiCommonUtils || {};
   }
 
+  function mobileEntry(input) {
+    const utils = formUtils();
+    if (input && utils.readPhoneField) return utils.readPhoneField(input);
+    const local = String((input && input.value) || "");
+    return { dial: "91", local, stored: local };
+  }
+
   let overlay = null;
   let resolvePending = null;
   let statusEl = null;
@@ -140,17 +147,17 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && overlay && !overlay.hidden && !authBusy) {
-        close(false);
-      }
+      if (event.key !== "Escape" || !overlay || overlay.hidden || authBusy) return;
+      if (overlay.querySelector(".phone-field.is-open")) return;
+      close(false);
     });
 
     loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const mobile = overlay.querySelector("#auth-modal-login-mobile").value;
+      const mobile = mobileEntry(overlay.querySelector("#auth-modal-login-mobile"));
       const password = overlay.querySelector("#auth-modal-login-password").value;
       const loginError = formUtils().validateLoginInput
-        ? formUtils().validateLoginInput(mobile, password)
+        ? formUtils().validateLoginInput(mobile.local, password, mobile.dial)
         : null;
       if (loginError) {
         showStatus(loginError, true);
@@ -158,7 +165,7 @@
       }
       startAuthLoading();
       try {
-        await AUTH.login(mobile, password);
+        await AUTH.login(mobile.stored, password);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
@@ -170,12 +177,12 @@
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const name = overlay.querySelector("#auth-modal-reg-name").value;
-      const mobile = overlay.querySelector("#auth-modal-reg-mobile").value;
+      const mobile = mobileEntry(overlay.querySelector("#auth-modal-reg-mobile"));
       const email = overlay.querySelector("#auth-modal-reg-email").value;
       const password = overlay.querySelector("#auth-modal-reg-password").value;
       const confirmPassword = overlay.querySelector("#auth-modal-reg-password-confirm").value;
       const registerError = formUtils().validateRegisterInput
-        ? formUtils().validateRegisterInput(name, mobile, email, password, confirmPassword)
+        ? formUtils().validateRegisterInput(name, mobile.local, email, password, confirmPassword, mobile.dial)
         : password !== confirmPassword
           ? "Passwords do not match."
           : null;
@@ -185,7 +192,7 @@
       }
       startAuthLoading();
       try {
-        await AUTH.register(name, mobile, email, password, confirmPassword);
+        await AUTH.register(name, mobile.stored, email, password, confirmPassword);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
@@ -196,10 +203,10 @@
 
     forgotForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const mobile = overlay.querySelector("#auth-modal-forgot-mobile").value;
+      const mobile = mobileEntry(overlay.querySelector("#auth-modal-forgot-mobile"));
       const email = overlay.querySelector("#auth-modal-forgot-email").value;
       const forgotError = formUtils().validateForgotPasswordInput
-        ? formUtils().validateForgotPasswordInput(mobile, email)
+        ? formUtils().validateForgotPasswordInput(mobile.local, email, mobile.dial)
         : null;
       if (forgotError) {
         showStatus(forgotError, true);
@@ -207,7 +214,7 @@
       }
       startAuthLoading();
       try {
-        const payload = await AUTH.forgotPassword(mobile, email);
+        const payload = await AUTH.forgotPassword(mobile.stored, email);
         stopAuthLoading();
         showStatus(
           payload.message ||
@@ -226,7 +233,7 @@
     if (!overlay) return;
     [loginForm, registerForm, forgotForm].forEach((form) => {
       if (!form) return;
-      form.querySelectorAll("input, textarea, button[type='submit'], .password-field__toggle").forEach((el) => {
+      form.querySelectorAll("input, textarea, button[type='submit'], .password-field__toggle, .phone-field__code").forEach((el) => {
         el.disabled = busy;
       });
     });
@@ -314,6 +321,7 @@
     if (isForgot) overlay.dataset.leadKey = "auth.forgotLead";
     setLeadText(isForgot ? at("auth.forgotLead") : overlay.dataset.lead || "");
     showStatus("");
+    if (formUtils().closePhoneMenus) formUtils().closePhoneMenus(overlay);
   }
 
   function setLeadText(text) {

@@ -53,19 +53,32 @@
     return String(cfg.PRODUCTION_API_ORIGIN).replace(/\/$/, "");
   }
 
+  /**
+   * Local India mobile digits.
+   * Strip a leading 91 only when it is a country code in front of a full number
+   * (919110200214 → 9110200214). A 10-digit number that itself starts with 91
+   * (9110200214) is already local and must be kept.
+   */
+  function indiaMobileLocalDigits(raw) {
+    let digits = String(raw || "").replace(/\D/g, "");
+    if (digits.length === 11 && digits.startsWith("0")) {
+      digits = digits.slice(1);
+    }
+    if (digits.length > 10 && digits.startsWith("91")) {
+      digits = digits.slice(2);
+    }
+    return digits;
+  }
+
   /** Display India mobile as ``+91-XXXXXXXXXX`` (tel/wa links still use digits only). */
   function formatIndiaPhoneDisplay(raw) {
-    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    const digits = indiaMobileLocalDigits(raw);
     return digits ? `+91-${digits}` : "";
   }
 
   function indiaPhoneDigits(raw) {
-    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    const digits = indiaMobileLocalDigits(raw);
     return digits.length === 10 ? `91${digits}` : digits;
-  }
-
-  function indiaMobileLocalDigits(raw) {
-    return String(raw || "").replace(/\D/g, "").replace(/^91/, "");
   }
 
   function isValidIndiaMobile(raw) {
@@ -88,7 +101,14 @@
     return null;
   }
 
-  function validateMobileNumber(raw) {
+  function validateMobileNumber(raw, dialCode) {
+    const dial = String(dialCode || "").replace(/\D/g, "");
+    if (dial && dial !== "91") {
+      const local = String(raw || "").replace(/\D/g, "");
+      const max = Math.min(14, 15 - dial.length);
+      if (local.length < 6 || local.length > max) return "Enter a valid mobile number.";
+      return null;
+    }
     if (!isValidIndiaMobile(raw)) return "Enter a valid 10-digit mobile number.";
     return null;
   }
@@ -113,28 +133,28 @@
     return null;
   }
 
-  function validateLoginInput(mobile, password) {
-    return validateMobileNumber(mobile) || validatePasswordValue(password);
+  function validateLoginInput(mobile, password, dialCode) {
+    return validateMobileNumber(mobile, dialCode) || validatePasswordValue(password);
   }
 
-  function validateRegisterInput(name, mobile, email, password, confirmPassword) {
+  function validateRegisterInput(name, mobile, email, password, confirmPassword, dialCode) {
     return (
       validatePersonName(name) ||
-      validateMobileNumber(mobile) ||
+      validateMobileNumber(mobile, dialCode) ||
       validateEmailAddress(email) ||
       validatePasswordValue(password) ||
       (String(password) !== String(confirmPassword) ? "Passwords do not match." : null)
     );
   }
 
-  function validateForgotPasswordInput(mobile, email) {
-    return validateMobileNumber(mobile) || validateEmailAddress(email);
+  function validateForgotPasswordInput(mobile, email, dialCode) {
+    return validateMobileNumber(mobile, dialCode) || validateEmailAddress(email);
   }
 
-  function validateProfileInput(name, mobile, email, lifeEvents) {
+  function validateProfileInput(name, mobile, email, lifeEvents, dialCode) {
     return (
       validatePersonName(name) ||
-      validateMobileNumber(mobile) ||
+      validateMobileNumber(mobile, dialCode) ||
       validateEmailAddress(email) ||
       validateLifeEvents(lifeEvents)
     );
@@ -296,6 +316,7 @@
       el.placeholder = AC.MOBILE_PLACEHOLDER || el.placeholder;
     });
     enhancePasswordVisibility(scope);
+    enhancePhoneFields(scope);
   }
 
   const PASSWORD_EYE_SHOW =
@@ -303,31 +324,71 @@
   const PASSWORD_EYE_HIDE =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A11 11 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-3.2 3.8"/><path d="M6.1 6.1C3.8 7.8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.4-.9"/></svg>';
 
+  function androidPasswordUsesTextMask() {
+    if (!/Android/i.test(navigator.userAgent || "")) return false;
+    return (
+      typeof CSS !== "undefined" &&
+      CSS.supports &&
+      (CSS.supports("-webkit-text-security", "disc") || CSS.supports("text-security", "disc"))
+    );
+  }
+
+  function passwordFieldIsVisible(input) {
+    if (input.dataset.passwordAsText === "1") {
+      return !input.classList.contains("password-field__input--masked");
+    }
+    return input.type !== "password";
+  }
+
   function syncPasswordToggle(input, toggle, visible) {
-    input.type = visible ? "text" : "password";
+    if (input.dataset.passwordAsText === "1") {
+      input.type = "text";
+      input.classList.toggle("password-field__input--masked", !visible);
+    } else {
+      input.type = visible ? "text" : "password";
+    }
     toggle.setAttribute("aria-pressed", visible ? "true" : "false");
     toggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
     toggle.innerHTML = visible ? PASSWORD_EYE_HIDE : PASSWORD_EYE_SHOW;
   }
 
+  function useAndroidPasswordTextMask(input) {
+    if (!androidPasswordUsesTextMask()) return;
+    // Android WebView restarts the secure password keyboard after every
+    // character. A text field with disc masking keeps the same keyboard
+    // behavior as the mobile and email fields.
+    input.dataset.passwordAsText = "1";
+    input.type = "text";
+    input.classList.add("password-field__input--masked");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocapitalize", "none");
+    input.setAttribute("autocorrect", "off");
+    input.spellcheck = false;
+  }
+
   function enhancePasswordVisibility(root) {
     const scope = root && root.querySelectorAll ? root : document;
-    scope.querySelectorAll('input[type="password"]').forEach((input) => {
+    scope.querySelectorAll('input[type="password"], input[data-password-as-text="1"]').forEach((input) => {
       if (input.closest(".password-field")) return;
       const wrap = document.createElement("div");
       wrap.className = "password-field";
       input.parentNode.insertBefore(wrap, input);
       wrap.appendChild(input);
+      useAndroidPasswordTextMask(input);
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.className = "password-field__toggle";
+      toggle.tabIndex = -1;
       toggle.setAttribute("aria-label", "Show password");
       toggle.setAttribute("aria-pressed", "false");
       if (input.id) toggle.setAttribute("aria-controls", input.id);
       toggle.innerHTML = PASSWORD_EYE_SHOW;
       wrap.appendChild(toggle);
+      toggle.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
       toggle.addEventListener("click", () => {
-        syncPasswordToggle(input, toggle, input.type === "password");
+        syncPasswordToggle(input, toggle, !passwordFieldIsVisible(input));
         try {
           input.focus({ preventScroll: true });
         } catch (err) {
@@ -346,6 +407,337 @@
         });
       }
     });
+  }
+
+  const PHONE_COUNTRY_ROWS = [
+    ["Afghanistan", "93"],
+    ["Albania", "355"],
+    ["Algeria", "213"],
+    ["American Samoa", "1"],
+    ["Andorra", "376"],
+    ["Angola", "244"],
+    ["Anguilla", "1"],
+    ["Argentina", "54"],
+    ["Australia", "61"],
+    ["Austria", "43"],
+    ["Bahrain", "973"],
+    ["Bangladesh", "880"],
+    ["Belgium", "32"],
+    ["Bhutan", "975"],
+    ["Brazil", "55"],
+    ["Canada", "1"],
+    ["China", "86"],
+    ["Colombia", "57"],
+    ["Denmark", "45"],
+    ["Egypt", "20"],
+    ["Finland", "358"],
+    ["France", "33"],
+    ["Germany", "49"],
+    ["Ghana", "233"],
+    ["Greece", "30"],
+    ["Hong Kong", "852"],
+    ["Hungary", "36"],
+    ["India", "91"],
+    ["Indonesia", "62"],
+    ["Iran", "98"],
+    ["Iraq", "964"],
+    ["Ireland", "353"],
+    ["Israel", "972"],
+    ["Italy", "39"],
+    ["Japan", "81"],
+    ["Jordan", "962"],
+    ["Kenya", "254"],
+    ["Kuwait", "965"],
+    ["Malaysia", "60"],
+    ["Maldives", "960"],
+    ["Mexico", "52"],
+    ["Morocco", "212"],
+    ["Myanmar", "95"],
+    ["Nepal", "977"],
+    ["Netherlands", "31"],
+    ["New Zealand", "64"],
+    ["Nigeria", "234"],
+    ["Norway", "47"],
+    ["Oman", "968"],
+    ["Pakistan", "92"],
+    ["Philippines", "63"],
+    ["Poland", "48"],
+    ["Portugal", "351"],
+    ["Qatar", "974"],
+    ["Romania", "40"],
+    ["Russia", "7"],
+    ["Saudi Arabia", "966"],
+    ["Singapore", "65"],
+    ["South Africa", "27"],
+    ["South Korea", "82"],
+    ["Spain", "34"],
+    ["Sri Lanka", "94"],
+    ["Sweden", "46"],
+    ["Switzerland", "41"],
+    ["Thailand", "66"],
+    ["Turkey", "90"],
+    ["Uganda", "256"],
+    ["Ukraine", "380"],
+    ["United Arab Emirates", "971"],
+    ["United Kingdom", "44"],
+    ["United States", "1"],
+    ["Vietnam", "84"],
+    ["Yemen", "967"]
+  ];
+
+  function phoneCountries() {
+    return PHONE_COUNTRY_ROWS.map(([name, dial]) => ({ name, dial }));
+  }
+
+  function phoneCountryMax(dial) {
+    const code = String(dial || "91");
+    if (code === "91") return 10;
+    return Math.min(14, Math.max(6, 15 - code.length));
+  }
+
+  const PHONE_DIAL_PREFERRED = { 1: "United States", 91: "India" };
+
+  function findPhoneCountry(dial, name) {
+    const countries = phoneCountries();
+    const code = String(dial || "");
+    const wantedName = String(name || "");
+    if (wantedName) {
+      const named = countries.find((country) => country.name === wantedName && country.dial === code);
+      if (named) return named;
+    }
+    const preferred = PHONE_DIAL_PREFERRED[code];
+    if (preferred) {
+      const hit = countries.find((country) => country.name === preferred && country.dial === code);
+      if (hit) return hit;
+    }
+    return countries.find((country) => country.dial === code) || { name: "India", dial: "91" };
+  }
+
+  function splitStoredMobile(raw) {
+    const digits = String(raw || "").replace(/\D/g, "");
+    if (!digits) return { dial: "91", local: "", name: "India" };
+    if (digits.length === 10) return { dial: "91", local: digits, name: "India" };
+    if (
+      digits.length === 12 &&
+      digits.startsWith("91") &&
+      /^[6-9]\d{9}$/.test(digits.slice(2))
+    ) {
+      return { dial: "91", local: digits.slice(2), name: "India" };
+    }
+    const codes = phoneCountries()
+      .map((country) => country.dial)
+      .filter((code, index, all) => all.indexOf(code) === index)
+      .sort((a, b) => b.length - a.length);
+    for (const code of codes) {
+      if (!digits.startsWith(code) || digits.length <= code.length) continue;
+      const local = digits.slice(code.length);
+      if (local.length < 6 || local.length > phoneCountryMax(code)) continue;
+      const country = findPhoneCountry(code);
+      return { dial: code, local, name: country.name };
+    }
+    return { dial: "91", local: digits, name: "India" };
+  }
+
+  function readPhoneField(input) {
+    const dial = String((input && input.dataset.dialCode) || "91").replace(/\D/g, "") || "91";
+    const local = String((input && input.value) || "").replace(/\D/g, "");
+    return {
+      dial,
+      local,
+      stored: dial === "91" ? local : `${dial}${local}`
+    };
+  }
+
+  function syncPhoneDial(input, dial, name) {
+    const country = findPhoneCountry(dial, name);
+    const field = input.closest(".phone-field");
+    input.dataset.dialCode = country.dial;
+    input.dataset.countryName = country.name;
+    input.maxLength = phoneCountryMax(country.dial);
+    const dialEl = field && field.querySelector(".phone-field__dial");
+    if (dialEl) dialEl.textContent = `+${country.dial}`;
+    const codeBtn = field && field.querySelector(".phone-field__code");
+    if (codeBtn) codeBtn.setAttribute("aria-label", `Country code +${country.dial}`);
+    let digits = String(input.value || "").replace(/\D/g, "");
+    if (country.dial === "91" && digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2);
+    if (digits.length > input.maxLength) digits = digits.slice(0, input.maxLength);
+    if (input.value !== digits) input.value = digits;
+  }
+
+  function writePhoneField(input, stored) {
+    if (!input) return;
+    const parts = splitStoredMobile(stored);
+    input.value = parts.local;
+    syncPhoneDial(input, parts.dial, parts.name);
+  }
+
+  function closePhoneField(field) {
+    if (!field) return;
+    field.classList.remove("is-open");
+    const menu = field.querySelector(".phone-field__menu");
+    const codeBtn = field.querySelector(".phone-field__code");
+    if (menu) menu.hidden = true;
+    if (codeBtn) codeBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function closePhoneMenus(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll(".phone-field.is-open").forEach(closePhoneField);
+  }
+
+  let phoneFieldDocBound = false;
+
+  function bindPhoneFieldDocument() {
+    if (phoneFieldDocBound) return;
+    phoneFieldDocBound = true;
+    document.addEventListener("pointerdown", (event) => {
+      document.querySelectorAll(".phone-field.is-open").forEach((field) => {
+        if (!field.contains(event.target)) closePhoneField(field);
+      });
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const open = document.querySelector(".phone-field.is-open");
+      if (!open) return;
+      closePhoneField(open);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    });
+  }
+
+  function renderPhoneOptions(list, input, query) {
+    const q = String(query || "").trim().toLowerCase();
+    const selectedName = input.dataset.countryName || "India";
+    const selectedDial = input.dataset.dialCode || "91";
+    const matches = phoneCountries().filter((country) => {
+      if (!q) return true;
+      return (
+        country.name.toLowerCase().includes(q) ||
+        country.dial.startsWith(q.replace(/^\+/, "")) ||
+        `+${country.dial}`.startsWith(q)
+      );
+    });
+    matches.sort((a, b) => a.name.localeCompare(b.name));
+    const selectedIndex = matches.findIndex(
+      (country) => country.name === selectedName && country.dial === selectedDial
+    );
+    if (selectedIndex > 0) {
+      const [selected] = matches.splice(selectedIndex, 1);
+      matches.unshift(selected);
+    }
+    list.innerHTML = "";
+    if (!matches.length) {
+      const empty = document.createElement("li");
+      empty.className = "phone-field__empty";
+      empty.textContent = "No matches";
+      list.appendChild(empty);
+      return;
+    }
+    for (const country of matches) {
+      const item = document.createElement("li");
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = "phone-field__option";
+      option.setAttribute("role", "option");
+      const selected = country.name === selectedName && country.dial === selectedDial;
+      if (selected) option.classList.add("phone-field__option--selected");
+      option.setAttribute("aria-selected", selected ? "true" : "false");
+      const name = document.createElement("span");
+      name.textContent = country.name;
+      const code = document.createElement("span");
+      code.className = "phone-field__option-code";
+      code.textContent = `+${country.dial}`;
+      option.append(name, code);
+      option.addEventListener("click", () => {
+        syncPhoneDial(input, country.dial, country.name);
+        closePhoneField(input.closest(".phone-field"));
+        try {
+          input.focus({ preventScroll: true });
+        } catch (err) {
+          input.focus();
+        }
+      });
+      item.appendChild(option);
+      list.appendChild(item);
+    }
+  }
+
+  function enhancePhoneFields(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll(
+      "#profile-mobile, #auth-modal-login-mobile, #auth-modal-reg-mobile, #auth-modal-forgot-mobile"
+    ).forEach((input) => {
+      if (input.closest(".phone-field")) return;
+      const stored = input.value;
+      const field = document.createElement("div");
+      field.className = "phone-field";
+      input.parentNode.insertBefore(field, input);
+      field.appendChild(input);
+      input.classList.add("phone-field__number");
+      input.setAttribute("autocomplete", "tel-national");
+
+      const codeBtn = document.createElement("button");
+      codeBtn.type = "button";
+      codeBtn.className = "phone-field__code";
+      codeBtn.setAttribute("aria-haspopup", "listbox");
+      codeBtn.setAttribute("aria-expanded", "false");
+      codeBtn.innerHTML =
+        '<span class="phone-field__dial">+91</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      field.insertBefore(codeBtn, input);
+
+      const menu = document.createElement("div");
+      menu.className = "phone-field__menu";
+      menu.hidden = true;
+      const searchWrap = document.createElement("div");
+      searchWrap.className = "phone-field__search-wrap";
+      const search = document.createElement("input");
+      search.type = "text";
+      search.className = "phone-field__search";
+      search.setAttribute("data-i18n-placeholder", "phone.search");
+      search.placeholder = t("phone.search") === "phone.search" ? "Search" : t("phone.search");
+      search.setAttribute("aria-label", search.placeholder);
+      search.autocomplete = "off";
+      searchWrap.appendChild(search);
+      const list = document.createElement("ul");
+      list.className = "phone-field__list";
+      list.setAttribute("role", "listbox");
+      menu.append(searchWrap, list);
+      field.appendChild(menu);
+
+      writePhoneField(input, stored);
+
+      codeBtn.addEventListener("click", () => {
+        const willOpen = menu.hidden;
+        closePhoneMenus(document);
+        if (!willOpen) return;
+        search.value = "";
+        renderPhoneOptions(list, input, "");
+        menu.hidden = false;
+        field.classList.add("is-open");
+        codeBtn.setAttribute("aria-expanded", "true");
+        if (!window.matchMedia("(pointer: coarse)").matches) {
+          window.requestAnimationFrame(() => search.focus());
+        }
+      });
+      search.addEventListener("input", () => renderPhoneOptions(list, input, search.value));
+      search.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          return;
+        }
+        if (event.key === "Escape") return;
+        event.stopPropagation();
+      });
+      input.addEventListener("input", () => {
+        const dial = input.dataset.dialCode || "91";
+        let digits = input.value.replace(/\D/g, "");
+        if (dial === "91" && digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2);
+        const max = Number(input.maxLength) || phoneCountryMax(dial);
+        if (digits.length > max) digits = digits.slice(0, max);
+        if (input.value !== digits) input.value = digits;
+      });
+    });
+    bindPhoneFieldDocument();
   }
 
   function privacyPolicyHref() {
@@ -2923,6 +3315,10 @@
     getApiOrigin,
     formatIndiaPhoneDisplay,
     indiaPhoneDigits,
+    indiaMobileLocalDigits,
+    readPhoneField,
+    writePhoneField,
+    closePhoneMenus,
     validateLoginInput,
     validateRegisterInput,
     validateForgotPasswordInput,

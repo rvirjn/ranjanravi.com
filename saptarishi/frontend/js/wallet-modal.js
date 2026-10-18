@@ -29,7 +29,9 @@
 
   function formatContactPhoneDisplay(raw) {
     if (CU && CU.formatIndiaPhoneDisplay) return CU.formatIndiaPhoneDisplay(raw);
-    const digits = String(raw || "").replace(/\D/g, "").replace(/^91/, "");
+    let digits = String(raw || "").replace(/\D/g, "");
+    if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+    if (digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2);
     return digits ? `+91-${digits}` : String(raw || "");
   }
 
