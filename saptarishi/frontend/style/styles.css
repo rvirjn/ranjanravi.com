@@ -369,14 +369,35 @@ body.saptarishi-page {
   white-space: nowrap;
 }
 
+.birth-change-btn,
+#future-change-birth-btn {
+  flex-wrap: nowrap;
+  max-width: none;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.birth-change-btn > span,
+#future-change-birth-btn > span,
 .birth-change-when {
+  flex-shrink: 0;
   font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.15;
   text-transform: none;
-  opacity: 0.8;
   white-space: nowrap;
+}
+
+.birth-change-when {
+  opacity: 0.8;
+}
+
+.birth-change-nav,
+#future-detail-view .topic-crumb {
+  flex-wrap: nowrap;
 }
 
 .birth-open-list__delete {
@@ -3521,6 +3542,15 @@ tbody tr:last-child td {
 
 .topic-crumb .auspicious-back {
   margin: 0;
+}
+
+.auspicious-back.birth-change-btn,
+#future-change-birth-btn.auspicious-back,
+.auspicious-back.birth-change-btn > span,
+#future-change-birth-btn.auspicious-back > span {
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.15;
 }
 
 .topic-crumb__current {
@@ -7148,16 +7178,6 @@ body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
   left: 0.85rem;
   z-index: 3;
   margin: 0;
-}
-
-body.kundali-page:has(#birth-form[hidden]) .birth-change-btn {
-  align-items: baseline;
-  max-width: min(20rem, 52vw);
-  white-space: normal;
-}
-
-body.kundali-page:has(#birth-form[hidden]) .birth-change-when {
-  white-space: normal;
 }
 
 body.kundali-page:has(#birth-form[hidden]) #results {
