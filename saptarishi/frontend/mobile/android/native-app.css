@@ -1645,12 +1645,12 @@ html.saptarishi-native-app .ask-ai__bubble {
 @media screen and (max-width: 720px), screen and (max-device-width: 720px) {
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell,
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell--with-chrome {
-  padding: 3.35rem 0 calc(176 / 836 * 100cqw) !important;
+  padding: 3.35rem 0 calc(176 / 800 * 100cqw) !important;
   background-color: #f4e6c6 !important;
-  background-image: url("../../images/kundali_content_bg.png?v=377") !important;
+  background-image: url("../../images/kundali_content_bg_phone.png?v=429") !important;
   background-repeat: no-repeat !important;
-  background-position: calc(-40 / 836 * 100cqw) 0 !important;
-  background-size: calc(916 / 836 * 100%) auto !important;
+  background-position: top center !important;
+  background-size: 100% auto !important;
   background-origin: content-box !important;
 }
 

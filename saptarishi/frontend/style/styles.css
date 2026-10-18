@@ -7550,12 +7550,13 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   min-width: 0 !important;
 }
 
-/* Phone: drop the page gutter and crop the letterhead's outer cream so
-   the floral border meets the screen. Chart and text use the same crop.
-   Screen only — print must keep the A4 letterhead, or a phone's
-   device-width rules override it and the PDF comes out blank. */
+/* Phone: the floral art is already trimmed to the flower, so the side
+   column is just a width. It sits on the screen edge, and the reading
+   uses that same width as its side margin, so the table meets the flower.
+   Screen only — print keeps the full A4 letterhead. */
 @media screen and (max-width: 720px), screen and (max-device-width: 720px) {
   body.kundali-page:has(#birth-form[hidden]) {
+    --floral-side: 11.5%;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -7563,42 +7564,38 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
     /* Room above the letterhead for "change birth" and the loading spinner. */
     padding-top: 3.35rem !important;
-    padding-bottom: calc(176 / 836 * 100cqw) !important;
+    padding-bottom: calc(176 / 800 * 100cqw) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     background-color: #f4e6c6 !important;
-    background-image: url("../images/kundali_content_bg.png?v=377") !important;
+    background-image: url("../images/kundali_content_bg_phone.png?v=429") !important;
     background-repeat: no-repeat !important;
-    background-position: calc(-40 / 836 * 100cqw) 0 !important;
-    background-size: calc(916 / 836 * 100%) auto !important;
+    background-position: top center !important;
+    background-size: 100% auto !important;
     background-origin: content-box !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
     top: 3.35rem;
-    /* Overlap the letterhead by a few pixels so the join does not gap.
-       Shift by the same crop as the letterhead so the outer edge and
-       thickness match the first page. */
-    margin-top: calc((1700 - 8) / 836 * 100cqw);
+    /* Overlap the letterhead by a few pixels so the join does not gap. */
+    margin-top: calc((1700 - 8) / 800 * 100cqw);
     /* Reach the footer's floral (it starts 32px into the 176px tile)
        so the sides meet the strip instead of stopping short. */
-    bottom: calc((176 - 32) / 836 * 100cqw);
+    bottom: calc((176 - 32) / 800 * 100cqw);
+    background-image:
+      url("../images/kundali_border_left_fit.png?v=429"),
+      url("../images/kundali_border_right_fit.png?v=429");
     background-repeat: repeat-y, repeat-y;
-    /* Tile pixel 0 sits on image x=0. The right tile's right edge
-       sits on image x=916, so both outer edges match the letterhead. */
-    background-position:
-      calc(-40 / 836 * 100cqw) 0,
-      calc(700 / 836 * 100cqw) 0;
-    background-size: calc(176 / 836 * 100cqw) auto, calc(176 / 836 * 100cqw) auto;
+    background-position: left top, right top;
+    background-size: var(--floral-side) auto, var(--floral-side) auto;
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
-    /* The footer tile is floral to its edges. The side florals, after the
-       40px crop, still start at image x=61 and end at image x=818.
-       Inset the strip to those edges so the corners meet. */
-    left: calc((61 - 40) / 836 * 100%);
-    right: calc((836 - (700 + 118)) / 836 * 100%);
-    height: calc(176 / 836 * 100cqw);
+    /* Side florals now meet the screen, and the footer tile is floral
+       to its own left and right edges, so the strip spans the screen. */
+    left: 0;
+    right: 0;
+    height: calc(176 / 800 * 100cqw);
   }
 
   body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
@@ -7609,10 +7606,10 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
     top: 3.35rem !important;
-    margin-top: calc(499 / 836 * 100cqw) !important;
-    left: calc((208 - 40) / 836 * 100cqw) !important;
-    width: calc(500 / 836 * 100cqw) !important;
-    height: calc(220 / 836 * 100cqw) !important;
+    margin-top: calc(499 / 800 * 100cqw) !important;
+    left: calc((208 - 60) / 800 * 100cqw) !important;
+    width: calc(500 / 800 * 100cqw) !important;
+    height: calc(220 / 800 * 100cqw) !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
@@ -7634,10 +7631,9 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #results {
-    /* Same column as the printed chart frame, with the pillar gap under the dropdown. */
-    margin-top: calc(759 / 836 * 100cqw + 1.75rem) !important;
-    margin-left: calc((177 - 40) / 836 * 100cqw) !important;
-    margin-right: calc((177 - 40) / 836 * 100cqw) !important;
+    margin-top: calc(759 / 800 * 100cqw + 1.75rem) !important;
+    margin-left: var(--floral-side) !important;
+    margin-right: var(--floral-side) !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__summary.table-wrap,
@@ -8039,40 +8035,43 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
 
 @media screen and (max-width: 720px), screen and (max-device-width: 720px) {
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) {
+    --floral-side: 11.5%;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell {
-    padding-top: calc(3.35rem + (89 / 836 * 100cqw) + 0.35rem) !important;
-    padding-bottom: calc(176 / 836 * 100cqw) !important;
+    padding-top: calc(3.35rem + (89 / 800 * 100cqw) + 0.35rem) !important;
+    padding-bottom: calc(176 / 800 * 100cqw) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     background-color: #f4e6c6 !important;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::before {
-    top: calc(3.35rem + ((89 - 36) / 836 * 100cqw));
-    bottom: calc((176 - 32) / 836 * 100cqw);
-    background-position:
-      calc(-40 / 836 * 100cqw) 0,
-      calc(700 / 836 * 100cqw) 0;
-    background-size: calc(176 / 836 * 100cqw) auto, calc(176 / 836 * 100cqw) auto;
+    top: calc(3.35rem + ((89 - 36) / 800 * 100cqw));
+    bottom: calc((176 - 32) / 800 * 100cqw);
+    background-image:
+      url("../images/kundali_border_left_fit.png?v=429"),
+      url("../images/kundali_border_right_fit.png?v=429");
+    background-repeat: repeat-y, repeat-y;
+    background-position: left top, right top;
+    background-size: var(--floral-side) auto, var(--floral-side) auto;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
-    left: calc((61 - 40) / 836 * 100%);
-    right: calc((836 - (700 + 118)) / 836 * 100%);
-    height: calc(176 / 836 * 100cqw);
+    left: 0;
+    right: 0;
+    height: calc(176 / 800 * 100cqw);
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-floral-top {
-    left: calc((61 - 40) / 836 * 100%);
-    right: calc((836 - (700 + 118)) / 836 * 100%);
+    left: 0;
+    right: 0;
     top: 3.35rem;
-    height: calc(89 / 836 * 100cqw);
-    background-size: auto calc(176 / 836 * 100cqw);
-    background-position: left calc(-25 / 836 * 100cqw);
+    height: calc(89 / 800 * 100cqw);
+    background-size: auto calc(176 / 800 * 100cqw);
+    background-position: left calc(-25 / 800 * 100cqw);
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
@@ -8082,8 +8081,8 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results {
     margin-top: 0 !important;
-    margin-left: calc((177 - 40) / 836 * 100cqw) !important;
-    margin-right: calc((177 - 40) / 836 * 100cqw) !important;
+    margin-left: var(--floral-side) !important;
+    margin-right: var(--floral-side) !important;
   }
 
   body.remedy-page #results .kundali-open-card .remedy-planet-detail-table,
