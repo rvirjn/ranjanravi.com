@@ -6615,7 +6615,20 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
 }
 
 .house-planets-sheet__pc-list li {
-  margin: 0 0 0.22rem;
+  margin: 0 0 0.35rem;
+}
+
+.house-planets-sheet__pc-impact {
+  display: block;
+  margin: 0.15rem 0 0.1rem 0.2rem;
+  padding-left: 0.55rem;
+  color: #3e4c44;
+  font-size: 0.92em;
+  line-height: 1.35;
+}
+
+.house-planets-sheet__pc-impact-label {
+  font-weight: 650;
 }
 
 .house-planets-sheet__match-with-info {

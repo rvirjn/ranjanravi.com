@@ -3049,6 +3049,20 @@ function appendHouseDescriptionLabeledList(parent, label, items, kind) {
 }
 
 /** Render a Pros/Cons line; yoga/dosh lines get an i-button after the match name. */
+function appendProsConsImpact(li, item) {
+  const impact = item && typeof item === "object" && !Array.isArray(item)
+    ? String(item.impact || "").trim()
+    : "";
+  if (!impact) return;
+  const line = document.createElement("div");
+  line.className = "house-planets-sheet__pc-impact";
+  const label = document.createElement("span");
+  label.className = "house-planets-sheet__pc-impact-label";
+  label.textContent = "Impact:";
+  line.append(label, document.createTextNode(` ${chartText(impact)}`));
+  li.appendChild(line);
+}
+
 function appendProsConsLineContent(li, item) {
   if (item && typeof item === "object" && !Array.isArray(item)) {
     const text = String(item.text || "").trim();
@@ -3069,6 +3083,7 @@ function appendProsConsLineContent(li, item) {
         nameWrap.append(nameEl, createKundaliQaInfoButton(qaKey));
         li.appendChild(nameWrap);
         if (after) li.appendChild(document.createTextNode(chartText(after)));
+        appendProsConsImpact(li, item);
         return true;
       }
     }
@@ -3078,9 +3093,11 @@ function appendProsConsLineContent(li, item) {
       row.appendChild(document.createTextNode(chartText(text)));
       row.appendChild(createKundaliQaInfoButton(qaKey));
       li.appendChild(row);
+      appendProsConsImpact(li, item);
       return true;
     }
-    li.textContent = chartText(text);
+    li.appendChild(document.createTextNode(chartText(text)));
+    appendProsConsImpact(li, item);
     return true;
   }
   const text = String(item || "").trim();
