@@ -11,7 +11,7 @@ BACKEND = Path(r"c:\Users\drkum\Documents\workspace\saptarishi\backend")
 sys.path.insert(0, str(BACKEND))
 from kundali_house_desc import _impact_sentence  # noqa: E402
 
-DATA = BACKEND / "database" / "data.json"
+DATA = BACKEND / "database" / "houses.json"
 OUT = Path(__file__).with_name("i18n-sitting.js")
 
 THEMES = {
@@ -570,7 +570,7 @@ def emit(cores: dict[str, str], templates: dict[str, str], aliases: dict[str, st
     body = f"""// Copyright © 2018-2026 ranjanravi.com. All rights reserved.
 /**
  * Hindi for sitting-planet effect lines (house grid Impact text).
- * Generated from data.json sentence patterns. Do not edit by hand.
+ * Generated from houses.json sentence patterns. Do not edit by hand.
  */
 (function sittingI18n(global) {{
   const I18N = global.SaptarishiI18n;
