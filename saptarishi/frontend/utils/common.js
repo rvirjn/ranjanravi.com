@@ -531,6 +531,11 @@
     return source.slice(0, 2).toUpperCase();
   }
 
+  function firstNameWord(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    return parts[0] || "";
+  }
+
   function updateDrawerAuth(user, usage) {
     const drawer = document.getElementById("site-drawer");
     if (!drawer) return;
@@ -709,11 +714,12 @@
 
     if (resolvedUser) {
       if (accountMenu) accountMenu.hidden = false;
+      const fullName = resolvedUser.name || resolvedUser.mobile || "Account";
       if (accountName) {
-        accountName.textContent = resolvedUser.name || resolvedUser.mobile || "Account";
+        accountName.textContent = resolvedUser.name ? firstNameWord(resolvedUser.name) : fullName;
       }
       if (accountBtn) {
-        accountBtn.title = resolvedUser.name || resolvedUser.mobile || t("header.profile");
+        accountBtn.title = fullName;
       }
       if (registerBtn) registerBtn.hidden = true;
       if (loginBtn) loginBtn.hidden = true;
