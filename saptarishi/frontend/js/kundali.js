@@ -3036,7 +3036,7 @@ function appendProsConsImpact(li, item) {
   line.className = "house-planets-sheet__pc-impact";
   const label = document.createElement("span");
   label.className = "house-planets-sheet__pc-impact-label";
-  label.textContent = "Impact:";
+  label.textContent = chartText("Impact:");
   line.append(label, document.createTextNode(` ${chartText(impact)}`));
   li.appendChild(line);
 }

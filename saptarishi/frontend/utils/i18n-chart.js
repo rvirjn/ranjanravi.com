@@ -932,6 +932,7 @@
 
   function tryPatterns(text) {
     if (text === "Calculation") return "गणना";
+    if (/^impact:?$/i.test(text)) return "प्रभाव:";
     let match = text.match(/^Running from the past (.+?) till (.+?)\.?$/i);
     if (match) return `पिछले ${yearPhrase(match[1])} से चल रही है, आगे ${yearPhrase(match[2])} तक।`;
     match = text.match(/^Running from this year till (.+?)\.?$/i);
