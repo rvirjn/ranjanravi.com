@@ -288,5 +288,5 @@ html.saptarishi-native-ios.saptarishi-native-app #future-form input[type="checkb
 html.saptarishi-native-ios input,
 html.saptarishi-native-ios select,
 html.saptarishi-native-ios textarea {
-  font-size: 16px;
+  font-size: 1rem;
 }

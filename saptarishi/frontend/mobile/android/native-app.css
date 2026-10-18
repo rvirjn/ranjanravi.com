@@ -648,7 +648,7 @@ html.saptarishi-native-app #remedy-form select {
   border-radius: 0.75rem;
   background: #fff;
   color: var(--app-brown);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 

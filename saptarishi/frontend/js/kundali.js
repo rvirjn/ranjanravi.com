@@ -1870,8 +1870,8 @@ function chartPlanetExponentParts(entry) {
   return parts;
 }
 
-const CHART_PLANET_EXPONENT_DY = "-2.05";
-const CHART_PLANET_EXPONENT_RESET_DY = "2.05";
+const CHART_PLANET_EXPONENT_DY = "-2.87";
+const CHART_PLANET_EXPONENT_RESET_DY = "2.87";
 
 function appendChartPlanetExponent(textEl, entry, exponentDy) {
   const parts = chartPlanetExponentParts(entry);
@@ -3619,17 +3619,17 @@ function aspectEyeShapeScale(aspectCount, crowded) {
     sx *= 0.92;
     sy *= 0.92;
   }
-  return { sx, sy };
+  return { sx: sx * 1.15, sy: sy * 1.15 };
 }
 
 /** Compact label font inside the eye — smaller than sitting planets in the house. */
 function aspectEyeLabelFontPx(aspectCount) {
   const n = Math.max(1, Number(aspectCount) || 1);
-  if (n <= 1) return 2.0;
-  if (n === 2) return 1.85;
-  if (n === 3) return 1.65;
-  if (n === 4) return 1.5;
-  return 1.4;
+  if (n <= 1) return 2.5;
+  if (n === 2) return 2.3;
+  if (n === 3) return 2.05;
+  if (n === 4) return 1.85;
+  return 1.75;
 }
 
 /** Approx half-size of the aspect eye (viewBox units) for placement clearance. */
@@ -4057,7 +4057,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
     strengthMax,
     showHouseMarks,
     manuscriptFit,
-    exponentDy: manuscriptFit ? "-1.15" : undefined
+    exponentDy: manuscriptFit ? "-1.61" : undefined
   };
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

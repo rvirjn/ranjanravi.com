@@ -65,6 +65,16 @@
   --font-display: Georgia, "Times New Roman", serif;
 }
 
+/* One step above the 16px browser default. rem text on every page follows this.
+   Form controls otherwise stay at the browser's 13px and do not follow the page. */
+html {
+  font-size: 125%;
+}
+
+body.saptarishi-page :where(input, select, textarea, button) {
+  font-size: 1rem;
+}
+
 /* ---------- Global page frame ---------- */
 
 body.saptarishi-page {
@@ -677,7 +687,7 @@ body.saptarishi-page {
   background: #fff;
   color: var(--color-heading);
   font: inherit;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .birth-picker__custom-hint {
@@ -909,7 +919,7 @@ body.birth-overlay-open {
   background: transparent;
   color: var(--color-heading);
   font: inherit;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .birth-place-picker__search input:focus {
@@ -971,7 +981,7 @@ body.birth-overlay-open {
   background: #fff;
   color: var(--color-heading);
   font: inherit;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .birth-place-picker__custom button {
@@ -2587,17 +2597,17 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-label-planets {
-  font-size: 3.4px;
+  font-size: 4.75px;
   font-weight: 700;
   fill: var(--color-primary);
 }
 
 .kundali-chart-label-planets--dense {
-  font-size: 3px;
+  font-size: 4.2px;
 }
 
 .kundali-chart-planet {
-  font-size: 3.4px;
+  font-size: 4.75px;
   font-weight: 700;
   stroke: none;
   paint-order: fill;
@@ -2605,7 +2615,7 @@ tbody tr:last-child td {
 
 .kundali-chart-planet-exponent,
 .kundali-chart-planet-degree {
-  font-size: 1.95px;
+  font-size: 2.75px;
   font-weight: 700;
   stroke: none;
   paint-order: fill;
@@ -2613,16 +2623,16 @@ tbody tr:last-child td {
 
 .kundali-chart-planet.kundali-chart-planet-degree,
 .kundali-chart-planet.kundali-chart-planet-exponent {
-  font-size: 1.95px;
+  font-size: 2.75px;
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-exponent,
 .kundali-chart-label-planets--dense .kundali-chart-planet-degree {
-  font-size: 1.7px;
+  font-size: 2.4px;
 }
 
 .kundali-chart-planet-power {
-  font-size: 2.15px;
+  font-size: 3px;
   font-weight: 800;
   stroke-linejoin: round;
   paint-order: stroke fill;
@@ -2630,7 +2640,7 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power {
-  font-size: 1.9px;
+  font-size: 2.65px;
 }
 
 .kundali-chart-planet-power--exalted {
@@ -2649,25 +2659,25 @@ tbody tr:last-child td {
 
 .kundali-chart-planet-power--retro {
   fill: var(--color-heading, #1f1806);
-  font-size: 2.35px;
+  font-size: 3.3px;
   font-weight: 700;
   font-style: normal;
   stroke: none;
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--retro {
-  font-size: 2.1px;
+  font-size: 2.95px;
 }
 
 .kundali-chart-planet-power--combust {
   fill: var(--planet-color-red, #b71c1c);
   stroke: none;
   font-weight: 700;
-  font-size: 2.35px;
+  font-size: 3.3px;
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--combust {
-  font-size: 2.05px;
+  font-size: 2.85px;
 }
 
 .kundali-chart-planet-power--vargottama {
@@ -2675,11 +2685,11 @@ tbody tr:last-child td {
   stroke: var(--planet-color-green, #2e7d32);
   stroke-width: 0.18px;
   font-weight: 700;
-  font-size: 2.15px;
+  font-size: 3px;
 }
 
 .kundali-chart-label-planets--dense .kundali-chart-planet-power--vargottama {
-  font-size: 1.9px;
+  font-size: 2.65px;
 }
 
 .kundali-chart-aspect-eye__brow {
@@ -2708,7 +2718,7 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-aspect-eye__label {
-  font-size: 2px;
+  font-size: 2.5px;
   font-weight: 700;
   stroke: var(--color-surface);
   stroke-width: 0.35px;
@@ -2717,7 +2727,7 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-aspect-eye__comma {
-  font-size: 2px;
+  font-size: 2.5px;
   font-weight: 600;
   fill: var(--color-primary);
   stroke: none;
@@ -2756,7 +2766,7 @@ tbody tr:last-child td {
 }
 
 .kundali-chart-label-rashi {
-  font-size: 3.5px;
+  font-size: 4.9px;
   font-weight: 600;
   fill: var(--color-heading);
   stroke-width: 0.9px;
@@ -6701,7 +6711,7 @@ html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {
     max-width: none;
     width: 100%;
     min-width: 0;
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   html.saptarishi-native-app .form-actions {
@@ -7022,7 +7032,7 @@ html.ask-ai-lock body {
   }
 
   .ask-ai__input {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
