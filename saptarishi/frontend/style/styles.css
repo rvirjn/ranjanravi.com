@@ -7599,7 +7599,13 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
   html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
   html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell--with-chrome {
+    /* Nav text on the first line, spinner on the next, letterhead under both. */
+    padding-top: 5.15rem !important;
     padding-bottom: 0 !important;
+  }
+
+  body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell::before {
+    top: 5.15rem;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
@@ -7617,15 +7623,11 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 
   body.kundali-page:has(#birth-form[hidden]) #status.status--loading {
     position: absolute;
-    top: 0.4rem;
-    left: 0.55rem;
+    top: 2.25rem;
+    left: 0.7rem;
     z-index: 4;
     margin: 0;
     min-height: 0;
-  }
-
-  body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) .birth-change-nav {
-    left: 3.25rem;
   }
 
   body.kundali-page:has(#birth-form[hidden]) #results {
