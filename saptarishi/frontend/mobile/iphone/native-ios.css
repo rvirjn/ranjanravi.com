@@ -104,6 +104,7 @@ html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali .kundali
   gap: 0;
   margin: 0.15rem 0 1.25rem;
   border-bottom: 1px solid rgba(61, 42, 20, 0.16);
+  container-type: inline-size;
 }
 
 html.saptarishi-native-ios.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,

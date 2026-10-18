@@ -229,6 +229,30 @@ body.saptarishi-page {
   box-shadow: inset 0 -3px 0 #c9a227;
 }
 
+/* Phone: English "Open birth details" / "New birth details" wrap to two
+   lines at 1rem. Shrink only these tab labels so each stays one line.
+   Hindi labels are already short enough at the larger size. */
+@media (max-width: 720px) {
+  .kundali-tabs {
+    width: 100%;
+    gap: 0.35rem;
+    container-type: inline-size;
+  }
+
+  body.saptarishi-page .kundali-tabs__item {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    font-size: 0.58rem;
+    font-size: min(0.9rem, 4.05cqi);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
 .kundali-tabs[hidden],
 .search-form[hidden],
 #birth-form[hidden],

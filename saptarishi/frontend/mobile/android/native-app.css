@@ -574,18 +574,23 @@ html.saptarishi-native-app body.app-kundali-compare .kundali-tabs {
   gap: 0;
   margin: 0.15rem 0 1.25rem;
   border-bottom: 1px solid rgba(61, 42, 20, 0.16);
+  container-type: inline-size;
 }
 
 html.saptarishi-native-app .kundali-tabs__item {
   flex: 1 1 50%;
   max-width: none;
-  padding: 0.55rem 0.2rem 0.75rem;
+  min-width: 0;
+  padding: 0.55rem 0.1rem 0.75rem;
   color: var(--app-gold-deep);
-  font-size: 0.78rem;
+  font-size: 0.62rem;
+  font-size: min(0.72rem, 3.7cqi);
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
   text-transform: uppercase;
   text-align: center;
+  white-space: nowrap;
   box-shadow: none;
 }
 
