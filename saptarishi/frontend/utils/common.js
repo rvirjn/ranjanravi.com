@@ -3181,6 +3181,8 @@
 
   const BIRTH_ENTRY_SELECTOR = ".kundali-tabs, #birth-form, #remedy-form, #future-form";
   let birthAuthPrompt = null;
+  let birthAuthDialogOffered = false;
+  let birthAuthStartTab = "register";
 
   function isSignedIn() {
     return Boolean(AUTH && typeof AUTH.getToken === "function" && AUTH.getToken());
@@ -3190,10 +3192,26 @@
     return Boolean(document.querySelector("#birth-form, #remedy-form, #future-form"));
   }
 
+  function shouldOfferBirthAuthDialog() {
+    if (!isNativeAppShell()) return true;
+    const ios =
+      document.documentElement.classList.contains("saptarishi-native-ios") ||
+      /iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (ios) return true;
+    const path = window.location.pathname.toLowerCase();
+    const query = new URLSearchParams(window.location.search);
+    if (path.includes("future")) return true;
+    if (query.get("mode") === "new" || query.get("compare") === "1") return true;
+    return false;
+  }
+
   function openBirthAuth(tab) {
     if (isSignedIn()) return Promise.resolve(true);
     if (birthAuthPrompt) return birthAuthPrompt;
     if (!AUTH || typeof AUTH.ensureAuth !== "function") return Promise.resolve(false);
+    const gate = document.getElementById("birth-auth-gate");
+    if (gate) gate.hidden = true;
+    birthAuthDialogOffered = true;
     birthAuthPrompt = AUTH.ensureAuth({
       tab: tab === "login" ? "login" : "register",
       required: true,
@@ -3237,6 +3255,7 @@
     if (!hasBirthDetailsPage()) return;
     const gate = ensureBirthAuthGate();
     if (isSignedIn()) {
+      birthAuthDialogOffered = false;
       if (gate) gate.hidden = true;
       const resultsOpen = document.querySelector(".birth-change-nav:not([hidden])");
       if (resultsOpen) return;
@@ -3246,11 +3265,18 @@
       });
       return;
     }
-    if (gate) gate.hidden = false;
     document.querySelectorAll(BIRTH_ENTRY_SELECTOR).forEach((el) => {
       el.dataset.birthAuthLocked = "1";
       el.hidden = true;
     });
+    const modalOpen =
+      document.body.classList.contains("auth-modal-open") || Boolean(birthAuthPrompt);
+    if (shouldOfferBirthAuthDialog() && !birthAuthDialogOffered && !modalOpen) {
+      if (gate) gate.hidden = true;
+      openBirthAuth(birthAuthStartTab);
+      return;
+    }
+    if (gate) gate.hidden = modalOpen || !shouldOfferBirthAuthDialog();
   }
 
   function setBirthEntryHidden(hidden) {
@@ -3315,6 +3341,8 @@
     enhanceBirthChooser(document.getElementById("remedy-form"));
     enhanceBirthChooser(document.getElementById("auspicious-form"));
     enhanceBirthChooser(document.getElementById("future-form"));
+    const authTab = extractAuthTabFromQuery();
+    if (authTab) birthAuthStartTab = authTab;
     syncBirthAuthGate();
     document.addEventListener(
       "pointerdown",
@@ -3360,8 +3388,7 @@
       syncBirthAuthGate();
     });
 
-    const authTab = extractAuthTabFromQuery();
-    if (authTab && MODAL) {
+    if (authTab && MODAL && !hasBirthDetailsPage()) {
       MODAL.open({ tab: authTab, required: false });
     }
 

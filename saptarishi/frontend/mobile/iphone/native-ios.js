@@ -156,7 +156,7 @@
         el.hidden = true;
       });
       const gate = document.getElementById("birth-auth-gate");
-      if (gate) gate.hidden = false;
+      if (gate) gate.hidden = document.body.classList.contains("auth-modal-open");
       document.getElementById("app-kundali-empty")?.remove();
       document.getElementById("app-remedy-empty")?.remove();
       return;
