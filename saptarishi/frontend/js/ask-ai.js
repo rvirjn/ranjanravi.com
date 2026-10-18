@@ -11,20 +11,30 @@
   const UTILS = global.SaptarishiCommonUtils;
   const MAX_Q = Number(AC.ASK_AI_MAX_QUESTION_LENGTH) || 800;
 
-  function displayFirstName() {
-    const raw =
-      (AUTH && typeof AUTH.getUser === "function" && AUTH.getUser()?.name) || "";
-    const name = String(raw).trim();
-    if (!name) return "";
-    return name.split(/\s+/)[0];
+  function activeBirthName() {
+    const birth =
+      UTILS && typeof UTILS.getActiveBirth === "function" ? UTILS.getActiveBirth() : null;
+    return String((birth && birth.name) || "").trim();
   }
 
   function welcomeMessage() {
-    const name = displayFirstName();
+    const name = activeBirthName();
     if (name) {
       return `Hi ${name}, welcome - ask our AI about your kundali.`;
     }
     return "Hi, welcome - ask our AI about your kundali.";
+  }
+
+  function syncWelcome(log) {
+    if (!log || log.querySelector(".ask-ai__bubble--user")) return;
+    const text = welcomeMessage();
+    const first = log.querySelector(".ask-ai__bubble--assistant");
+    if (!first) {
+      appendBubble(log, "assistant", text);
+      log.dataset.greeted = "1";
+      return;
+    }
+    first.textContent = text;
   }
 
   function isLoggedIn() {
@@ -334,10 +344,7 @@
       }
       ensureMobileAskAiCss();
       setPageLocked(true);
-      if (!log.dataset.greeted) {
-        appendBubble(log, "assistant", welcomeMessage());
-        log.dataset.greeted = "1";
-      }
+      syncWelcome(log);
       fitMobileViewport();
       scrollLogToEnd(log);
       if (!isMobileScreen()) {
@@ -370,6 +377,9 @@
     });
 
     global.addEventListener("saptarishi-auth-changed", syncVisibility);
+    global.addEventListener("saptarishi-active-birth-changed", () => {
+      if (!panel.hidden) syncWelcome(log);
+    });
 
     function onViewportChange() {
       if (!root.classList.contains("ask-ai--open")) return;
