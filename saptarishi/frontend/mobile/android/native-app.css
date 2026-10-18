@@ -1572,7 +1572,7 @@ html.saptarishi-native-app .ask-ai__bubble {
 /* Kundali reading fills the phone. The app shell padding and solid
    background would otherwise inset the floral frame and drop the
    chart below the printed diamond. */
-@media (max-width: 720px), (max-device-width: 720px) {
+@media screen and (max-width: 720px), screen and (max-device-width: 720px) {
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell,
 html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell--with-chrome {
   padding: 3.35rem 0 calc(176 / 836 * 100cqw) !important;

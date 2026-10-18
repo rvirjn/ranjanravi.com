@@ -7285,8 +7285,10 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 }
 
 /* Phone: drop the page gutter and crop the letterhead's outer cream so
-   the floral border meets the screen. Chart and text use the same crop. */
-@media (max-width: 720px), (max-device-width: 720px) {
+   the floral border meets the screen. Chart and text use the same crop.
+   Screen only — print must keep the A4 letterhead, or a phone's
+   device-width rules override it and the PDF comes out blank. */
+@media screen and (max-width: 720px), screen and (max-device-width: 720px) {
   body.kundali-page:has(#birth-form[hidden]) {
     padding-left: 0 !important;
     padding-right: 0 !important;
@@ -7510,8 +7512,28 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page .kundali-chart-picker,
   body.kundali-page .ask-ai,
   body.kundali-page .kundali-info-btn,
-  body.kundali-page .house-planets-sheet__remedy-btn {
+  body.kundali-page .house-planets-sheet__remedy-btn,
+  html.saptarishi-native-app .app-dock,
+  html.saptarishi-native-app .app-drawer,
+  html.saptarishi-native-app .app-sheet-mask,
+  html.saptarishi-native-app .site-header,
+  html.saptarishi-native-app .site-footer {
     display: none !important;
+  }
+
+  html.saptarishi-native-app body.kundali-page.saptarishi-page {
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html.saptarishi-native-app body.kundali-page .summary-chart-row__summary.table-wrap,
+  html.saptarishi-native-app body.kundali-page .summary-chart-row__summary-body {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    aspect-ratio: auto !important;
   }
 
   body.kundali-page #results,

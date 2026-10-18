@@ -7717,9 +7717,39 @@ function kundaliPdfTitle() {
   return text ? `Kundali ${text.slice(0, 80)}` : "Kundali";
 }
 
+/** App WebViews ignore window.print(). Hand the page to the system print sheet. */
+function requestNativeKundaliPrint(title) {
+  try {
+    if (window.SaptarishiAndroid && typeof window.SaptarishiAndroid.printPage === "function") {
+      window.SaptarishiAndroid.printPage(title);
+      return true;
+    }
+  } catch {
+    /* Older Android build without a print bridge */
+  }
+  try {
+    const handler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saptarishiPrint;
+    const onIosApp = document.documentElement.classList.contains("saptarishi-native-ios");
+    if (onIosApp && handler && typeof handler.postMessage === "function") {
+      handler.postMessage(title);
+      return true;
+    }
+  } catch {
+    /* Older iOS build without a print bridge */
+  }
+  return false;
+}
+
 function downloadKundaliPdf() {
   const previousTitle = document.title;
-  document.title = kundaliPdfTitle();
+  const title = kundaliPdfTitle();
+  document.title = title;
+  if (requestNativeKundaliPrint(title)) {
+    window.setTimeout(() => {
+      if (document.title === title) document.title = previousTitle;
+    }, 1500);
+    return;
+  }
   const cleanup = () => {
     document.title = previousTitle;
     window.removeEventListener("afterprint", cleanup);
