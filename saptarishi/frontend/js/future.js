@@ -467,6 +467,7 @@
     if (tabs) tabs.hidden = hidden;
     if (openBirthWrap) openBirthWrap.classList.remove("is-loading");
     if (!hidden) setBirthMode(birthMode);
+    if (CU && CU.syncBirthAuthGate) CU.syncBirthAuthGate();
   }
 
   function stripPerIpWording(message) {
@@ -660,7 +661,15 @@
       return;
     }
     setFutureBirthChooserHidden(false);
-    if (birthMode === "new" && placePreset) placePreset.focus();
+    if (
+      birthMode === "new" &&
+      placePreset &&
+      typeof SaptarishiAuth !== "undefined" &&
+      SaptarishiAuth.getToken &&
+      SaptarishiAuth.getToken()
+    ) {
+      placePreset.focus();
+    }
   }
 
   async function loadFuture() {

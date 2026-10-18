@@ -111,6 +111,7 @@ html.saptarishi-native-app .site-header.app-topbar {
   position: sticky;
   top: 0;
   z-index: 40;
+  overflow: hidden;
   display: grid !important;
   grid-template-columns: 2.55rem minmax(0, 1fr) auto !important;
   grid-template-rows: auto;
@@ -170,7 +171,10 @@ html.saptarishi-native-app .app-menu-btn svg {
 html.saptarishi-native-app .app-brand {
   grid-column: 2;
   justify-self: center;
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
+  overflow: hidden;
   text-align: center;
   font-family: var(--app-serif);
   font-size: 1.22rem;
@@ -179,6 +183,7 @@ html.saptarishi-native-app .app-brand {
   color: var(--app-gold-deep);
   text-decoration: none;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 html.saptarishi-native-app .site-header.app-topbar .site-header__meta {
@@ -606,7 +611,9 @@ html.saptarishi-native-app .search-form.kundali-form {
 
 html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-form,
 html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #app-kundali-houses,
-html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #kundali-compare-panel {
+html.saptarishi-native-app body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #kundali-compare-panel,
+html.saptarishi-native-app:not(.saptarishi-native-ios) body.app-page--kundali:not(.app-kundali-new):not(.app-kundali-compare) #birth-auth-gate,
+html.saptarishi-native-app:not(.saptarishi-native-ios) body.app-page--remedy #birth-auth-gate {
   display: none !important;
 }
 

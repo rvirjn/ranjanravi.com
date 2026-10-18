@@ -124,21 +124,11 @@
     dock.dataset.iosDock = "1";
   }
 
-  function openAuth(tab) {
-    const modal = global.SaptarishiAuthModal;
-    if (modal && modal.open) {
-      modal.open({ tab, required: false });
-      return;
-    }
-    if (global.SaptarishiAuth && global.SaptarishiAuth.ensureAuth) {
-      global.SaptarishiAuth.ensureAuth({ tab, required: true });
-    }
-  }
-
   function applyIosHeader() {
     const header = document.querySelector(".site-header");
     const meta = header && header.querySelector(".site-header__meta");
     if (!meta) return;
+    meta.querySelectorAll("#ios-register-btn, #ios-login-btn, .app-ios-auth").forEach((btn) => btn.remove());
     const user = global.SaptarishiAuth && global.SaptarishiAuth.getUser && global.SaptarishiAuth.getUser();
     const avatar = header.querySelector("#app-profile-btn");
     if (avatar && avatar.dataset.iosProfile !== "1") {
@@ -154,38 +144,25 @@
       );
     }
     if (avatar) avatar.hidden = !user;
-    let registerBtn = meta.querySelector("#ios-register-btn");
-    let loginBtn = meta.querySelector("#ios-login-btn");
-    if (!registerBtn) {
-      registerBtn = document.createElement("button");
-      registerBtn.type = "button";
-      registerBtn.id = "ios-register-btn";
-      registerBtn.className = "app-ios-auth app-ios-auth--register";
-      if (global.SaptarishiI18n) global.SaptarishiI18n.bind(registerBtn, "header.register");
-      else registerBtn.textContent = "Register";
-      registerBtn.addEventListener("click", () => openAuth("register"));
-      const langBtn = meta.querySelector(".site-header__lang");
-      if (langBtn) meta.insertBefore(registerBtn, langBtn);
-      else meta.appendChild(registerBtn);
-    }
-    if (!loginBtn) {
-      loginBtn = document.createElement("button");
-      loginBtn.type = "button";
-      loginBtn.id = "ios-login-btn";
-      loginBtn.className = "app-ios-auth app-ios-auth--login";
-      if (global.SaptarishiI18n) global.SaptarishiI18n.bind(loginBtn, "header.login");
-      else loginBtn.textContent = "Login";
-      loginBtn.addEventListener("click", () => openAuth("login"));
-      const langBtn = meta.querySelector(".site-header__lang");
-      if (langBtn) meta.insertBefore(loginBtn, langBtn);
-      else meta.appendChild(loginBtn);
-    }
-    registerBtn.hidden = !!user;
-    loginBtn.hidden = !!user;
   }
 
   function showIosBirthTabs() {
     if (document.body.dataset.iosChartOpen === "1") return;
+    const signedIn = Boolean(
+      global.SaptarishiAuth && global.SaptarishiAuth.getToken && global.SaptarishiAuth.getToken()
+    );
+    if (!signedIn) {
+      document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
+        el.hidden = true;
+      });
+      const gate = document.getElementById("birth-auth-gate");
+      if (gate) gate.hidden = false;
+      document.getElementById("app-kundali-empty")?.remove();
+      document.getElementById("app-remedy-empty")?.remove();
+      return;
+    }
+    const gate = document.getElementById("birth-auth-gate");
+    if (gate) gate.hidden = true;
     document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
       el.hidden = false;
     });

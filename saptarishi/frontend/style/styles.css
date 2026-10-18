@@ -232,8 +232,61 @@ body.saptarishi-page {
 .kundali-tabs[hidden],
 .search-form[hidden],
 #birth-form[hidden],
-#remedy-form[hidden] {
+#remedy-form[hidden],
+#future-form[hidden] {
   display: none !important;
+}
+
+.birth-auth-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  margin: 0.25rem 0 1.25rem;
+  padding: 1rem 1rem 1.1rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.birth-auth-gate[hidden] {
+  display: none !important;
+}
+
+.birth-auth-gate__lead {
+  margin: 0;
+  color: var(--color-heading);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.birth-auth-gate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.birth-auth-gate__register,
+.birth-auth-gate__login {
+  flex: 1 1 8rem;
+  min-height: 2.6rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.85rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.birth-auth-gate__register {
+  border: 1px solid var(--color-accent, #c9a227);
+  background: linear-gradient(180deg, #fff9e6 0%, #fff3cc 100%);
+  color: #7a5c00;
+}
+
+.birth-auth-gate__login {
+  border: 1px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary);
 }
 
 #new-kundali-fields,
@@ -4120,7 +4173,16 @@ tbody tr:last-child td {
   }
 
   .site-header__logo {
+    display: block;
+    overflow: hidden;
+    max-width: 100%;
     font-size: 1.15rem;
+    text-overflow: ellipsis;
+  }
+
+  .site-header__login,
+  .site-header__premium {
+    display: none !important;
   }
 
   .site-header__nav {

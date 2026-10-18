@@ -1605,6 +1605,7 @@
     }
 
     updateHeaderAuth(document.querySelector(".site-header"), user, usage);
+    syncBirthAuthGate();
   }
 
   function keepAppLinksInWebView() {
@@ -3178,8 +3179,82 @@
     return true;
   }
 
+  const BIRTH_ENTRY_SELECTOR = ".kundali-tabs, #birth-form, #remedy-form, #future-form";
+  let birthAuthPrompt = null;
+
+  function isSignedIn() {
+    return Boolean(AUTH && typeof AUTH.getToken === "function" && AUTH.getToken());
+  }
+
+  function hasBirthDetailsPage() {
+    return Boolean(document.querySelector("#birth-form, #remedy-form, #future-form"));
+  }
+
+  function openBirthAuth(tab) {
+    if (isSignedIn()) return Promise.resolve(true);
+    if (birthAuthPrompt) return birthAuthPrompt;
+    if (!AUTH || typeof AUTH.ensureAuth !== "function") return Promise.resolve(false);
+    birthAuthPrompt = AUTH.ensureAuth({
+      tab: tab === "login" ? "login" : "register",
+      required: true,
+      message: t("auth.birthFirst")
+    }).finally(() => {
+      birthAuthPrompt = null;
+      syncBirthAuthGate();
+    });
+    return birthAuthPrompt;
+  }
+
+  function ensureBirthAuthGate() {
+    if (!hasBirthDetailsPage()) return null;
+    let gate = document.getElementById("birth-auth-gate");
+    if (gate) return gate;
+    const anchor = document.querySelector(BIRTH_ENTRY_SELECTOR);
+    gate = document.createElement("section");
+    gate.id = "birth-auth-gate";
+    gate.className = "birth-auth-gate";
+    gate.hidden = true;
+    gate.innerHTML = `
+      <p class="birth-auth-gate__lead" data-i18n="auth.birthFirst">Register or sign in before entering birth details.</p>
+      <div class="birth-auth-gate__actions">
+        <button type="button" id="birth-auth-register" class="birth-auth-gate__register" data-i18n="header.register">Register</button>
+        <button type="button" id="birth-auth-login" class="birth-auth-gate__login" data-i18n="header.login">Login</button>
+      </div>
+    `;
+    if (anchor && anchor.parentElement) anchor.parentElement.insertBefore(gate, anchor);
+    else document.getElementById("saptarishi")?.prepend(gate);
+    gate.querySelector("#birth-auth-register")?.addEventListener("click", () => {
+      openBirthAuth("register");
+    });
+    gate.querySelector("#birth-auth-login")?.addEventListener("click", () => {
+      openBirthAuth("login");
+    });
+    if (global.SaptarishiI18n) global.SaptarishiI18n.apply(gate);
+    return gate;
+  }
+
+  function syncBirthAuthGate() {
+    if (!hasBirthDetailsPage()) return;
+    const gate = ensureBirthAuthGate();
+    if (isSignedIn()) {
+      if (gate) gate.hidden = true;
+      const resultsOpen = document.querySelector(".birth-change-nav:not([hidden])");
+      if (resultsOpen) return;
+      document.querySelectorAll("[data-birth-auth-locked='1']").forEach((el) => {
+        el.hidden = false;
+        delete el.dataset.birthAuthLocked;
+      });
+      return;
+    }
+    if (gate) gate.hidden = false;
+    document.querySelectorAll(BIRTH_ENTRY_SELECTOR).forEach((el) => {
+      el.dataset.birthAuthLocked = "1";
+      el.hidden = true;
+    });
+  }
+
   function setBirthEntryHidden(hidden) {
-    document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
+    document.querySelectorAll(BIRTH_ENTRY_SELECTOR).forEach((el) => {
       el.hidden = hidden;
     });
     document.querySelectorAll(".birth-change-nav").forEach((el) => {
@@ -3203,6 +3278,7 @@
     const lord = document.getElementById("lord-comparison-section");
     if (lord) lord.hidden = true;
     window.scrollTo(0, 0);
+    if (!hidden) syncBirthAuthGate();
   }
 
   function hookBirthChooserRefresh() {
@@ -3239,6 +3315,20 @@
     enhanceBirthChooser(document.getElementById("remedy-form"));
     enhanceBirthChooser(document.getElementById("auspicious-form"));
     enhanceBirthChooser(document.getElementById("future-form"));
+    syncBirthAuthGate();
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (isSignedIn() || !hasBirthDetailsPage()) return;
+        const target = event.target && event.target.closest ? event.target : null;
+        if (!target || !target.closest(BIRTH_ENTRY_SELECTOR)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        syncBirthAuthGate();
+        openBirthAuth("register");
+      },
+      true
+    );
     document.querySelectorAll(".birth-change-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         setBirthEntryHidden(false);
@@ -3267,6 +3357,7 @@
         "user" in detail ? detail.user : undefined,
         "usage" in detail ? detail.usage : undefined
       );
+      syncBirthAuthGate();
     });
 
     const authTab = extractAuthTabFromQuery();
@@ -3346,6 +3437,7 @@
     refreshBirthChooserDisplays,
     enhanceBirthChooser,
     setBirthEntryHidden,
+    syncBirthAuthGate,
     getActiveBirth,
     setActiveBirth,
     clearActiveBirth,
