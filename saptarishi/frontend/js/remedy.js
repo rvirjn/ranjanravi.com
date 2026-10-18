@@ -22,8 +22,6 @@
     ...PLANET_REMEDY_DETAIL_COLUMNS
   ];
   const REMEDY_TABLE_HEADERS = C.REMEDY_NAKSHATRA_TABLE_HEADERS || [];
-  /** Match kundali red strength tint (data.json ``red_at_or_below_percent`` = 49). */
-  const LOW_STRENGTH_AT_OR_BELOW_PERCENT = 49;
   const REMEDY_HEADER_KEYS = {
     Desc: "remedy.col.desc",
     Rule: "remedy.col.rule",
@@ -586,12 +584,34 @@
     return out;
   }
 
+  function formatPlanetStatusLabel(raw) {
+    const s = normalizeText(raw).replace(/_/g, " ");
+    if (!s) return "";
+    const labels = {
+      high: "High",
+      low: "Low",
+      own: "Own",
+      mooltrikona: "Mooltrikona",
+      "mool trikona": "Mooltrikona",
+      moolatrikona: "Mooltrikona",
+      "great friend": "Great Friend",
+      "great enemy": "Great Enemy",
+      neutral: "Neutral",
+      exalted: "Exalted",
+      debilitated: "Debilitated",
+      friend: "Friend",
+      enemy: "Enemy"
+    };
+    return chartText(labels[s] || toTitleCaseWords(s));
+  }
+
   /** Collect planet keys by affliction reason (debilitated / low strength / dusthana). */
   function remedyPlanetKeysByReason(kundaliPayload) {
     const debilitated = new Set();
     const lowStrength = new Set();
     const dusthana = new Set();
     const strengthByPlanet = new Map();
+    const metaByPlanet = new Map();
 
     const addTo = (set, raw) => {
       const key = normalizeText(raw);
@@ -619,11 +639,15 @@
       return Number.isFinite(n) ? n : null;
     };
 
+    /**
+     * Same red band as the birth chart and timeline.
+     * ``cell_styles.strength`` is ``enemy`` / ``low`` only at or below the scaled
+     * red line. A raw ``<= 49`` check lists green and white planets too, because
+     * strength points and color cutoffs are already divided by strength_scale.
+     */
     const isLowStrengthRow = (row) => {
       const kind = normalizeText(row?.cell_styles?.strength);
-      if (kind === "low" || kind === "enemy") return true;
-      const pct = strengthPercentFromRow(row);
-      return pct != null && pct <= LOW_STRENGTH_AT_OR_BELOW_PERCENT;
+      return kind === "low" || kind === "enemy";
     };
 
     const rememberStrength = (raw, pct) => {
@@ -631,6 +655,20 @@
       if (!key || key === "ascendant" || pct == null || !Number.isFinite(pct)) return;
       const prev = strengthByPlanet.get(key);
       if (prev == null || pct < prev) strengthByPlanet.set(key, pct);
+    };
+
+    const rememberMeta = (raw, patch) => {
+      const key = normalizeText(raw);
+      if (!key || key === "ascendant") return;
+      const prev = metaByPlanet.get(key) || {};
+      const next = { ...prev };
+      const pct = patch?.strengthPercent;
+      if (typeof pct === "number" && Number.isFinite(pct) && next.strengthPercent == null) {
+        next.strengthPercent = pct;
+      }
+      const status = String(patch?.status || "").trim();
+      if (status && !next.status) next.status = status;
+      metaByPlanet.set(key, next);
     };
 
     for (const row of kundaliPayload?.planets_table || []) {
@@ -641,6 +679,10 @@
       }
       if (isLowStrengthRow(row)) addTo(lowStrength, row?.planet);
       rememberStrength(row?.planet, strengthPercentFromRow(row));
+      rememberMeta(row?.planet, {
+        strengthPercent: strengthPercentFromRow(row),
+        status: row?.status?.rashi || row?.planet_status_in_rashi || ""
+      });
     }
     for (const planet of kundaliPayload?.planets || []) {
       if (normalizeText(planet?.planet_dignity) === "debilitated") {
@@ -651,10 +693,11 @@
       }
       const pct =
         typeof planet?.planet_strength === "number" ? planet.planet_strength : null;
-      if (pct != null && pct <= LOW_STRENGTH_AT_OR_BELOW_PERCENT) {
-        addTo(lowStrength, planet?.name);
-      }
       rememberStrength(planet?.name, pct);
+      rememberMeta(planet?.name, {
+        strengthPercent: pct,
+        status: planet?.planet_status_in_rashi || planet?.planet_dignity || ""
+      });
     }
     addFromSummaryList("debilitated planet", debilitated);
 
@@ -689,11 +732,22 @@
       });
       let nextOther = 1;
       return list.map((key) => {
-        if (isP0(key)) return { key, priority: "P0" };
+        if (isP0(key)) return entryFor(key, "P0");
         const priority = `P${nextOther}`;
         nextOther += 1;
-        return { key, priority };
+        return entryFor(key, priority);
       });
+    };
+
+    const entryFor = (key, priority) => {
+      const meta = metaByPlanet.get(key) || {};
+      const pct = meta.strengthPercent;
+      return {
+        key,
+        priority,
+        strengthPercent: typeof pct === "number" && Number.isFinite(pct) ? pct : null,
+        status: meta.status || ""
+      };
     };
 
     const sortKeys = (keys) =>
@@ -701,7 +755,7 @@
 
     return {
       dusthana: prioritizeKeys(dusthana, "dusthana"),
-      debilitated: sortKeys(debilitated).map((key) => ({ key, priority: "" })),
+      debilitated: sortKeys(debilitated).map((key) => entryFor(key, "")),
       low_strength: prioritizeKeys(lowStrength, "low_strength")
     };
   }
@@ -1047,11 +1101,19 @@
     title.appendChild(nameEl);
     head.appendChild(title);
 
+    const statusText = extra && String(extra.statusText || "").trim();
+    if (statusText) {
+      const statusEl = document.createElement("span");
+      statusEl.className = "kundali-open-card__status";
+      statusEl.textContent = statusText;
+      title.appendChild(statusEl);
+    }
+
     const strength = extra && extra.strengthPercent;
     if (typeof strength === "number" && Number.isFinite(strength)) {
       const pctEl = document.createElement("span");
       pctEl.className = "kundali-open-card__pct";
-      pctEl.textContent = `${strength}%`;
+      pctEl.textContent = `${Math.round(strength)}%`;
       head.appendChild(pctEl);
     }
 
@@ -1083,10 +1145,15 @@
 
     const entries = (Array.isArray(planetEntries) ? planetEntries : [])
       .map((entry) => {
-        if (typeof entry === "string") return { key: entry, priority: "" };
+        if (typeof entry === "string") {
+          return { key: entry, priority: "", strengthPercent: null, status: "" };
+        }
+        const pct = entry?.strengthPercent;
         return {
           key: normalizeText(entry?.key || entry?.planet || ""),
-          priority: String(entry?.priority || "").trim().toUpperCase()
+          priority: String(entry?.priority || "").trim().toUpperCase(),
+          strengthPercent: typeof pct === "number" && Number.isFinite(pct) ? pct : null,
+          status: String(entry?.status || "").trim()
         };
       })
       .filter((entry) => entry.key);
@@ -1115,6 +1182,8 @@
         showPriority && /^P\d+$/.test(priority) ? `${name} (${priority})` : name;
 
       const card = createRemedyOpenCard(tileLabel, {
+        strengthPercent: entry.strengthPercent,
+        statusText: formatPlanetStatusLabel(entry.status),
         dataset: {
           "data-planet-key": normalizeText(planetKey),
           "data-priority": priority || ""

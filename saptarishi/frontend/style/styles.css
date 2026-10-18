@@ -6232,6 +6232,16 @@ body.premium-modal-open {
   color: inherit;
 }
 
+.kundali-open-card__status {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: inherit;
+  opacity: 0.92;
+}
+
 .kundali-open-card__pct,
 .kundali-open-card__head .kundali-dasha-btn__level,
 .kundali-open-card__head .kundali-yog-btn__star {
