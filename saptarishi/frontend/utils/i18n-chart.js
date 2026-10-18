@@ -922,6 +922,14 @@
       .join(" ");
   }
 
+  function yourPlanetHi(raw, possessive) {
+    const text = String(raw || "").trim();
+    const yours = text.match(/^[Yy]our\s+(.+)$/);
+    const planet = replacePhrases(yours ? yours[1] : text);
+    if (!yours) return planet;
+    return `${possessive ? "आपके" : "आपका"} ${planet}`;
+  }
+
   function tryPatterns(text) {
     if (text === "Calculation") return "गणना";
     let match = text.match(/^Running from the past (.+?) till (.+?)\.?$/i);
@@ -1009,24 +1017,45 @@
     }
 
     match = text.match(/^(.+?) has a friendly relationship with Lagna lord (.+?)\.?$/i);
-    if (match) return `${replacePhrases(match[1])} का लग्नेश ${replacePhrases(match[2])} से मित्र संबंध है।`;
+    if (match) return `${yourPlanetHi(match[1], true)} का लग्नेश ${replacePhrases(match[2])} से मित्र संबंध है।`;
     match = text.match(/^(.+?) has a neutral relationship with Lagna lord (.+?)\.?$/i);
-    if (match) return `${replacePhrases(match[1])} का लग्नेश ${replacePhrases(match[2])} से सम संबंध है।`;
+    if (match) return `${yourPlanetHi(match[1], true)} का लग्नेश ${replacePhrases(match[2])} से सम संबंध है।`;
     match = text.match(/^(.+?) has an inimical relationship with Lagna lord (.+?)\.?$/i);
-    if (match) return `${replacePhrases(match[1])} का लग्नेश ${replacePhrases(match[2])} से शत्रु संबंध है।`;
+    if (match) return `${yourPlanetHi(match[1], true)} का लग्नेश ${replacePhrases(match[2])} से शत्रु संबंध है।`;
     match = text.match(/^(.+?) itself is the Lagna lord\.?$/i);
-    if (match) return `${replacePhrases(match[1])} स्वयं लग्नेश है।`;
+    if (match) return `${yourPlanetHi(match[1])} स्वयं लग्नेश है।`;
 
     match = text.match(/^(.+?) is in the (\d+)(?:st|nd|rd|th) house, which is a malefic house(.*)$/i);
-    if (match) return `${replacePhrases(match[1])} ${ordinal(match[2])} भाव में है, जो पाप भाव है${match[3]}`;
+    if (match) return `${yourPlanetHi(match[1])} ${ordinal(match[2])} भाव में है, जो पाप भाव है${match[3]}`;
     match = text.match(/^(.+?) is in a malefic house \(6th, 8th, or 12th\)(.*)$/i);
-    if (match) return `${replacePhrases(match[1])} पाप भाव (6, 8 या 12) में है${match[2]}`;
+    if (match) return `${yourPlanetHi(match[1])} पाप भाव (6, 8 या 12) में है${match[2]}`;
     match = text.match(/^(.+?) is in a good house, i\.e\. the (\d+)(?:st|nd|rd|th), not in the malefic 6th, 8th, or 12th houses\.?$/i);
-    if (match) return `${replacePhrases(match[1])} शुभ भाव में है, यानी ${ordinal(match[2])}, पाप भाव 6, 8 या 12 में नहीं।`;
+    if (match) return `${yourPlanetHi(match[1])} शुभ भाव में है, यानी ${ordinal(match[2])}, पाप भाव 6, 8 या 12 में नहीं।`;
+    match = text.match(/^(.+?) is in a good house, not in the malefic 6th, 8th, or 12th houses\.?$/i);
+    if (match) return `${yourPlanetHi(match[1])} शुभ भाव में है, पाप भाव 6, 8 या 12 में नहीं।`;
     match = text.match(/^(.+?) is in a trikona house(.*)$/i);
-    if (match) return `${replacePhrases(match[1])} त्रिकोण भाव में है${match[2]}`;
+    if (match) return `${yourPlanetHi(match[1])} त्रिकोण भाव में है${match[2]}`;
     match = text.match(/^(.+?) is combust(.*?) because it is near the Sun\.?$/i);
-    if (match) return `${replacePhrases(match[1])} सूर्य के पास होने से अस्त है${match[2]}।`;
+    if (match) return `${yourPlanetHi(match[1])} सूर्य के पास होने से अस्त है${match[2]}।`;
+
+    match = text.match(/^[Yy]our (.+?) is exalted in (.+)$/i);
+    if (match) return `आपका ${replacePhrases(match[1].trim())} ${replacePhrases(match[2].replace(/\.$/, ""))} में उच्च है।`;
+    match = text.match(/^[Yy]our (.+?) is in mooltrikona in (.+)$/i);
+    if (match) return `आपका ${replacePhrases(match[1].trim())} ${replacePhrases(match[2].replace(/\.$/, ""))} में मूलत्रिकोण है।`;
+    match = text.match(/^[Yy]our (.+?) is debilitated in (.+)$/i);
+    if (match) return `आपका ${replacePhrases(match[1].trim())} ${replacePhrases(match[2].replace(/\.$/, ""))} में नीच है।`;
+    match = text.match(/^[Yy]our (.+?) is in its own rashi, (.+)$/i);
+    if (match) return `आपका ${replacePhrases(match[1].trim())} अपनी राशि ${replacePhrases(match[2].replace(/\.$/, ""))} में है।`;
+    match = text.match(/^[Yy]our (.+?) is in a friendly rashi, (.+?)(?:, ruled by (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
+    if (match) {
+      const lord = match[3] ? `, स्वामी ${replacePhrases(match[3].trim())}` : "";
+      return `आपका ${replacePhrases(match[1].trim())} मित्र राशि ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
+    }
+    match = text.match(/^[Yy]our (.+?) is in an enemy rashi, (.+?)(?:, ruled by (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
+    if (match) {
+      const lord = match[3] ? `, स्वामी ${replacePhrases(match[3].trim())}` : "";
+      return `आपका ${replacePhrases(match[1].trim())} शत्रु राशि ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
+    }
 
     match = text.match(/^It is exalted in (.+)$/i);
     if (match) return `यह ${replacePhrases(match[1].replace(/\.$/, ""))} में उच्च है।`;
@@ -1050,31 +1079,38 @@
     match = text.match(/^(.+?) is in a friendly nakshatra, ([^,]+?)(?:, ruled by (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
     if (match) {
       const lord = match[3] ? `, स्वामी ${replacePhrases(match[3].trim())}` : "";
-      return `${replacePhrases(match[1])} मित्र नक्षत्र ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
+      return `${yourPlanetHi(match[1])} मित्र नक्षत्र ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
     }
     match = text.match(/^(.+?) is in an enemy nakshatra, ([^,]+?)(?:, ruled by (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
     if (match) {
       const lord = match[3] ? `, स्वामी ${replacePhrases(match[3].trim())}` : "";
-      return `${replacePhrases(match[1])} शत्रु नक्षत्र ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
+      return `${yourPlanetHi(match[1])} शत्रु नक्षत्र ${replacePhrases(match[2].trim())} में है${lord}${match[4] || ""}।`;
     }
     match = text.match(/^(.+?) is in its own (.+?) nakshatra(\s*\([+-]?\d+\))?\.?$/i);
-    if (match) return `${replacePhrases(match[1])} अपने ${replacePhrases(match[2].trim())} नक्षत्र में है${match[3] || ""}।`;
+    if (match) return `${yourPlanetHi(match[1])} अपने ${replacePhrases(match[2].trim())} नक्षत्र में है${match[3] || ""}।`;
     match = text.match(/^(.+?) is retrograde \(moving at double speed\)(\s*\([+-]?\d+\))?\.?$/i);
-    if (match) return `${replacePhrases(match[1])} वक्री है (दोगुनी गति)${match[2] || ""}।`;
+    if (match) return `${yourPlanetHi(match[1])} वक्री है (दोगुनी गति)${match[2] || ""}।`;
     match = text.match(/^(.+?) is vargottama \(same sign in D1 and D9\)(\s*\([+-]?\d+\))?\.?$/i);
-    if (match) return `${replacePhrases(match[1])} वर्गोत्तम है (D1 और D9 में एक ही राशि)${match[2] || ""}।`;
+    if (match) return `${yourPlanetHi(match[1])} वर्गोत्तम है (D1 और D9 में एक ही राशि)${match[2] || ""}।`;
     match = text.match(/^(.+?) lost a graha yuddha \(planetary war\)(?: against (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
     if (match) {
       const foe = match[2] ? ` ${replacePhrases(match[2].trim())} से` : "";
-      return `${replacePhrases(match[1])} ग्रह युद्ध में${foe} हारा${match[3] || ""}।`;
+      return `${yourPlanetHi(match[1])} ग्रह युद्ध में${foe} हारा${match[3] || ""}।`;
     }
 
+    match = text.match(/^[Yy]our (.+?)'s degree is (.+), and it is in the (.+) phase\.?$/i);
+    if (match) return `आपके ${replacePhrases(match[1].trim())} का अंश ${match[2]} है, और यह ${hiToken(match[3])} अवस्था में है।`;
     match = text.match(/^Its degree is (.+), and it is in the (.+) phase\.?$/i);
     if (match) return `इसका अंश ${match[1]} है, और यह ${hiToken(match[2])} अवस्था में है।`;
     match = text.match(/^(.+?) is at the death degree(.*)$/i);
-    if (match) return `${replacePhrases(match[1])} मृत्यु अंश पर है${match[2]}`;
+    if (match) return `${yourPlanetHi(match[1])} मृत्यु अंश पर है${match[2]}`;
     match = text.match(/^(.+?)'s nakshatra navatara is (.+?)\.?$/i);
-    if (match) return `${replacePhrases(match[1])} का नक्षत्र नवातार ${replacePhrases(match[2].trim())} है।`;
+    if (match) return `${yourPlanetHi(match[1], true)} का नक्षत्र नवातार ${replacePhrases(match[2].trim())} है।`;
+    match = text.match(/^[Yy]our (.+?) has (Strong )?Neecha Bhanga, which cancels this debilitation(.*)$/i);
+    if (match) {
+      const strong = match[2] ? "प्रबल " : "";
+      return `आपके ${replacePhrases(match[1].trim())} का ${strong}नीच भंग यह नीचता काटता है${match[3]}`;
+    }
     match = text.match(/^(Strong )?Neecha Bhanga cancels this debilitation(.*)$/i);
     if (match) return `${match[1] ? "प्रबल " : ""}नीच भंग यह नीचता काटता है${match[2]}`;
 
@@ -1087,11 +1123,11 @@
     if (match) {
       const label = typeof I18N.doshName === "function" ? I18N.doshName(match[2].trim()) : match[2].trim();
       const shown = label && label !== match[2].trim() ? label : replacePhrases(match[2].trim());
-      return `${replacePhrases(match[1])} ${shown} बनाता है।`;
+      return `${yourPlanetHi(match[1])} ${shown} बनाता है।`;
     }
 
     match = text.match(/^(.+?) is (?:an? )?(.+?) planet(.*?) for this kundali\.?$/i);
-    if (match) return `${replacePhrases(match[1])} इस कुंडली का ${replacePhrases(match[2])} ग्रह है${match[3]}।`;
+    if (match) return `${yourPlanetHi(match[1])} इस कुंडली का ${replacePhrases(match[2])} ग्रह है${match[3]}।`;
 
     match = text.match(/^(?:([^,]+),\s*)?(exalted|debilitated) (.+?) gives you ([^.!?]+)\.?$/i);
     if (match) {
