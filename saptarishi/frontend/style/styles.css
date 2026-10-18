@@ -8085,5 +8085,34 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
     margin-left: calc((177 - 40) / 836 * 100cqw) !important;
     margin-right: calc((177 - 40) / 836 * 100cqw) !important;
   }
+
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table,
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table tbody,
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table th,
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table td {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+  }
+
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table th {
+    padding: 0.55rem 0.85rem 0.05rem;
+    background: transparent;
+    border-bottom: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  body.remedy-page #results .kundali-open-card .remedy-planet-detail-table td {
+    padding: 0.05rem 0.85rem 0.6rem;
+  }
 }
 
