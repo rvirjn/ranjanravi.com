@@ -4136,19 +4136,23 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
       }
     } else if (cell.house === 6 || cell.house === 8) {
       /** Houses 6 & 8: sign up, planets down; 6 left, 8 right.
-          On the wide printed chart the sign was landing on the diagonals
-          at the triangle tip, so sit it in the open middle instead. */
-      const labelX = manuscriptFit
+          On the wide printed chart a two-digit sign (10, 11, 12) was
+          sitting on the diagonal into house 7. Keep planets in the wide
+          part of the triangle and shift the sign toward the outer side. */
+      const planetX = manuscriptFit
         ? (cell.house === 6 ? 26 : 74)
         : (cell.house === 6 ? cx - 3 : cx + 3);
+      const signX = manuscriptFit
+        ? (cell.house === 6 ? 22 : 78)
+        : planetX;
       const signY = manuscriptFit ? 87 : cy - 1;
       const planetY = manuscriptFit ? 93 : cy + 5;
       if (rashiNum != null) {
-        appendChartRashiNumber(g, labelX, signY, rashiNum, cell);
+        appendChartRashiNumber(g, signX, signY, rashiNum, cell);
       }
       if (housePlanets.length) {
-        const plEl = createPlanetTextEl(labelX, planetY, "middle", densePlanets);
-        appendColoredPlanetsToText(plEl, housePlanets, labelX, { rowMode: true, ...planetOpts });
+        const plEl = createPlanetTextEl(planetX, planetY, "middle", densePlanets);
+        appendColoredPlanetsToText(plEl, housePlanets, planetX, { rowMode: true, ...planetOpts });
         g.appendChild(plEl);
       }
     } else if (cell.house === 3 || cell.house === 11) {
