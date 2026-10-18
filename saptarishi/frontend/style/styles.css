@@ -8055,9 +8055,9 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
     top: calc(3.35rem + ((89 - 36) / 836 * 100cqw));
     bottom: calc((176 - 32) / 836 * 100cqw);
     background-position:
-      calc(-40 / 836 * 100%) 0,
-      calc(700 / 836 * 100%) 0;
-    background-size: calc(176 / 836 * 100%) auto, calc(176 / 836 * 100%) auto;
+      calc(-40 / 836 * 100cqw) 0,
+      calc(700 / 836 * 100cqw) 0;
+    background-size: calc(176 / 836 * 100cqw) auto, calc(176 / 836 * 100cqw) auto;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
