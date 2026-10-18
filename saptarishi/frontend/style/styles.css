@@ -4297,17 +4297,19 @@ body.site-drawer-open {
   align-items: center;
 }
 
-.site-footer__connect-toggle {
+body.saptarishi-page .site-footer__connect-toggle {
   padding: 0;
   border: none;
   background: none;
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--color-primary);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
+  vertical-align: baseline;
 }
 
 .site-footer__connect-toggle:hover {
@@ -4903,17 +4905,19 @@ body.user-notes-open {
   font-weight: 500;
 }
 
-.site-footer__contact-toggle {
+body.saptarishi-page .site-footer__contact-toggle {
   padding: 0;
   border: none;
   background: none;
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--color-primary);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
+  vertical-align: baseline;
 }
 
 .site-footer__contact-toggle:hover {
@@ -4965,10 +4969,10 @@ body.user-notes-open {
     -webkit-overflow-scrolling: touch;
   }
 
-  .site-footer__views,
-  .site-footer__contact-toggle,
-  .site-footer__connect-toggle,
-  .site-footer__privacy-link {
+  body.saptarishi-page .site-footer__views,
+  body.saptarishi-page .site-footer__contact-toggle,
+  body.saptarishi-page .site-footer__connect-toggle,
+  body.saptarishi-page .site-footer__privacy-link {
     flex-shrink: 0;
     font-size: clamp(0.58rem, 2.65vw, 0.78rem);
     white-space: nowrap;
