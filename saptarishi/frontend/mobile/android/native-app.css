@@ -1363,10 +1363,18 @@ html.saptarishi-native-app body.app-page--remedy .result-heading {
   margin: 1.15rem 0 0.55rem;
 }
 
-html.saptarishi-native-app body.app-page--remedy .remedy-navatara-buttons {
+html.saptarishi-native-app body.app-page--remedy .remedy-navatara-buttons.kundali-open-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.85rem;
+}
+
+html.saptarishi-native-app body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])),
+html.saptarishi-native-app body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell,
+html.saptarishi-native-app body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell--with-chrome {
+  background-color: #f4e6c6 !important;
+  background-image: none !important;
 }
 
 html.saptarishi-native-app #app-kundali-houses .app-title {

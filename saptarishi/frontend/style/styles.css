@@ -7884,3 +7884,206 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 }
 
+/* Remedy results: every tile stays open, inside the same floral frame as kundali. */
+.remedy-floral-top {
+  display: none;
+}
+
+body.remedy-page .remedy-navatara-buttons.kundali-open-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.15rem;
+}
+
+body.remedy-page .kundali-open-card__name {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+body.remedy-page .kundali-open-card > .kundali-open-card__body.remedy-navatara-panel {
+  padding: 0;
+}
+
+body.remedy-page .kundali-open-card__body .table-wrap {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow-x: auto;
+}
+
+body.remedy-page #results .kundali-open-card .remedy-planet-detail-table th,
+body.remedy-page #results .kundali-open-card .remedy-planet-detail-table td,
+body.remedy-page #results .kundali-open-card .remedy-table th,
+body.remedy-page #results .kundali-open-card .remedy-table td {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+body.remedy-page #results .kundali-open-card .remedy-planet-detail-table tr.remedy-reading-row th,
+body.remedy-page #results .kundali-open-card .remedy-planet-detail-table tr.remedy-reading-row td {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) {
+  background-color: #f4e6c6;
+  background-image: none;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell {
+  container-type: inline-size;
+  background-color: #f4e6c6;
+  background-image: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  /* Same clearance as the kundali letterhead: change-birth, then the flower band. */
+  padding-top: calc(2.15rem + (89 / 916 * 100cqw) + 0.35rem);
+  padding-bottom: calc(176 / 916 * 100cqw);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  left: 0;
+  right: 0;
+  top: calc(2.15rem + ((89 - 36) / 916 * 100cqw));
+  bottom: calc((176 - 32) / 916 * 100cqw);
+  background-image:
+    url("../images/kundali_border_left.png?v=378"),
+    url("../images/kundali_border_right.png?v=378");
+  background-repeat: repeat-y, repeat-y;
+  background-position: left top, right top;
+  background-size: calc(176 / 916 * 100%) auto, calc(176 / 916 * 100%) auto;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  left: calc(60 / 916 * 100%);
+  right: calc(57 / 916 * 100%);
+  height: calc(176 / 916 * 100cqw);
+  background-image:
+    url("../images/kundali_border_bottom.png?v=387"),
+    url("../images/kundali_border_bottom.png?v=387");
+  background-repeat: repeat-x, no-repeat;
+  background-position: left bottom, right bottom;
+  background-size: auto 100%, auto 100%;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-floral-top {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  left: calc(60 / 916 * 100%);
+  right: calc(57 / 916 * 100%);
+  top: 2.15rem;
+  height: calc(89 / 916 * 100cqw);
+  overflow: hidden;
+  transform: none;
+  background-image: url("../images/kundali_border_bottom.png?v=387");
+  background-repeat: repeat-x;
+  background-size: auto calc(176 / 916 * 100cqw);
+  background-position: left calc(-25 / 916 * 100cqw);
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
+  bottom: 0;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.85rem;
+  z-index: 3;
+  margin: 0;
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results {
+  position: relative;
+  z-index: 2;
+  margin-top: 0;
+  margin-bottom: 0.35rem;
+  margin-left: calc(177 / 916 * 100cqw);
+  margin-right: calc(177 / 916 * 100cqw);
+}
+
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results > section + section {
+  margin-top: 1.35rem;
+}
+
+body.remedy-page #results .result-heading {
+  overflow-wrap: break-word;
+}
+
+body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .result-heading {
+  margin-top: 0.2rem;
+}
+
+@media screen and (max-width: 720px), screen and (max-device-width: 720px) {
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell {
+    padding-top: calc(3.35rem + (89 / 836 * 100cqw) + 0.35rem) !important;
+    padding-bottom: calc(176 / 836 * 100cqw) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    background-color: #f4e6c6 !important;
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::before {
+    top: calc(3.35rem + ((89 - 36) / 836 * 100cqw));
+    bottom: calc((176 - 32) / 836 * 100cqw);
+    background-position:
+      calc(-40 / 836 * 100%) 0,
+      calc(700 / 836 * 100%) 0;
+    background-size: calc(176 / 836 * 100%) auto, calc(176 / 836 * 100%) auto;
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
+    left: calc((61 - 40) / 836 * 100%);
+    right: calc((836 - (700 + 118)) / 836 * 100%);
+    height: calc(176 / 836 * 100cqw);
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-floral-top {
+    left: calc((61 - 40) / 836 * 100%);
+    right: calc((836 - (700 + 118)) / 836 * 100%);
+    top: 3.35rem;
+    height: calc(89 / 836 * 100cqw);
+    background-size: auto calc(176 / 836 * 100cqw);
+    background-position: left calc(-25 / 836 * 100cqw);
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
+    top: 0.8rem;
+    left: 0.7rem;
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results {
+    margin-top: 0 !important;
+    margin-left: calc((177 - 40) / 836 * 100cqw) !important;
+    margin-right: calc((177 - 40) / 836 * 100cqw) !important;
+  }
+}
+
