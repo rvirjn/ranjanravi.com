@@ -2899,7 +2899,6 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
           const tableEl = createHouseSheetPlanetTableElement(planetRow, allRows, houseAspect);
           if (tableEl) wrap.appendChild(tableEl);
         }
-        appendPlacementEffectsBeforePros(wrap, section);
         appendHouseDescriptionLabeledList(
           wrap,
           planetProsConsHeading(section, "pros"),
@@ -2984,27 +2983,6 @@ function houseGridDescriptionParagraphs(descriptions, houseNum) {
   }
   const text = String(entry.text || "").trim();
   return text ? [text] : [];
-}
-
-function appendPlacementEffectsBeforePros(parent, section) {
-  const items = Array.isArray(section?.placement_effects) ? section.placement_effects : [];
-  for (const raw of items) {
-    let text = "";
-    let tone = "";
-    if (raw && typeof raw === "object") {
-      text = String(raw.text || "").trim();
-      tone = String(raw.tone || "").trim().toLowerCase();
-    } else {
-      text = String(raw || "").trim();
-    }
-    if (!text) continue;
-    const line = document.createElement("p");
-    line.className = "house-planets-sheet__placement";
-    if (tone === "good") line.classList.add("house-planets-sheet__placement--good");
-    if (tone === "bad") line.classList.add("house-planets-sheet__placement--bad");
-    line.textContent = chartText(text);
-    parent.appendChild(line);
-  }
 }
 
 function planetProsConsHeading(section, kind) {

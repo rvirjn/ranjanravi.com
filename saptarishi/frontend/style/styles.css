@@ -6546,21 +6546,6 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
   margin: 0 0 0.55rem;
 }
 
-.house-planets-sheet__placement {
-  margin: 0 0 0.55rem;
-  font-size: 0.98rem;
-  line-height: 1.45;
-  font-weight: 700;
-}
-
-.house-planets-sheet__placement--good {
-  color: var(--planet-color-green_text, #1b5e20);
-}
-
-.house-planets-sheet__placement--bad {
-  color: var(--planet-color-red_text, #6d1010);
-}
-
 .house-planets-sheet__dignity {
   margin: 0 0 0.55rem;
   font-size: 0.98rem;
