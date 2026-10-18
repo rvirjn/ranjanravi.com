@@ -7425,9 +7425,10 @@ body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
 }
 
 body.kundali-page:has(#birth-form[hidden]) #results {
-  margin-top: calc(751 / 916 * 100cqw + 1.75rem);
-  margin-left: calc(190 / 916 * 100cqw);
-  margin-right: calc(190 / 916 * 100cqw);
+  /* 759 = dropdown top (751) plus the cream gap under the Ganesha pillars (8). */
+  margin-top: calc(759 / 916 * 100cqw + 1.75rem);
+  margin-left: calc(177 / 916 * 100cqw);
+  margin-right: calc(177 / 916 * 100cqw);
 }
 
 body.kundali-page:has(#birth-form[hidden]) .summary-chart-row {
@@ -7459,8 +7460,9 @@ body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
 body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart .kundali-chart-picker {
   position: absolute;
   top: 100%;
-  left: calc((190 - 208) / 500 * 100%);
-  width: calc(536 / 500 * 100%);
+  /* Outer red frame of the printed chart is x=177..739, the diamond overlay is x=208 width 500. */
+  left: calc((177 - 208) / 500 * 100%);
+  width: calc(562 / 500 * 100%);
   right: auto;
   z-index: 4;
   height: 1.75rem;
@@ -7632,10 +7634,10 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #results {
-    /* Clear the chart dropdown, which hangs below the diamond. */
-    margin-top: calc(751 / 836 * 100cqw + 2.5rem) !important;
-    margin-left: calc((164 - 40) / 836 * 100cqw) !important;
-    margin-right: calc((164 - 40) / 836 * 100cqw) !important;
+    /* Same column as the printed chart frame, with the pillar gap under the dropdown. */
+    margin-top: calc(759 / 836 * 100cqw + 1.75rem) !important;
+    margin-left: calc((177 - 40) / 836 * 100cqw) !important;
+    margin-right: calc((177 - 40) / 836 * 100cqw) !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__summary.table-wrap,
