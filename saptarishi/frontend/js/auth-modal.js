@@ -218,8 +218,8 @@
         stopAuthLoading();
         showStatus(
           payload.message ||
-            "If that mobile and email match an account, a temporary password was sent to your email.",
-          false
+            "Email and mobile number matched. A temporary password has been sent to your email.",
+          payload.email_sent === false
         );
       } catch (err) {
         stopAuthLoading();
