@@ -202,8 +202,43 @@
   }
 
   function shouldSaveBirthDetails() {
+    if (form?.dataset.activeReplay === "1") return false;
     if (birthMode === "open") return false;
     return !saveBirth || saveBirth.checked;
+  }
+
+  function noteActiveRemedyBirth() {
+    if (!CU || !CU.setActiveBirth) return;
+    const place = getBirthPlaceFromRemedyForm();
+    const name = birthName ? String(birthName.value || "").trim() : "";
+    const date = birthDate?.value || "";
+    const time = birthTime?.value || "";
+    if (!date || !time || !place) return;
+    const match = currentSavedBirthViews().find((view) => {
+      const sameName = name && String(view?.name || "").trim().toLowerCase() === name.toLowerCase();
+      const sameWhen = view?.date === date && view?.time === time;
+      return (sameName && sameWhen) || (!name && sameWhen && view?.place === place);
+    });
+    CU.setActiveBirth({
+      name: name || match?.name || "",
+      date,
+      time,
+      place,
+      owner_id: match?.owner_id || ""
+    });
+  }
+
+  function openActiveRemedyBirth() {
+    if (!form || !CU || !CU.applyActiveBirthToForm) return false;
+    if (CU.isNativeAppShell && CU.isNativeAppShell()) return false;
+    const params = new URLSearchParams(window.location.search || "");
+    if (params.get("mode") === "new") return false;
+    if (!CU.applyActiveBirthToForm(form)) return false;
+    setBirthMode("new");
+    if (saveBirth) saveBirth.checked = false;
+    form.dataset.activeReplay = "1";
+    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    return true;
   }
 
   function validateRemedyBirthForm(place) {
@@ -367,7 +402,6 @@
       row.setAttribute("role", "option");
       if (key === selected) row.classList.add("is-on");
       const showDelete = canDeleteSavedBirth(view);
-      if (!showDelete) row.classList.add("birth-open-list__row--readonly");
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "birth-open-list__item";
@@ -384,8 +418,9 @@
       btn.append(avatar, text);
       btn.addEventListener("click", () => pickSavedBirth(key));
       row.append(btn);
+      let del = null;
       if (showDelete) {
-        const del = document.createElement("button");
+        del = document.createElement("button");
         del.type = "button";
         del.className = "birth-open-list__delete";
         del.textContent = rt("form.delete");
@@ -395,7 +430,14 @@
           event.stopPropagation();
           deleteSavedBirth(view.name);
         });
+      }
+      if (CU && CU.mountBirthRowActions) {
+        const marked = CU.mountBirthRowActions(row, view, del);
+        if (!del && !marked) row.classList.add("birth-open-list__row--readonly");
+      } else if (del) {
         row.append(del);
+      } else {
+        row.classList.add("birth-open-list__row--readonly");
       }
       savedBirthList.appendChild(row);
     });
@@ -433,6 +475,12 @@
     });
     if (previous && [...savedBirthSelect.options].some((o) => o.value === previous)) {
       savedBirthSelect.value = previous;
+    } else if (CU && CU.isActiveBirth) {
+      const activeView = views.find((view) => CU.isActiveBirth(view));
+      const activeKey = activeView ? birthViewSelectKey(activeView) : "";
+      if (activeKey && [...savedBirthSelect.options].some((o) => o.value === activeKey)) {
+        savedBirthSelect.value = activeKey;
+      }
     }
     renderSavedBirthList(views);
   }
@@ -1543,10 +1591,14 @@
 
   async function handleRemedyFormSubmit(event) {
     event.preventDefault();
+    const replaying = form?.dataset.activeReplay === "1";
+    if (form) delete form.dataset.activeReplay;
     const place = getBirthPlaceFromRemedyForm();
     const name = birthName ? String(birthName.value || "").trim() : "";
+    const saveBirthDetails = replaying ? false : shouldSaveBirthDetails();
     const validationError = validateRemedyBirthForm(place);
     if (validationError) {
+      if (replaying && CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);
       showRemedyStatus(validationError, true);
       return;
     }
@@ -1556,17 +1608,20 @@
       return;
     }
 
+    noteActiveRemedyBirth();
+    if (replaying && CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
     if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
     showRemedyLoadingStatus();
     if (resultsEl) resultsEl.hidden = true;
 
     try {
       const [kundaliPayload, db] = await Promise.all([
-        KV.fetchJson(birthDate.value, birthTime.value, place, name, shouldSaveBirthDetails()),
+        KV.fetchJson(birthDate.value, birthTime.value, place, name, saveBirthDetails),
         loadPlanetDatabase()
       ]);
 
       paintRemedyResults(kundaliPayload, db);
+      noteActiveRemedyBirth();
       refreshSavedBirthDropdown();
       focusPendingRemedyPlanet();
 
@@ -1591,11 +1646,12 @@
                 birthTime.value,
                 place,
                 name,
-                shouldSaveBirthDetails()
+                saveBirthDetails
               ),
               loadPlanetDatabase()
             ]);
             paintRemedyResults(kundaliPayload, db);
+            noteActiveRemedyBirth();
             refreshSavedBirthDropdown();
             focusPendingRemedyPlanet();
             if (resultsEl) resultsEl.hidden = false;
@@ -1634,7 +1690,10 @@
   setBirthMode("open");
   refreshRemedySavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);
-  consumeRemedyHandoffAndRun();
+  globalThis.addEventListener("saptarishi-active-birth-changed", () => {
+    renderSavedBirthList(currentSavedBirthViews());
+  });
+  if (!consumeRemedyHandoffAndRun()) openActiveRemedyBirth();
 
   document.addEventListener("saptarishi-lang-change", () => {
     refreshSavedBirthDropdown();

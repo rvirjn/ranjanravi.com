@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Prediction by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=408">
+  <link rel="stylesheet" href="../style/styles.css?v=409">
   <link rel="stylesheet" href="../style/future.css?v=17">
 </head>
 <body class="saptarishi-page">
@@ -47,7 +47,7 @@
       <nav class="topic-crumb" data-i18n-aria="future.crumb" aria-label="Prediction">
         <button type="button" id="future-back-btn" class="auspicious-back" data-i18n="future.back">← prediction</button>
         <button type="button" id="future-change-birth-btn" class="auspicious-back">
-          ← <span id="future-selected-title">career</span><span class="birth-change-suffix" data-i18n="future.changeSuffix"> : change birth</span>
+          ← <span id="future-selected-title">career</span><span class="birth-change-suffix" data-i18n="future.changeSuffix"> : change birth</span><span class="birth-change-when" hidden></span>
         </button>
       </nav>
       <p class="lead future-detail-lead" data-i18n="future.lead">Enter birth details to find favourable dasha windows.</p>
@@ -168,18 +168,18 @@
   </div>
 
   <script src="../utils/constant.js?v=86"></script>
-  <script src="../js/auth.js?v=51"></script>
+  <script src="../js/auth.js?v=52"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=29"></script>
   <script src="../js/premium-modal.js?v=13"></script>
   <script src="../js/wallet-modal.js?v=24"></script>
-  <script src="../utils/i18n.js?v=11"></script>
+  <script src="../utils/i18n.js?v=12"></script>
   <script src="../utils/i18n-chart.js?v=11"></script>
   <script src="../utils/i18n-desc.js?v=1"></script>
   <script src="../utils/i18n-qa.js?v=1"></script>
-  <script src="../utils/common.js?v=113"></script>
+  <script src="../utils/common.js?v=114"></script>
   <script src="../js/ask-ai.js?v=17"></script>
   <script src="../js/kundali.js?v=393"></script>
-  <script src="../js/future.js?v=16"></script>
+  <script src="../js/future.js?v=17"></script>
 </body>
 </html>

@@ -764,10 +764,11 @@
         const deleteHtml = allowDelete
           ? `<span class="app-delete" data-delete="${escapeHtml(name)}" title="Delete saved birth details" role="button">${ICONS.trash}</span>`
           : "";
+        const activeTag = on ? `<em class="app-active-tag">active</em>` : "";
         return `<button type="button" class="app-profile-row${on ? " is-on" : ""}" data-name="${escapeHtml(key)}">
           <span class="app-avatar">${escapeHtml(initials(view.name))}</span>
           <span><strong>${escapeHtml(name)}</strong><span>${escapeHtml(sub)}</span></span>
-          ${deleteHtml}
+          <span class="app-profile-side">${activeTag}${deleteHtml}</span>
           <span class="app-check"></span>
         </button>`;
       })

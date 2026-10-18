@@ -148,8 +148,30 @@
   }
 
   function shouldSaveBirthDetails() {
+    if (form?.dataset.activeReplay === "1") return false;
     if (birthMode === "open") return false;
     return !saveBirth || saveBirth.checked;
+  }
+
+  function noteActiveFutureBirth() {
+    if (!CU || !CU.setActiveBirth) return;
+    const place = getBirthPlace();
+    const name = birthName ? String(birthName.value || "").trim() : "";
+    const date = birthDate?.value || "";
+    const time = birthTime?.value || "";
+    if (!date || !time || !place) return;
+    const match = currentSavedBirthViews().find((view) => {
+      const sameName = name && String(view?.name || "").trim().toLowerCase() === name.toLowerCase();
+      const sameWhen = view?.date === date && view?.time === time;
+      return (sameName && sameWhen) || (!name && sameWhen && view?.place === place);
+    });
+    CU.setActiveBirth({
+      name: name || match?.name || "",
+      date,
+      time,
+      place,
+      owner_id: match?.owner_id || ""
+    });
   }
 
   function validateBirthForm(place) {
@@ -207,6 +229,35 @@
     return [];
   }
 
+  function canDeleteSavedBirth(view) {
+    if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.canDeleteOpenBirthView) {
+      return SaptarishiAuth.canDeleteOpenBirthView(view);
+    }
+    return true;
+  }
+
+  async function deleteSavedBirth(name) {
+    const label = String(name || "").trim();
+    if (!label || typeof SaptarishiAuth === "undefined" || !SaptarishiAuth.deleteBirthView) return;
+    if (!SaptarishiAuth.getToken || !SaptarishiAuth.getToken()) {
+      if (SaptarishiAuth.ensureAuth) {
+        await SaptarishiAuth.ensureAuth({
+          tab: "login",
+          required: true,
+          message: ft("form.deleteSignIn")
+        });
+      }
+      return;
+    }
+    if (!window.confirm(ftf("form.deleteConfirm", { name: label }))) return;
+    try {
+      await SaptarishiAuth.deleteBirthView(label);
+      await loadOpenBirthViews();
+    } catch (err) {
+      window.alert(err.message || ft("form.deleteFailed"));
+    }
+  }
+
   function renderSavedBirthList(views) {
     if (!savedBirthList) return;
     const selected = String(savedBirthSelect?.value || "").trim();
@@ -261,6 +312,28 @@
       btn.append(avatar, text);
       btn.addEventListener("click", () => pickSavedBirth(key));
       row.append(btn);
+      const showDelete = canDeleteSavedBirth(view);
+      let del = null;
+      if (showDelete) {
+        del = document.createElement("button");
+        del.type = "button";
+        del.className = "birth-open-list__delete";
+        del.textContent = ft("form.delete");
+        del.setAttribute("aria-label", ftf("form.deleteNamed", { name: birthViewOptionLabel(view) }));
+        del.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          deleteSavedBirth(view.name);
+        });
+      }
+      if (CU && CU.mountBirthRowActions) {
+        const marked = CU.mountBirthRowActions(row, view, del);
+        if (!del && !marked) row.classList.add("birth-open-list__row--readonly");
+      } else if (del) {
+        row.append(del);
+      } else {
+        row.classList.add("birth-open-list__row--readonly");
+      }
       savedBirthList.appendChild(row);
     });
   }
@@ -284,6 +357,12 @@
     });
     if (previous && [...savedBirthSelect.options].some((opt) => opt.value === previous)) {
       savedBirthSelect.value = previous;
+    } else if (CU && CU.isActiveBirth) {
+      const activeView = views.find((view) => CU.isActiveBirth(view));
+      const activeKey = activeView ? birthViewSelectKey(activeView) : "";
+      if (activeKey && [...savedBirthSelect.options].some((opt) => opt.value === activeKey)) {
+        savedBirthSelect.value = activeKey;
+      }
     }
     renderSavedBirthList(views);
   }
@@ -572,12 +651,21 @@
     if (form) form.dataset.event = selectedEvent;
     if (optionsView) optionsView.hidden = true;
     if (detailView) detailView.hidden = false;
-    setFutureBirthChooserHidden(false);
     clearResults();
+    if (CU && CU.applyActiveBirthToForm && CU.applyActiveBirthToForm(form)) {
+      birthMode = "new";
+      if (saveBirth) saveBirth.checked = false;
+      if (form) form.dataset.activeReplay = "1";
+      void loadFuture();
+      return;
+    }
+    setFutureBirthChooserHidden(false);
     if (birthMode === "new" && placePreset) placePreset.focus();
   }
 
   async function loadFuture() {
+    const replaying = form?.dataset.activeReplay === "1";
+    if (form) delete form.dataset.activeReplay;
     const eventKey = selectedEvent || form?.dataset.event || "";
     if (!eventKey) {
       showStatus("Choose a prediction topic first.", true);
@@ -586,14 +674,19 @@
     const place = getBirthPlace();
     const validationError = validateBirthForm(place);
     if (validationError) {
+      if (replaying) setFutureBirthChooserHidden(false);
       showStatus(validationError, true);
       return;
     }
+    const saveBirthDetails = replaying ? false : shouldSaveBirthDetails();
+    noteActiveFutureBirth();
+    if (replaying) setFutureBirthChooserHidden(true);
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
       const ok = await SaptarishiAuth.requireLoginForCharts({
         message: "Register or sign in to see predictions."
       });
       if (!ok) {
+        if (replaying) setFutureBirthChooserHidden(false);
         showStatus("Register or sign in to see predictions.", true);
         return;
       }
@@ -610,9 +703,10 @@
         birthTime.value,
         place,
         name,
-        shouldSaveBirthDetails()
+        saveBirthDetails
       );
       renderFuturePayload(payload);
+      noteActiveFutureBirth();
       refreshSavedBirthDropdown();
     } catch (err) {
       setFutureBirthChooserHidden(false);
@@ -633,9 +727,10 @@
               birthTime.value,
               place,
               name,
-              shouldSaveBirthDetails()
+              saveBirthDetails
             );
             renderFuturePayload(payload);
+            noteActiveFutureBirth();
           } catch (retryErr) {
             setFutureBirthChooserHidden(false);
             const retryFormatted = formatLoadError(retryErr);
@@ -671,7 +766,9 @@
   if (backBtn) backBtn.addEventListener("click", showOptionsView);
   if (changeBirthBtn) {
     changeBirthBtn.addEventListener("click", () => {
-      if (birthChooserHidden) setFutureBirthChooserHidden(false);
+      if (!birthChooserHidden) return;
+      birthMode = "open";
+      setFutureBirthChooserHidden(false);
     });
   }
   if (placePreset) placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
@@ -691,7 +788,11 @@
   document.addEventListener("saptarishi-lang-change", () => {
     if (selectedEvent && selectedTitleEl) selectedTitleEl.textContent = eventLabel(selectedEvent);
     refreshSavedBirthDropdown();
+    if (CU && CU.refreshBirthChangeWhen) CU.refreshBirthChangeWhen();
     if (!lastFuturePayload || !resultsEl || resultsEl.hidden) return;
     renderFuturePayload(lastFuturePayload);
+  });
+  document.addEventListener("saptarishi-active-birth-changed", () => {
+    renderSavedBirthList(currentSavedBirthViews());
   });
 })();

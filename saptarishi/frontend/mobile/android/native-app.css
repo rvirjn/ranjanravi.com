@@ -1149,6 +1149,27 @@ html.saptarishi-native-app .app-profile-row span {
   color: var(--app-ink-soft);
 }
 
+html.saptarishi-native-app .app-profile-row .app-profile-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+html.saptarishi-native-app .app-active-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(47, 107, 58, 0.14);
+  color: #2f6b3a;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 html.saptarishi-native-app .app-edit,
 html.saptarishi-native-app .app-delete {
   width: 1.85rem;

@@ -346,6 +346,39 @@ body.saptarishi-page {
   background: rgba(139, 105, 20, 0.08);
 }
 
+.birth-open-list__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.birth-open-list__active {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(47, 107, 58, 0.14);
+  color: #2f6b3a;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.birth-change-when {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-transform: none;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
 .birth-open-list__delete {
   flex-shrink: 0;
   width: auto;
@@ -7111,6 +7144,16 @@ body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
   left: 0.85rem;
   z-index: 3;
   margin: 0;
+}
+
+body.kundali-page:has(#birth-form[hidden]) .birth-change-btn {
+  align-items: baseline;
+  max-width: min(20rem, 52vw);
+  white-space: normal;
+}
+
+body.kundali-page:has(#birth-form[hidden]) .birth-change-when {
+  white-space: normal;
 }
 
 body.kundali-page:has(#birth-form[hidden]) #results {

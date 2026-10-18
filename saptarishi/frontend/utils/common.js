@@ -2631,6 +2631,161 @@
     refreshBirthChooserDisplays(form);
   }
 
+  const ACTIVE_BIRTH_KEY = "saptarishi.native.activeChart";
+
+  function readStoredBirth(raw) {
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      const date = String(parsed.date || "").trim();
+      const time = String(parsed.time || "").trim();
+      const place = String(parsed.place || "").trim();
+      if (!date || !time || !place) return null;
+      const birth = {
+        name: String(parsed.name || "").trim(),
+        date,
+        time,
+        place
+      };
+      const ownerId = String(parsed.owner_id || "").trim();
+      if (ownerId) birth.owner_id = ownerId;
+      return birth;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function getActiveBirth() {
+    try {
+      return readStoredBirth(localStorage.getItem(ACTIVE_BIRTH_KEY));
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function formatActiveBirthWhen(birth) {
+    const source = birth || getActiveBirth();
+    if (!source) return "";
+    const dateOk = /^(\d{4})-(\d{2})-(\d{2})/.test(String(source.date || ""));
+    const timeOk = /^\d{1,2}:\d{2}/.test(String(source.time || "").trim());
+    const dateLabel = dateOk ? formatBirthDateLabel(source.date) : "";
+    const timeLabel = timeOk ? formatBirthTimeLabel(source.time, false) : "";
+    const parts = [dateLabel, timeLabel].filter(Boolean);
+    return parts.length ? `(${parts.join(", ")})` : "";
+  }
+
+  function refreshBirthChangeWhen(birth) {
+    const label = formatActiveBirthWhen(birth);
+    document.querySelectorAll(".birth-change-btn, #future-change-birth-btn").forEach((btn) => {
+      let slot = btn.querySelector(".birth-change-when");
+      if (!slot) {
+        slot = document.createElement("span");
+        slot.className = "birth-change-when";
+        btn.appendChild(slot);
+      }
+      slot.textContent = label;
+      slot.hidden = !label;
+    });
+  }
+
+  function birthClock(value) {
+    const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return "";
+    return `${String(match[1]).padStart(2, "0")}:${match[2]}`;
+  }
+
+  function isActiveBirth(view) {
+    const active = getActiveBirth();
+    if (!active || !view) return false;
+    const fold = (value) => String(value || "").trim().toLowerCase();
+    const ownerA = String(active.owner_id || "").trim();
+    const ownerB = String(view.owner_id || "").trim();
+    if (ownerA && ownerB && ownerA !== ownerB) return false;
+    const sameName = fold(active.name) && fold(active.name) === fold(view.name);
+    const sameWhen =
+      String(active.date || "").trim() === String(view.date || "").trim() &&
+      birthClock(active.time) === birthClock(view.time);
+    if (sameName && sameWhen) return true;
+    return (
+      !fold(active.name) &&
+      sameWhen &&
+      String(active.place || "").trim() === String(view.place || "").trim()
+    );
+  }
+
+  function setActiveBirth(view) {
+    if (!view) return null;
+    const next = readStoredBirth(JSON.stringify(view));
+    if (!next) return null;
+    const prev = getActiveBirth();
+    const same =
+      prev &&
+      prev.name === next.name &&
+      prev.date === next.date &&
+      prev.time === next.time &&
+      prev.place === next.place &&
+      String(prev.owner_id || "") === String(next.owner_id || "");
+    if (!same) {
+      try {
+        localStorage.setItem(ACTIVE_BIRTH_KEY, JSON.stringify(next));
+      } catch (err) {
+        /* keep the choice for this page view */
+      }
+      global.dispatchEvent(new CustomEvent("saptarishi-active-birth-changed", { detail: next }));
+    }
+    refreshBirthChangeWhen(next);
+    return next;
+  }
+
+  function clearActiveBirth() {
+    try {
+      localStorage.removeItem(ACTIVE_BIRTH_KEY);
+    } catch (err) {
+      /* storage may be blocked */
+    }
+    refreshBirthChangeWhen(null);
+    global.dispatchEvent(new CustomEvent("saptarishi-active-birth-changed", { detail: null }));
+  }
+
+  function applyActiveBirthToForm(form) {
+    const birth = getActiveBirth();
+    if (!form || !birth || !AUTH || typeof AUTH.applyDefaultBirthToForm !== "function") return false;
+    const applied = AUTH.applyDefaultBirthToForm(
+      {
+        placePreset: form.querySelector("#place-preset, .compare-place-preset"),
+        placeCustom: form.querySelector("#place-custom, .compare-place-custom"),
+        customWrap: form.querySelector("#custom-place-wrap, .compare-custom-place-wrap"),
+        birthDate: form.querySelector("#birth-date, .compare-birth-date"),
+        birthTime: form.querySelector("#birth-time, .compare-birth-time"),
+        birthName: form.querySelector("#birth-name, .compare-birth-name"),
+        placeCustomValue: AC.PLACE_CUSTOM_VALUE
+      },
+      birth
+    );
+    refreshBirthChooserDisplays(form);
+    return Boolean(applied);
+  }
+
+  function createActiveBirthTag() {
+    const tag = document.createElement("span");
+    tag.className = "birth-open-list__active";
+    tag.setAttribute("data-i18n", "form.active");
+    tag.textContent = t("form.active");
+    return tag;
+  }
+
+  function mountBirthRowActions(row, view, deleteButton) {
+    if (!row) return false;
+    const actions = document.createElement("span");
+    actions.className = "birth-open-list__actions";
+    if (isActiveBirth(view)) actions.appendChild(createActiveBirthTag());
+    if (deleteButton) actions.appendChild(deleteButton);
+    if (!actions.childNodes.length) return false;
+    row.appendChild(actions);
+    return true;
+  }
+
   function setBirthEntryHidden(hidden) {
     document.querySelectorAll(".kundali-tabs, #birth-form, #remedy-form, #future-form").forEach((el) => {
       el.hidden = hidden;
@@ -2638,6 +2793,7 @@
     document.querySelectorAll(".birth-change-nav").forEach((el) => {
       el.hidden = !hidden;
     });
+    refreshBirthChangeWhen();
     if (hidden) {
       const compare = document.getElementById("kundali-compare-panel");
       if (compare) compare.hidden = true;
@@ -2692,7 +2848,11 @@
     enhanceBirthChooser(document.getElementById("auspicious-form"));
     enhanceBirthChooser(document.getElementById("future-form"));
     document.querySelectorAll(".birth-change-btn").forEach((btn) => {
-      btn.addEventListener("click", () => setBirthEntryHidden(false));
+      btn.addEventListener("click", () => {
+        setBirthEntryHidden(false);
+        const openTab = document.querySelector("#tab-open-kundali, #tab-open-birth");
+        if (openTab && openTab.getAttribute("aria-selected") !== "true") openTab.click();
+      });
     });
     loadIndiaPlaces()
       .then(() => refreshBirthChooserDisplays())
@@ -2739,6 +2899,7 @@
       }
       fillPlacePresetSelects(document);
       refreshBirthChooserDisplays();
+      refreshBirthChangeWhen();
       updateFooterViews();
       const rateLabel = document.getElementById("site-astrologer-rate-label");
       if (rateLabel && rateLabel.dataset.rate) {
@@ -2788,7 +2949,14 @@
     privacyPolicyHref,
     refreshBirthChooserDisplays,
     enhanceBirthChooser,
-    setBirthEntryHidden
+    setBirthEntryHidden,
+    getActiveBirth,
+    setActiveBirth,
+    clearActiveBirth,
+    isActiveBirth,
+    applyActiveBirthToForm,
+    refreshBirthChangeWhen,
+    mountBirthRowActions
   };
 })(window);
 

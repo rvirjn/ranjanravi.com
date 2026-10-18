@@ -7201,20 +7201,64 @@ function syncCustomPlaceFieldVisibility() {
   if (!isCustom && placeCustom) placeCustom.value = "";
 }
 
+function noteActiveBirthFromForm() {
+  if (!CU || !CU.setActiveBirth) return;
+  const place = getBirthPlaceFromKundaliForm();
+  const name = birthName ? String(birthName.value || "").trim() : "";
+  const date = birthDate?.value || "";
+  const time = birthTime?.value || "";
+  if (!date || !time || !place) return;
+  const match = currentSavedKundaliViews().find((view) => {
+    const sameName =
+      name && String(view?.name || "").trim().toLowerCase() === name.toLowerCase();
+    const sameWhen = view?.date === date && view?.time === time;
+    return (sameName && sameWhen) || (!name && sameWhen && view?.place === place);
+  });
+  CU.setActiveBirth({
+    name: name || match?.name || "",
+    date,
+    time,
+    place,
+    owner_id: match?.owner_id || ""
+  });
+}
+
+function skipActiveBirthOpen() {
+  if (CU && CU.isNativeAppShell && CU.isNativeAppShell()) return true;
+  const params = new URLSearchParams(window.location.search || "");
+  return params.get("compare") === "1" || params.get("mode") === "new";
+}
+
+function openActiveKundaliBirth() {
+  if (skipActiveBirthOpen() || !form || !CU || !CU.applyActiveBirthToForm) return;
+  if (!CU.applyActiveBirthToForm(form)) return;
+  setKundaliMode("new");
+  if (saveBirth) saveBirth.checked = false;
+  form.dataset.activeReplay = "1";
+  if (form.requestSubmit) form.requestSubmit();
+  else form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+}
+
 /** Form submit: fetch kundali JSON and render all tables. */
 async function handleBirthFormSubmit(event) {
   event.preventDefault();
+  const replaying = form?.dataset.activeReplay === "1";
+  if (form) delete form.dataset.activeReplay;
   const place = getBirthPlaceFromKundaliForm();
   const name = birthName ? String(birthName.value || "").trim() : "";
+  const saveBirthDetails = replaying ? false : shouldSaveBirthDetails();
   const validationError = validateBirthForm(place);
   if (validationError) {
     showStatusMessage(validationError, true);
     return;
   }
 
+  if (replaying && CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
+
   if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.requireLoginForCharts) {
     const ok = await SaptarishiAuth.requireLoginForCharts();
     if (!ok) {
+      if (replaying && CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(false);
       showStatusMessage(
         (C && C.LOGIN_REQUIRED_FOR_CHART_MESSAGE) ||
           "Register or sign in to generate a kundali.",
@@ -7223,6 +7267,8 @@ async function handleBirthFormSubmit(event) {
       return;
     }
   }
+
+  noteActiveBirthFromForm();
 
   if (CU && CU.setBirthEntryHidden) CU.setBirthEntryHidden(true);
   showKundaliLoadingStatus();
@@ -7239,9 +7285,10 @@ async function handleBirthFormSubmit(event) {
       birthTime.value,
       place,
       name,
-      shouldSaveBirthDetails()
+      saveBirthDetails
     );
     renderKundaliResponseIntoPage(kundaliPayload);
+    noteActiveBirthFromForm();
     refreshSavedKundaliDropdown();
   } catch (err) {
     const formatted = formatKundaliApiError(err);
@@ -7258,9 +7305,10 @@ async function handleBirthFormSubmit(event) {
               birthTime.value,
               place,
               name,
-              shouldSaveBirthDetails()
+              saveBirthDetails
             );
             renderKundaliResponseIntoPage(kundaliPayload);
+            noteActiveBirthFromForm();
             refreshSavedKundaliDropdown();
             return;
           } catch (retryErr) {
@@ -7285,9 +7333,10 @@ async function handleBirthFormSubmit(event) {
             birthTime.value,
             place,
             name,
-            shouldSaveBirthDetails()
+            saveBirthDetails
           );
           renderKundaliResponseIntoPage(kundaliPayload);
+          noteActiveBirthFromForm();
           refreshSavedKundaliDropdown();
           return;
         } catch (retryErr) {
@@ -7435,7 +7484,6 @@ function renderSavedKundaliList(views) {
     row.setAttribute("role", "option");
     if (key === selected) row.classList.add("is-on");
     const showDelete = canDeleteSavedKundaliBirth(view);
-    if (!showDelete) row.classList.add("birth-open-list__row--readonly");
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "birth-open-list__item";
@@ -7452,8 +7500,9 @@ function renderSavedKundaliList(views) {
     btn.append(avatar, text);
     btn.addEventListener("click", () => pickSavedKundali(key));
     row.append(btn);
+    let del = null;
     if (showDelete) {
-      const del = document.createElement("button");
+      del = document.createElement("button");
       del.type = "button";
       del.className = "birth-open-list__delete";
       bindUiText(del, "form.delete");
@@ -7465,7 +7514,14 @@ function renderSavedKundaliList(views) {
         event.stopPropagation();
         deleteSavedKundaliBirth(view.name);
       });
+    }
+    if (CU && CU.mountBirthRowActions) {
+      const marked = CU.mountBirthRowActions(row, view, del);
+      if (!del && !marked) row.classList.add("birth-open-list__row--readonly");
+    } else if (del) {
       row.append(del);
+    } else {
+      row.classList.add("birth-open-list__row--readonly");
     }
     savedKundaliList.appendChild(row);
   });
@@ -7503,6 +7559,12 @@ function refreshSavedKundaliDropdown() {
   });
   if (previous && [...savedKundaliSelect.options].some((o) => o.value === previous)) {
     savedKundaliSelect.value = previous;
+  } else if (CU && CU.isActiveBirth) {
+    const activeView = views.find((view) => CU.isActiveBirth(view));
+    const activeKey = activeView ? birthViewSelectKey(activeView) : "";
+    if (activeKey && [...savedKundaliSelect.options].some((o) => o.value === activeKey)) {
+      savedKundaliSelect.value = activeKey;
+    }
   }
   renderSavedKundaliList(views);
 }
@@ -7697,8 +7759,12 @@ if (document.getElementById("birth-form")) {
   }
   setKundaliMode("new");
   refreshKundaliSavedViews();
+  openActiveKundaliBirth();
   globalThis.addEventListener("saptarishi-auth-changed", () => {
     refreshKundaliSavedViews();
+  });
+  globalThis.addEventListener("saptarishi-active-birth-changed", () => {
+    renderSavedKundaliList(currentSavedKundaliViews());
   });
 }
 

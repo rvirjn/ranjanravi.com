@@ -496,6 +496,12 @@
   async function logout() {
     const token = getToken();
     clearSession();
+    try {
+      localStorage.removeItem("saptarishi.native.activeChart");
+      localStorage.removeItem("saptarishi.native.lastChart");
+    } catch {
+      /* storage may be blocked */
+    }
     global.dispatchEvent(
       new CustomEvent("saptarishi-auth-changed", {
         detail: { user: null, usage: null }
