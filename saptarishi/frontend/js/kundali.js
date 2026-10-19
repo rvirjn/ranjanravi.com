@@ -2909,16 +2909,13 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         wrap.className = "house-planets-sheet__planet-read";
         const role = normalizeText(section.role);
         appendPlanetDignityBeforeStatus(wrap, section);
-        const title = document.createElement("p");
-        title.className = "house-planets-sheet__planet-read-title";
-        title.textContent = chartText(String(section.title || "").trim());
-        if (title.textContent) wrap.appendChild(title);
-        const aspectDesc = String(section.desc || "").trim();
-        if (aspectDesc && (role === "aspect" || role === "aspected" || role === "aspected planet")) {
-          const desc = document.createElement("p");
-          desc.className = "house-planets-sheet__aspect-desc";
-          desc.textContent = chartText(aspectDesc);
-          wrap.appendChild(desc);
+        const isAspect = role === "aspect" || role === "aspected" || role === "aspected planet";
+        const hideStatusTitle = isAspect || role === "sitting in this house";
+        if (!hideStatusTitle) {
+          const title = document.createElement("p");
+          title.className = "house-planets-sheet__planet-read-title";
+          title.textContent = chartText(String(section.title || "").trim());
+          if (title.textContent) wrap.appendChild(title);
         }
         // One-row table after status title / before Pros-Cons (house lord + sitting planets).
         // Aspected By = who aspects *this house* (not the lord's own house).
@@ -3040,6 +3037,9 @@ function appendHouseDescriptionLabeledList(parent, label, items, kind) {
   heading.className = "house-planets-sheet__pc-label";
   if (tone === "pros") heading.classList.add("house-planets-sheet__pc-label--pros");
   if (tone === "cons") heading.classList.add("house-planets-sheet__pc-label--cons");
+  if (/^(positive|negative) impact on /i.test(String(label || "").trim())) {
+    heading.classList.add("house-planets-sheet__pc-label--impact");
+  }
   heading.textContent = chartText(label);
   const list = document.createElement("ol");
   list.className = "house-planets-sheet__pc-list";
