@@ -1017,18 +1017,19 @@
     }
 
     match = text.match(
-      /^(House Lord|Aspected planet|Planet) (.+?)(?: in (?:this|(\d+)(?:st|nd|rd|th)) house)? status:\s*(.+)$/i
+      /^(?:(\d+)(?:st|nd|rd|th) )?(House Lord|Aspected planet|Planet) (.+?)(?: in (?:this|(\d+)(?:st|nd|rd|th)) house)? status:\s*(.+)$/i
     );
     if (match) {
-      const role = match[1].toLowerCase();
+      const role = match[2].toLowerCase();
       const roleHi = role === "house lord" ? "भाव स्वामी" : role === "aspected planet" ? "दृष्टि ग्रह" : "";
-      const where = match[3]
-        ? `${ordinal(match[3])} भाव में `
+      const lordHouse = match[1] ? `${ordinal(match[1])} ` : "";
+      const where = match[4]
+        ? `${ordinal(match[4])} भाव में `
         : /in this house/i.test(text)
           ? "इस भाव में "
           : "";
-      const who = `${roleHi ? `${roleHi} ` : ""}${replacePhrases(match[2])}`.trim();
-      return `${where}${who} की स्थिति: ${match[4]}`;
+      const who = `${lordHouse}${roleHi ? `${roleHi} ` : ""}${replacePhrases(match[3])}`.trim();
+      return `${where}${who} की स्थिति: ${match[5]}`;
     }
 
     match = text.match(/^(.+?) has an? (very |strongly )?(friendly|neutral|inimical) relationship with Lagna lord (.+?)\.?$/i);
