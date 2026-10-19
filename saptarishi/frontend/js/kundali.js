@@ -1029,7 +1029,7 @@ function formatPlanetStrengthVerificationTitle(rowData) {
         ? rowData.strength_percent
         : null;
   if (base == null || total == null) return "";
-  const baseLabel = adj.base_rule === "planet_degree" ? "Planet Degree" : "Base";
+  const baseLabel = adj.base_rule === "baladi_avastha" ? "Baladi Avastha" : "Base";
   const lines = [];
   const components = adj.components;
   if (components && typeof components === "object") {
@@ -1106,7 +1106,7 @@ const STRENGTH_RULE_FALLBACK_LABELS = {
   graha_yuddha_loser: "Graha Yuddha",
   combustion: "Combustion",
   death_degree: "Death Degree",
-  planet_degree: "Planet Degree",
+  baladi_avastha: "Baladi Avastha",
   planets_conjunction: "Conjunction",
   incoming_aspect: "Aspect",
   good_karakwaqt: "Good Karakwaqt",
@@ -2048,18 +2048,18 @@ function appendPlanetsPlanetCell(tr, rowData, cellStyles) {
   tr.appendChild(td);
 }
 
-/** Degree column: degree, then planet_degree band (25/50/100), then retro/combustion. */
+/** Degree column: degree, then baladi_avastha band %, then retro/combustion. */
 function appendPlanetsDegreeCell(tr, rowData, cellStyles) {
   const td = document.createElement("td");
   const mainEl = document.createElement("div");
   mainEl.className = "planets-strength-main";
   mainEl.textContent = formatTableCellForDisplay("degree", rowData.degree) || "—";
   td.appendChild(mainEl);
-  const planetDegree = String(rowData?.planet_degree || "").trim();
-  if (planetDegree) {
+  const baladiAvastha = String(rowData?.baladi_avastha || "").trim();
+  if (baladiAvastha) {
     const bandEl = document.createElement("div");
     bandEl.className = "planets-planet-strength";
-    bandEl.textContent = planetDegree;
+    bandEl.textContent = baladiAvastha;
     td.appendChild(bandEl);
   }
   for (const rule of getStrengthRulesForTableColumn(rowData, "degree")) {
@@ -2351,7 +2351,7 @@ function planetsTableRowDisplayForColumn(rowData, col) {
   }
   if (col.key === "degree") {
     const deg = formatTableCellForDisplay("degree", rowData.degree) || "—";
-    const band = String(rowData?.planet_degree || "").trim();
+    const band = String(rowData?.baladi_avastha || "").trim();
     return band ? `${deg}\n${band}` : deg;
   }
   if (col.key === "nakshatra") {
