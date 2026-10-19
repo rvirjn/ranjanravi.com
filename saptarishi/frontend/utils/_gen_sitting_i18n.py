@@ -376,7 +376,7 @@ def load_clauses() -> tuple[set[str], set[str], list[str]]:
     themes: dict[tuple[int, str], str] = {}
     for house in house_rows(data):
         for planet, block in house["sitting_planet_effect"].items():
-            text = block["nakshatra"]["ashwini"]["good"]
+            text = block["nakshatra"]["deva"]["ashwini"]["good"]
             m = (sun_pat if planet == "sun" else oth_pat).match(text)
             themes[(house["house"], planet)] = m.group(1)
 
