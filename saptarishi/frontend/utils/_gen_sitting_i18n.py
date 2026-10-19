@@ -12,6 +12,12 @@ sys.path.insert(0, str(BACKEND))
 from kundali_house_desc import _impact_sentence  # noqa: E402
 
 DATA = BACKEND / "database" / "houses_sitting_planet_effect.json"
+
+
+def house_rows(data: dict) -> list[dict]:
+    """Houses nested by group (``{"kendra": {"4": {...}}, ...}``) as a list sorted by number."""
+    rows = [row for members in data["houses"].values() for row in members.values()]
+    return sorted(rows, key=lambda row: row["house"])
 OUT = Path(__file__).with_name("i18n-sitting.js")
 
 THEMES = {
@@ -368,7 +374,7 @@ def load_clauses() -> tuple[set[str], set[str], list[str]]:
     sun_pat = re.compile(r"^Gives a fast start and quick healing to (.+)\.$")
     oth_pat = re.compile(r"^You have a fast start and quick healing in (.+)\.$")
     themes: dict[tuple[int, str], str] = {}
-    for house in data["houses"]:
+    for house in house_rows(data):
         for planet, block in house["sitting_planet_effect"].items():
             text = block["nakshatra"]["ashwini"]["good"]
             m = (sun_pat if planet == "sun" else oth_pat).match(text)
@@ -386,7 +392,7 @@ def load_clauses() -> tuple[set[str], set[str], list[str]]:
     templates: set[str] = set()
     unmatched: set[str] = set()
     theme_list = sorted(set(themes.values()), key=len, reverse=True)
-    for house in data["houses"]:
+    for house in house_rows(data):
         for planet, block in house["sitting_planet_effect"].items():
             for text in leaves(block):
                 sp = _impact_sentence(text)
@@ -799,7 +805,7 @@ def main() -> None:
                 else:
                     yield from _leaves(value)
 
-    for house in data["houses"]:
+    for house in house_rows(data):
         for _planet_name, block in house["sitting_planet_effect"].items():
             for text in _leaves(block):
                 spoken_text = _impact_sentence(text)
