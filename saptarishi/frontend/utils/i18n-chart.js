@@ -1025,6 +1025,14 @@
     }
 
     match = text.match(
+      /^(Positive|Negative) impact of ([A-Za-z]+)\(([^)]+)\) as (\d+)(?:st|nd|rd|th) house lord from (\d+)(?:st|nd|rd|th) house in your kundali\.?$/i
+    );
+    if (match) {
+      const tone = match[1].toLowerCase() === "positive" ? "सकारात्मक" : "नकारात्मक";
+      return `आपकी कुंडली में ${ordinal(match[5])} भाव से ${hiToken(match[2])}(${match[3]}) का ${ordinal(match[4])} भाव स्वामी के रूप में ${tone} प्रभाव`;
+    }
+
+    match = text.match(
       /^(Positive|Negative) impact on (\d+)(?:st|nd|rd|th) house from (\d+)(?:st|nd|rd|th) aspect of ([A-Za-z]+)\(([^)]+)\) from (\d+)(?:st|nd|rd|th) house in your kundali\.?$/i
     );
     if (match) {
