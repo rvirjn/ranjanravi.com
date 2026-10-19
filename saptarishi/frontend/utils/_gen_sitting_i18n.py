@@ -692,9 +692,45 @@ def emit(cores: dict[str, str], templates: dict[str, str], aliases: dict[str, st
     return `${{name}}${{word}} ${{planetHi(match[3])}} ${{mapped.join(" ")}}`;
   }}
 
+  function yearSpan(raw) {{
+    const count = String(raw || "").match(/(\\d+)/);
+    if (!count) return "";
+    return Number(count[1]) === 1 ? " (1 वर्ष)" : ` (${{count[1]}} वर्ष)`;
+  }}
+
+  function translatePieces(body) {{
+    const parts = String(body || "").split(/(?<=[.!?])\\s+/).map((part) => part.trim()).filter(Boolean);
+    if (!parts.length) return "";
+    const mapped = parts.map((part) => translatePart(part));
+    if (mapped.some((item) => !item)) return "";
+    return mapped.join(" ");
+  }}
+
+  function translateMahadasha(raw) {{
+    const planets = "Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu";
+    let match = raw.match(new RegExp(`^During your (${{planets}}) mahadasha(?: \\\\(([^)]+)\\\\))? you will get mixed results, that is:\\\\s*(.+)$`, "i"));
+    if (match) {{
+      const body = translatePieces(match[3]);
+      if (!body) return "";
+      return `आपकी ${{planetHi(match[1])}} की महादशा${{yearSpan(match[2])}} में फल मिश्रित मिलेंगे, अर्थात् ${{body}}`;
+    }}
+    match = raw.match(new RegExp(`^(.+?) during your (${{planets}}) mahadasha(?: \\\\(([^)]+)\\\\))?(?:,\\\\s*([^:]+))?:\\\\s*(.+)$`, "i"));
+    if (match && !/^during\\b/i.test(match[1])) {{
+      const body = translatePieces(match[5]);
+      if (!body) return "";
+      const condition = match[4] ? translatePart(match[4]) : "";
+      if (match[4] && !condition) return "";
+      const cond = condition ? `${{condition.replace(/[।.]\\s*$/, "")}}: ` : "";
+      return `${{match[1]}}, आपकी ${{planetHi(match[2])}} की महादशा${{yearSpan(match[3])}} में ${{cond}}${{body}}`;
+    }}
+    return "";
+  }}
+
   function translateSitting(text) {{
     const raw = String(text || "").replace(/\\s+/g, " ").trim();
     if (!raw) return "";
+    const dasha = translateMahadasha(raw);
+    if (dasha) return dasha;
     const whole = translateClause(raw);
     if (whole) return whole;
     const dignity = translateDignity(raw);

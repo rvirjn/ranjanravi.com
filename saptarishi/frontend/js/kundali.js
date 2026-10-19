@@ -237,6 +237,26 @@ function panelDetailHi(text) {
     const dig = panelDignityHi(match[2]);
     return name && dig ? `अर्थात् ${name} ${dig} में है।` : "";
   }
+  match = line.match(/^Seven planets span (\d+) distinct signs$/i);
+  if (match) return `अर्थात् सात ग्रह ${match[1]} भिन्न राशियों में हैं।`;
+  match = line.match(/^(.+?) janma nakshatra (.+?) has is_gandmool=(yes|no)$/i);
+  if (match) {
+    const name = panelPlanetHi(match[1]);
+    const nak = chartText(match[2].trim());
+    if (!name || !nak || /[A-Za-z]{3,}/.test(nak)) return "";
+    const flag = match[3].toLowerCase() === "yes" ? "गंडमूल है" : "गंडमूल नहीं है";
+    return `अर्थात् ${name} का जन्म नक्षत्र ${nak} ${flag}।`;
+  }
+  match = line.match(/^No planet in the (.+?) house from (.+)$/i);
+  if (match) {
+    const from = panelPlanetHi(match[2]);
+    const ords = (String(match[1]).match(/\d+(?:st|nd|rd|th)/gi) || []).map(ordHi);
+    if (!from || !ords.length || ords.some((item) => !item)) return "";
+    const list = ords.length === 1
+      ? ords[0]
+      : `${ords.slice(0, -1).join(", ")} और ${ords[ords.length - 1]}`;
+    return `अर्थात् ${from} से ${list} भाव में कोई ग्रह नहीं।`;
+  }
   return "";
 }
 
@@ -1659,7 +1679,8 @@ function appendPlanetsAspectedByCell(tr, rowData) {
   const rowPlanet = normalizeText(rowData?.planet);
   names.forEach((name, index) => {
     if (index > 0) td.appendChild(document.createTextNode(", "));
-    const label = toTitleCaseWords(name);
+    const english = toTitleCaseWords(name);
+    const label = chartText(english);
     const delta = getIncomingAspectStrengthChangeForPlanet(rowData, name);
     const text = `${label}${formatStrengthPercentChangeInBrackets(delta)}`;
     const kind = friendshipKindForAspectedBy(rowData, name);
@@ -1677,15 +1698,15 @@ function appendPlanetsAspectedByCell(tr, rowData) {
     span.textContent = text;
     const rowTitle = toTitleCaseWords(rowPlanet);
     if (isGreatFriend) {
-      span.title = `${label} is a great friend (Adhi Mitra) of ${rowTitle}`;
+      span.title = chartText(`${english} is a great friend (Adhi Mitra) of ${rowTitle}`);
     } else if (isGreatEnemy) {
-      span.title = `${label} is a great enemy (Adhi Shatru) of ${rowTitle}`;
+      span.title = chartText(`${english} is a great enemy (Adhi Shatru) of ${rowTitle}`);
     } else if (kind === "friend") {
-      span.title = `${label} is a natural friend of ${rowTitle}`;
+      span.title = chartText(`${english} is a natural friend of ${rowTitle}`);
     } else if (kind === "enemy") {
-      span.title = `${label} is a natural enemy of ${rowTitle}`;
+      span.title = chartText(`${english} is a natural enemy of ${rowTitle}`);
     } else {
-      span.title = `${label} is natural neutral to ${rowTitle}`;
+      span.title = chartText(`${english} is natural neutral to ${rowTitle}`);
     }
     td.appendChild(span);
   });
@@ -2064,7 +2085,7 @@ function appendPlanetsConjunctionCell(tr, rowData) {
   for (const line of text.split("\n").map((part) => part.trim()).filter(Boolean)) {
     const lineEl = document.createElement("div");
     lineEl.className = "planets-strength-main";
-    lineEl.textContent = line;
+    lineEl.textContent = chartText(line);
     td.appendChild(lineEl);
   }
   tr.appendChild(td);
@@ -4431,10 +4452,18 @@ function formatChartBirthDetails(payload) {
   if (iso) {
     const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (m) {
-      const months = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      ];
+      const hindi = window.SaptarishiI18n &&
+        window.SaptarishiI18n.getLang &&
+        window.SaptarishiI18n.getLang() === "hi";
+      const months = hindi
+        ? [
+          "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
+          "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"
+        ]
+        : [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
       const monthName = months[Number(m[2]) - 1] || m[2];
       dobPart = `${Number(m[3])} ${monthName} ${m[1]}`;
       timePart = `${m[4]}:${m[5]}`;
@@ -4452,12 +4481,14 @@ function formatChartBirthDetails(payload) {
 /** Format ``Birth Chart : TIME  DOB  city`` from kundali API payload. */
 function formatBirthChartHeading(payload) {
   const details = formatChartBirthDetails(payload);
-  return chartText(details ? `Birth Chart : ${details}` : "Birth Chart");
+  const label = chartText("Birth Chart");
+  return details ? `${label} : ${details}` : label;
 }
 
 function formatMainChartMenuLabel(title, payload) {
   const details = formatChartBirthDetails(payload);
-  return chartText(details ? `${title} : ${details}` : title);
+  const label = chartText(title);
+  return details ? `${label} : ${details}` : label;
 }
 
 function updateBirthChartHeading(payload, chartHeadingId) {
