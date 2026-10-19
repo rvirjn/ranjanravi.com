@@ -11,7 +11,7 @@ BACKEND = Path(r"c:\Users\drkum\Documents\workspace\saptarishi\backend")
 sys.path.insert(0, str(BACKEND))
 from kundali_house_desc import _impact_sentence  # noqa: E402
 
-DATA = BACKEND / "database" / "houses.json"
+DATA = BACKEND / "database" / "houses_sitting_planet_effect.json"
 OUT = Path(__file__).with_name("i18n-sitting.js")
 
 THEMES = {
