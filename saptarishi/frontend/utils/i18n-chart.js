@@ -1017,6 +1017,13 @@
     }
 
     match = text.match(
+      /^Impact on (\d+)(?:st|nd|rd|th) house from (\d+)(?:st|nd|rd|th) aspect of ([A-Za-z]+) from (\d+)(?:st|nd|rd|th) house in your kundali\.?$/i
+    );
+    if (match) {
+      return `आपकी कुंडली में ${ordinal(match[4])} भाव से ${hiToken(match[3])} की ${ordinal(match[2])} दृष्टि का ${ordinal(match[1])} भाव पर प्रभाव`;
+    }
+
+    match = text.match(
       /^(?:(\d+)(?:st|nd|rd|th) )?(House Lord|Aspected planet|Planet) (.+?)(?: in (?:this|(\d+)(?:st|nd|rd|th)) house)? status:\s*(.+)$/i
     );
     if (match) {

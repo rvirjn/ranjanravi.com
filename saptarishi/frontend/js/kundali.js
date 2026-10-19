@@ -2913,6 +2913,13 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         title.className = "house-planets-sheet__planet-read-title";
         title.textContent = chartText(String(section.title || "").trim());
         if (title.textContent) wrap.appendChild(title);
+        const aspectDesc = String(section.desc || "").trim();
+        if (aspectDesc && (role === "aspect" || role === "aspected" || role === "aspected planet")) {
+          const desc = document.createElement("p");
+          desc.className = "house-planets-sheet__aspect-desc";
+          desc.textContent = chartText(aspectDesc);
+          wrap.appendChild(desc);
+        }
         // One-row table after status title / before Pros-Cons (house lord + sitting planets).
         // Aspected By = who aspects *this house* (not the lord's own house).
         if (role === "house lord" || role === "sitting in this house") {

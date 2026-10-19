@@ -6583,6 +6583,13 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
   color: var(--color-heading, #1e3a5f);
 }
 
+.house-planets-sheet__aspect-desc {
+  margin: -0.15rem 0 0.55rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-text, #243044);
+}
+
 .house-planets-sheet__pc {
   margin: 0.2rem 0 0.35rem;
 }
