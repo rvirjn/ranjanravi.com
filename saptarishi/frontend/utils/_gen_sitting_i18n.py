@@ -10,6 +10,7 @@ from pathlib import Path
 BACKEND = Path(r"c:\Users\drkum\Documents\workspace\saptarishi\backend")
 sys.path.insert(0, str(BACKEND))
 from kundali_house_desc import _impact_sentence  # noqa: E402
+from utils.util import catalog_text  # noqa: E402
 
 DATA = BACKEND / "database" / "houses_sitting_planet_effect.json"
 
@@ -376,15 +377,16 @@ def load_clauses() -> tuple[set[str], set[str], list[str]]:
     themes: dict[tuple[int, str], str] = {}
     for house in house_rows(data):
         for planet, block in house["sitting_planet_effect"].items():
-            text = block["nakshatra"]["deva"]["ashwini"]["good"]
+            text = catalog_text(block["nakshatra"]["deva"]["ashwini"], "good")
             m = (sun_pat if planet == "sun" else oth_pat).match(text)
             themes[(house["house"], planet)] = m.group(1)
 
     def leaves(node):
         if isinstance(node, dict):
             for key, value in node.items():
-                if key in ("good", "bad") and isinstance(value, str):
-                    yield value
+                text = catalog_text(node, key) if key in ("good", "bad") else ""
+                if text:
+                    yield text
                 else:
                     yield from leaves(value)
 
@@ -800,8 +802,9 @@ def main() -> None:
     def _leaves(node):
         if isinstance(node, dict):
             for key, value in node.items():
-                if key in ("good", "bad") and isinstance(value, str):
-                    yield value
+                text = catalog_text(node, key) if key in ("good", "bad") else ""
+                if text:
+                    yield text
                 else:
                     yield from _leaves(value)
 
