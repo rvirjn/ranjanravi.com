@@ -361,9 +361,21 @@
         confirm_password: confirmPassword
       })
     });
-    setSession(payload.token, payload.user);
-    if (payload.user) setUsage(payload.user);
     return payload;
+  }
+
+  async function resendEmailVerification(mobile, password) {
+    return apiFetch(AC.API_AUTH_EMAIL_RESEND_PATH, {
+      method: "POST",
+      body: JSON.stringify({ mobile, password })
+    });
+  }
+
+  async function verifyEmail(mobile, otp) {
+    return apiFetch(AC.API_AUTH_EMAIL_VERIFY_PATH, {
+      method: "POST",
+      body: JSON.stringify({ mobile, otp })
+    });
   }
 
   async function fetchProfile() {
@@ -380,6 +392,10 @@
         [AC.LIFE_EVENTS_FIELD_KEY || "Give 3 major life events with dates"]: lifeEvents
       })
     });
+    if (payload.email_verification_required) {
+      await logout();
+      return payload;
+    }
     if (payload.user) setSession(getToken(), payload.user);
     if (payload.usage) setUsage(payload.usage);
     global.dispatchEvent(
@@ -1225,6 +1241,8 @@
     fetchUsage,
     login,
     register,
+    resendEmailVerification,
+    verifyEmail,
     fetchProfile,
     updateProfile,
     updatePassword,

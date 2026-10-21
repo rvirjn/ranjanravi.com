@@ -11,6 +11,11 @@
     return I18N && I18N.t ? I18N.t(key) : key;
   }
 
+  function tf(key, vars) {
+    const I18N = global.SaptarishiI18n;
+    return I18N && I18N.tf ? I18N.tf(key, vars) : at(key);
+  }
+
   function formUtils() {
     return global.SaptarishiCommonUtils || {};
   }
@@ -28,9 +33,11 @@
   let loginForm = null;
   let registerForm = null;
   let forgotForm = null;
+  let verifyForm = null;
   let leadEl = null;
   let authBusy = false;
   let activePanel = "login";
+  let pendingVerify = null;
 
   function ensureAuthModalMounted() {
     if (overlay) return;
@@ -112,6 +119,23 @@
             </div>
           </form>
         </div>
+        <div id="auth-modal-panel-verify" class="auth-modal__panel auth-modal__panel--hidden" hidden>
+          <form id="auth-modal-verify-form" class="auth-form" autocomplete="off" novalidate>
+            <div class="form-field">
+              <label for="auth-modal-otp" data-i18n="auth.otpLabel">Email code</label>
+              <input type="text" id="auth-modal-otp" name="one-time-code" inputmode="numeric" autocomplete="one-time-code" required maxlength="6" pattern="[0-9]{6}" placeholder="6-digit code" data-i18n-placeholder="auth.otpPh" />
+            </div>
+            <div class="form-field form-field--submit">
+              <button type="submit" data-i18n="auth.otpConfirm">Confirm code</button>
+            </div>
+            <p class="auth-modal__forgot-wrap">
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-otp-resend" data-i18n="auth.otpResend">Send a new code</button>
+            </p>
+            <p class="auth-modal__forgot-wrap">
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-otp-back" data-i18n="auth.backSignIn">Back to sign in</button>
+            </p>
+          </form>
+        </div>
         <p id="auth-modal-status" class="status auth-modal__status" role="status" aria-live="polite" hidden></p>
       </div>
     `;
@@ -125,6 +149,7 @@
     loginForm = overlay.querySelector("#auth-modal-login-form");
     registerForm = overlay.querySelector("#auth-modal-register-form");
     forgotForm = overlay.querySelector("#auth-modal-forgot-form");
+    verifyForm = overlay.querySelector("#auth-modal-verify-form");
 
     overlay.querySelector("#auth-modal-close").addEventListener("click", () => close(false));
     overlay.addEventListener("click", (event) => {
@@ -144,6 +169,27 @@
     overlay.querySelector("#auth-modal-forgot-back").addEventListener("click", () => {
       if (authBusy) return;
       setActiveTab("login");
+    });
+    overlay.querySelector("#auth-modal-otp-back").addEventListener("click", () => {
+      if (authBusy) return;
+      setActiveTab("login");
+    });
+    overlay.querySelector("#auth-modal-otp-resend").addEventListener("click", async () => {
+      if (authBusy || !pendingVerify) return;
+      startAuthLoading();
+      try {
+        const payload = await AUTH.resendEmailVerification(pendingVerify.mobile, pendingVerify.password);
+        stopAuthLoading();
+        if (payload.already_verified) {
+          setActiveTab("login");
+          showStatus(tf("auth.alreadyVerified"), false);
+          return;
+        }
+        showOtpNotice(payload);
+      } catch (err) {
+        stopAuthLoading();
+        showStatus(otpLimitMessage(err, "Could not send a new code"), true);
+      }
     });
 
     document.addEventListener("keydown", (event) => {
@@ -170,6 +216,11 @@
         completeAuthSuccessFlow();
       } catch (err) {
         stopAuthLoading();
+        if (err.payload && err.payload.email_verification_required) {
+          pendingVerify = { mobile: mobile.stored, password, email: "" };
+          showOtpPanel(err.payload);
+          return;
+        }
         showStatus(err.message || "Login failed", true);
       }
     });
@@ -192,12 +243,32 @@
       }
       startAuthLoading();
       try {
-        await AUTH.register(name, mobile.stored, email, password, confirmPassword);
+        const payload = await AUTH.register(name, mobile.stored, email, password, confirmPassword);
+        stopAuthLoading();
+        pendingVerify = { mobile: mobile.stored, password, email: String(email || "").trim() };
+        showOtpPanel(payload);
+      } catch (err) {
+        stopAuthLoading();
+        showStatus(otpLimitMessage(err, "Registration failed"), true);
+      }
+    });
+
+    verifyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!pendingVerify) {
+        showStatus(tf("auth.otpEnter"), true);
+        return;
+      }
+      const otp = overlay.querySelector("#auth-modal-otp").value;
+      startAuthLoading();
+      try {
+        await AUTH.verifyEmail(pendingVerify.mobile, otp);
+        await AUTH.login(pendingVerify.mobile, pendingVerify.password);
         stopAuthLoading();
         completeAuthSuccessFlow();
       } catch (err) {
         stopAuthLoading();
-        showStatus(err.message || "Registration failed", true);
+        showStatus(otpLimitMessage(err, "Could not confirm the code"), true);
       }
     });
 
@@ -231,7 +302,7 @@
   function setAuthBusy(busy) {
     authBusy = busy;
     if (!overlay) return;
-    [loginForm, registerForm, forgotForm].forEach((form) => {
+    [loginForm, registerForm, forgotForm, verifyForm].forEach((form) => {
       if (!form) return;
       form.querySelectorAll("input, textarea, button[type='submit'], .password-field__toggle, .phone-field__code").forEach((el) => {
         el.disabled = busy;
@@ -242,8 +313,12 @@
     });
     const forgotLink = overlay.querySelector("#auth-modal-forgot-link");
     const forgotBack = overlay.querySelector("#auth-modal-forgot-back");
+    const otpResend = overlay.querySelector("#auth-modal-otp-resend");
+    const otpBack = overlay.querySelector("#auth-modal-otp-back");
     if (forgotLink) forgotLink.disabled = busy;
     if (forgotBack) forgotBack.disabled = busy;
+    if (otpResend) otpResend.disabled = busy;
+    if (otpBack) otpBack.disabled = busy;
     const closeBtn = overlay.querySelector("#auth-modal-close");
     if (closeBtn) closeBtn.disabled = busy;
   }
@@ -282,17 +357,54 @@
     statusEl.classList.toggle("error", Boolean(isError));
   }
 
+  function otpLimitMessage(err, fallback) {
+    if (err && err.payload && err.payload.otp_daily) return tf("auth.otpDaily");
+    if (err && err.payload && err.payload.otp_locked) return tf("auth.otpLocked");
+    return (err && err.message) || fallback;
+  }
+
+  function otpNotice(payload) {
+    const email = (pendingVerify && pendingVerify.email) || "";
+    const sent = !payload || payload.email_sent !== false;
+    let message = email
+      ? tf(sent ? "auth.otpSent" : "auth.otpNoMail", { email })
+      : payload && payload.message
+        ? payload.message
+        : tf("auth.otpEnter");
+    if (payload && payload.dev_otp) message = `${message} ${payload.dev_otp}`;
+    return { message, isError: Boolean(payload) && payload.email_sent === false };
+  }
+
+  function showOtpNotice(payload) {
+    const notice = otpNotice(payload);
+    showStatus(notice.message, notice.isError);
+  }
+
+  function showOtpPanel(payload) {
+    setActiveTab("verify");
+    const email = (pendingVerify && pendingVerify.email) || "";
+    setLeadText(email ? tf("auth.otpLead", { email }) : tf("auth.otpEnter"));
+    showOtpNotice(payload);
+    const input = overlay.querySelector("#auth-modal-otp");
+    if (input) {
+      input.value = "";
+      window.requestAnimationFrame(() => input.focus());
+    }
+  }
+
   function setActiveTab(tab) {
     if (authBusy) return;
-    activePanel = tab === "register" ? "register" : tab === "forgot" ? "forgot" : "login";
+    activePanel =
+      tab === "register" ? "register" : tab === "forgot" ? "forgot" : tab === "verify" ? "verify" : "login";
     const isForgot = activePanel === "forgot";
+    const isVerify = activePanel === "verify";
     const isLogin = activePanel === "login";
     const isRegister = activePanel === "register";
 
     overlay.classList.toggle("auth-modal-overlay--tall", isRegister);
 
     const tabsEl = overlay.querySelector(".auth-tabs");
-    if (tabsEl) tabsEl.hidden = isForgot;
+    if (tabsEl) tabsEl.hidden = isForgot || isVerify;
 
     overlay.querySelectorAll(".auth-tabs__btn").forEach((btn) => {
       const active =
@@ -305,6 +417,7 @@
     const loginPanel = overlay.querySelector("#auth-modal-panel-login");
     const registerPanel = overlay.querySelector("#auth-modal-panel-register");
     const forgotPanel = overlay.querySelector("#auth-modal-panel-forgot");
+    const verifyPanel = overlay.querySelector("#auth-modal-panel-verify");
     if (loginPanel) {
       loginPanel.hidden = !isLogin;
       loginPanel.classList.toggle("auth-modal__panel--hidden", !isLogin);
@@ -317,9 +430,15 @@
       forgotPanel.hidden = !isForgot;
       forgotPanel.classList.toggle("auth-modal__panel--hidden", !isForgot);
     }
+    if (verifyPanel) {
+      verifyPanel.hidden = !isVerify;
+      verifyPanel.classList.toggle("auth-modal__panel--hidden", !isVerify);
+    }
 
     if (isForgot) overlay.dataset.leadKey = "auth.forgotLead";
-    setLeadText(isForgot ? at("auth.forgotLead") : overlay.dataset.lead || "");
+    if (!isVerify) {
+      setLeadText(isForgot ? at("auth.forgotLead") : overlay.dataset.lead || "");
+    }
     showStatus("");
     if (formUtils().closePhoneMenus) formUtils().closePhoneMenus(overlay);
   }
@@ -350,6 +469,7 @@
     overlay.hidden = true;
     document.body.classList.remove("auth-modal-open");
     overlay.classList.remove("auth-modal-overlay--tall");
+    pendingVerify = null;
     showStatus("");
   }
 
