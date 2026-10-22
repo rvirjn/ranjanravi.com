@@ -6654,8 +6654,8 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
 .house-planets-sheet__source-title {
   font-size: 0.86rem;
   font-weight: 400;
-  line-height: 1.35;
-  color: var(--color-heading, #1e3a5f);
+  line-height: 1.45;
+  color: var(--color-text, #243044);
 }
 
 .house-planets-sheet__source-book-no {
@@ -6664,9 +6664,9 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
 
 .house-planets-sheet__source-meta {
   margin: 0.08rem 0 0.28rem;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--color-text-muted, #5a6578);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--color-text, #243044);
 }
 
 .house-planets-sheet__source-note {
