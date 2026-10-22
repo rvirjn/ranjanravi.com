@@ -820,25 +820,12 @@
       });
       if (!authed) return false;
     }
-    if (hasUnlimitedPremium()) {
-      if (global.SaptarishiPremiumModal) {
-        await global.SaptarishiPremiumModal.open({
-          message: "Unlimited plan is already active on your account."
-        });
-      }
-      return true;
-    }
     if (global.SaptarishiPremiumModal) {
-      const usage = normalizeUsage(getUsage());
-      const upgradeMessage =
-        usage?.premium_tier === "pack_299"
-          ? "Upgrade to Unlimited using your wallet balance."
-          : options.message;
       await global.SaptarishiPremiumModal.open({
-        message: upgradeMessage,
-        selectedPlanId: usage?.premium_tier === "pack_299" ? "unlimited" : options.selectedPlanId
+        message: options.message,
+        selectedPlanId: "unlimited"
       });
-      return hasUnlimitedPremium() || isPremiumActive();
+      return hasUnlimitedPremium();
     }
     return false;
   }
@@ -1006,9 +993,9 @@
     return Math.max(0, limit - used);
   }
 
-  /** Legacy unlimited plan bought before plans were withdrawn. */
-  function hasAdvancePlan(_usage) {
-    return hasUnlimitedPremium();
+  /** Active Unlimited plan bought from the wallet; admins are never charged. */
+  function hasAdvancePlan(usage) {
+    return hasUnlimitedPremium() || isAdmin(usage);
   }
 
   function canUnlockBirthWithoutWallet(usage) {
@@ -1177,7 +1164,11 @@
     }
 
     if (hasUnlimitedPremium()) return true;
-    if (hasAdvancePlan()) return true;
+
+    if (err.payload?.unlimited_required) {
+      if (!wasLoggedIn) return false;
+      return openPremiumFlow({ message: err.message });
+    }
 
     // Free plan births or wallet credit — caller should retry the scan.
     if (canUnlockBirthWithoutWallet()) return true;

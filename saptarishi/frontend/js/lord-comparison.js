@@ -43,6 +43,12 @@
   }
 
   function openUnlockWalletFromLordBlur() {
+    if (currentMode !== "compare" && typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openPremiumFlow) {
+      SaptarishiAuth.openPremiumFlow({
+        message: "Muhurta needs the Unlimited plan. Pay from your wallet to open it."
+      });
+      return;
+    }
     if (typeof openUnlockWalletFromBlur === "function") {
       openUnlockWalletFromBlur();
       return;

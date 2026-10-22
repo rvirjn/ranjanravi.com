@@ -221,7 +221,9 @@
   function paidPlanNote() {
     return tf("profile.plans", {
       free: AC.FREE_BIRTHS_PER_USER ?? 2,
-      basic: AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 51
+      basic: AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 51,
+      advance: AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599,
+      duration: unlimitedAccessDurationLabel(AC.PREMIUM_UNLIMITED_MONTHS)
     });
   }
 

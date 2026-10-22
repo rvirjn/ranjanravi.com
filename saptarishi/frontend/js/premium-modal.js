@@ -10,11 +10,6 @@
 
   const DEFAULT_PLANS = [
     {
-      id: "pack_299",
-      amount_inr: AC.PREMIUM_PACK_AMOUNT_INR,
-      query_limit: AC.PREMIUM_PACK_QUERY_LIMIT
-    },
-    {
       id: "unlimited",
       amount_inr: AC.PREMIUM_UNLIMITED_AMOUNT_INR,
       query_limit: null
@@ -36,7 +31,7 @@
   let addWalletBtn = null;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
-  let selectedPlanId = "pack_299";
+  let selectedPlanId = "unlimited";
 
   function planById(planId) {
     return plans.find((plan) => plan.id === planId) || plans[0] || DEFAULT_PLANS[0];
@@ -48,8 +43,8 @@
       const utils = global.SaptarishiCommonUtils;
       const duration =
         utils && utils.unlimitedAccessDurationLabel
-          ? utils.unlimitedAccessDurationLabel(AC.PREMIUM_UNLIMITED_MONTHS)
-          : "1 year";
+          ? utils.unlimitedAccessDurationLabel(plan.duration_months ?? AC.PREMIUM_UNLIMITED_MONTHS)
+          : "1 month";
       return `Unlimited (${duration}) · ₹${plan.amount_inr}`;
     }
     const limit = AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6;
@@ -114,7 +109,7 @@
     overlay.innerHTML = `
       <div class="premium-modal" role="dialog" aria-modal="true" aria-labelledby="premium-modal-title">
         <button type="button" class="premium-modal__close" id="premium-modal-close" aria-label="Close">&times;</button>
-        <h2 id="premium-modal-title" class="premium-modal__title">Buy Premium</h2>
+        <h2 id="premium-modal-title" class="premium-modal__title">Unlimited plan</h2>
         <p id="premium-modal-lead" class="premium-modal__lead"></p>
         <p id="premium-modal-balance" class="premium-modal__plan-summary"></p>
         <div id="premium-modal-payment-panel" class="premium-modal__panel">
@@ -131,7 +126,7 @@
           </div>
         </div>
         <div id="premium-modal-success-panel" class="premium-modal__panel premium-modal__panel--success" hidden>
-          <p class="premium-modal__success">Premium is active.</p>
+          <p class="premium-modal__success">Unlimited plan is active.</p>
           <button type="button" class="premium-modal__done" id="premium-modal-done">Continue</button>
         </div>
         <p id="premium-modal-status" class="status premium-modal__status" role="status" aria-live="polite" hidden></p>
@@ -180,7 +175,7 @@
           const payload = await AUTH.buyPremiumWithWallet(selectedPlanId);
           stopPremiumVerificationLoading();
           setBusy(false);
-          showPremiumActivationSuccess(payload.message || "Premium activated from wallet.");
+          showPremiumActivationSuccess(payload.message || "Unlimited plan activated from wallet.");
         } catch (err) {
           stopPremiumVerificationLoading();
           setBusy(false);
@@ -201,7 +196,7 @@
             message:
               need > 0
                 ? `Add at least ₹${need} to buy this plan from your wallet.`
-                : "Add money to your wallet, then return to Buy Premium.",
+                : "Add money to your wallet, then return to the Unlimited plan.",
             suggestedAmountInr: need > 0 ? need : plan?.amount_inr
           });
         }
@@ -218,10 +213,7 @@
         plans = payload.plans.map((plan) => ({
           id: plan.id,
           amount_inr: plan.amount_inr,
-          query_limit:
-            plan.id === "pack_299"
-              ? AC.PREMIUM_PACK_QUERY_LIMIT ?? plan.query_limit ?? 6
-              : plan.query_limit,
+          query_limit: plan.query_limit,
           duration_months: plan.duration_months
         }));
         if (!plans.some((plan) => plan.id === selectedPlanId)) {
@@ -334,19 +326,20 @@
     renderPlanPicker();
 
     const usage = AUTH.normalizeUsage ? AUTH.normalizeUsage(AUTH.getUsage()) : AUTH.getUsage();
-    const user = AUTH.getUser();
+    const active = Boolean(AUTH.hasUnlimitedPremium && AUTH.hasUnlimitedPremium());
+    const until = active && usage?.premium_expires_at
+      ? new Date(usage.premium_expires_at).toLocaleDateString(undefined, {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        })
+      : "";
     if (leadEl) {
       leadEl.textContent =
         options.message ||
-        (usage?.premium_tier === "pack_299"
-          ? "Upgrade to Unlimited using your wallet balance."
-          : user && usage?.is_premium
-            ? "Your paid plan is already active."
-            : "Choose a plan and pay from your wallet. Add money in Wallet if needed.");
-    }
-
-    if (usage?.is_premium && usage.premium_tier !== "pack_299") {
-      showPremiumActivationSuccess("Unlimited plan is already active on your account.");
+        (active
+          ? `Unlimited plan is active${until ? ` until ${until}` : ""}. Renew to add another period.`
+          : "Unlimited kundali, remedy, prediction, and Muhurta. Pay from your wallet; add money in Wallet if needed.");
     }
 
     overlay.hidden = false;

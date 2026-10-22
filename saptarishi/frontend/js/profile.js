@@ -28,6 +28,7 @@
   const usageEl = document.getElementById("profile-usage");
   const memberEl = document.getElementById("profile-member-since");
   const addWalletBtn = document.getElementById("profile-add-wallet-btn");
+  const buyUnlimitedBtn = document.getElementById("profile-buy-unlimited-btn");
   const sendCouponBtn = document.getElementById("profile-send-coupon-btn");
   const userNotesBtn = document.getElementById("profile-user-notes-btn");
   let lastProfileSummary = null;
@@ -240,7 +241,8 @@
       } else {
         plansNoteEl.textContent =
           `Free Plan: ${freeLimit} births free, with kundali and remedies\n` +
-          `Basic Plan: ₹${queryCharge} per birth after that (pay once; reopening is free)`;
+          `Basic Plan: ₹${queryCharge} per birth after that (pay once; reopening is free)\n` +
+          `Unlimited Plan: ₹${C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599} per month: unlimited kundali, remedy, prediction, and Muhurta`;
       }
     }
 
@@ -697,6 +699,15 @@
           message: "Scan the QR and enter your coupon code to add money to your wallet."
         });
         if (ok) await loadProfileData();
+      }
+    });
+  }
+
+  if (buyUnlimitedBtn) {
+    buyUnlimitedBtn.addEventListener("click", async () => {
+      if (AUTH.openPremiumFlow) {
+        await AUTH.openPremiumFlow();
+        await loadProfileData();
       }
     });
   }

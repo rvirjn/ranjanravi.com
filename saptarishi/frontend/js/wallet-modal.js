@@ -41,7 +41,8 @@
     const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 51;
     return (
       `Free Plan: ${freeBirths} births free, with kundali and remedies\n` +
-      `Basic Plan: ₹${basicAmount} per birth after that (pay once; reopening is free)`
+      `Basic Plan: ₹${basicAmount} per birth after that (pay once; reopening is free)\n` +
+      `Unlimited Plan: ₹${AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599} per month: unlimited kundali, remedy, prediction, and Muhurta`
     );
   }
 
@@ -169,6 +170,7 @@
             <p id="wallet-modal-plans-note" class="paid-plans-note"></p>
             <div class="profile-summary__actions">
               <button type="button" id="wallet-modal-add-btn" class="btn-secondary" data-i18n="profile.addWallet">Add money to wallet</button>
+              <button type="button" id="wallet-modal-unlimited-btn" class="btn-secondary" data-i18n="profile.buyUnlimited">Buy Unlimited plan</button>
             </div>
           </div>
         </div>
@@ -288,6 +290,13 @@
     if (addMoneyBtn) {
       addMoneyBtn.addEventListener("click", () => showAddMoneyView({ fromSummary: true }));
     }
+    const unlimitedBtn = overlay.querySelector("#wallet-modal-unlimited-btn");
+    if (unlimitedBtn) {
+      unlimitedBtn.addEventListener("click", async () => {
+        close(false);
+        if (AUTH.openPremiumFlow) await AUTH.openPremiumFlow();
+      });
+    }
     if (backBtn) {
       backBtn.addEventListener("click", () => showSummaryView());
     }
@@ -359,7 +368,7 @@
 
     if (planLineEl) {
       if (isUnlimited) {
-        setCurrentPlanLine(planLineEl, "Advance Plan");
+        setCurrentPlanLine(planLineEl, "Unlimited Plan");
       } else if (freeLeft > 0) {
         setCurrentPlanLine(
           planLineEl,

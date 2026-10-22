@@ -124,7 +124,7 @@ const SAPTARISHI_CONSTANTS = {
   PREMIUM_PACK_AMOUNT_INR: 299,
   PREMIUM_PACK_QUERY_LIMIT: 6,
   PREMIUM_UNLIMITED_AMOUNT_INR: 599,
-  PREMIUM_UNLIMITED_MONTHS: 12,
+  PREMIUM_UNLIMITED_MONTHS: 1,
   PREMIUM_AMOUNT_INR: 599,
   /** Per named birth after the free births: opens its kundali and remedies (keep in sync with backend). */
   BIRTH_CHARGE_INR: 51,
