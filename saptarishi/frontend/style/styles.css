@@ -4945,6 +4945,13 @@ body.user-notes-open {
   color: var(--color-heading);
 }
 
+.site-footer__rights {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
 .site-footer__privacy-link {
   border: none;
   background: none;

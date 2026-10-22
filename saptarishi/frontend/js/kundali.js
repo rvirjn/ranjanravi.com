@@ -3315,10 +3315,10 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
   const byHouse = groupPlanetsTableRowsByHouse(allRows);
   const descriptions = options.descriptions || null;
 
-  const houseNums = [];
-  for (let houseNum = 1; houseNum <= 12; houseNum += 1) {
-    if (byHouse[houseNum]?.[0]) houseNums.push(houseNum);
-  }
+  const order = Array.isArray(options.houseOrder) && options.houseOrder.length
+    ? options.houseOrder.map(Number).filter((n) => n >= 1 && n <= 12)
+    : Array.from({ length: 12 }, (_, i) => i + 1);
+  const houseNums = order.filter((houseNum) => byHouse[houseNum]?.[0]);
 
   for (const houseNum of houseNums) {
     const houseRows = byHouse[houseNum];
@@ -4748,6 +4748,7 @@ function renderKundaliResponseIntoPage(kundaliPayload, targets = {}) {
     : document.getElementById("planet-status-tiles");
   renderHousePlanetsTiles(houseTilesEl, planetsRows, {
     descriptions: kundaliPayload.house_grid_descriptions,
+    houseOrder: kundaliPayload.house_tile_order,
     divisionalCharts: kundaliPayload.divisional_charts,
     strengthMax:
       typeof kundaliPayload.strength_max === "number" ? kundaliPayload.strength_max : undefined

@@ -1437,7 +1437,8 @@
     const footer = document.createElement("footer");
     footer.className = "site-footer";
     footer.innerHTML = `
-      <p class="site-footer__copy">© ${new Date().getFullYear()} ${AC.OPERATOR_NAME} · ${AC.SITE_NAME}</p>
+      <p class="site-footer__copy">© 2018-${new Date().getFullYear()} ${AC.OPERATOR_NAME} · ${AC.SITE_NAME} · <span data-i18n="footer.rights">${t("footer.rights")}</span></p>
+      <p class="site-footer__rights"><span data-i18n="footer.rightsNotice">${t("footer.rightsNotice")}</span> <a class="site-footer__privacy-link" href="${navHref("privacy.html")}#copyright" data-i18n="footer.copyright">${t("footer.copyright")}</a></p>
       <div class="site-footer__meta">
         <p class="site-footer__views site-footer__views--pending" data-i18n-title="footer.siteViewsTitle" title="Total site views">${t("footer.siteViewsPending")}</p>
         <span class="site-footer__meta-sep" aria-hidden="true">·</span>
