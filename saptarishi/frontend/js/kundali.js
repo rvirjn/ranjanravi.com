@@ -3054,6 +3054,74 @@ function appendHouseDescriptionLabeledList(parent, label, items, kind) {
   parent.appendChild(wrap);
 }
 
+function sourceNote(label, text) {
+  const note = String(text || "").trim();
+  if (!note) return null;
+  const line = document.createElement("div");
+  line.className = "house-planets-sheet__source-note";
+  const name = document.createElement("span");
+  name.className = "house-planets-sheet__source-kicker";
+  name.textContent = chartText(label);
+  line.append(name, document.createTextNode(note));
+  return line;
+}
+
+/** Book, author, edition, page, paragraph, the line, and the full paragraph. */
+function appendProsConsSources(li, item) {
+  const sources = item && typeof item === "object" && !Array.isArray(item) ? item.sources : null;
+  if (!Array.isArray(sources) || !sources.length) return;
+  const wrap = document.createElement("div");
+  wrap.className = "house-planets-sheet__sources";
+  const heading = document.createElement("div");
+  heading.className = "house-planets-sheet__sources-label";
+  const count = sources.length;
+  heading.textContent = `${chartText("Sources")} · ${count} ${chartText(count === 1 ? "book" : "books")}`;
+  wrap.appendChild(heading);
+  sources.forEach((source, index) => {
+    if (!source || typeof source !== "object") return;
+    const block = document.createElement("div");
+    block.className = "house-planets-sheet__source";
+    const title = document.createElement("div");
+    title.className = "house-planets-sheet__source-title";
+    const book = String(source.book || "").trim();
+    title.textContent = book ? `${index + 1}. ${book}` : `${index + 1}.`;
+    block.appendChild(title);
+    const citation = String(source.citation || "").trim();
+    if (citation) {
+      const meta = document.createElement("div");
+      meta.className = "house-planets-sheet__source-meta";
+      meta.textContent = citation;
+      block.appendChild(meta);
+    }
+    const line = String(source.line || "").trim();
+    const paragraph = String(source.paragraph || "").trim();
+    const same = line && paragraph && line.replace(/\s+/g, " ") === paragraph.replace(/\s+/g, " ");
+    if (line && !same) block.appendChild(sourceNote("Line", ` ${line}`));
+    if (paragraph) block.appendChild(sourceNote("Paragraph", ` ${paragraph}`));
+    else if (line) block.appendChild(sourceNote("Line", ` ${line}`));
+    const original = String(source.original || "").trim();
+    if (original && original !== paragraph) {
+      const language = String(source.original_language || "").trim();
+      const label = language ? `${chartText("Printed text")} (${language})` : chartText("Printed text");
+      const printed = document.createElement("div");
+      printed.className = "house-planets-sheet__source-note";
+      const name = document.createElement("span");
+      name.className = "house-planets-sheet__source-kicker";
+      name.textContent = label;
+      printed.append(name, document.createTextNode(` ${original}`));
+      block.appendChild(printed);
+    }
+    const condition = sourceNote("Condition", ` ${String(source.conditions || "").trim()}`);
+    if (condition) block.appendChild(condition);
+    const derivation = sourceNote("Derived from", ` ${String(source.derivation || "").trim()}`);
+    if (derivation) block.appendChild(derivation);
+    const limitation = sourceNote("Limitation", ` ${String(source.limitation || "").trim()}`);
+    if (limitation) block.appendChild(limitation);
+    wrap.appendChild(block);
+  });
+  if (wrap.children.length > 1) li.appendChild(wrap);
+}
+
 /** Render a Pros/Cons line; yoga/dosh lines get an i-button after the match name. */
 function appendProsConsImpact(li, item) {
   const impact = item && typeof item === "object" && !Array.isArray(item)
@@ -3090,6 +3158,7 @@ function appendProsConsLineContent(li, item) {
         li.appendChild(nameWrap);
         if (after) li.appendChild(document.createTextNode(chartText(after)));
         appendProsConsImpact(li, item);
+        appendProsConsSources(li, item);
         return true;
       }
     }
@@ -3100,10 +3169,12 @@ function appendProsConsLineContent(li, item) {
       row.appendChild(createKundaliQaInfoButton(qaKey));
       li.appendChild(row);
       appendProsConsImpact(li, item);
+      appendProsConsSources(li, item);
       return true;
     }
     li.appendChild(document.createTextNode(chartText(text)));
     appendProsConsImpact(li, item);
+    appendProsConsSources(li, item);
     return true;
   }
   const text = String(item || "").trim();

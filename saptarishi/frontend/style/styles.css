@@ -6633,6 +6633,54 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
   font-weight: 650;
 }
 
+.house-planets-sheet__sources {
+  margin: 0.35rem 0 0.55rem 0.15rem;
+}
+
+.house-planets-sheet__sources-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text-muted, #5a6578);
+}
+
+.house-planets-sheet__source {
+  margin: 0 0 0.65rem;
+  padding-left: 0.55rem;
+  border-left: 2px solid var(--color-surface-border, rgba(30, 58, 95, 0.18));
+}
+
+.house-planets-sheet__source-title {
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--color-heading, #1e3a5f);
+}
+
+.house-planets-sheet__source-meta {
+  margin: 0.08rem 0 0.28rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-muted, #5a6578);
+}
+
+.house-planets-sheet__source-note {
+  margin: 0.15rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--color-text, #243044);
+}
+
+.house-planets-sheet__source-kicker {
+  display: block;
+  margin-bottom: 0.05rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-muted, #5a6578);
+}
+
 .house-planets-sheet__match-with-info {
   display: inline-flex;
   align-items: baseline;

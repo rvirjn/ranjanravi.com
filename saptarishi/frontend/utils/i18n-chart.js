@@ -935,6 +935,15 @@
   function tryPatterns(text) {
     if (text === "Calculation") return "गणना";
     if (/^impact:?$/i.test(text)) return "प्रभाव:";
+    if (text === "Sources") return "स्रोत";
+    if (text === "book") return "पुस्तक";
+    if (text === "books") return "पुस्तकें";
+    if (text === "Line") return "पंक्ति";
+    if (text === "Paragraph") return "अनुच्छेद";
+    if (text === "Printed text") return "मुद्रित पाठ";
+    if (text === "Condition") return "शर्त";
+    if (text === "Derived from") return "निष्कर्ष";
+    if (text === "Limitation") return "सीमा";
     let match = text.match(/^(Good|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);
     if (match) {
       const kind = match[1].toLowerCase();
