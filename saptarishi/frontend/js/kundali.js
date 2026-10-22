@@ -2957,7 +2957,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
         continue;
       }
       const text = String(section.text || "").trim();
-      if (!text) continue;
+      if (!text || isHouseRelatesLine(text)) continue;
       const p = document.createElement("p");
       if (section.kind === "themes") p.className = "house-planets-sheet__themes";
       if (section.kind === "intro") p.className = "house-planets-sheet__intro";
@@ -2970,6 +2970,7 @@ function renderStatusGridDescriptionSections(descEl, entry, options = {}) {
     ? entry.paragraphs.map((t) => String(t || "").trim()).filter(Boolean)
     : [];
   for (const text of paragraphs) {
+    if (isHouseRelatesLine(text)) continue;
     const p = document.createElement("p");
     p.textContent = chartText(text);
     descEl.appendChild(p);
@@ -3054,6 +3055,37 @@ function appendHouseDescriptionLabeledList(parent, label, items, kind) {
   parent.appendChild(wrap);
 }
 
+function isHouseRelatesLine(text) {
+  return /^The \d+(?:st|nd|rd|th) house relates to /i.test(String(text || "").trim());
+}
+
+function appendSourceBookTitle(title, source, index) {
+  const label = document.createElement("span");
+  label.className = "house-planets-sheet__source-book-no";
+  label.textContent = `${chartText("Book")} ${index + 1}: `;
+  title.appendChild(label);
+  const book = String(source.book || "").trim();
+  const bits = [];
+  if (book) bits.push(`${book}.`);
+  const chapter = String(source.chapter || "").trim();
+  const page = String(source.page || "").trim();
+  if (chapter) bits.push(`${chartText("Chapter")}. ${chapter}.`);
+  if (page) bits.push(`${chartText("Page")}. ${page}.`);
+  if (bits.length) title.appendChild(document.createTextNode(bits.join(" ")));
+}
+
+function sourceBookDetails(source) {
+  const bits = [];
+  const paragraphNo = String(source.paragraph_number || "").trim();
+  if (paragraphNo) bits.push(`${chartText("Paragraph")}. ${paragraphNo}.`);
+  const citation = String(source.citation || "").trim();
+  let details = bits.join(" ");
+  if (citation) details = details ? `${details} ${citation}` : citation;
+  const verse = String(source.verse || "").trim();
+  if (verse) details = details ? `${details} · ${chartText("verse")} ${verse}` : `${chartText("verse")} ${verse}`;
+  return details;
+}
+
 function sourceNote(label, text) {
   const note = String(text || "").trim();
   if (!note) return null;
@@ -3075,7 +3107,9 @@ function appendProsConsSources(li, item) {
   const heading = document.createElement("div");
   heading.className = "house-planets-sheet__sources-label";
   const count = sources.length;
-  heading.textContent = `${chartText("Sources")} · ${count} ${chartText(count === 1 ? "book" : "books")}`;
+  heading.textContent = chartText(
+    count === 1 ? "Sources of Truth · From 1 book" : `Sources of Truth · From ${count} books`
+  );
   wrap.appendChild(heading);
   sources.forEach((source, index) => {
     if (!source || typeof source !== "object") return;
@@ -3083,22 +3117,21 @@ function appendProsConsSources(li, item) {
     block.className = "house-planets-sheet__source";
     const title = document.createElement("div");
     title.className = "house-planets-sheet__source-title";
-    const book = String(source.book || "").trim();
-    title.textContent = book ? `${index + 1}. ${book}` : `${index + 1}.`;
+    appendSourceBookTitle(title, source, index);
     block.appendChild(title);
-    const citation = String(source.citation || "").trim();
-    if (citation) {
+    const details = sourceBookDetails(source);
+    if (details) {
       const meta = document.createElement("div");
       meta.className = "house-planets-sheet__source-meta";
-      meta.textContent = citation;
+      meta.textContent = details;
       block.appendChild(meta);
     }
     const line = String(source.line || "").trim();
     const paragraph = String(source.paragraph || "").trim();
     const same = line && paragraph && line.replace(/\s+/g, " ") === paragraph.replace(/\s+/g, " ");
-    if (line && !same) block.appendChild(sourceNote("Line", ` ${line}`));
-    if (paragraph) block.appendChild(sourceNote("Paragraph", ` ${paragraph}`));
-    else if (line) block.appendChild(sourceNote("Line", ` ${line}`));
+    if (paragraph) block.appendChild(sourceNote("Paragraph from book", ` ${paragraph}`));
+    if (line && !same) block.appendChild(sourceNote("Summary of Paragraph", ` ${line}`));
+    else if (line && !paragraph) block.appendChild(sourceNote("Summary of Paragraph", ` ${line}`));
     const original = String(source.original || "").trim();
     if (original && original !== paragraph) {
       const language = String(source.original_language || "").trim();
@@ -3199,6 +3232,7 @@ function renderHouseGridDescription(descEl, descriptions, houseNum, options = {}
   }
   const paragraphs = houseGridDescriptionParagraphs({ [String(houseNum)]: entry }, houseNum);
   for (const text of paragraphs) {
+    if (isHouseRelatesLine(text)) continue;
     const p = document.createElement("p");
     p.textContent = chartText(text);
     descEl.appendChild(p);

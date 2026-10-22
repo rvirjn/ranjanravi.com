@@ -936,10 +936,20 @@
     if (text === "Calculation") return "गणना";
     if (/^impact:?$/i.test(text)) return "प्रभाव:";
     if (text === "Sources") return "स्रोत";
+    if (text === "Sources of Truth · From 1 book") return "सत्य के स्रोत · 1 पुस्तक से";
+    if (/^Sources of Truth · From (\d+) books$/.test(text)) {
+      return `सत्य के स्रोत · ${text.match(/(\d+)/)[1]} पुस्तकों से`;
+    }
     if (text === "book") return "पुस्तक";
     if (text === "books") return "पुस्तकें";
+    if (text === "Book") return "पुस्तक";
+    if (text === "Chapter") return "अध्याय";
+    if (text === "Page") return "पृष्ठ";
+    if (text === "verse") return "श्लोक";
     if (text === "Line") return "पंक्ति";
     if (text === "Paragraph") return "अनुच्छेद";
+    if (text === "Summary of Paragraph") return "अनुच्छेद का सार";
+    if (text === "Paragraph from book") return "पुस्तक का अनुच्छेद";
     if (text === "Printed text") return "मुद्रित पाठ";
     if (text === "Condition") return "शर्त";
     if (text === "Derived from") return "निष्कर्ष";

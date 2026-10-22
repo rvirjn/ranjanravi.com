@@ -6653,9 +6653,13 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
 
 .house-planets-sheet__source-title {
   font-size: 0.86rem;
-  font-weight: 650;
+  font-weight: 400;
   line-height: 1.35;
   color: var(--color-heading, #1e3a5f);
+}
+
+.house-planets-sheet__source-book-no {
+  font-weight: 650;
 }
 
 .house-planets-sheet__source-meta {
