@@ -7146,6 +7146,50 @@ body.kundali-chart-zoom-open {
   display: block;
 }
 
+.kundali-chart-zoom__nav {
+  display: flex;
+  justify-content: space-between;
+  width: min(100%, var(--kundali-chart-zoom-size, 22rem), 92vmin);
+  margin: 0.7rem auto 0;
+}
+
+.kundali-chart-zoom__nav[hidden] {
+  display: none;
+}
+
+.kundali-chart-zoom__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid rgba(30, 58, 95, 0.28);
+  border-radius: 999px;
+  background: #fff8e7;
+  color: var(--color-heading, #1e3a5f);
+  cursor: pointer;
+}
+
+.kundali-chart-zoom__nav-btn:hover:not(:disabled) {
+  background: rgba(30, 58, 95, 0.08);
+}
+
+.kundali-chart-zoom__nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.kundali-chart-zoom__nav-btn svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* ---------- Capacitor / Android app shell (form/chrome only; tables → native-shell.css) ---------- */
 
 html.saptarishi-native-app #saptarishi.main-shell table:not(.kundali-table) {

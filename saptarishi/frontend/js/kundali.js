@@ -6640,6 +6640,7 @@ let kundaliChartZoomState = {
   step: 0,
   payload: null,
   title: "",
+  nav: null,
   onKeyDown: null
 };
 
@@ -6657,6 +6658,12 @@ function ensureKundaliChartZoomOverlay() {
     '<p class="kundali-chart-zoom__hint">Click the chart to enlarge · Esc to close</p>' +
     '<div class="kundali-chart-zoom__frame">' +
     '<div class="kundali-chart-zoom__host kundali-chart-host"></div>' +
+    "</div>" +
+    '<div class="kundali-chart-zoom__nav" hidden>' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-zoom-nav="prev" aria-label="Previous birth">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-zoom-nav="next" aria-label="Next birth">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>' +
     "</div></div>";
   document.body.appendChild(overlay);
 
@@ -6667,6 +6674,14 @@ function ensureKundaliChartZoomOverlay() {
   overlay.querySelector(".kundali-chart-zoom__host")?.addEventListener("click", (event) => {
     event.stopPropagation();
     bumpKundaliChartZoomSize();
+  });
+  overlay.querySelectorAll("[data-zoom-nav]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const delta = button.getAttribute("data-zoom-nav") === "next" ? 1 : -1;
+      stepKundaliChartZoomNav(delta);
+    });
   });
 
   kundaliChartZoomState.overlay = overlay;
@@ -6682,6 +6697,10 @@ function applyKundaliChartZoomSize() {
   const step = kundaliChartZoomState.step % KUNDALI_CHART_ZOOM_SIZES.length;
   const sizeRem = KUNDALI_CHART_ZOOM_SIZES[step];
   frame.style.setProperty("--kundali-chart-zoom-size", `${sizeRem}rem`);
+  overlay.querySelector(".kundali-chart-zoom")?.style.setProperty(
+    "--kundali-chart-zoom-size",
+    `${sizeRem}rem`
+  );
   frame.dataset.zoomStep = String(step);
   if (hint) {
     const next = step + 1 < KUNDALI_CHART_ZOOM_SIZES.length;
@@ -6710,12 +6729,73 @@ function closeKundaliChartZoom() {
   if (host) host.innerHTML = "";
   kundaliChartZoomState.payload = null;
   kundaliChartZoomState.title = "";
+  kundaliChartZoomState.nav = null;
   kundaliChartZoomState.step = 0;
 }
 
+function kundaliChartZoomItemReady(item) {
+  const payload = item?.payload;
+  if (!payload || typeof payload !== "object") return false;
+  const planets = Array.isArray(payload.planets) && payload.planets.length;
+  const cells = Array.isArray(payload.cells) && payload.cells.length;
+  return Boolean(planets || cells);
+}
+
+function kundaliChartZoomNeighbor(delta) {
+  const nav = kundaliChartZoomState.nav;
+  const items = nav?.items;
+  if (!Array.isArray(items) || !items.length) return -1;
+  let index = Number(nav.index) || 0;
+  index += delta;
+  while (index >= 0 && index < items.length) {
+    if (kundaliChartZoomItemReady(items[index])) return index;
+    index += delta;
+  }
+  return -1;
+}
+
+function updateKundaliChartZoomNav() {
+  const overlay = kundaliChartZoomState.overlay;
+  const navEl = overlay?.querySelector(".kundali-chart-zoom__nav");
+  if (!navEl) return;
+  const items = kundaliChartZoomState.nav?.items;
+  const count = Array.isArray(items) ? items.length : 0;
+  navEl.hidden = count < 2;
+  const prev = navEl.querySelector("[data-zoom-nav='prev']");
+  const next = navEl.querySelector("[data-zoom-nav='next']");
+  const I18N = window.SaptarishiI18n;
+  const label = (key, fallback) => (I18N && I18N.t ? I18N.t(key) : fallback);
+  if (prev) {
+    prev.disabled = kundaliChartZoomNeighbor(-1) < 0;
+    prev.setAttribute("aria-label", label("chart.prevBirth", "Previous birth"));
+  }
+  if (next) {
+    next.disabled = kundaliChartZoomNeighbor(1) < 0;
+    next.setAttribute("aria-label", label("chart.nextBirth", "Next birth"));
+  }
+}
+
+function stepKundaliChartZoomNav(delta) {
+  const index = kundaliChartZoomNeighbor(delta);
+  if (index < 0) return;
+  const item = kundaliChartZoomState.nav.items[index];
+  const overlay = kundaliChartZoomState.overlay;
+  const host = overlay?.querySelector(".kundali-chart-zoom__host");
+  const titleEl = overlay?.querySelector("#kundali-chart-zoom-title");
+  if (!host || !item?.payload) return;
+  kundaliChartZoomState.nav = { ...kundaliChartZoomState.nav, index };
+  kundaliChartZoomState.payload = item.payload;
+  kundaliChartZoomState.title = item.title || "Chart";
+  if (titleEl) titleEl.textContent = kundaliChartZoomState.title;
+  renderKundaliChart(buildNorthIndianChartFromPayload(item.payload), host);
+  updateKundaliChartZoomNav();
+}
+
 /** Open a readable lightbox for a chart; click chart again to step size up. */
-function openKundaliChartZoom(chartPayload, title) {
-  if (!chartPayload || !Array.isArray(chartPayload.planets)) return;
+function openKundaliChartZoom(chartPayload, title, nav) {
+  const hasPlanets = Array.isArray(chartPayload?.planets) && chartPayload.planets.length;
+  const hasCells = Array.isArray(chartPayload?.cells) && chartPayload.cells.length;
+  if (!chartPayload || (!hasPlanets && !hasCells)) return;
   const overlay = ensureKundaliChartZoomOverlay();
   const host = overlay.querySelector(".kundali-chart-zoom__host");
   const titleEl = overlay.querySelector("#kundali-chart-zoom-title");
@@ -6723,11 +6803,14 @@ function openKundaliChartZoom(chartPayload, title) {
 
   kundaliChartZoomState.payload = chartPayload;
   kundaliChartZoomState.title = title || "Chart";
+  kundaliChartZoomState.nav =
+    nav && Array.isArray(nav.items) && nav.items.length > 1 ? nav : null;
   kundaliChartZoomState.step = 0;
   if (titleEl) titleEl.textContent = kundaliChartZoomState.title;
 
   renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
   applyKundaliChartZoomSize();
+  updateKundaliChartZoomNav();
   overlay.hidden = false;
   document.body.classList.add("kundali-chart-zoom-open");
 
@@ -6735,14 +6818,21 @@ function openKundaliChartZoom(chartPayload, title) {
     document.removeEventListener("keydown", kundaliChartZoomState.onKeyDown);
   }
   kundaliChartZoomState.onKeyDown = (event) => {
-    if (event.key === "Escape") closeKundaliChartZoom();
+    if (event.key === "Escape") {
+      closeKundaliChartZoom();
+      return;
+    }
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      stepKundaliChartZoomNav(event.key === "ArrowRight" ? 1 : -1);
+    }
   };
   document.addEventListener("keydown", kundaliChartZoomState.onKeyDown);
   overlay.querySelector(".kundali-chart-zoom__close")?.focus();
 }
 
 /** Make a rendered chart host open the zoom lightbox on click. */
-function bindKundaliChartZoom(host, chartPayload, title) {
+function bindKundaliChartZoom(host, chartPayload, title, nav) {
   if (!host || !chartPayload) return;
   const hasCells = Array.isArray(chartPayload.cells) && chartPayload.cells.length;
   const hasPlanets = Array.isArray(chartPayload.planets) && chartPayload.planets.length;
@@ -6762,13 +6852,14 @@ function bindKundaliChartZoom(host, chartPayload, title) {
   }
   host._kundaliZoomPayload = chartPayload;
   host._kundaliZoomTitle = title || "Chart";
+  host._kundaliZoomNav = nav && Array.isArray(nav.items) && nav.items.length > 1 ? nav : null;
   if (host.dataset.zoomBound === "1") return;
   host.dataset.zoomBound = "1";
   const open = (event) => {
     if (event.target?.closest?.(".kundali-chart-house-hit")) return;
     event.preventDefault();
     event.stopPropagation();
-    openKundaliChartZoom(host._kundaliZoomPayload, host._kundaliZoomTitle);
+    openKundaliChartZoom(host._kundaliZoomPayload, host._kundaliZoomTitle, host._kundaliZoomNav);
   };
   host.addEventListener("click", open);
   host.addEventListener("keydown", (event) => {
