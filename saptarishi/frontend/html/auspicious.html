@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Muhurta by Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=438">
+  <link rel="stylesheet" href="../style/styles.css?v=440">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -59,7 +59,7 @@
         <button type="button" id="auspicious-back-btn" class="auspicious-back" data-i18n="muhurta.back">← muhurta</button>
         <span class="topic-crumb__current">← <span id="auspicious-selected-title">Baby Birth</span></span>
       </nav>
-      <p class="lead" data-i18n="muhurta.lead">Enter place and date range to find strong slots.</p>
+      <p class="lead" id="auspicious-lead" data-i18n="muhurta.lead">Enter place and date range to find strong slots.</p>
 
       <form id="auspicious-form" class="search-form kundali-form" autocomplete="off">
         <div class="form-field">
@@ -74,16 +74,17 @@
           <input type="text" id="place-custom" maxlength="240" placeholder="Type city and country." data-i18n-placeholder="form.customPlaceholder" />
         </div>
         <div class="form-field">
-          <label for="date-from" data-i18n="form.fromDate">From date</label>
+          <label for="date-from" id="date-from-label" data-i18n="form.fromDate">From date</label>
           <input type="date" id="date-from" required />
         </div>
-        <div class="form-field">
+        <div class="form-field" id="date-to-field">
           <label for="date-to" data-i18n="form.toDate">To date</label>
           <input type="date" id="date-to" required />
         </div>
         <div class="form-field form-field--submit">
           <button type="submit" id="submit-btn" data-i18n="muhurta.findStrength">Find best slots based on Kundali Overall Strength</button>
           <button type="submit" id="submit-yoga-btn" data-i18n="muhurta.findYoga" hidden>Find best slots based on More Yoga</button>
+          <button type="submit" id="submit-charts-btn" data-i18n="muhurta.allCharts" hidden>Show all possible charts on given date</button>
         </div>
       </form>
 
@@ -116,15 +117,15 @@
   <script src="../js/auth-modal.js?v=34"></script>
   <script src="../js/premium-modal.js?v=14"></script>
   <script src="../js/wallet-modal.js?v=27"></script>
-  <script src="../utils/i18n.js?v=21"></script>
-  <script src="../utils/i18n-chart.js?v=15"></script>
+  <script src="../utils/i18n.js?v=22"></script>
+  <script src="../utils/i18n-chart.js?v=16"></script>
   <script src="../utils/i18n-desc.js?v=1"></script>
   <script src="../utils/i18n-sitting.js?v=2"></script>
   <script src="../utils/i18n-qa.js?v=1"></script>
   <script src="../utils/common.js?v=121"></script>
   <script src="../js/ask-ai.js?v=18"></script>
   <script src="../js/kundali.js?v=422"></script>
-  <script src="../js/lord-comparison.js?v=29"></script>
-  <script src="../js/auspicious.js?v=30"></script>
+  <script src="../js/lord-comparison.js?v=31"></script>
+  <script src="../js/auspicious.js?v=32"></script>
 </body>
 </html>

@@ -16,6 +16,11 @@
       headingKey: "muhurta.topYoga",
       heading: "Top 5 by more yoga",
       lead: ""
+    },
+    charts: {
+      headingKey: "muhurta.allChartsHeading",
+      heading: "All 12 charts on this date",
+      lead: ""
     }
   };
 
@@ -311,6 +316,60 @@
     return "";
   }
 
+  /** Header shows the total only, not the Planets + Yogas + Dosha breakdown. */
+  function headerStrengthText(source) {
+    const full = slotStrengthText(source);
+    const bracket = full.indexOf(" [");
+    return bracket > 0 ? full.slice(0, bracket).trim() : full;
+  }
+
+  function syncTopScrollbar(table) {
+    const section = document.getElementById("lord-comparison-section");
+    const wrap = table && table.closest(".table-wrap");
+    const bar = section && section.querySelector(".lord-comparison-scroll-top");
+    if (!section || !wrap || !bar) return;
+    const spacer = bar.firstElementChild;
+    const overflow = table.scrollWidth - wrap.clientWidth > 2;
+    bar.hidden = !overflow;
+    section.classList.toggle("lord-comparison-section--top-scroll", overflow);
+    if (!overflow || !spacer) return;
+    spacer.style.width = `${table.scrollWidth}px`;
+    if (bar.scrollLeft !== wrap.scrollLeft) bar.scrollLeft = wrap.scrollLeft;
+  }
+
+  function ensureTopScrollbar(table) {
+    const section = document.getElementById("lord-comparison-section");
+    const wrap = table && table.closest(".table-wrap");
+    if (!section || !wrap) return;
+    let bar = section.querySelector(".lord-comparison-scroll-top");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "lord-comparison-scroll-top";
+      bar.setAttribute("aria-hidden", "true");
+      const spacer = document.createElement("div");
+      bar.appendChild(spacer);
+      wrap.before(bar);
+      let lock = false;
+      bar.addEventListener("scroll", () => {
+        if (lock) return;
+        lock = true;
+        wrap.scrollLeft = bar.scrollLeft;
+        lock = false;
+      });
+      wrap.addEventListener("scroll", () => {
+        if (lock) return;
+        lock = true;
+        bar.scrollLeft = wrap.scrollLeft;
+        lock = false;
+      });
+      window.addEventListener("resize", () => {
+        if (table.isConnected) syncTopScrollbar(table);
+      });
+    }
+    syncTopScrollbar(table);
+    requestAnimationFrame(() => syncTopScrollbar(table));
+  }
+
   function appendDivisionalChartCell(tr, cell) {
     const td = document.createElement("td");
     td.className = "auspicious-lord-col auspicious-lord-col--divisional-chart";
@@ -399,7 +458,7 @@
   }
 
   function setChrome(mode) {
-    currentMode = mode === "compare" || mode === "yoga" ? mode : "top";
+    currentMode = mode === "compare" || mode === "yoga" || mode === "charts" ? mode : "top";
     const heading = document.getElementById("lord-comparison-heading");
     const lead = document.querySelector(".auspicious-lord-comparison-lead");
     const cfg = CHROME[currentMode] || CHROME.top;
@@ -427,6 +486,9 @@
 
     if (!columns.length || !rows.length) {
       section.hidden = true;
+      section.classList.remove("lord-comparison-section--top-scroll");
+      const bar = section.querySelector(".lord-comparison-scroll-top");
+      if (bar) bar.hidden = true;
       table.querySelector("thead")?.replaceChildren();
       table.querySelector("tbody")?.replaceChildren();
       return;
@@ -440,6 +502,7 @@
     const hasDivisionalRows = rows.some((row) => row?.row_kind === "divisional_chart");
     const chartOnlyHeader = String(comparison?.header_mode || "") === "chart";
     table.classList.toggle("lord-comparison-table--yoga", chartOnlyHeader);
+    table.classList.toggle("lord-comparison-table--charts", currentMode === "charts");
 
     const headerRow = document.createElement("tr");
     headerRow.appendChild(
@@ -460,7 +523,7 @@
 
       const total = document.createElement("span");
       total.className = "auspicious-lord-col__total";
-      const headerStrength = slotStrengthText(column);
+      const headerStrength = headerStrengthText(column);
       if (headerStrength) total.textContent = headerStrength;
 
       th.append(label);
@@ -563,6 +626,7 @@
     if (isLordComparisonContentLocked()) {
       applyLordComparisonBlur(table);
     }
+    ensureTopScrollbar(table);
   }
 
   window.SaptarishiLordComparison = {

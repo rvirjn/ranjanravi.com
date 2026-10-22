@@ -397,6 +397,7 @@
     time: "समय",
     weekday: "वार",
     "moon tithi": "चंद्र तिथि",
+    "lagna duration": "लग्न अवधि",
     tithi: "तिथि",
     paya: "पाया",
     gandmool: "गंडमूल",
