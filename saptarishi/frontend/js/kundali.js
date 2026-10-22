@@ -6641,6 +6641,7 @@ let kundaliChartZoomState = {
   payload: null,
   title: "",
   nav: null,
+  vargaIndex: null,
   onKeyDown: null
 };
 
@@ -6656,6 +6657,29 @@ function ensureKundaliChartZoomOverlay() {
     '<button type="button" class="kundali-chart-zoom__close" aria-label="Close enlarged chart">×</button>' +
     '<h3 id="kundali-chart-zoom-title" class="kundali-chart-zoom__title"></h3>' +
     '<p class="kundali-chart-zoom__hint">Click the chart to enlarge · Esc to close</p>' +
+    '<div class="kundali-chart-zoom__layout">' +
+    '<div class="kundali-chart-zoom__vargas" hidden>' +
+    '<div class="kundali-chart-zoom__varga" data-varga-slot="D10">' +
+    '<span class="kundali-chart-zoom__varga-label">D10</span>' +
+    '<div class="kundali-chart-zoom__varga-host kundali-chart-host"></div>' +
+    '<p class="kundali-chart-zoom__varga-range"></p>' +
+    '<div class="kundali-chart-zoom__nav kundali-chart-zoom__nav--varga">' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-varga-nav="prev" data-varga-slot="D10" aria-label="Previous D10 chart">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-varga-nav="next" data-varga-slot="D10" aria-label="Next D10 chart">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>' +
+    "</div></div>" +
+    '<div class="kundali-chart-zoom__varga" data-varga-slot="D9">' +
+    '<span class="kundali-chart-zoom__varga-label">D9</span>' +
+    '<div class="kundali-chart-zoom__varga-host kundali-chart-host"></div>' +
+    '<p class="kundali-chart-zoom__varga-range"></p>' +
+    '<div class="kundali-chart-zoom__nav kundali-chart-zoom__nav--varga">' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-varga-nav="prev" data-varga-slot="D9" aria-label="Previous D9 chart">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>' +
+    '<button type="button" class="kundali-chart-zoom__nav-btn" data-varga-nav="next" data-varga-slot="D9" aria-label="Next D9 chart">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>' +
+    "</div></div></div>" +
+    '<div class="kundali-chart-zoom__main">' +
     '<div class="kundali-chart-zoom__frame">' +
     '<div class="kundali-chart-zoom__host kundali-chart-host"></div>' +
     "</div>" +
@@ -6664,7 +6688,7 @@ function ensureKundaliChartZoomOverlay() {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button>' +
     '<button type="button" class="kundali-chart-zoom__nav-btn" data-zoom-nav="next" aria-label="Next birth">' +
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button>' +
-    "</div></div>";
+    "</div></div></div>";
   document.body.appendChild(overlay);
 
   overlay.addEventListener("click", (event) => {
@@ -6681,6 +6705,14 @@ function ensureKundaliChartZoomOverlay() {
       event.stopPropagation();
       const delta = button.getAttribute("data-zoom-nav") === "next" ? 1 : -1;
       stepKundaliChartZoomNav(delta);
+    });
+  });
+  overlay.querySelectorAll("[data-varga-nav]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const delta = button.getAttribute("data-varga-nav") === "next" ? 1 : -1;
+      stepKundaliChartZoomVarga(button.getAttribute("data-varga-slot"), delta);
     });
   });
 
@@ -6727,9 +6759,14 @@ function closeKundaliChartZoom() {
   }
   const host = overlay.querySelector(".kundali-chart-zoom__host");
   if (host) host.innerHTML = "";
+  overlay.querySelectorAll(".kundali-chart-zoom__varga-host").forEach((vargaHost) => {
+    vargaHost.innerHTML = "";
+  });
+  overlay.querySelector(".kundali-chart-zoom")?.classList.remove("kundali-chart-zoom--vargas");
   kundaliChartZoomState.payload = null;
   kundaliChartZoomState.title = "";
   kundaliChartZoomState.nav = null;
+  kundaliChartZoomState.vargaIndex = null;
   kundaliChartZoomState.step = 0;
 }
 
@@ -6775,6 +6812,122 @@ function updateKundaliChartZoomNav() {
   }
 }
 
+function kundaliChartZoomDivisional(payload, key) {
+  const charts = Array.isArray(payload?.divisional_charts) ? payload.divisional_charts : [];
+  const chart = charts.find((item) => String(item?.key || "").toUpperCase() === key);
+  if (!chart || !Array.isArray(chart.planets) || !chart.planets.length) return null;
+  return chart;
+}
+
+function kundaliChartZoomVargaItems(key) {
+  const windows = kundaliChartZoomState.payload?.varga_windows;
+  const spans = windows && windows[key];
+  if (Array.isArray(spans) && spans.length) {
+    return spans.map((span) => ({
+      chart: span,
+      title: span.label || [span.time_from, span.time_to].filter(Boolean).join("–")
+    }));
+  }
+  const chart = kundaliChartZoomDivisional(kundaliChartZoomState.payload, key);
+  if (!chart) return [];
+  return [{ chart, title: "" }];
+}
+
+function kundaliChartZoomVargaNeighbor(key, fromIndex, delta) {
+  const items = kundaliChartZoomVargaItems(key);
+  let index = fromIndex + delta;
+  while (index >= 0 && index < items.length) {
+    const chart = items[index]?.chart;
+    if (chart && Array.isArray(chart.planets) && chart.planets.length) return index;
+    index += delta;
+  }
+  return -1;
+}
+
+function renderKundaliChartZoomVargas() {
+  const overlay = kundaliChartZoomState.overlay;
+  const wrap = overlay?.querySelector(".kundali-chart-zoom__vargas");
+  if (!wrap) return;
+  const indexes = kundaliChartZoomState.vargaIndex || {};
+  let visible = 0;
+  wrap.querySelectorAll("[data-varga-slot]").forEach((block) => {
+    const key = String(block.getAttribute("data-varga-slot") || "").toUpperCase();
+    const host = block.querySelector(".kundali-chart-zoom__varga-host");
+    const items = kundaliChartZoomVargaItems(key);
+    let index = Number(indexes[key]);
+    if (!Number.isFinite(index)) index = 0;
+    const chartAt = (itemIndex) => {
+      const candidate = items[itemIndex]?.chart;
+      return candidate && Array.isArray(candidate.planets) && candidate.planets.length
+        ? candidate
+        : null;
+    };
+    if (!chartAt(index)) {
+      const fallback = kundaliChartZoomVargaNeighbor(key, index, 1);
+      const earlier = kundaliChartZoomVargaNeighbor(key, index, -1);
+      index = fallback >= 0 ? fallback : earlier;
+    }
+    const item = index >= 0 ? items[index] : null;
+    const chart = item?.chart;
+    block.hidden = !chart;
+    if (!chart || !host) {
+      if (host) host.innerHTML = "";
+      return;
+    }
+    visible += 1;
+    if (kundaliChartZoomState.vargaIndex) kundaliChartZoomState.vargaIndex[key] = index;
+    const label = block.querySelector(".kundali-chart-zoom__varga-label");
+    if (label) label.title = chart.title || key;
+    const range = block.querySelector(".kundali-chart-zoom__varga-range");
+    if (range) range.textContent = item.title || "";
+    const nav = block.querySelector(".kundali-chart-zoom__nav--varga");
+    if (nav) {
+      const prevIndex = kundaliChartZoomVargaNeighbor(key, index, -1);
+      const nextIndex = kundaliChartZoomVargaNeighbor(key, index, 1);
+      nav.hidden = prevIndex < 0 && nextIndex < 0;
+      const prev = nav.querySelector("[data-varga-nav='prev']");
+      const next = nav.querySelector("[data-varga-nav='next']");
+      if (prev) {
+        prev.disabled = prevIndex < 0;
+        prev.setAttribute("aria-label", `Previous ${key}`);
+      }
+      if (next) {
+        next.disabled = nextIndex < 0;
+        next.setAttribute("aria-label", `Next ${key}`);
+      }
+    }
+    const strengthMax =
+      typeof chart.strength_max === "number"
+        ? chart.strength_max
+        : typeof kundaliChartZoomState.payload?.strength_max === "number"
+          ? kundaliChartZoomState.payload.strength_max
+          : undefined;
+    renderKundaliChart(
+      buildNorthIndianChartFromPayload({
+        planets: chart.planets,
+        strength_max: strengthMax
+      }),
+      host,
+      { showHouseMarks: false, houseHits: false }
+    );
+  });
+  wrap.hidden = visible === 0;
+  overlay.querySelector(".kundali-chart-zoom")?.classList.toggle(
+    "kundali-chart-zoom--vargas",
+    visible > 0
+  );
+}
+
+function stepKundaliChartZoomVarga(slot, delta) {
+  const key = String(slot || "").toUpperCase();
+  if (!key || !kundaliChartZoomState.vargaIndex) return;
+  const current = Number(kundaliChartZoomState.vargaIndex[key]);
+  const index = kundaliChartZoomVargaNeighbor(key, Number.isFinite(current) ? current : 0, delta);
+  if (index < 0) return;
+  kundaliChartZoomState.vargaIndex = { ...kundaliChartZoomState.vargaIndex, [key]: index };
+  renderKundaliChartZoomVargas();
+}
+
 function stepKundaliChartZoomNav(delta) {
   const index = kundaliChartZoomNeighbor(delta);
   if (index < 0) return;
@@ -6788,6 +6941,8 @@ function stepKundaliChartZoomNav(delta) {
   kundaliChartZoomState.title = item.title || "Chart";
   if (titleEl) titleEl.textContent = kundaliChartZoomState.title;
   renderKundaliChart(buildNorthIndianChartFromPayload(item.payload), host);
+  kundaliChartZoomState.vargaIndex = { D10: 0, D9: 0 };
+  renderKundaliChartZoomVargas();
   updateKundaliChartZoomNav();
 }
 
@@ -6805,10 +6960,12 @@ function openKundaliChartZoom(chartPayload, title, nav) {
   kundaliChartZoomState.title = title || "Chart";
   kundaliChartZoomState.nav =
     nav && Array.isArray(nav.items) && nav.items.length > 1 ? nav : null;
+  kundaliChartZoomState.vargaIndex = { D10: 0, D9: 0 };
   kundaliChartZoomState.step = 0;
   if (titleEl) titleEl.textContent = kundaliChartZoomState.title;
 
   renderKundaliChart(buildNorthIndianChartFromPayload(chartPayload), host);
+  renderKundaliChartZoomVargas();
   applyKundaliChartZoomSize();
   updateKundaliChartZoomNav();
   overlay.hidden = false;
