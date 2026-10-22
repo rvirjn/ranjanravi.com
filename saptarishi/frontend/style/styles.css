@@ -6659,7 +6659,10 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
 }
 
 .house-planets-sheet__source-book-no {
-  font-weight: 650;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-muted, #5a6578);
 }
 
 .house-planets-sheet__source-meta {
