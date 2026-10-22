@@ -11,9 +11,9 @@
   const DEFAULT_PLANS = Array.isArray(AC.WALLET_TOPUP_DEFAULTS)
     ? AC.WALLET_TOPUP_DEFAULTS.slice()
     : [
-        { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
+        { id: "wallet_51", amount_inr: 51, credit_inr: 51 },
         { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
-        { id: "wallet_599", amount_inr: 599, credit_inr: 599 }
+        { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
       ];
 
   const LOADING = global.SaptarishiLoading;
@@ -37,22 +37,11 @@
 
   function paidPlanNote() {
     if (CU && CU.paidPlanNote) return CU.paidPlanNote();
-    const months = Number(AC.PREMIUM_UNLIMITED_MONTHS) || 12;
-    const monthLabel =
-      months % 12 === 0
-        ? months / 12 === 1
-          ? "1 year"
-          : `${months / 12} years`
-        : months === 1
-          ? "1 month"
-          : `${months} months`;
     const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
-    const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
+    const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 51;
     return (
-      `Free Plan: ${freeBirths} kundali free\n` +
-      `Basic Plan: ₹${basicAmount} per kundali\n` +
-      `Advance Plan: ₹${advanceAmount} for unlimited access for ${monthLabel}.`
+      `Free Plan: ${freeBirths} births free, with kundali and remedies\n` +
+      `Basic Plan: ₹${basicAmount} per birth after that (pay once; reopening is free)`
     );
   }
 
@@ -88,7 +77,7 @@
   let openedFromSummary = false;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
-  let selectedPlanId = plans[0]?.id || "wallet_99";
+  let selectedPlanId = plans[0]?.id || "wallet_51";
 
   function scannerImageUrl() {
     const rel = AC.PREMIUM_SCANNER_IMAGE;
@@ -222,7 +211,7 @@
                 required
                 minlength="${AC.COUPON_CODE_MIN_LENGTH || 4}"
                 maxlength="${AC.COUPON_CODE_MAX_LENGTH || 32}"
-                placeholder="e.g. ${(AC.WALLET_COUPON_PREFIX_BY_AMOUNT && AC.WALLET_COUPON_PREFIX_BY_AMOUNT[(AC.WALLET_TOPUP_DEFAULTS && AC.WALLET_TOPUP_DEFAULTS[0] && AC.WALLET_TOPUP_DEFAULTS[0].amount_inr) || 99]) || "WL09"}-XXXX"
+                placeholder="e.g. ${(AC.WALLET_COUPON_PREFIX_BY_AMOUNT && AC.WALLET_COUPON_PREFIX_BY_AMOUNT[(AC.WALLET_TOPUP_DEFAULTS && AC.WALLET_TOPUP_DEFAULTS[0] && AC.WALLET_TOPUP_DEFAULTS[0].amount_inr) || 51]) || "WL51"}-XXXX"
                 autocapitalize="characters"
                 spellcheck="false"
               />
@@ -360,7 +349,6 @@
         : AUTH.getWalletBalance
           ? AUTH.getWalletBalance(usage)
           : Math.max(0, Math.floor(Number(usage.wallet_balance_inr) || 0));
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     const freeLimit = AC.FREE_BIRTHS_PER_USER ?? 2;
     const freeLeft = AUTH.getFreeBirthsRemaining
       ? AUTH.getFreeBirthsRemaining(usage)
@@ -368,12 +356,11 @@
     const isPaid = Boolean(usage.is_premium || user.is_premium);
     const tier = usage.premium_tier || user.premium_tier;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
-    const isAdvance = Boolean(isUnlimited || bal >= advanceAmount);
 
     if (planLineEl) {
-      if (isAdvance) {
+      if (isUnlimited) {
         setCurrentPlanLine(planLineEl, "Advance Plan");
-      } else if (bal === 0 && freeLeft > 0) {
+      } else if (freeLeft > 0) {
         setCurrentPlanLine(
           planLineEl,
           `Free Plan · ${freeLeft} of ${freeLimit} birth${freeLimit === 1 ? "" : "s"} left`

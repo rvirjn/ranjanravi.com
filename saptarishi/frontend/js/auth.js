@@ -1006,19 +1006,16 @@
     return Math.max(0, limit - used);
   }
 
-  function hasAdvancePlan(usage) {
-    if (hasUnlimitedPremium()) return true;
-    const advanceMin = Number(AC.PREMIUM_UNLIMITED_AMOUNT_INR) || 599;
-    return getWalletBalance(usage) >= advanceMin;
+  /** Legacy unlimited plan bought before plans were withdrawn. */
+  function hasAdvancePlan(_usage) {
+    return hasUnlimitedPremium();
   }
 
   function canUnlockBirthWithoutWallet(usage) {
     if (hasAdvancePlan(usage)) return true;
-    const bal = getWalletBalance(usage);
-    // Free births only apply on Free plan (₹0 balance).
-    if (bal === 0 && getFreeBirthsRemaining(usage) > 0) return true;
-    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
-    return bal >= charge;
+    if (getFreeBirthsRemaining(usage) > 0) return true;
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 51;
+    return getWalletBalance(usage) >= charge;
   }
 
   function getWalletCreditedTotal(usage) {
@@ -1163,7 +1160,7 @@
   async function handlePremiumRequired(err, options = {}) {
     if (!err || (!err.premiumRequired && err.status !== 403)) return false;
 
-    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 51;
     const wasLoggedIn = Boolean(getToken());
 
     if (!wasLoggedIn) {
@@ -1194,16 +1191,17 @@
       suggestedAmountInr:
         options.suggestedAmountInr != null
           ? options.suggestedAmountInr
-          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 99),
+          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 51),
       message:
         options.message ||
-        `Free plan used. Add at least ₹${charge} to unlock this birth (charged once; reopen is free).`
+        (err.premiumRequired && err.message) ||
+        `Your free births are used. Add at least ₹${charge} to open this birth (charged once; reopening is free).`
     });
     return canUnlockBirthWithoutWallet();
   }
 
   async function openUnlockFromBlur(options = {}) {
-    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 21;
+    const charge = Number(AC.BIRTH_CHARGE_INR || AC.QUERY_CHARGE_INR) || 51;
     if (!getToken()) {
       await ensureAuth({
         tab: "login",
@@ -1217,10 +1215,10 @@
       suggestedAmountInr:
         options.suggestedAmountInr != null
           ? options.suggestedAmountInr
-          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 99),
+          : Math.max(charge, Number(AC.WALLET_TOPUP_DEFAULTS?.[0]?.amount_inr) || 51),
       message:
         options.message ||
-        `Add money to your wallet to unlock remedy (₹${charge} per kundali).`
+        `Add money to your wallet to unlock remedy (₹${charge} per birth).`
     });
   }
 

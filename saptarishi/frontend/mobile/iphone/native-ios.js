@@ -13,9 +13,9 @@
   document.documentElement.classList.add("saptarishi-native-app", "saptarishi-native-ios");
 
   const PRODUCT_BY_AMOUNT = {
-    99: "com.ranjanravi.saptarishi.wallet.99",
+    51: "com.ranjanravi.saptarishi.wallet.51",
     500: "com.ranjanravi.saptarishi.wallet.500",
-    599: "com.ranjanravi.saptarishi.wallet.599"
+    1899: "com.ranjanravi.saptarishi.wallet.1899"
   };
 
   function productIdForAmount(amountInr) {

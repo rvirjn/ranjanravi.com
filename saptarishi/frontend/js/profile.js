@@ -192,8 +192,7 @@
     summaryEl.hidden = false;
 
     const C = typeof SAPTARISHI_CONSTANTS !== "undefined" ? SAPTARISHI_CONSTANTS : null;
-    const unlimitedAmount = C?.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
-    const queryCharge = C?.BIRTH_CHARGE_INR ?? C?.QUERY_CHARGE_INR ?? 21;
+    const queryCharge = C?.BIRTH_CHARGE_INR ?? C?.QUERY_CHARGE_INR ?? 51;
     const freeLimit = C?.FREE_BIRTHS_PER_USER ?? 2;
     const bal =
       AUTH.getWalletBalance
@@ -208,7 +207,7 @@
     const tier = profile.premium_tier || usage?.premium_tier;
     const isPaid = profile.is_premium || usage?.is_premium;
     const isUnlimited = Boolean(isPaid && tier && tier !== "pack_299");
-    const isAdvance = Boolean(isUnlimited || bal >= unlimitedAmount);
+    const isAdvance = isUnlimited;
     const remediesUnlocked = Boolean(
       usage?.remedy_unlocked ||
         profile?.remedy_unlocked ||
@@ -220,7 +219,7 @@
     if (planEl) {
       if (isAdvance) {
         setCurrentPlanLine(planEl, pt("profile.advance"));
-      } else if (bal === 0 && freeLeft > 0) {
+      } else if (freeLeft > 0) {
         setCurrentPlanLine(
           planEl,
           ptf("profile.freeLeft", { left: freeLeft, limit: freeLimit })
@@ -230,7 +229,7 @@
       }
       planEl.classList.toggle(
         "profile-summary__plan--premium",
-        Boolean(isAdvance || remediesUnlocked || (bal === 0 && freeLeft > 0))
+        Boolean(isAdvance || remediesUnlocked || freeLeft > 0)
       );
     }
 
@@ -239,19 +238,9 @@
       if (CU && CU.paidPlanNote) {
         plansNoteEl.textContent = CU.paidPlanNote();
       } else {
-        const months = Number(C?.PREMIUM_UNLIMITED_MONTHS) || 12;
-        const monthLabel =
-          months % 12 === 0
-            ? months / 12 === 1
-              ? "1 year"
-              : `${months / 12} years`
-            : months === 1
-              ? "1 month"
-              : `${months} months`;
         plansNoteEl.textContent =
-          `Free Plan: ${freeLimit} kundali free\n` +
-          `Basic Plan: ₹${queryCharge} per kundali\n` +
-          `Advance Plan: ₹${unlimitedAmount} for unlimited access for ${monthLabel}.`;
+          `Free Plan: ${freeLimit} births free, with kundali and remedies\n` +
+          `Basic Plan: ₹${queryCharge} per birth after that (pay once; reopening is free)`;
       }
     }
 

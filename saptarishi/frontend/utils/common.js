@@ -219,15 +219,9 @@
   }
 
   function paidPlanNote() {
-    const duration = unlimitedAccessDurationLabel(AC.PREMIUM_UNLIMITED_MONTHS);
-    const freeBirths = AC.FREE_BIRTHS_PER_USER ?? 2;
-    const basicAmount = AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 21;
-    const advanceAmount = AC.PREMIUM_UNLIMITED_AMOUNT_INR ?? 599;
     return tf("profile.plans", {
-      free: freeBirths,
-      basic: basicAmount,
-      advance: advanceAmount,
-      duration
+      free: AC.FREE_BIRTHS_PER_USER ?? 2,
+      basic: AC.BIRTH_CHARGE_INR ?? AC.QUERY_CHARGE_INR ?? 51
     });
   }
 

@@ -232,8 +232,8 @@
     }
     if (CU && CU.validateBirthDetailsInput) {
       return CU.validateBirthDetailsInput({
-        requireName: birthMode === "new" && shouldSaveBirthDetails(),
-        emptyNameMessage: "Enter a name to save these birth details.",
+        requireName: birthMode === "new",
+        emptyNameMessage: "Enter a name for this birth.",
         name: birthName && birthName.value,
         place,
         date: birthDate && birthDate.value,
@@ -241,8 +241,8 @@
         allowCustom: placePreset && placePreset.value === C.PLACE_CUSTOM_VALUE
       });
     }
-    if (birthMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
-      return "Enter a name to save these birth details.";
+    if (birthMode === "new" && birthName && !String(birthName.value || "").trim()) {
+      return "Enter a name for this birth.";
     }
     if (!place) return "Select Place.";
     if (!birthDate.value || !birthTime.value) return "Select Day, Month, and Year.";
@@ -922,7 +922,7 @@
     if (locked) blurLockedRemedyValueCell(td);
   }
 
-  /** Remedies unlock per paid birth, Free/Basic wallet, or Advance (₹599+). */
+  /** Remedies unlock per paid birth (free or ₹ per birth), or a legacy unlimited plan. */
   function canViewRemedyDetails() {
     if (typeof SaptarishiAuth === "undefined") return false;
     if (typeof SaptarishiAuth.hasAdvancePlan === "function" && SaptarishiAuth.hasAdvancePlan()) {
@@ -947,8 +947,8 @@
     const charge =
       (typeof SAPTARISHI_CONSTANTS !== "undefined" &&
         (SAPTARISHI_CONSTANTS.BIRTH_CHARGE_INR || SAPTARISHI_CONSTANTS.QUERY_CHARGE_INR)) ||
-      21;
-    const message = `Add money to your wallet to unlock remedy (₹${charge} per kundali).`;
+      51;
+    const message = `Add money to your wallet to unlock remedy (₹${charge} per birth).`;
     if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openUnlockFromBlur) {
       SaptarishiAuth.openUnlockFromBlur({ message });
       return;

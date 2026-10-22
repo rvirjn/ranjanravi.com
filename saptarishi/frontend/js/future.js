@@ -180,8 +180,8 @@
     }
     if (CU && CU.validateBirthDetailsInput) {
       return CU.validateBirthDetailsInput({
-        requireName: birthMode === "new" && shouldSaveBirthDetails(),
-        emptyNameMessage: "Enter a name to save these birth details.",
+        requireName: birthMode === "new",
+        emptyNameMessage: "Enter a name for this birth.",
         name: birthName && birthName.value,
         place,
         date: birthDate && birthDate.value,

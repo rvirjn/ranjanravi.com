@@ -6804,8 +6804,8 @@ function openUnlockWalletFromBlur() {
   const charge =
     (typeof SAPTARISHI_CONSTANTS !== "undefined" &&
       (SAPTARISHI_CONSTANTS.BIRTH_CHARGE_INR || SAPTARISHI_CONSTANTS.QUERY_CHARGE_INR)) ||
-    21;
-  const message = `Add money to your wallet to unlock remedy (₹${charge} per kundali).`;
+    51;
+  const message = `Add money to your wallet to unlock remedy (₹${charge} per birth).`;
   if (typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.openUnlockFromBlur) {
     SaptarishiAuth.openUnlockFromBlur({ message });
     return;
@@ -7316,8 +7316,8 @@ function validateBirthForm(place) {
   }
   if (CU && CU.validateBirthDetailsInput) {
     return CU.validateBirthDetailsInput({
-      requireName: kundaliMode === "new" && shouldSaveBirthDetails(),
-      emptyNameMessage: "Enter a name to save these birth details.",
+      requireName: kundaliMode === "new",
+      emptyNameMessage: "Enter a name for this birth.",
       name: birthName && birthName.value,
       place,
       date: birthDate && birthDate.value,
@@ -7325,8 +7325,8 @@ function validateBirthForm(place) {
       allowCustom: placePreset && placePreset.value === C.PLACE_CUSTOM_VALUE
     });
   }
-  if (kundaliMode === "new" && shouldSaveBirthDetails() && birthName && !String(birthName.value || "").trim()) {
-    return "Enter a name to save these birth details.";
+  if (kundaliMode === "new" && birthName && !String(birthName.value || "").trim()) {
+    return "Enter a name for this birth.";
   }
   if (!place) return "Select Place.";
   if (!birthDate.value || !birthTime.value) return "Select Day, Month, and Year.";

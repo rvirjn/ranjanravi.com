@@ -59,9 +59,9 @@ const SAPTARISHI_CONSTANTS = {
   COUPON_CODE_MIN_LENGTH: 4,
   COUPON_CODE_MAX_LENGTH: 32,
   WALLET_COUPON_PREFIX_BY_AMOUNT: {
-    99: "WL09",
+    51: "WL51",
     500: "WL50",
-    599: "WL59"
+    1899: "WL18"
   },
 
   // --- Frontend routes ---
@@ -126,11 +126,11 @@ const SAPTARISHI_CONSTANTS = {
   PREMIUM_UNLIMITED_AMOUNT_INR: 599,
   PREMIUM_UNLIMITED_MONTHS: 12,
   PREMIUM_AMOUNT_INR: 599,
-  /** Per named birth: first kundali load unlocks remedies for that birth. */
-  BIRTH_CHARGE_INR: 21,
+  /** Per named birth after the free births: opens its kundali and remedies (keep in sync with backend). */
+  BIRTH_CHARGE_INR: 51,
   /** Legacy alias for BIRTH_CHARGE_INR. */
-  QUERY_CHARGE_INR: 21,
-  /** Logged-in Free plan: first N births unlock with no wallet debit. */
+  QUERY_CHARGE_INR: 51,
+  /** Every logged-in user: first N births open free, whatever the wallet balance. */
   FREE_BIRTHS_PER_USER: 2,
   SUPPORT_WHATSAPP_MESSAGE: "Hi, I need support with Saptarishi.",
   SUPPORT_EMAIL_SUBJECT: "Saptarishi support",
@@ -143,9 +143,9 @@ const SAPTARISHI_CONSTANTS = {
   ASTROLOGER_ASK_RATE_INR_PER_MIN: 21,
   ASTROLOGER_MIN_BALANCE_INR: 21,
   WALLET_TOPUP_DEFAULTS: [
-    { id: "wallet_99", amount_inr: 99, credit_inr: 99 },
+    { id: "wallet_51", amount_inr: 51, credit_inr: 51 },
     { id: "wallet_500", amount_inr: 500, credit_inr: 500 },
-    { id: "wallet_599", amount_inr: 599, credit_inr: 599 }
+    { id: "wallet_1899", amount_inr: 1899, credit_inr: 1899 }
   ],
 
   // --- UI messages / display ---
