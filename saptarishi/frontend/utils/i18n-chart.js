@@ -947,12 +947,16 @@
     if (text === "Chapter") return "अध्याय";
     if (text === "Page") return "पृष्ठ";
     if (text === "verse") return "श्लोक";
-    if (text === "Line") return "पंक्ति";
+    if (text === "Version") return "संस्करण";
+    if (text === "Shloka") return "श्लोक";    if (text === "Line") return "पंक्ति";
     if (text === "Paragraph") return "अनुच्छेद";
     if (text === "Summary of Paragraph") return "अनुच्छेद का सार";
+    if (text === "Summary of Paragraph:") return "अनुच्छेद का सार:";
     if (text === "Paragraph from book") return "पुस्तक का अनुच्छेद";
+    if (text === "Paragraph from book:") return "पुस्तक का अनुच्छेद:";
     if (text === "Printed text") return "मुद्रित पाठ";
     if (text === "Condition") return "शर्त";
+    if (text === "Condition:") return "शर्त:";
     if (text === "Derived from") return "निष्कर्ष";
     if (text === "Limitation") return "सीमा";
     let match = text.match(/^(Good|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);

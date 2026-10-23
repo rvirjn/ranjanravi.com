@@ -3069,21 +3069,58 @@ function appendSourceBookTitle(title, source, index) {
   if (book) bits.push(`${book}.`);
   const chapter = String(source.chapter || "").trim();
   const page = String(source.page || "").trim();
+  const shloka = String(source.verse || "").trim();
   if (chapter) bits.push(`${chartText("Chapter")}. ${chapter}.`);
+  if (shloka) bits.push(`${chartText("Shloka")}. ${shloka}.`);
   if (page) bits.push(`${chartText("Page")}. ${page}.`);
-  if (bits.length) title.appendChild(document.createTextNode(bits.join(" ")));
+  if (!bits.length) return;
+  const value = document.createElement("span");
+  value.className = "house-planets-sheet__source-book-value";
+  value.textContent = bits.join(" ");
+  title.appendChild(value);
 }
 
 function sourceBookDetails(source) {
   const bits = [];
+  const citation = String(source.citation || "").trim();
+  const version = String(source.version || "").trim();
+  if (version && (!citation || !citation.toLowerCase().includes(version.toLowerCase()))) {
+    bits.push(version);
+  }
+  if (citation) bits.push(citation.endsWith(".") ? citation : `${citation}.`);
   const paragraphNo = String(source.paragraph_number || "").trim();
   if (paragraphNo) bits.push(`${chartText("Paragraph")}. ${paragraphNo}.`);
-  const citation = String(source.citation || "").trim();
-  let details = bits.join(" ");
-  if (citation) details = details ? `${details} ${citation}` : citation;
-  const verse = String(source.verse || "").trim();
-  if (verse) details = details ? `${details} · ${chartText("verse")} ${verse}` : `${chartText("verse")} ${verse}`;
-  return details;
+  return bits.join(" ");
+}
+
+function appendBookDetails(title, details) {
+  const full = String(details || "").trim();
+  if (!full) return;
+  const words = full.split(/\s+/).filter(Boolean);
+  title.appendChild(document.createTextNode(" "));
+  if (words.length <= 2) {
+    const value = document.createElement("span");
+    value.className = "house-planets-sheet__source-details";
+    value.textContent = full;
+    title.appendChild(value);
+    return;
+  }
+  const short = `${words[0]} ${words[1]}....`;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "house-planets-sheet__source-details";
+  btn.setAttribute("aria-expanded", "false");
+  const paint = (open) => {
+    btn.textContent = open ? full : short;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  paint(false);
+  btn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    paint(btn.getAttribute("aria-expanded") !== "true");
+  });
+  title.appendChild(btn);
 }
 
 function sourceNote(label, text) {
@@ -3098,7 +3135,7 @@ function sourceNote(label, text) {
   return line;
 }
 
-/** Book, author, edition, page, paragraph, the line, and the full paragraph. */
+/** Book, version, author and publisher, page, paragraph, the line, and the full paragraph. */
 function appendProsConsSources(li, item) {
   const sources = item && typeof item === "object" && !Array.isArray(item) ? item.sources : null;
   if (!Array.isArray(sources) || !sources.length) return;
@@ -3118,20 +3155,14 @@ function appendProsConsSources(li, item) {
     const title = document.createElement("div");
     title.className = "house-planets-sheet__source-title";
     appendSourceBookTitle(title, source, index);
+    appendBookDetails(title, sourceBookDetails(source));
     block.appendChild(title);
-    const details = sourceBookDetails(source);
-    if (details) {
-      const meta = document.createElement("div");
-      meta.className = "house-planets-sheet__source-meta";
-      meta.textContent = details;
-      block.appendChild(meta);
-    }
     const line = String(source.line || "").trim();
     const paragraph = String(source.paragraph || "").trim();
     const same = line && paragraph && line.replace(/\s+/g, " ") === paragraph.replace(/\s+/g, " ");
-    if (paragraph) block.appendChild(sourceNote("Paragraph from book", ` ${paragraph}`));
-    if (line && !same) block.appendChild(sourceNote("Summary of Paragraph", ` ${line}`));
-    else if (line && !paragraph) block.appendChild(sourceNote("Summary of Paragraph", ` ${line}`));
+    if (paragraph) block.appendChild(sourceNote("Paragraph from book:", ` ${paragraph}`));
+    if (line && !same) block.appendChild(sourceNote("Summary of Paragraph:", ` ${line}`));
+    else if (line && !paragraph) block.appendChild(sourceNote("Summary of Paragraph:", ` ${line}`));
     const original = String(source.original || "").trim();
     if (original && original !== paragraph) {
       const language = String(source.original_language || "").trim();
@@ -3144,7 +3175,7 @@ function appendProsConsSources(li, item) {
       printed.append(name, document.createTextNode(` ${original}`));
       block.appendChild(printed);
     }
-    const condition = sourceNote("Condition", ` ${String(source.conditions || "").trim()}`);
+    const condition = sourceNote("Condition:", ` ${String(source.conditions || "").trim()}`);
     if (condition) block.appendChild(condition);
     const derivation = sourceNote("Derived from", ` ${String(source.derivation || "").trim()}`);
     if (derivation) block.appendChild(derivation);
