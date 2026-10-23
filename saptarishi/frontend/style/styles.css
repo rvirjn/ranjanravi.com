@@ -7645,14 +7645,14 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
   position: relative;
   container-type: inline-size;
   background-color: #f4e6c6;
-  background-image: url("../images/kundali_content_bg.png?v=377");
+  background-image: url("../images/kundali_content_bg.png?v=435");
   background-repeat: no-repeat;
   background-position: top center;
   background-size: 100% auto;
   border: 0;
   box-shadow: none;
   padding-top: 2.15rem;
-  padding-bottom: calc(176 / 916 * 100cqw);
+  padding-bottom: calc(75 / 916 * 100cqw);
   padding-left: 0;
   padding-right: 0;
   background-origin: content-box;
@@ -7669,31 +7669,33 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
   right: 0;
   top: 2.15rem;
   margin-top: calc(1700 / 916 * 100%);
-  bottom: calc(152 / 916 * 100cqw);
+  /* End on top of the bottom strip (24 margin + 35 strip, 1 overlap). */
+  bottom: calc(58 / 916 * 100cqw);
   background-image:
     url("../images/kundali_border_left.png?v=378"),
     url("../images/kundali_border_right.png?v=378");
   background-repeat: repeat-y, repeat-y;
   background-position: left top, right top;
-  background-size: calc(176 / 916 * 100%) auto, calc(176 / 916 * 100%) auto;
+  /* Side column is 40% of the old 176px floral width. */
+  background-size: calc(70 / 916 * 100%) auto, calc(70 / 916 * 100%) auto;
 }
 
-/* Close the frame with the same floral border turned along the bottom. */
+/* Close the frame with the same floral border turned along the bottom,
+   as thick as the side pillars and spanning their outer edges
+   (flowers at x=25..893 of the 916 sheet). */
 body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
   content: "";
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(60 / 916 * 100%);
-  right: calc(57 / 916 * 100%);
-  bottom: 0;
-  height: calc(176 / 916 * 100cqw);
-  background-image:
-    url("../images/kundali_border_bottom.png?v=387"),
-    url("../images/kundali_border_bottom.png?v=387");
-  background-repeat: repeat-x, no-repeat;
-  background-position: left bottom, right bottom;
-  background-size: auto 100%, auto 100%;
+  left: calc(25 / 916 * 100%);
+  right: calc(23 / 916 * 100%);
+  bottom: calc(24 / 916 * 100cqw);
+  height: calc(35 / 916 * 100cqw);
+  background-image: url("../images/kundali_border_bottom_fit.png?v=437");
+  background-repeat: round no-repeat;
+  background-position: left center;
+  background-size: auto 100%;
 }
 
 /* The shell is only padding tall while the chart loads, so this strip
@@ -7711,10 +7713,10 @@ body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
 }
 
 body.kundali-page:has(#birth-form[hidden]) #results {
-  /* 759 = dropdown top (751) plus the cream gap under the Ganesha pillars (8). */
-  margin-top: calc(759 / 916 * 100cqw + 1.75rem);
-  margin-left: calc(177 / 916 * 100cqw);
-  margin-right: calc(177 / 916 * 100cqw);
+  /* 1002 = dropdown top (994) plus the cream gap under the chart (8). */
+  margin-top: calc(1002 / 916 * 100cqw + 1.75rem);
+  margin-left: calc(71 / 916 * 100cqw);
+  margin-right: calc(71 / 916 * 100cqw);
 }
 
 body.kundali-page:has(#birth-form[hidden]) .summary-chart-row {
@@ -7726,10 +7728,10 @@ body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
   position: absolute;
   z-index: 2;
   top: 2.15rem;
-  margin-top: calc(499 / 916 * 100cqw);
-  left: calc(208 / 916 * 100cqw);
-  width: calc(500 / 916 * 100cqw);
-  height: calc(220 / 916 * 100cqw);
+  margin-top: calc(653.2 / 916 * 100cqw);
+  left: calc(120 / 916 * 100cqw);
+  width: calc(676.1 / 916 * 100cqw);
+  height: calc(297.5 / 916 * 100cqw);
   aspect-ratio: auto;
   margin-bottom: 0;
   margin-left: 0;
@@ -7842,7 +7844,7 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
    Screen only — print keeps the full A4 letterhead. */
 @media screen and (max-width: 720px), screen and (max-device-width: 720px) {
   body.kundali-page:has(#birth-form[hidden]) {
-    --floral-side: 11.5%;
+    --floral-side: 4.6%;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -7850,11 +7852,11 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
     /* Room above the letterhead for "change birth" and the loading spinner. */
     padding-top: 3.35rem !important;
-    padding-bottom: calc(176 / 800 * 100cqw) !important;
+    padding-bottom: calc(51 / 800 * 100cqw) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     background-color: #f4e6c6 !important;
-    background-image: url("../images/kundali_content_bg_phone.png?v=429") !important;
+    background-image: url("../images/kundali_content_bg_phone.png?v=435") !important;
     background-repeat: no-repeat !important;
     background-position: top center !important;
     background-size: 100% auto !important;
@@ -7865,9 +7867,8 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
     top: 3.35rem;
     /* Overlap the letterhead by a few pixels so the join does not gap. */
     margin-top: calc((1700 - 8) / 800 * 100cqw);
-    /* Reach the footer's floral (it starts 32px into the 176px tile)
-       so the sides meet the strip instead of stopping short. */
-    bottom: calc((176 - 32) / 800 * 100cqw);
+    /* End on top of the 35px bottom strip, 1px overlap. */
+    bottom: calc(34 / 800 * 100cqw);
     background-image:
       url("../images/kundali_border_left_fit.png?v=429"),
       url("../images/kundali_border_right_fit.png?v=429");
@@ -7877,11 +7878,11 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
-    /* Side florals now meet the screen, and the footer tile is floral
-       to its own left and right edges, so the strip spans the screen. */
+    /* Side florals meet the screen, so the strip spans it too. */
     left: 0;
     right: 0;
-    height: calc(176 / 800 * 100cqw);
+    bottom: 0;
+    height: calc(35 / 800 * 100cqw);
   }
 
   body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
@@ -7898,10 +7899,10 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 
   body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
     top: 3.35rem !important;
-    margin-top: calc(499 / 800 * 100cqw) !important;
-    left: calc((208 - 60) / 800 * 100cqw) !important;
-    width: calc(500 / 800 * 100cqw) !important;
-    height: calc(220 / 800 * 100cqw) !important;
+    margin-top: calc(610.9 / 800 * 100cqw) !important;
+    left: calc(84 / 800 * 100cqw) !important;
+    width: calc(632 / 800 * 100cqw) !important;
+    height: calc(278.1 / 800 * 100cqw) !important;
   }
 
   body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
@@ -7919,7 +7920,7 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   }
 
   body.kundali-page:has(#birth-form[hidden]) #results {
-    margin-top: calc(759 / 800 * 100cqw + 1.75rem) !important;
+    margin-top: calc(937.4 / 800 * 100cqw + 1.75rem) !important;
     margin-left: var(--floral-side) !important;
     margin-right: var(--floral-side) !important;
   }
@@ -8035,7 +8036,7 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
     padding-right: 0 !important;
     background-color: #fce8bb !important;
     background-image:
-      url("../images/kundali_content_bg.png?v=377"),
+      url("../images/kundali_content_bg.png?v=435"),
       url("../images/kundali_border_left.png?v=378"),
       url("../images/kundali_border_right.png?v=378") !important;
     background-repeat: no-repeat, repeat-y, repeat-y !important;
@@ -8045,8 +8046,8 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
       right calc(1700 / 916 * 100cqw) !important;
     background-size:
       100% auto,
-      calc(176 / 916 * 100cqw) auto,
-      calc(176 / 916 * 100cqw) auto !important;
+      calc(70 / 916 * 100cqw) auto,
+      calc(70 / 916 * 100cqw) auto !important;
     background-origin: content-box !important;
     background-clip: content-box !important;
   }
@@ -8093,16 +8094,12 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
 
   body.kundali-page .kundali-print-closer {
     display: block !important;
-    height: calc(92 / 916 * 100cqw);
-    margin: 0.15rem calc(57 / 916 * 100cqw) 0 calc(60 / 916 * 100cqw);
-    background-image:
-      url("../images/kundali_border_bottom.png?v=387"),
-      url("../images/kundali_border_bottom.png?v=387");
-    background-repeat: repeat-x, no-repeat;
-    background-position:
-      left calc(-24 / 916 * 100cqw),
-      right calc(-24 / 916 * 100cqw);
-    background-size: auto calc(176 / 916 * 100cqw), auto calc(176 / 916 * 100cqw);
+    height: calc(35 / 916 * 100cqw);
+    margin: 0.15rem calc(23 / 916 * 100cqw) 0 calc(25 / 916 * 100cqw);
+    background-image: url("../images/kundali_border_bottom_fit.png?v=437");
+    background-repeat: round no-repeat;
+    background-position: left center;
+    background-size: auto 100%;
     overflow: hidden;
     break-before: avoid;
     break-inside: avoid;
@@ -8230,8 +8227,8 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   box-shadow: none;
   border-radius: 0;
   /* Same clearance as the kundali letterhead: change-birth, then the flower band. */
-  padding-top: calc(2.15rem + (89 / 916 * 100cqw) + 0.35rem);
-  padding-bottom: calc(176 / 916 * 100cqw);
+  padding-top: calc(2.15rem + (35 / 916 * 100cqw) + 0.35rem);
+  padding-bottom: calc(75 / 916 * 100cqw);
   padding-left: 0;
   padding-right: 0;
 }
@@ -8243,14 +8240,15 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   pointer-events: none;
   left: 0;
   right: 0;
-  top: calc(2.15rem + ((89 - 36) / 916 * 100cqw));
-  bottom: calc((176 - 32) / 916 * 100cqw);
+  top: calc(2.15rem + (34 / 916 * 100cqw));
+  bottom: calc(58 / 916 * 100cqw);
   background-image:
     url("../images/kundali_border_left.png?v=378"),
     url("../images/kundali_border_right.png?v=378");
   background-repeat: repeat-y, repeat-y;
   background-position: left top, right top;
-  background-size: calc(176 / 916 * 100%) auto, calc(176 / 916 * 100%) auto;
+  /* Side column is 40% of the old 176px floral width. */
+  background-size: calc(70 / 916 * 100%) auto, calc(70 / 916 * 100%) auto;
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
@@ -8259,15 +8257,13 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(60 / 916 * 100%);
-  right: calc(57 / 916 * 100%);
-  height: calc(176 / 916 * 100cqw);
-  background-image:
-    url("../images/kundali_border_bottom.png?v=387"),
-    url("../images/kundali_border_bottom.png?v=387");
-  background-repeat: repeat-x, no-repeat;
-  background-position: left bottom, right bottom;
-  background-size: auto 100%, auto 100%;
+  left: calc(25 / 916 * 100%);
+  right: calc(23 / 916 * 100%);
+  height: calc(35 / 916 * 100cqw);
+  background-image: url("../images/kundali_border_bottom_fit.png?v=437");
+  background-repeat: round no-repeat;
+  background-position: left center;
+  background-size: auto 100%;
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-floral-top {
@@ -8276,20 +8272,20 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-f
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(60 / 916 * 100%);
-  right: calc(57 / 916 * 100%);
+  left: calc(25 / 916 * 100%);
+  right: calc(23 / 916 * 100%);
   top: 2.15rem;
-  height: calc(89 / 916 * 100cqw);
+  height: calc(35 / 916 * 100cqw);
   overflow: hidden;
   transform: none;
-  background-image: url("../images/kundali_border_bottom.png?v=387");
-  background-repeat: repeat-x;
-  background-size: auto calc(176 / 916 * 100cqw);
-  background-position: left calc(-25 / 916 * 100cqw);
+  background-image: url("../images/kundali_border_bottom_fit.png?v=437");
+  background-repeat: round no-repeat;
+  background-size: auto 100%;
+  background-position: left center;
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
-  bottom: 0;
+  bottom: calc(24 / 916 * 100cqw);
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
@@ -8305,8 +8301,8 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results 
   z-index: 2;
   margin-top: 0;
   margin-bottom: 0.35rem;
-  margin-left: calc(177 / 916 * 100cqw);
-  margin-right: calc(177 / 916 * 100cqw);
+  margin-left: calc(71 / 916 * 100cqw);
+  margin-right: calc(71 / 916 * 100cqw);
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results > section + section {
@@ -8323,22 +8319,22 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
 
 @media screen and (max-width: 720px), screen and (max-device-width: 720px) {
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) {
-    --floral-side: 11.5%;
+    --floral-side: 4.6%;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell {
-    padding-top: calc(3.35rem + (89 / 800 * 100cqw) + 0.35rem) !important;
-    padding-bottom: calc(176 / 800 * 100cqw) !important;
+    padding-top: calc(3.35rem + (35 / 800 * 100cqw) + 0.35rem) !important;
+    padding-bottom: calc(51 / 800 * 100cqw) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     background-color: #f4e6c6 !important;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::before {
-    top: calc(3.35rem + ((89 - 36) / 800 * 100cqw));
-    bottom: calc((176 - 32) / 800 * 100cqw);
+    top: calc(3.35rem + (34 / 800 * 100cqw));
+    bottom: calc(34 / 800 * 100cqw);
     background-image:
       url("../images/kundali_border_left_fit.png?v=429"),
       url("../images/kundali_border_right_fit.png?v=429");
@@ -8350,16 +8346,15 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
     left: 0;
     right: 0;
-    height: calc(176 / 800 * 100cqw);
+    bottom: 0;
+    height: calc(35 / 800 * 100cqw);
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-floral-top {
     left: 0;
     right: 0;
     top: 3.35rem;
-    height: calc(89 / 800 * 100cqw);
-    background-size: auto calc(176 / 800 * 100cqw);
-    background-position: left calc(-25 / 800 * 100cqw);
+    height: calc(35 / 800 * 100cqw);
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
