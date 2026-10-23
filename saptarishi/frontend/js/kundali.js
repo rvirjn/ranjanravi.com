@@ -3131,7 +3131,10 @@ function sourceNote(label, text) {
   const name = document.createElement("span");
   name.className = "house-planets-sheet__source-kicker";
   name.textContent = chartText(label);
-  line.append(name, document.createTextNode(note));
+  const body = document.createElement("span");
+  body.className = "house-planets-sheet__source-body";
+  body.textContent = note;
+  line.append(name, body);
   return line;
 }
 
@@ -3172,7 +3175,10 @@ function appendProsConsSources(li, item) {
       const name = document.createElement("span");
       name.className = "house-planets-sheet__source-kicker";
       name.textContent = label;
-      printed.append(name, document.createTextNode(` ${original}`));
+      const body = document.createElement("span");
+      body.className = "house-planets-sheet__source-body";
+      body.textContent = original;
+      printed.append(name, body);
       block.appendChild(printed);
     }
     const condition = sourceNote("Condition:", ` ${String(source.conditions || "").trim()}`);
