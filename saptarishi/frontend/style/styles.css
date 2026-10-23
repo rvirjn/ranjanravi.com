@@ -4,6 +4,8 @@
  * Edit variables here to change look across all pages.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap");
+
 :root {
   /* Page background — light yellow */
   --color-bg-top: #fffef5;
@@ -63,6 +65,7 @@
 
   --font-ui: "Segoe UI", "Nirmala UI", "Mangal", system-ui, -apple-system, sans-serif;
   --font-display: Georgia, "Times New Roman", serif;
+  --font-menu: "Poppins", var(--font-ui);
 }
 
 /* One step above the 16px browser default. rem text on every page follows this.
@@ -4202,6 +4205,7 @@ tbody tr:last-child td {
   border-radius: var(--radius-sm);
   color: var(--color-primary);
   text-decoration: none;
+  font-family: var(--font-menu);
   font-weight: 600;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -4417,8 +4421,9 @@ body.site-drawer-open {
   background: transparent;
   color: #3d2a14;
   font: inherit;
+  font-family: var(--font-menu);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
