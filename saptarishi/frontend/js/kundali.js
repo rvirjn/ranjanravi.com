@@ -3064,12 +3064,13 @@ function appendSourceBookTitle(title, source, index) {
   label.className = "house-planets-sheet__source-book-no";
   label.textContent = `${chartText("Book")} ${index + 1}: `;
   title.appendChild(label);
-  const book = String(source.book || "").trim();
+  const hi = summaryLangHi();
+  const book = String((hi && source.book_hi) || source.book || "").trim();
   const bits = [];
   if (book) bits.push(`${book}.`);
-  const chapter = String(source.chapter || "").trim();
-  const page = String(source.page || "").trim();
-  const shloka = String(source.verse || "").trim();
+  const chapter = sourceLocatorText(source.chapter);
+  const page = sourceLocatorText(source.page);
+  const shloka = sourceLocatorText(source.verse);
   if (chapter) bits.push(`${chartText("Chapter")}. ${chapter}.`);
   if (shloka) bits.push(`${chartText("Shloka")}. ${shloka}.`);
   if (page) bits.push(`${chartText("Page")}. ${page}.`);
@@ -3080,8 +3081,23 @@ function appendSourceBookTitle(title, source, index) {
   title.appendChild(value);
 }
 
+/** Hindi hides worded locators ("part ii ch vi …"); numbers and PDF pages stay. */
+function sourceLocatorText(value) {
+  const text = String(value || "").trim();
+  if (!text || !summaryLangHi()) return text;
+  const pdf = text.match(/^pdf\s*(\d+)$/i);
+  if (pdf) return `${pdf[1]} (पीडीएफ)`;
+  return /[A-Za-z]/.test(text) ? "" : text;
+}
+
 function sourceBookDetails(source) {
   const bits = [];
+  if (summaryLangHi() && source.citation_hi) {
+    bits.push(`${String(source.citation_hi).trim()}।`);
+    const paragraphNo = sourceLocatorText(source.paragraph_number);
+    if (paragraphNo) bits.push(`${chartText("Paragraph")}. ${paragraphNo}.`);
+    return bits.join(" ");
+  }
   const citation = String(source.citation || "").trim();
   const version = String(source.version || "").trim();
   if (version && (!citation || !citation.toLowerCase().includes(version.toLowerCase()))) {
@@ -3160,13 +3176,34 @@ function appendProsConsSources(li, item) {
     appendSourceBookTitle(title, source, index);
     appendBookDetails(title, sourceBookDetails(source));
     block.appendChild(title);
-    const line = String(source.line || "").trim();
-    const paragraph = String(source.paragraph || "").trim();
+    const hi = summaryLangHi();
+    const original = String(source.original || "").trim();
+    const printedOnly = hi && original && original !== String(source.paragraph || "").trim();
+    // Hindi mode: the _hi text when the backend has it; printed-text sources never fall back to English.
+    const pick = (key) => {
+      const hindi = hi ? String(source[`${key}_hi`] || "").trim() : "";
+      return hindi || (printedOnly ? "" : String(source[key] || "").trim());
+    };
+    const appendNotes = () => {
+      [["conditions", "Condition:"], ["derivation", "Derived from"], ["limitation", "Limitation"]].forEach(
+        ([key, label]) => {
+          const note = sourceNote(label, ` ${pick(key)}`);
+          if (note) block.appendChild(note);
+        }
+      );
+    };
+    if (printedOnly) {
+      block.appendChild(sourceNote("Paragraph from book:", ` ${original}`));
+      appendNotes();
+      wrap.appendChild(block);
+      return;
+    }
+    const line = pick("line");
+    const paragraph = pick("paragraph");
     const same = line && paragraph && line.replace(/\s+/g, " ") === paragraph.replace(/\s+/g, " ");
     if (paragraph) block.appendChild(sourceNote("Paragraph from book:", ` ${paragraph}`));
     if (line && !same) block.appendChild(sourceNote("Summary of Paragraph:", ` ${line}`));
     else if (line && !paragraph) block.appendChild(sourceNote("Summary of Paragraph:", ` ${line}`));
-    const original = String(source.original || "").trim();
     if (original && original !== paragraph) {
       const language = String(source.original_language || "").trim();
       const label = language ? `${chartText("Printed text")} (${language})` : chartText("Printed text");
@@ -3181,12 +3218,7 @@ function appendProsConsSources(li, item) {
       printed.append(name, body);
       block.appendChild(printed);
     }
-    const condition = sourceNote("Condition:", ` ${String(source.conditions || "").trim()}`);
-    if (condition) block.appendChild(condition);
-    const derivation = sourceNote("Derived from", ` ${String(source.derivation || "").trim()}`);
-    if (derivation) block.appendChild(derivation);
-    const limitation = sourceNote("Limitation", ` ${String(source.limitation || "").trim()}`);
-    if (limitation) block.appendChild(limitation);
+    appendNotes();
     wrap.appendChild(block);
   });
   if (wrap.children.length > 1) li.appendChild(wrap);
@@ -3198,12 +3230,13 @@ function appendProsConsImpact(li, item) {
     ? String(item.impact || "").trim()
     : "";
   if (!impact) return;
+  const impactHi = summaryLangHi() ? String(item.impact_hi || "").trim() : "";
   const line = document.createElement("div");
   line.className = "house-planets-sheet__pc-impact";
   const label = document.createElement("span");
   label.className = "house-planets-sheet__pc-impact-label";
   label.textContent = chartText("Impact:");
-  line.append(label, document.createTextNode(` ${chartText(impact)}`));
+  line.append(label, document.createTextNode(` ${impactHi || chartText(impact)}`));
   li.appendChild(line);
 }
 

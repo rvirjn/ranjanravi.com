@@ -422,6 +422,12 @@
     "malefic house": "पाप भाव",
     "good house": "शुभ भाव",
     combust: "अस्त",
+    combustion: "अस्त",
+    "precious nakshatra": "उत्तम नक्षत्र",
+    "baladi avastha": "बालादि अवस्था",
+    "good karakwaqt": "शुभ कारक वक़्त",
+    "bad karakwaqt": "अशुभ कारक वक़्त",
+    mangaldosh: "मंगल दोष",
     "own rashi": "स्वराशि",
     "friendly rashi": "मित्र राशि",
     "enemy rashi": "शत्रु राशि",
@@ -959,10 +965,16 @@
     if (text === "Condition:") return "शर्त:";
     if (text === "Derived from") return "निष्कर्ष";
     if (text === "Limitation") return "सीमा";
-    let match = text.match(/^(Good|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);
+    let match = text.match(/^(Strong|Good|Average|Weak|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);
     if (match) {
-      const kind = match[1].toLowerCase();
-      const word = kind === "good" ? "शुभ" : kind === "bad" ? "अशुभ" : "सम";
+      const word = {
+        strong: "प्रबल",
+        good: "शुभ",
+        average: "मध्यम",
+        weak: "दुर्बल",
+        bad: "अशुभ",
+        neutral: "सम"
+      }[match[1].toLowerCase()];
       return `${word}(${match[2]}) (${replacePhrases(match[3].trim())})`;
     }
     match = text.match(/^Running from the past (.+?) till (.+?)\.?$/i);
@@ -1180,6 +1192,11 @@
     }
     match = text.match(/^(.+?) is in its own (.+?) nakshatra(\s*\([+-]?\d+\))?\.?$/i);
     if (match) return `${yourPlanetHi(match[1])} अपने ${replacePhrases(match[2].trim())} नक्षत्र में है${match[3] || ""}।`;
+    match = text.match(/^(.+?) is in ([A-Za-z ]+?) nakshatra(?:, ruled by (.+?))?(\s*\([+-]?\d+\))?\.?$/i);
+    if (match) {
+      const lord = match[3] ? `, स्वामी ${replacePhrases(match[3].trim())}` : "";
+      return `${yourPlanetHi(match[1])} ${replacePhrases(match[2].trim())} नक्षत्र में है${lord}${match[4] || ""}।`;
+    }
     match = text.match(/^(.+?) is retrograde \(moving at double speed\)(\s*\([+-]?\d+\))?\.?$/i);
     if (match) return `${yourPlanetHi(match[1])} वक्री है (दोगुनी गति)${match[2] || ""}।`;
     match = text.match(/^(.+?) is vargottama \(same sign in D1 and D9\)(\s*\([+-]?\d+\))?\.?$/i);
