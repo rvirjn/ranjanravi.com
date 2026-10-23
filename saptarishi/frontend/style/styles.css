@@ -5005,7 +5005,8 @@ body.user-notes-open {
 
 .site-footer__copy {
   margin: 0 0 0.35rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 500;
   color: var(--color-heading);
 }
 
@@ -7651,8 +7652,10 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell {
   background-size: 100% auto;
   border: 0;
   box-shadow: none;
-  padding-top: 2.15rem;
-  padding-bottom: calc(75 / 916 * 100cqw);
+  /* No band above the letterhead: "change birth" sits on its blank
+     top-left corner, beside the Om. */
+  padding-top: 0;
+  padding-bottom: calc(51 / 916 * 100cqw);
   padding-left: 0;
   padding-right: 0;
   background-origin: content-box;
@@ -7667,10 +7670,10 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
   pointer-events: none;
   left: 0;
   right: 0;
-  top: 2.15rem;
+  top: 0;
   margin-top: calc(1700 / 916 * 100%);
-  /* End on top of the bottom strip (24 margin + 35 strip, 1 overlap). */
-  bottom: calc(58 / 916 * 100cqw);
+  /* End on top of the 35px bottom strip, 1px overlap. */
+  bottom: calc(34 / 916 * 100cqw);
   background-image:
     url("../images/kundali_border_left.png?v=378"),
     url("../images/kundali_border_right.png?v=378");
@@ -7682,22 +7685,21 @@ body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::before {
 
 /* Close the frame with the same floral border turned along the bottom,
    as thick as the side pillars and spanning their outer edges
-   (flowers at x=25..893 of the 916 sheet). */
+   (flowers at x=24..892 of the 916 sheet). */
 body.kundali-page:has(#birth-form[hidden]) #saptarishi.main-shell::after {
   content: "";
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(25 / 916 * 100%);
-  right: calc(23 / 916 * 100%);
-  bottom: calc(24 / 916 * 100cqw);
+  left: calc(24 / 916 * 100%);
+  right: calc(24 / 916 * 100%);
+  bottom: 0;
   height: calc(35 / 916 * 100cqw);
   background-image: url("../images/kundali_border_bottom_fit.png?v=437");
   background-repeat: round no-repeat;
   background-position: left center;
   background-size: auto 100%;
 }
-
 /* The shell is only padding tall while the chart loads, so this strip
    would sit under the spinner. Keep it off until the reading is in. */
 body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell::after {
@@ -7710,6 +7712,12 @@ body.kundali-page:has(#birth-form[hidden]) .birth-change-nav {
   left: 0.85rem;
   z-index: 3;
   margin: 0;
+}
+
+@media screen and (min-width: 721px) {
+  body.kundali-page:has(#birth-form[hidden]) #status {
+    margin-top: 2.15rem;
+  }
 }
 
 body.kundali-page:has(#birth-form[hidden]) #results {
@@ -7727,7 +7735,7 @@ body.kundali-page:has(#birth-form[hidden]) .summary-chart-row {
 body.kundali-page:has(#birth-form[hidden]) .summary-chart-row__chart {
   position: absolute;
   z-index: 2;
-  top: 2.15rem;
+  top: 0;
   margin-top: calc(653.2 / 916 * 100cqw);
   left: calc(120 / 916 * 100cqw);
   width: calc(676.1 / 916 * 100cqw);
@@ -7884,7 +7892,6 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
     bottom: 0;
     height: calc(35 / 800 * 100cqw);
   }
-
   body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
   html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell,
   html.saptarishi-native-app body.kundali-page:has(#birth-form[hidden]):has(#status.status--loading) #saptarishi.main-shell--with-chrome {
@@ -8095,7 +8102,7 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
   body.kundali-page .kundali-print-closer {
     display: block !important;
     height: calc(35 / 916 * 100cqw);
-    margin: 0.15rem calc(23 / 916 * 100cqw) 0 calc(25 / 916 * 100cqw);
+    margin: 0.15rem calc(24 / 916 * 100cqw) 0 calc(24 / 916 * 100cqw);
     background-image: url("../images/kundali_border_bottom_fit.png?v=437");
     background-repeat: round no-repeat;
     background-position: left center;
@@ -8226,9 +8233,10 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   border: 0;
   box-shadow: none;
   border-radius: 0;
-  /* Same clearance as the kundali letterhead: change-birth, then the flower band. */
-  padding-top: calc(2.15rem + (35 / 916 * 100cqw) + 0.35rem);
-  padding-bottom: calc(75 / 916 * 100cqw);
+  /* The flower band sits right under the menu; change-birth is the
+     first line inside the frame. */
+  padding-top: calc((35 / 916 * 100cqw) + 2.15rem);
+  padding-bottom: calc(51 / 916 * 100cqw);
   padding-left: 0;
   padding-right: 0;
 }
@@ -8240,8 +8248,8 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   pointer-events: none;
   left: 0;
   right: 0;
-  top: calc(2.15rem + (34 / 916 * 100cqw));
-  bottom: calc(58 / 916 * 100cqw);
+  top: calc(34 / 916 * 100cqw);
+  bottom: calc(34 / 916 * 100cqw);
   background-image:
     url("../images/kundali_border_left.png?v=378"),
     url("../images/kundali_border_right.png?v=378");
@@ -8257,8 +8265,8 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(25 / 916 * 100%);
-  right: calc(23 / 916 * 100%);
+  left: calc(24 / 916 * 100%);
+  right: calc(24 / 916 * 100%);
   height: calc(35 / 916 * 100cqw);
   background-image: url("../images/kundali_border_bottom_fit.png?v=437");
   background-repeat: round no-repeat;
@@ -8272,9 +8280,9 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-f
   position: absolute;
   z-index: 1;
   pointer-events: none;
-  left: calc(25 / 916 * 100%);
-  right: calc(23 / 916 * 100%);
-  top: 2.15rem;
+  left: calc(24 / 916 * 100%);
+  right: calc(24 / 916 * 100%);
+  top: 0;
   height: calc(35 / 916 * 100cqw);
   overflow: hidden;
   transform: none;
@@ -8285,13 +8293,13 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .remedy-f
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptarishi.main-shell::after {
-  bottom: calc(24 / 916 * 100cqw);
+  bottom: 0;
 }
 
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
   position: absolute;
-  top: 0.35rem;
-  left: 0.85rem;
+  top: calc((35 / 916 * 100cqw) + 0.5rem);
+  left: calc(71 / 916 * 100cqw);
   z-index: 3;
   margin: 0;
 }
