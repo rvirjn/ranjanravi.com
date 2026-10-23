@@ -8296,6 +8296,13 @@ body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #saptaris
   bottom: 0;
 }
 
+/* Menu bar and footer span the same x=24..892 of the 916 sheet as the
+   top and bottom flower strips. */
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .site-header,
+body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .site-footer {
+  width: min(calc(100% * 868 / 916), calc(var(--content-max-width) * 868 / 916));
+}
+
 body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
   position: absolute;
   top: calc((35 / 916 * 100cqw) + 0.5rem);
@@ -8368,6 +8375,11 @@ body.remedy-page:has(#remedy-form[hidden]) #results > section:first-child > .res
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .birth-change-nav {
     top: 0.8rem;
     left: 0.7rem;
+  }
+
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .site-header,
+  body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) .site-footer {
+    width: 100%;
   }
 
   body.remedy-page:has(#remedy-form[hidden]):has(#results:not([hidden])) #results {
