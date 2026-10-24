@@ -6169,7 +6169,7 @@ body.premium-modal-open {
   aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: 0.2rem;
   padding: 0.5rem;
@@ -6180,9 +6180,28 @@ body.premium-modal-open {
   font-size: 0.88rem;
   font-weight: 600;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.3;
+  overflow: hidden;
   overflow-wrap: anywhere;
   cursor: pointer;
+}
+
+.remedy-navatara-btn .kundali-yog-btn__name,
+.remedy-navatara-btn .kundali-yog-btn__name-row,
+.remedy-navatara-btn .remedy-navatara-btn__status,
+.remedy-navatara-btn .kundali-dasha-btn__level {
+  width: 100%;
+}
+
+.remedy-navatara-btn__status {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.25;
+  opacity: 0.92;
 }
 
 .remedy-navatara-btn:hover {
@@ -6238,18 +6257,11 @@ body.premium-modal-open {
   color: var(--color-heading, #1e3a5f);
 }
 
+#kundali-yog-list.remedy-navatara-buttons,
+#kundali-dosh-list.remedy-navatara-buttons,
 #kundali-dasha-list.remedy-navatara-buttons,
 #kundali-next-dasha-list.remedy-navatara-buttons {
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-}
-
-#kundali-yog-list.kundali-open-list,
-#kundali-dosh-list.kundali-open-list,
-#kundali-dasha-list.kundali-open-list,
-#kundali-next-dasha-list.kundali-open-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  display: grid;
 }
 
 #kundali-next-dasha-heading {
@@ -6331,9 +6343,9 @@ body.premium-modal-open {
 }
 
 .kundali-dasha-btn {
-  aspect-ratio: auto;
-  min-height: 8.75rem;
-  padding: 0.7rem 0.6rem;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  padding: 0.5rem;
 }
 
 .kundali-dasha-btn__name {
@@ -6385,8 +6397,15 @@ body.premium-modal-open {
 
 .remedy-navatara-panel {
   grid-column: 1 / -1;
-  margin: 0 0 var(--space-xs);
-  padding: var(--space-sm) 0 0;
+  margin: 0.2rem 0 0.45rem;
+  padding: 0.75rem 0.95rem 0.9rem;
+}
+
+.remedy-navatara-panel:not([hidden]) {
+  border: 1px solid var(--color-surface-border, rgba(30, 58, 95, 0.18));
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.08);
 }
 
 /* Birth Time Planets Status — planet block, then house block */
@@ -6433,12 +6452,13 @@ body.premium-modal-open {
 .house-planets-tile-btn {
   box-sizing: border-box;
   width: 100%;
-  height: 11.5rem;
-  min-height: 11.5rem;
-  max-height: 11.5rem;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: 0.28rem;
   padding: 0.7rem 0.55rem;
@@ -6461,6 +6481,12 @@ body.premium-modal-open {
 
 .house-planets-tile-btn--active {
   box-shadow: inset 0 0 0 2px rgba(46, 125, 50, 0.35);
+}
+
+.house-planets-tile-btn__num,
+.house-planets-tile-btn__for,
+.house-planets-tile-btn__pct {
+  width: 100%;
 }
 
 .house-planets-tile-btn__num {
@@ -6910,9 +6936,10 @@ body.kundali-page #results .house-planets-sheet__table.kundali-table td {
   }
 
   .house-planets-tile-btn {
-    height: 10.5rem;
-    min-height: 10.5rem;
-    max-height: 10.5rem;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 1 / 1;
   }
 
   .house-planets-sheet__list {
@@ -8175,18 +8202,49 @@ body.kundali-page:has(#birth-form[hidden]) #summary-table td {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Printed kundali keeps every reading, without the square tile buttons. */
+  body.kundali-page .house-planets-tiles,
+  body.kundali-page .remedy-navatara-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.55rem !important;
+  }
+
+  body.kundali-page .house-planets-tiles > .house-planets-tile-item > .house-planets-tile-btn,
+  body.kundali-page .remedy-navatara-item > .remedy-navatara-btn {
+    display: none !important;
+  }
+
+  body.kundali-page .house-planets-tile-panel,
+  body.kundali-page .remedy-navatara-panel,
+  body.remedy-page .remedy-navatara-panel {
+    display: block !important;
+    break-inside: avoid;
+  }
+
+  body.remedy-page .remedy-navatara-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.55rem !important;
+  }
+
+  body.remedy-page .remedy-navatara-item > .remedy-navatara-btn {
+    display: none !important;
+  }
 }
 
-/* Remedy results: every tile stays open, inside the same floral frame as kundali. */
+/* Remedy results: square tiles. The reading opens when a tile is clicked. */
 .remedy-floral-top {
   display: none;
 }
 
-body.remedy-page .remedy-navatara-buttons.kundali-open-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+body.remedy-page .remedy-navatara-buttons {
   margin-bottom: 1.15rem;
+}
+
+body.remedy-page .remedy-navatara-panel.kundali-open-card:not([hidden]) {
+  padding: 0;
 }
 
 body.remedy-page .kundali-open-card__name {
@@ -8202,6 +8260,7 @@ body.remedy-page .kundali-open-card > .kundali-open-card__body.remedy-navatara-p
   padding: 0;
 }
 
+body.remedy-page .remedy-navatara-panel .table-wrap,
 body.remedy-page .kundali-open-card__body .table-wrap {
   margin: 0;
   border: 0;

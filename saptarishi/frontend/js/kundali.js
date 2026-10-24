@@ -3374,11 +3374,35 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   return sheet;
 }
 
-/** Render every house open. The tile color sits on that house's table header. */
+/** Open one square tile's detail panel and close the others in the same grid. */
+function bindExclusiveTilePanels(container, options = {}) {
+  if (!container) return;
+  const buttonSelector = options.buttonSelector || "button";
+  const activeClass = options.activeClass || "";
+  const buttons = Array.from(container.querySelectorAll(buttonSelector));
+  buttons.forEach((btn) => {
+    const panel = btn.nextElementSibling;
+    if (!panel) return;
+    btn.addEventListener("click", () => {
+      const willOpen = panel.hidden;
+      buttons.forEach((other) => {
+        const otherPanel = other.nextElementSibling;
+        const on = Boolean(willOpen && other === btn);
+        if (activeClass) other.classList.toggle(activeClass, on);
+        other.setAttribute("aria-pressed", on ? "true" : "false");
+        other.setAttribute("aria-expanded", on ? "true" : "false");
+        if (otherPanel) otherPanel.hidden = !on;
+      });
+      if (willOpen) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  });
+}
+
+/** Square house tiles. The reading opens under the grid when a tile is clicked. */
 function renderHousePlanetsTiles(container, rows, options = {}) {
   if (!container) return;
   container.innerHTML = "";
-  container.classList.add("house-planets-tiles--open");
+  container.classList.remove("house-planets-tiles--open");
   const allRows = Array.isArray(rows) ? rows : [];
   if (!allRows.length) return;
 
@@ -3395,17 +3419,51 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     const sampleRow = houseRows[0];
     if (!sampleRow) continue;
 
-    const { number: num } = houseFromTableRow(sampleRow);
+    const { number: num, for: forRaw } = houseFromTableRow(sampleRow);
+    const forText = formatHouseForList(forRaw);
     const representativeRow = pickHouseTileRepresentativeRow(houseRows);
     const strengthText = formatHouseTileStrengthPercent(houseRows, allRows);
     const houseLabel = num != null && num !== "" ? String(num) : String(houseNum);
     const adverse = housePlanetsTileIsAdverse(houseRows, representativeRow, allRows);
 
+    const wrap = document.createElement("div");
+    wrap.className = "house-planets-tile-item";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "house-planets-tile-btn";
+    btn.dataset.house = String(houseNum);
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
+    btn.title = [chartText(`House ${houseLabel}`), forText, strengthText].filter(Boolean).join(" · ");
+    applyHousePlanetsTileStyle(btn, representativeRow, allRows);
+
+    const numEl = document.createElement("span");
+    numEl.className = "house-planets-tile-btn__num";
+    numEl.textContent = houseLabel;
+    btn.appendChild(numEl);
+
+    if (forText) {
+      const forEl = document.createElement("span");
+      forEl.className = "house-planets-tile-btn__for";
+      forEl.textContent = forText;
+      btn.appendChild(forEl);
+    }
+
+    if (strengthText && strengthText !== "—") {
+      const pctEl = document.createElement("span");
+      pctEl.className = "house-planets-tile-btn__pct";
+      pctEl.textContent = strengthText;
+      btn.appendChild(pctEl);
+    }
+
+    const panel = document.createElement("div");
+    panel.className = "house-planets-tile-panel";
+    panel.hidden = true;
     const sheet = createHousePlanetsSheetElement(houseLabel, strengthText, houseRows, descriptions, {
       allRows
     });
-    const head = sheet.querySelector(".house-planets-sheet__head");
-    applyHousePlanetsTileStyle(head, representativeRow, allRows);
+    panel.appendChild(sheet);
 
     if (adverse) {
       const lordRaw = houseLordNameFromRow(representativeRow);
@@ -3421,11 +3479,17 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
         house: houseNum,
         planet: hasLord ? normalizeText(lordRaw || lordName) : ""
       });
-      applyAdverseHouseTileContentLock(head, sheet);
+      applyAdverseHouseTileContentLock(btn, panel);
     }
 
-    container.appendChild(sheet);
+    wrap.append(btn, panel);
+    container.appendChild(wrap);
   }
+
+  bindExclusiveTilePanels(container, {
+    buttonSelector: ".house-planets-tile-btn",
+    activeClass: "house-planets-tile-btn--active"
+  });
 }
 
 /** Planets table: values and ``cell_styles`` come from API (kundali.py). */
@@ -7272,7 +7336,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     });
   }
   listEl.innerHTML = "";
-  listEl.classList.add("kundali-open-list");
+  listEl.classList.remove("kundali-open-list");
 
   if (!items.length) {
     section.hidden = true;
@@ -7307,16 +7371,21 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       typeof isBadItem === "function"
         ? Boolean(isBadItem(item))
         : Boolean(buttonClassName && /dosh/i.test(buttonClassName));
-    const wrap = document.createElement("article");
-    wrap.className = "kundali-open-card";
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-navatara-item";
 
-    const head = document.createElement("div");
-    head.className = "kundali-open-card__head";
-    if (itemIsBad) head.classList.add("kundali-open-card__head--bad");
-    head.dataset.matchKey = String(item.key || "");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "remedy-navatara-btn";
+    if (itemIsBad || (buttonClassName && /dosh/i.test(buttonClassName))) {
+      btn.classList.add("remedy-navatara-btn--dosh");
+    }
+    btn.dataset.matchKey = String(item.key || "");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
     const nameText = String(item.name || item.key || ariaItemKind || headingLabel);
     const nameEl = document.createElement("span");
-    nameEl.className = "kundali-yog-btn__name kundali-open-card__name";
+    nameEl.className = "kundali-yog-btn__name";
     const named = options.fullHindiPanel && window.SaptarishiI18n && window.SaptarishiI18n.doshName
       ? window.SaptarishiI18n.doshName(nameText)
       : nameText;
@@ -7324,8 +7393,6 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     const isTopList =
       itemsKey === "yogas" &&
       String(item.is_under_top_list || "").trim().toLowerCase() === "yes";
-    const title = document.createElement("div");
-    title.className = "kundali-open-card__title";
     if (isTopList) {
       const nameRow = document.createElement("span");
       nameRow.className = "kundali-yog-btn__name-row";
@@ -7335,25 +7402,26 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       starEl.textContent = "★";
       starEl.setAttribute("aria-hidden", "true");
       nameRow.appendChild(starEl);
-      title.appendChild(nameRow);
-      head.title = `${nameText} — top 15 yoga`;
+      btn.appendChild(nameRow);
+      btn.title = `${nameText} — top 15 yoga`;
     } else {
-      title.appendChild(nameEl);
+      btn.appendChild(nameEl);
+      btn.title = nameEl.textContent;
     }
-    head.appendChild(title);
     if (
       showYogaStrength &&
       typeof item.strength_percent === "number" &&
       Number.isFinite(item.strength_percent)
     ) {
       const pctEl = document.createElement("span");
-      pctEl.className = "kundali-yog-btn__pct kundali-open-card__pct";
+      pctEl.className = "kundali-yog-btn__pct";
       pctEl.textContent = `${item.strength_percent}%`;
-      head.appendChild(pctEl);
+      btn.appendChild(pctEl);
     }
 
     const panel = document.createElement("div");
-    panel.className = "remedy-navatara-panel kundali-yog-panel kundali-open-card__body";
+    panel.className = "remedy-navatara-panel kundali-yog-panel";
+    panel.hidden = true;
 
     const descParts = [];
     if (Array.isArray(item.desc_parts) && item.desc_parts.length) {
@@ -7419,7 +7487,7 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       panel.querySelectorAll("p").forEach((el) => blurLockedTextElement(el));
     }
     if (lockAdverse || (lockAllPanels && itemIsBad)) {
-      blurMatchTileButtonLabel(head);
+      blurMatchTileButtonLabel(btn);
     }
 
     if (showRemedyHint) {
@@ -7430,9 +7498,14 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       });
     }
 
-    wrap.append(head, panel);
+    wrap.append(btn, panel);
     listEl.appendChild(wrap);
   }
+
+  bindExclusiveTilePanels(listEl, {
+    buttonSelector: ".remedy-navatara-btn",
+    activeClass: "remedy-navatara-btn--active"
+  });
 }
 
 /** Render yoga tiles from ``kundali_yog``. */
@@ -7468,10 +7541,10 @@ function renderCurrentDashaTilesFromPayload(payload) {
   const tiles = (Array.isArray(payload?.current_dasha?.tiles) ? payload.current_dasha.tiles : [])
     .filter((item) => item && String(item.name || item.planet_key || "").trim());
   listEl.innerHTML = "";
-  listEl.classList.add("kundali-open-list");
+  listEl.classList.remove("kundali-open-list");
   if (nextListEl) {
     nextListEl.innerHTML = "";
-    nextListEl.classList.add("kundali-open-list");
+    nextListEl.classList.remove("kundali-open-list");
   }
 
   if (!tiles.length) {
@@ -7493,39 +7566,41 @@ function renderCurrentDashaTilesFromPayload(payload) {
 
   for (const item of tiles) {
     const tone = String(item.tone || "").trim().toLowerCase();
-    const wrap = document.createElement("article");
-    wrap.className = "kundali-open-card";
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-navatara-item";
 
-    const head = document.createElement("div");
-    head.className = "kundali-open-card__head";
-    if (tone === "bad") head.classList.add("kundali-open-card__head--bad");
-    else if (tone === "mixed") head.classList.add("kundali-open-card__head--mixed");
-    head.dataset.dashaKey = String(item.key || "");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "remedy-navatara-btn kundali-dasha-btn";
+    if (tone === "bad") btn.classList.add("remedy-navatara-btn--dosh");
+    else if (tone === "mixed") btn.classList.add("remedy-navatara-btn--mixed");
+    btn.dataset.dashaKey = String(item.key || "");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
 
-    const title = document.createElement("div");
-    title.className = "kundali-open-card__title";
     const nameEl = document.createElement("span");
-    nameEl.className = "kundali-yog-btn__name kundali-open-card__name";
+    nameEl.className = "kundali-yog-btn__name";
     nameEl.textContent = chartText(String(item.name || item.planet_key || "Dasha"));
-    title.appendChild(nameEl);
+    btn.appendChild(nameEl);
+    btn.title = nameEl.textContent;
     const levelText = String(item.level || "").trim();
     if (levelText) {
       const levelEl = document.createElement("span");
       levelEl.className = "kundali-dasha-btn__level";
       levelEl.textContent = dashaLevelText(levelText);
-      title.appendChild(levelEl);
+      btn.appendChild(levelEl);
     }
-    head.appendChild(title);
 
     if (typeof item.strength_percent === "number" && Number.isFinite(item.strength_percent)) {
       const pctEl = document.createElement("span");
-      pctEl.className = "kundali-yog-btn__pct kundali-open-card__pct";
+      pctEl.className = "kundali-yog-btn__pct";
       pctEl.textContent = `${item.strength_percent}%`;
-      head.appendChild(pctEl);
+      btn.appendChild(pctEl);
     }
 
     const panel = document.createElement("div");
-    panel.className = "remedy-navatara-panel kundali-yog-panel kundali-open-card__body";
+    panel.className = "remedy-navatara-panel kundali-yog-panel";
+    panel.hidden = true;
 
     const rangeText = String(item.range || "").trim();
     if (rangeText) {
@@ -7558,11 +7633,18 @@ function renderCurrentDashaTilesFromPayload(payload) {
       panel.appendChild(empty);
     }
 
-    wrap.append(head, panel);
+    wrap.append(btn, panel);
     const isNext = String(item.key || "").trim().toLowerCase() === "next";
     const host = isNext && nextListEl ? nextListEl : listEl;
     host.appendChild(wrap);
   }
+
+  const tileToggle = {
+    buttonSelector: ".remedy-navatara-btn",
+    activeClass: "remedy-navatara-btn--active"
+  };
+  bindExclusiveTilePanels(listEl, tileToggle);
+  if (nextListEl) bindExclusiveTilePanels(nextListEl, tileToggle);
 }
 
 /** Render dosha tiles from ``kundali_dosh`` (same design as yogas; names in red). */

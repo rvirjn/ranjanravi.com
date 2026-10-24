@@ -1363,11 +1363,8 @@ html.saptarishi-native-app body.app-page--remedy .result-heading {
   margin: 1.15rem 0 0.55rem;
 }
 
-html.saptarishi-native-app body.app-page--remedy .remedy-navatara-buttons.kundali-open-list {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  gap: 0.85rem;
+html.saptarishi-native-app body.app-page--remedy .remedy-navatara-buttons {
+  margin-bottom: 1rem;
 }
 
 html.saptarishi-native-app body.app-page--remedy .kundali-open-card .remedy-planet-detail-table,

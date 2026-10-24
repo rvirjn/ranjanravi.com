@@ -1082,8 +1082,8 @@
   }
 
   function createRemedyOpenCard(label, extra) {
-    const wrap = document.createElement("article");
-    wrap.className = "kundali-open-card";
+    const wrap = document.createElement("div");
+    wrap.className = "remedy-navatara-item";
     const marks = extra && extra.dataset ? extra.dataset : null;
     if (marks) {
       Object.keys(marks).forEach((name) => {
@@ -1091,40 +1091,58 @@
       });
     }
 
-    const head = document.createElement("div");
-    head.className = "kundali-open-card__head kundali-open-card__head--bad";
-    const title = document.createElement("div");
-    title.className = "kundali-open-card__title";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "remedy-navatara-btn";
+    if (!extra || extra.tone !== "good") btn.classList.add("remedy-navatara-btn--dosh");
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-expanded", "false");
+    btn.title = label;
+
     const nameEl = document.createElement("span");
-    nameEl.className = "kundali-open-card__name";
+    nameEl.className = "kundali-yog-btn__name";
     nameEl.textContent = label;
-    title.appendChild(nameEl);
-    head.appendChild(title);
+    btn.appendChild(nameEl);
 
     const statusText = extra && String(extra.statusText || "").trim();
     if (statusText) {
       const statusEl = document.createElement("span");
-      statusEl.className = "kundali-open-card__status";
+      statusEl.className = "remedy-navatara-btn__status";
       statusEl.textContent = statusText;
-      title.appendChild(statusEl);
+      btn.appendChild(statusEl);
     }
 
     const strength = extra && extra.strengthPercent;
     if (typeof strength === "number" && Number.isFinite(strength)) {
       const pctEl = document.createElement("span");
-      pctEl.className = "kundali-open-card__pct";
+      pctEl.className = "kundali-yog-btn__pct";
       pctEl.textContent = `${Math.round(strength)}%`;
-      head.appendChild(pctEl);
+      btn.appendChild(pctEl);
     }
 
     const panel = document.createElement("div");
-    panel.className = "remedy-navatara-panel kundali-open-card__body";
-    wrap.append(head, panel);
+    panel.className = "remedy-navatara-panel kundali-open-card";
+    panel.hidden = true;
+    wrap.append(btn, panel);
     return { wrap, panel };
+  }
+
+  function bindRemedyTileClicks(host) {
+    if (typeof bindExclusiveTilePanels === "function") {
+      bindExclusiveTilePanels(host, {
+        buttonSelector: ".remedy-navatara-btn",
+        activeClass: "remedy-navatara-btn--active"
+      });
+    }
   }
 
   function scrollRemedyCardIntoView(card) {
     if (!card) return;
+    const btn = card.querySelector(".remedy-navatara-btn");
+    if (btn && btn.getAttribute("aria-expanded") !== "true") {
+      btn.click();
+      return;
+    }
     card.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -1141,7 +1159,7 @@
     if (!buttonsHost) return;
 
     buttonsHost.innerHTML = "";
-    buttonsHost.classList.add("kundali-open-list");
+    buttonsHost.classList.remove("kundali-open-list");
 
     const entries = (Array.isArray(planetEntries) ? planetEntries : [])
       .map((entry) => {
@@ -1196,6 +1214,7 @@
       card.panel.appendChild(tableWrap);
       buttonsHost.appendChild(card.wrap);
     }
+    bindRemedyTileClicks(buttonsHost);
   }
 
   function renderPlanetRemedyTables(kundaliPayload) {
@@ -1317,7 +1336,7 @@
   function renderDoshRemedyTiles(kundaliPayload) {
     if (!doshRemedyButtons) return;
     doshRemedyButtons.innerHTML = "";
-    doshRemedyButtons.classList.add("kundali-open-list");
+    doshRemedyButtons.classList.remove("kundali-open-list");
 
     const doshas = presentDoshEntriesFromKundali(kundaliPayload);
     setCountedHeading(doshRemedyHeading, "remedy.dosh", doshas.length);
@@ -1354,6 +1373,7 @@
       card.panel.appendChild(tableWrap);
       doshRemedyButtons.appendChild(card.wrap);
     }
+    bindRemedyTileClicks(doshRemedyButtons);
   }
 
   function navataraResultLabel(def) {
@@ -1411,7 +1431,7 @@
   function renderNavataraButtons(definitions) {
     if (!buttonsHost) return;
     buttonsHost.innerHTML = "";
-    buttonsHost.classList.add("kundali-open-list");
+    buttonsHost.classList.remove("kundali-open-list");
 
     const auspicious = navataraDefinitionsForTiles(definitions, cachedNakshatraRows);
     if (!auspicious.length) {
@@ -1424,6 +1444,7 @@
       if (!rows.length) continue;
 
       const card = createRemedyOpenCard(navataraResultLabel(def), {
+        tone: "good",
         dataset: { "data-navatara-key": normalizeText(def.name) }
       });
       const tableWrap = document.createElement("div");
@@ -1439,6 +1460,7 @@
       }
       buttonsHost.appendChild(card.wrap);
     }
+    bindRemedyTileClicks(buttonsHost);
   }
 
   function stripPerIpWording(message) {
