@@ -974,7 +974,7 @@
     drawer.setAttribute("aria-hidden", "true");
     drawer.innerHTML = `
       <button type="button" class="site-drawer__backdrop" id="site-drawer-backdrop" tabindex="-1" data-i18n-aria="menu.close" aria-label="Close menu"></button>
-      <div class="site-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="site-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu" data-i18n-aria="aria.menu">
         <a class="site-drawer__user" id="site-drawer-user" href="${navHref("profile.html")}">
           <span class="site-drawer__avatar" id="site-drawer-avatar">S</span>
           <div class="site-drawer__user-text">
@@ -982,7 +982,7 @@
             <span class="site-drawer__user-meta" id="site-drawer-meta" data-i18n="drawer.signIn">Sign in to save charts</span>
           </div>
         </a>
-        <nav class="site-drawer__nav" aria-label="Pages">
+        <nav class="site-drawer__nav" aria-label="Pages" data-i18n-aria="aria.pages">
           <a href="${navHref("kundali.html")}" class="site-drawer__link" data-page="kundali">
             ${drawerIcon('<circle cx="12" cy="12" r="9"></circle><path d="M12 3v18M3 12h18"></path>')}
             <span data-i18n="nav.kundali">Full Kundali</span>
@@ -1000,7 +1000,7 @@
             <span data-i18n="nav.muhurta">Muhurta</span>
           </a>
         </nav>
-        <nav class="site-drawer__nav" aria-label="Account">
+        <nav class="site-drawer__nav" aria-label="Account" data-i18n-aria="aria.account">
           <a href="${navHref("profile.html")}" class="site-drawer__link" data-page="profile">
             ${drawerIcon('<circle cx="12" cy="8" r="3.2"></circle><path d="M5 19.2c.8-3.4 3.4-5.1 7-5.1s6.2 1.7 7 5.1"></path>')}
             <span data-i18n="nav.profile">Profile</span>
@@ -1056,7 +1056,7 @@
       <div class="site-header__brand">
         <a href="${navHref("kundali.html")}" class="site-header__logo">Saptarishi</a>
       </div>
-      <nav class="site-header__nav" id="site-header-nav" aria-label="Main">
+      <nav class="site-header__nav" id="site-header-nav" aria-label="Main" data-i18n-aria="aria.main">
         <a href="${navHref("kundali.html")}" class="site-header__link" data-i18n="nav.kundali">Full Kundali</a>
         <a href="${navHref("remedy.html")}" class="site-header__link" data-i18n="nav.remedy">Only Remedy</a>
         <a href="${navHref("future.html")}" class="site-header__link" data-i18n="nav.prediction">Timeline</a>
@@ -1738,7 +1738,7 @@
   function formatBirthTimeLabel(value, withSeconds) {
     if (!/^\d{1,2}:\d{2}/.test(String(value || "").trim())) return t("form.hourMinSec");
     const parts = parseBirthTimeParts(value);
-    const ampm = parts.hours24 >= 12 ? "PM" : "AM";
+    const ampm = t(parts.hours24 >= 12 ? "form.pm" : "form.am");
     let hour = parts.hours24 % 12;
     if (hour === 0) hour = 12;
     const core = `${padBirthNum(hour)}:${padBirthNum(parts.minutes)}`;
@@ -2479,8 +2479,8 @@
     const minCol = makeWheelColumn(t("form.min"), minutes, String(parts.minutes));
     const secCol = makeWheelColumn(t("form.sec"), seconds, String(parts.seconds));
     const amCol = makeWheelColumn("\u00a0", [
-      { value: "AM", label: "AM" },
-      { value: "PM", label: "PM" }
+      { value: "AM", label: t("form.am") },
+      { value: "PM", label: t("form.pm") }
     ], ampm);
     wheels.append(hourCol.col, minCol.col, secCol.col, amCol.col);
     const refreshTitle = () => {

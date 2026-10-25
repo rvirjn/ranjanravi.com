@@ -182,6 +182,24 @@ function panelDetailHi(text) {
       ? `अर्थात् ${name} ${from} से ${ord} भाव में (भाव ${match[4]}, भाव ${match[5]} से)।`
       : "";
   }
+  match = line.match(/^House (\d+) has (\d+) planets: (.+)$/i);
+  if (match) {
+    const names = panelPlanetListHi(match[3]);
+    return names ? `अर्थात् भाव ${match[1]} में ${match[2]} ग्रह हैं: ${names}।` : "";
+  }
+  match = line.match(/^(.+?) are not together in one house$/i);
+  if (match) {
+    const names = panelPlanetListHi(match[1]);
+    return names ? `अर्थात् ${names} एक भाव में साथ नहीं हैं।` : "";
+  }
+  match = line.match(/^(.+?) nakshatra is (.+)$/i);
+  if (match) {
+    const name = panelPlanetHi(match[1]);
+    const nak = chartText(match[2].trim());
+    return name && nak && !/[A-Za-z]{3,}/.test(nak) ? `अर्थात् ${name} का नक्षत्र ${nak} है।` : "";
+  }
+  match = line.match(/^No planet in houses \[?([\d,\s]+)\]?$/i);
+  if (match) return `अर्थात् भाव ${match[1].trim()} में कोई ग्रह नहीं।`;
   match = line.match(/^(.+?) - all (odd|even) signs$/i);
   if (match) {
     const places = match[1].split(/\s*,\s*/).map(panelSignPlaceHi);
@@ -306,6 +324,12 @@ function structuredPanelHi(text) {
     const bits = match[1].split(/\s*·\s*/).map((bit) => {
       const house = bit.match(/^House\s+(.+)$/i);
       if (house) return `भाव ${house[1].replace(/\s*,\s*/g, ", ").trim()}`;
+      const placed = bit.split(/\s*,\s*/).map((part) => {
+        const where = part.match(/^([A-Za-z]+) in house (\d+)$/i);
+        const name = where ? panelPlanetHi(where[1]) : "";
+        return name ? `${name} भाव ${where[2]} में` : "";
+      });
+      if (placed.length && placed.every(Boolean)) return placed.join(", ");
       return panelPlanetListHi(bit);
     });
     if (bits.some((bit) => !bit)) return "";
@@ -624,6 +648,7 @@ const SUMMARY_TOKEN_HI = {
   deva: "देव",
   manushya: "मनुष्य",
   manush: "मनुष्य",
+  nara: "मनुष्य",
   rakshasa: "राक्षस",
   rakshas: "राक्षस",
   sunday: "रविवार",
@@ -800,7 +825,7 @@ function summaryPayaHi(text) {
 
 function summaryStrengthHi(text) {
   const match = String(text || "").trim().match(
-    /^(\d+)\s*\[\s*Planets\s*\(([^)]+)\)\s*\+\s*Yogas\s*\(([^)]+)\)\s*\+\s*Dosha\s*\(([^)]+)\)\s*\+\s*Paya\s*\(([^)]+)\)\s*\+\s*Moon\s*\(([^)]+)\)\s*\]$/i
+    /^(-?\d+)\s*\[\s*Planets\s*\(([^)]+)\)\s*\+\s*Yogas\s*\(([^)]+)\)\s*\+\s*Dosha\s*\(([^)]+)\)\s*\+\s*Paya\s*\(([^)]+)\)\s*\+\s*Moon\s*\(([^)]+)\)\s*\]$/i
   );
   if (!match) return "";
   return `${match[1]} [ग्रह (${match[2]}) + योग (${match[3]}) + दोष (${match[4]}) + पाया (${match[5]}) + चंद्र (${match[6]})]`;
@@ -875,7 +900,7 @@ function createSummaryLabelValueRow(label, value, row = {}) {
   const dumpedClass = String(row.value_class || "").trim();
   const valueClass = dumpedClass || summaryValueClassForLabel(label, value);
   if (valueClass) td.classList.add(valueClass);
-  const displayValue = summaryValueText(label, value);
+  const displayValue = (summaryLangHi() && row && row.value_hi) || summaryValueText(label, value);
   const labelKey = normalizeText(label);
   const valueQaKey =
     labelKey === "gandmool" || labelKey === "mangalik"
@@ -4440,7 +4465,7 @@ function renderKundaliChart(chartData, chartHost = "kundali-chart", options = {}
   svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("class", "kundali-chart-svg");
   svg.setAttribute("role", "img");
-  svg.setAttribute("aria-label", "North Indian kundali chart");
+  svg.setAttribute("aria-label", summaryLangHi() ? "उत्तर भारतीय कुंडली चार्ट" : "North Indian kundali chart");
   const hostId = typeof chartHost === "string" ? chartHost : chartHost && chartHost.id;
   if (
     hostId === "kundali-chart" &&

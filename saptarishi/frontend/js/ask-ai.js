@@ -261,7 +261,7 @@
       </button>
       <div id="ask-ai-panel" class="ask-ai__panel" hidden>
         <header class="ask-ai__header">
-          <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI">
+          <button type="button" class="ask-ai__close" id="ask-ai-close" aria-label="Close Ask AI" data-i18n-aria="askAi.close">
             <span class="ask-ai__close-mark ask-ai__close-mark--back" aria-hidden="true">‹</span>
             <span class="ask-ai__close-mark ask-ai__close-mark--x" aria-hidden="true">×</span>
           </button>
