@@ -1463,11 +1463,11 @@
       </div>
       <p class="site-footer__credits"></p>
       <div id="site-contact" class="site-footer__support" hidden>
-        <a class="site-footer__support-link" href="${mailHref}">Email: ${email}</a>
+        <a class="site-footer__support-link" href="${mailHref}"><span data-i18n="footer.email">${t("footer.email")}</span> ${email}</a>
         <span class="site-footer__support-sep" aria-hidden="true">·</span>
         <a class="site-footer__support-link" href="${waHref}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <span class="site-footer__support-sep" aria-hidden="true">·</span>
-        <a class="site-footer__support-link" href="tel:+${phoneIntl}">Call ${phoneDisplay}</a>
+        <a class="site-footer__support-link" href="tel:+${phoneIntl}"><span data-i18n="footer.call">${t("footer.call")}</span> ${phoneDisplay}</a>
       </div>
     `;
     appendRequiredDataCredits(footer.querySelector(".site-footer__credits"), {

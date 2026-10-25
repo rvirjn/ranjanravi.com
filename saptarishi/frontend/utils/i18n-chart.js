@@ -423,6 +423,11 @@
     "good house": "शुभ भाव",
     combust: "अस्त",
     combustion: "अस्त",
+    "rashi dignity": "राशि बल",
+    "house placement": "भाव स्थिति",
+    other: "अन्य",
+    overall: "कुल",
+    base: "आधार",
     "precious nakshatra": "उत्तम नक्षत्र",
     "baladi avastha": "बालादि अवस्था",
     "good karakwaqt": "शुभ कारक वक़्त",
@@ -976,6 +981,17 @@
         neutral: "सम"
       }[match[1].toLowerCase()];
       return `${word}(${match[2]}) (${replacePhrases(match[3].trim())})`;
+    }
+    match = text.match(
+      /^([A-Za-z]+) is (?:a great (friend|enemy) \(Adhi (?:Mitra|Shatru)\)|a natural (friend|enemy)|natural neutral to) (?:of )?([A-Za-z]+)$/i
+    );
+    if (match) {
+      const kind = match[2]
+        ? (match[2].toLowerCase() === "friend" ? "अतिमित्र" : "अतिशत्रु")
+        : match[3]
+          ? (match[3].toLowerCase() === "friend" ? "नैसर्गिक मित्र" : "नैसर्गिक शत्रु")
+          : "नैसर्गिक सम";
+      return `${hiToken(match[1])}, ${hiToken(match[4])} का ${kind} है`;
     }
     match = text.match(/^Running from the past (.+?) till (.+?)\.?$/i);
     if (match) return `पिछले ${yearPhrase(match[1])} से चल रही है, आगे ${yearPhrase(match[2])} तक।`;

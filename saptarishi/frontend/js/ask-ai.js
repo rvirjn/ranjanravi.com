@@ -256,7 +256,7 @@
     root.className = "ask-ai";
     root.hidden = !isLoggedIn();
     root.innerHTML = `
-      <button type="button" class="ask-ai__fab" id="ask-ai-fab" aria-expanded="false" aria-controls="ask-ai-panel">
+      <button type="button" class="ask-ai__fab" id="ask-ai-fab" aria-expanded="false" aria-controls="ask-ai-panel" data-i18n="askAi.title">
         Ask AI
       </button>
       <div id="ask-ai-panel" class="ask-ai__panel" hidden>
@@ -265,19 +265,20 @@
             <span class="ask-ai__close-mark ask-ai__close-mark--back" aria-hidden="true">‹</span>
             <span class="ask-ai__close-mark ask-ai__close-mark--x" aria-hidden="true">×</span>
           </button>
-          <p class="ask-ai__title">Ask AI</p>
+          <p class="ask-ai__title" data-i18n="askAi.title">Ask AI</p>
         </header>
         <div class="ask-ai__log" id="ask-ai-log" role="log" aria-live="polite"></div>
         <form class="ask-ai__form" id="ask-ai-form">
-          <label class="ask-ai__sr-only" for="ask-ai-input">Your question</label>
+          <label class="ask-ai__sr-only" for="ask-ai-input" data-i18n="askAi.question">Your question</label>
           <textarea
             id="ask-ai-input"
             class="ask-ai__input"
             rows="2"
             maxlength="${MAX_Q}"
             placeholder="Chat with Saptarishi AI"
+            data-i18n-placeholder="askAi.placeholder"
           ></textarea>
-          <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send">
+          <button type="submit" class="ask-ai__send" id="ask-ai-send" aria-label="Send" title="Send" data-i18n-aria="askAi.send" data-i18n-title="askAi.send">
             <svg class="ask-ai__send-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M3.2 21.2 22 12 3.2 2.8l-.2 7.1L15 12 3 14.1z"/>
             </svg>
@@ -286,6 +287,7 @@
       </div>
     `;
     document.body.appendChild(root);
+    if (global.SaptarishiI18n && global.SaptarishiI18n.apply) global.SaptarishiI18n.apply(root);
 
     const fab = root.querySelector("#ask-ai-fab");
     const panel = root.querySelector("#ask-ai-panel");
@@ -336,7 +338,10 @@
       fab.setAttribute("aria-expanded", open ? "true" : "false");
       fab.hidden = open;
       root.classList.toggle("ask-ai--open", open);
-      closeBtn.setAttribute("aria-label", isMobileScreen() ? "Back" : "Close Ask AI");
+      const I18N = global.SaptarishiI18n;
+      const hindi = I18N && I18N.getLang && I18N.getLang() === "hi";
+      const closeLabel = I18N && I18N.t ? I18N.t("askAi.close") : "Close Ask AI";
+      closeBtn.setAttribute("aria-label", isMobileScreen() ? (hindi ? "वापस" : "Back") : closeLabel);
       if (!open) {
         setPageLocked(false);
         fitMobileViewport();

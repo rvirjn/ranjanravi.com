@@ -1127,12 +1127,16 @@
     return { wrap, panel };
   }
 
-  function bindRemedyTileClicks(host) {
+  function bindRemedyTileClicks(host, headingEl) {
+    const options = {
+      buttonSelector: ".remedy-navatara-btn",
+      activeClass: "remedy-navatara-btn--active"
+    };
     if (typeof bindExclusiveTilePanels === "function") {
-      bindExclusiveTilePanels(host, {
-        buttonSelector: ".remedy-navatara-btn",
-        activeClass: "remedy-navatara-btn--active"
-      });
+      bindExclusiveTilePanels(host, options);
+    }
+    if (typeof mountTilesExpandAll === "function") {
+      mountTilesExpandAll(headingEl || (host && host.previousElementSibling), host, options);
     }
   }
 
@@ -1159,7 +1163,7 @@
     if (!buttonsHost) return;
 
     buttonsHost.innerHTML = "";
-    buttonsHost.classList.remove("kundali-open-list");
+    buttonsHost.classList.remove("kundali-open-list", "tiles-all-expanded");
 
     const entries = (Array.isArray(planetEntries) ? planetEntries : [])
       .map((entry) => {
@@ -1184,6 +1188,7 @@
     if (!keys.length) {
       buttonsHost.hidden = true;
       if (emptyEl) emptyEl.hidden = false;
+      bindRemedyTileClicks(buttonsHost, headingEl);
       return;
     }
 
@@ -1214,7 +1219,7 @@
       card.panel.appendChild(tableWrap);
       buttonsHost.appendChild(card.wrap);
     }
-    bindRemedyTileClicks(buttonsHost);
+    bindRemedyTileClicks(buttonsHost, headingEl);
   }
 
   function renderPlanetRemedyTables(kundaliPayload) {
@@ -1336,7 +1341,7 @@
   function renderDoshRemedyTiles(kundaliPayload) {
     if (!doshRemedyButtons) return;
     doshRemedyButtons.innerHTML = "";
-    doshRemedyButtons.classList.remove("kundali-open-list");
+    doshRemedyButtons.classList.remove("kundali-open-list", "tiles-all-expanded");
 
     const doshas = presentDoshEntriesFromKundali(kundaliPayload);
     setCountedHeading(doshRemedyHeading, "remedy.dosh", doshas.length);
@@ -1344,6 +1349,7 @@
     if (!doshas.length) {
       doshRemedyButtons.hidden = true;
       if (doshRemedyEmpty) doshRemedyEmpty.hidden = false;
+      bindRemedyTileClicks(doshRemedyButtons, doshRemedyHeading);
       return;
     }
 
@@ -1373,7 +1379,7 @@
       card.panel.appendChild(tableWrap);
       doshRemedyButtons.appendChild(card.wrap);
     }
-    bindRemedyTileClicks(doshRemedyButtons);
+    bindRemedyTileClicks(doshRemedyButtons, doshRemedyHeading);
   }
 
   function navataraResultLabel(def) {
@@ -1431,11 +1437,12 @@
   function renderNavataraButtons(definitions) {
     if (!buttonsHost) return;
     buttonsHost.innerHTML = "";
-    buttonsHost.classList.remove("kundali-open-list");
+    buttonsHost.classList.remove("kundali-open-list", "tiles-all-expanded");
 
     const auspicious = navataraDefinitionsForTiles(definitions, cachedNakshatraRows);
     if (!auspicious.length) {
       buttonsHost.textContent = rt("remedy.noNavatara");
+      bindRemedyTileClicks(buttonsHost);
       return;
     }
 

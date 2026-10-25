@@ -1029,14 +1029,14 @@ function formatPlanetStrengthVerificationTitle(rowData) {
         ? rowData.strength_percent
         : null;
   if (base == null || total == null) return "";
-  const baseLabel = adj.base_rule === "baladi_avastha" ? "Baladi Avastha" : "Base";
+  const baseLabel = chartText(adj.base_rule === "baladi_avastha" ? "Baladi Avastha" : "Base");
   const lines = [];
   const components = adj.components;
   if (components && typeof components === "object") {
     for (const key of ["rashi_dignity", "house_placement", "nakshatra", "other"]) {
       const row = components[key];
       if (!row || typeof row.score !== "number") continue;
-      const label = row.label || key;
+      const label = chartText(row.label || key);
       const delta =
         typeof row.delta === "number" && row.delta !== 0
           ? ` ${row.delta > 0 ? "+" : ""}${row.delta}`
@@ -1045,7 +1045,7 @@ function formatPlanetStrengthVerificationTitle(rowData) {
     }
     const overall = components.overall;
     if (overall && typeof overall.score === "number") {
-      lines.push(`${overall.label || "Overall"} ${overall.score}`);
+      lines.push(`${chartText(overall.label || "Overall")} ${overall.score}`);
     }
     lines.push("");
   }
@@ -2724,22 +2724,18 @@ function createPlanetStatusSheetElement(rowData, allRows, descriptions) {
 function renderPlanetStatusTiles(container, rows, options = {}) {
   if (!container) return;
   container.innerHTML = "";
+  container.classList.remove("tiles-all-expanded");
   const allRows = Array.isArray(rows) ? rows : [];
   const planetRows = listPlanetStatusRows(allRows);
   const descriptions = options.descriptions || null;
-  if (!planetRows.length) return;
-
-  let selectedPlanet = "";
-  const closeAllPanels = () => {
-    container.querySelectorAll(".house-planets-tile-btn").forEach((btn) => {
-      btn.classList.remove("house-planets-tile-btn--active");
-      btn.setAttribute("aria-pressed", "false");
-      btn.setAttribute("aria-expanded", "false");
-    });
-    container.querySelectorAll(".house-planets-tile-panel").forEach((panel) => {
-      panel.hidden = true;
-    });
+  const tileToggle = {
+    buttonSelector: ".house-planets-tile-btn",
+    activeClass: "house-planets-tile-btn--active"
   };
+  if (!planetRows.length) {
+    mountTilesExpandAll(container.previousElementSibling, container, tileToggle);
+    return;
+  }
 
   for (const rowData of planetRows) {
     const planetKey = normalizeText(rowData?.planet);
@@ -2795,24 +2791,12 @@ function renderPlanetStatusTiles(container, rows, options = {}) {
       applyAdverseHouseTileContentLock(btn, panel);
     }
 
-    btn.addEventListener("click", () => {
-      if (selectedPlanet === planetKey && !panel.hidden) {
-        closeAllPanels();
-        selectedPlanet = "";
-        return;
-      }
-      closeAllPanels();
-      selectedPlanet = planetKey;
-      btn.classList.add("house-planets-tile-btn--active");
-      btn.setAttribute("aria-pressed", "true");
-      btn.setAttribute("aria-expanded", "true");
-      panel.hidden = false;
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-
     wrap.append(btn, panel);
     container.appendChild(wrap);
   }
+
+  bindExclusiveTilePanels(container, tileToggle);
+  mountTilesExpandAll(container.previousElementSibling, container, tileToggle);
 }
 
 /** Show planet and house status tiles together (planet block first). */
@@ -3334,7 +3318,7 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
     pct.className = "house-planets-sheet__pct";
     pct.textContent = strengthText;
     pctWrap.appendChild(pct);
-    const equation = formatHouseStatusStrengthBreakdown(rows);
+    const equation = chartText(formatHouseStatusStrengthBreakdown(rows));
     if (equation) {
       pctWrap.appendChild(createHouseStrengthInfoButton(equation));
       const printed = document.createElement("span");
@@ -3360,7 +3344,7 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
 
   const desc = document.createElement("div");
   desc.className = "house-planets-sheet__desc";
-  desc.setAttribute("aria-label", `House ${houseNum} reading`);
+  desc.setAttribute("aria-label", chartText(`House ${houseNum} reading`));
   if (
     renderHouseGridDescription(desc, descriptions, houseNum, {
       allRows,
@@ -3374,25 +3358,150 @@ function createHousePlanetsSheetElement(houseNum, strengthText, houseRows, descr
   return sheet;
 }
 
+function tilePanelForButton(btn) {
+  const panel = btn && btn.nextElementSibling;
+  if (!panel || !panel.classList) return null;
+  if (
+    panel.classList.contains("house-planets-tile-panel") ||
+    panel.classList.contains("remedy-navatara-panel")
+  ) {
+    return panel;
+  }
+  return null;
+}
+
+function tileToggleButtons(container, options) {
+  if (!container) return [];
+  const selector = (options && options.buttonSelector) || "button";
+  return Array.from(container.querySelectorAll(selector)).filter((btn) => tilePanelForButton(btn));
+}
+
+function setTileExpanded(btn, open, activeClass) {
+  const panel = tilePanelForButton(btn);
+  if (activeClass) btn.classList.toggle(activeClass, Boolean(open));
+  btn.setAttribute("aria-pressed", open ? "true" : "false");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (panel) panel.hidden = !open;
+}
+
+function allTilePanelsOpen(container, options) {
+  const buttons = tileToggleButtons(container, options);
+  return buttons.length > 0 && buttons.every((btn) => {
+    const panel = tilePanelForButton(btn);
+    return panel && !panel.hidden;
+  });
+}
+
+function syncExpandAllButton(container) {
+  const toggle = container && container._tilesExpandBtn;
+  if (!toggle) return;
+  const options = toggle._tilesOptions || {};
+  const buttons = tileToggleButtons(container, options);
+  toggle.hidden = buttons.length < 2;
+  const showCollapse = container.classList.contains("tiles-all-expanded") && allTilePanelsOpen(container, options);
+  bindUiText(toggle, showCollapse ? "tiles.collapseAll" : "tiles.expandAll");
+  toggle.setAttribute("aria-pressed", showCollapse ? "true" : "false");
+}
+
+function applyAllTilesExpanded(container, open, options) {
+  if (!container) return;
+  const activeClass = (options && options.activeClass) || "";
+  container.classList.toggle("tiles-all-expanded", Boolean(open));
+  tileToggleButtons(container, options).forEach((btn) => {
+    setTileExpanded(btn, open, activeClass);
+  });
+  syncExpandAllButton(container);
+}
+
+function resolveTilesHeading(node) {
+  if (!node || !node.classList) return null;
+  if (node.classList.contains("section-heading-row")) {
+    return node.querySelector(".result-heading");
+  }
+  if (node.classList.contains("result-heading")) return node;
+  return null;
+}
+
+function setSectionHeadingHidden(headingEl, hidden) {
+  if (!headingEl) return;
+  const row = headingEl.classList.contains("section-heading-row")
+    ? headingEl
+    : (headingEl.parentElement && headingEl.parentElement.classList.contains("section-heading-row")
+      ? headingEl.parentElement
+      : null);
+  if (row) {
+    row.hidden = Boolean(hidden);
+    const heading = row.querySelector(".result-heading");
+    if (heading) heading.hidden = false;
+    return;
+  }
+  headingEl.hidden = Boolean(hidden);
+}
+
+/** Place Expand all beside a section heading. It opens every tile in that grid. */
+function mountTilesExpandAll(headingNode, container, options) {
+  if (!container) return;
+  const heading = resolveTilesHeading(headingNode);
+  if (!heading) {
+    container._tilesExpandBtn = null;
+    return;
+  }
+  let row = heading.parentElement && heading.parentElement.classList.contains("section-heading-row")
+    ? heading.parentElement
+    : null;
+  if (!row) {
+    const hidden = heading.hidden;
+    row = document.createElement("div");
+    row.className = "section-heading-row";
+    heading.parentNode.insertBefore(row, heading);
+    row.appendChild(heading);
+    row.hidden = hidden;
+    heading.hidden = false;
+  } else if (heading.hidden) {
+    row.hidden = true;
+    heading.hidden = false;
+  }
+  let toggle = row.querySelector(":scope > .tiles-expand-all");
+  if (!toggle) {
+    toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "tiles-expand-all";
+    toggle.addEventListener("click", () => {
+      const host = toggle._tilesHost;
+      const opts = toggle._tilesOptions || {};
+      if (!host) return;
+      const collapse = host.classList.contains("tiles-all-expanded") && allTilePanelsOpen(host, opts);
+      applyAllTilesExpanded(host, !collapse, opts);
+    });
+    row.appendChild(toggle);
+  }
+  toggle._tilesHost = container;
+  toggle._tilesOptions = options || {};
+  container._tilesExpandBtn = toggle;
+  syncExpandAllButton(container);
+}
+
 /** Open one square tile's detail panel and close the others in the same grid. */
 function bindExclusiveTilePanels(container, options = {}) {
   if (!container) return;
   const buttonSelector = options.buttonSelector || "button";
   const activeClass = options.activeClass || "";
-  const buttons = Array.from(container.querySelectorAll(buttonSelector));
+  const buttons = tileToggleButtons(container, { buttonSelector });
   buttons.forEach((btn) => {
-    const panel = btn.nextElementSibling;
+    const panel = tilePanelForButton(btn);
     if (!panel) return;
     btn.addEventListener("click", () => {
       const willOpen = panel.hidden;
+      if (container.classList.contains("tiles-all-expanded")) {
+        setTileExpanded(btn, willOpen, activeClass);
+        syncExpandAllButton(container);
+        if (willOpen) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        return;
+      }
       buttons.forEach((other) => {
-        const otherPanel = other.nextElementSibling;
-        const on = Boolean(willOpen && other === btn);
-        if (activeClass) other.classList.toggle(activeClass, on);
-        other.setAttribute("aria-pressed", on ? "true" : "false");
-        other.setAttribute("aria-expanded", on ? "true" : "false");
-        if (otherPanel) otherPanel.hidden = !on;
+        setTileExpanded(other, Boolean(willOpen && other === btn), activeClass);
       });
+      syncExpandAllButton(container);
       if (willOpen) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
   });
@@ -3402,9 +3511,16 @@ function bindExclusiveTilePanels(container, options = {}) {
 function renderHousePlanetsTiles(container, rows, options = {}) {
   if (!container) return;
   container.innerHTML = "";
-  container.classList.remove("house-planets-tiles--open");
+  container.classList.remove("house-planets-tiles--open", "tiles-all-expanded");
+  const tileToggle = {
+    buttonSelector: ".house-planets-tile-btn",
+    activeClass: "house-planets-tile-btn--active"
+  };
   const allRows = Array.isArray(rows) ? rows : [];
-  if (!allRows.length) return;
+  if (!allRows.length) {
+    mountTilesExpandAll(container.previousElementSibling, container, tileToggle);
+    return;
+  }
 
   const byHouse = groupPlanetsTableRowsByHouse(allRows);
   const descriptions = options.descriptions || null;
@@ -3486,10 +3602,8 @@ function renderHousePlanetsTiles(container, rows, options = {}) {
     container.appendChild(wrap);
   }
 
-  bindExclusiveTilePanels(container, {
-    buttonSelector: ".house-planets-tile-btn",
-    activeClass: "house-planets-tile-btn--active"
-  });
+  bindExclusiveTilePanels(container, tileToggle);
+  mountTilesExpandAll(container.previousElementSibling, container, tileToggle);
 }
 
 /** Planets table: values and ``cell_styles`` come from API (kundali.py). */
@@ -4027,7 +4141,7 @@ function appendAspectEyeWithPlanets(parentG, aspectPlanets, originX, originY, op
   g.setAttribute("role", "img");
   g.setAttribute(
     "aria-label",
-    "Aspected by " + list.map((e) => e.label).join(", ")
+    (summaryLangHi() ? "दृष्टि: " : "Aspected by ") + list.map((e) => e.label).join(", ")
   );
 
   // Eye shape only — widen for more planets (does not enlarge the text).
@@ -7336,7 +7450,11 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     });
   }
   listEl.innerHTML = "";
-  listEl.classList.remove("kundali-open-list");
+  listEl.classList.remove("kundali-open-list", "tiles-all-expanded");
+  const tileToggle = {
+    buttonSelector: ".remedy-navatara-btn",
+    activeClass: "remedy-navatara-btn--active"
+  };
 
   if (!items.length) {
     section.hidden = true;
@@ -7403,7 +7521,9 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
       starEl.setAttribute("aria-hidden", "true");
       nameRow.appendChild(starEl);
       btn.appendChild(nameRow);
-      btn.title = `${nameText} — top 15 yoga`;
+      btn.title = summaryLangHi()
+        ? `${nameEl.textContent} — शीर्ष 15 योगों में`
+        : `${nameText} — top 15 yoga`;
     } else {
       btn.appendChild(nameEl);
       btn.title = nameEl.textContent;
@@ -7502,10 +7622,8 @@ function renderKundaliMatchTilesFromPayload(payload, options) {
     listEl.appendChild(wrap);
   }
 
-  bindExclusiveTilePanels(listEl, {
-    buttonSelector: ".remedy-navatara-btn",
-    activeClass: "remedy-navatara-btn--active"
-  });
+  bindExclusiveTilePanels(listEl, tileToggle);
+  mountTilesExpandAll(headingEl, listEl, tileToggle);
 }
 
 /** Render yoga tiles from ``kundali_yog``. */
@@ -7541,16 +7659,16 @@ function renderCurrentDashaTilesFromPayload(payload) {
   const tiles = (Array.isArray(payload?.current_dasha?.tiles) ? payload.current_dasha.tiles : [])
     .filter((item) => item && String(item.name || item.planet_key || "").trim());
   listEl.innerHTML = "";
-  listEl.classList.remove("kundali-open-list");
+  listEl.classList.remove("kundali-open-list", "tiles-all-expanded");
   if (nextListEl) {
     nextListEl.innerHTML = "";
-    nextListEl.classList.remove("kundali-open-list");
+    nextListEl.classList.remove("kundali-open-list", "tiles-all-expanded");
   }
 
   if (!tiles.length) {
     section.hidden = true;
     if (headingEl) bindUiText(headingEl, "kundali.dasha");
-    if (nextHeadingEl) nextHeadingEl.hidden = true;
+    setSectionHeadingHidden(nextHeadingEl, true);
     if (nextListEl) nextListEl.hidden = true;
     return;
   }
@@ -7559,7 +7677,7 @@ function renderCurrentDashaTilesFromPayload(payload) {
   if (headingEl) bindUiText(headingEl, "kundali.dasha");
   const hasNext = tiles.some((item) => String(item.key || "").trim().toLowerCase() === "next");
   if (nextHeadingEl) {
-    nextHeadingEl.hidden = !hasNext;
+    setSectionHeadingHidden(nextHeadingEl, !hasNext);
     if (hasNext) bindUiText(nextHeadingEl, "kundali.nextDasha");
   }
   if (nextListEl) nextListEl.hidden = !hasNext;
@@ -7644,7 +7762,11 @@ function renderCurrentDashaTilesFromPayload(payload) {
     activeClass: "remedy-navatara-btn--active"
   };
   bindExclusiveTilePanels(listEl, tileToggle);
-  if (nextListEl) bindExclusiveTilePanels(nextListEl, tileToggle);
+  mountTilesExpandAll(headingEl, listEl, tileToggle);
+  if (nextListEl) {
+    bindExclusiveTilePanels(nextListEl, tileToggle);
+    mountTilesExpandAll(nextHeadingEl, nextListEl, tileToggle);
+  }
 }
 
 /** Render dosha tiles from ``kundali_dosh`` (same design as yogas; names in red). */
@@ -7916,7 +8038,8 @@ function formatSavedBirthListDate(raw) {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!match) return value;
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = months[Number(match[2]) - 1] || match[2];
+  const index = Number(match[2]) - 1;
+  const month = (summaryLangHi() ? uiText(`month.short.${index}`) : months[index]) || match[2];
   return `${Number(match[3])}-${month}-${match[1]}`;
 }
 
@@ -8086,7 +8209,7 @@ function refreshSavedKundaliDropdown() {
   savedKundaliSelect.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = views.length ? "Select saved name…" : "No saved birth details yet";
+  placeholder.textContent = uiText(views.length ? "form.selectSaved" : "form.noSaved");
   savedKundaliSelect.appendChild(placeholder);
   views.forEach((view) => {
     const key = birthViewSelectKey(view);
@@ -8147,7 +8270,7 @@ async function loadOpenKundaliBirthViews() {
       typeof SaptarishiAuth !== "undefined" && SaptarishiAuth.isAdmin && SaptarishiAuth.isAdmin();
     savedKundaliSearch.placeholder = adminList
       ? "Search by name, place, date, or account…"
-      : "Search by name, place, or date…";
+      : uiText("form.searchPlaceholder");
   }
   refreshSavedKundaliDropdown();
   if (showSpinner && seq === openKundaliLoadSeq) setOpenKundaliListLoading(false);
