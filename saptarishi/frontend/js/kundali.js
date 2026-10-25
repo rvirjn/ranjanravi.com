@@ -182,6 +182,8 @@ function panelDetailHi(text) {
       ? `अर्थात् ${name} ${from} से ${ord} भाव में (भाव ${match[4]}, भाव ${match[5]} से)।`
       : "";
   }
+  match = line.match(/^All seven planets are in (movable|fixed|dual) signs$/i);
+  if (match) return `अर्थात् सातों ग्रह ${SUMMARY_TOKEN_HI[match[1].toLowerCase()]} राशियों में हैं।`;
   match = line.match(/^House (\d+) has (\d+) planets: (.+)$/i);
   if (match) {
     const names = panelPlanetListHi(match[3]);

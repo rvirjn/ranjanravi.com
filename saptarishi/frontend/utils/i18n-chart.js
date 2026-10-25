@@ -427,6 +427,7 @@
     "great enemy rashi": "अतिशत्रु राशि",
     "friend rashi": "मित्र राशि",
     "neutral rashi": "सम राशि",
+    "very strong": "अति प्रबल",
     good: "शुभ",
     average: "मध्यम",
     weak: "दुर्बल",
@@ -978,9 +979,10 @@
     if (text === "Condition:") return "शर्त:";
     if (text === "Derived from") return "निष्कर्ष";
     if (text === "Limitation") return "सीमा";
-    let match = text.match(/^(Strong|Good|Average|Weak|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);
+    let match = text.match(/^(Very Strong|Strong|Good|Average|Weak|Bad|Neutral)\(\s*([+-]?\d+)\s*\)\s*\(([^)]+)\)\.?$/i);
     if (match) {
       const word = {
+        "very strong": "अति प्रबल",
         strong: "प्रबल",
         good: "शुभ",
         average: "मध्यम",
