@@ -2229,6 +2229,12 @@
     return rectH || item.offsetHeight || 0;
   }
 
+  function wheelLoopCopies(length) {
+    if (length < 2) return 1;
+    const side = Math.ceil(80 / length);
+    return Math.min(length > 24 ? 5 : 31, 1 + side * 2);
+  }
+
   function wheelSelectedValue(scroller) {
     const items = [...(scroller ? scroller.querySelectorAll(".birth-wheel__item") : [])];
     if (!items.length) return "";
@@ -2241,36 +2247,87 @@
     return best.getAttribute("data-value") || "";
   }
 
-  function scrollWheelToValue(scroller, value) {
+  function recenterWheelLoop(scroller) {
+    if (!scroller || !scroller._wheelReady || scroller._wheelRecentering) return false;
+    const base = Number(scroller.dataset.wheelBase) || 0;
+    const copies = Number(scroller.dataset.wheelCopies) || 1;
+    if (copies < 3 || base < 2) return false;
+    const itemH = scroller._wheelRow || wheelItemHeight(scroller);
+    if (!itemH) return false;
+    const span = base * itemH;
+    const minTop = span;
+    const maxTop = (copies - 1) * span;
+    let top = scroller.scrollTop;
+    if (top >= minTop && top < maxTop) return false;
+    let guard = 0;
+    while (top < minTop && guard < copies) {
+      top += span;
+      guard += 1;
+    }
+    while (top >= maxTop && guard < copies * 2) {
+      top -= span;
+      guard += 1;
+    }
+    if (Math.abs(top - scroller.scrollTop) < 0.5) return false;
+    scroller._wheelRecentering = true;
+    const snap = scroller.style.scrollSnapType;
+    scroller.style.scrollSnapType = "none";
+    scroller.scrollTop = top;
+    requestAnimationFrame(() => {
+      scroller.style.scrollSnapType = snap;
+      scroller._wheelRecentering = false;
+    });
+    return true;
+  }
+
+  function scrollWheelToIndex(scroller, index) {
     if (!scroller) return;
     const items = [...scroller.querySelectorAll(".birth-wheel__item")];
-    const index = items.findIndex((el) => el.getAttribute("data-value") === String(value));
-    if (index < 0) return;
+    if (!items.length) return;
+    const clamped = Math.max(0, Math.min(items.length - 1, index));
     const itemH = lockWheelGeometry(scroller) || wheelItemHeight(scroller);
     if (!itemH) return;
     const snapType = scroller.style.scrollSnapType;
     scroller.style.scrollSnapType = "none";
     const alignSelected = () => {
-      const target = items[index];
+      const target = items[clamped];
       const pad = scroller.querySelector(".birth-wheel__pad");
       if (target && pad) {
         const scrollerTop = scroller.getBoundingClientRect().top;
         const delta = target.getBoundingClientRect().top - (scrollerTop + pad.getBoundingClientRect().height);
         if (Math.abs(delta) > 0.5) scroller.scrollTop += delta;
-        else scroller.scrollTop = index * itemH;
+        else scroller.scrollTop = clamped * itemH;
       } else {
-        scroller.scrollTop = index * itemH;
+        scroller.scrollTop = clamped * itemH;
       }
     };
-    scroller.scrollTop = index * itemH;
+    scroller.scrollTop = clamped * itemH;
     alignSelected();
     wheelSelectedValue(scroller);
+    scroller._wheelReady = true;
     requestAnimationFrame(() => {
-      scroller.scrollTop = index * itemH;
+      if (!scroller.isConnected) return;
+      scroller.scrollTop = clamped * itemH;
       alignSelected();
       scroller.style.scrollSnapType = snapType;
       wheelSelectedValue(scroller);
     });
+  }
+
+  function scrollWheelToValue(scroller, value) {
+    if (!scroller) return;
+    const items = [...scroller.querySelectorAll(".birth-wheel__item")];
+    const matches = [];
+    items.forEach((el, i) => {
+      if (el.getAttribute("data-value") === String(value)) matches.push(i);
+    });
+    if (!matches.length) return;
+    const base = Number(scroller.dataset.wheelBase) || items.length;
+    const copies = Number(scroller.dataset.wheelCopies) || 1;
+    const logical = matches[0] % base;
+    const preferred = Math.floor(copies / 2) * base + logical;
+    const index = matches.includes(preferred) ? preferred : matches[Math.floor(matches.length / 2)];
+    scrollWheelToIndex(scroller, index);
   }
 
   function makeWheelColumn(label, values, selected) {
@@ -2281,25 +2338,39 @@
     caption.textContent = label || "\u00a0";
     const scroller = document.createElement("div");
     scroller.className = "birth-wheel__scroller";
+    scroller.style.overscrollBehavior = "contain";
+    const copies = wheelLoopCopies(values.length);
+    scroller.dataset.wheelBase = String(values.length);
+    scroller.dataset.wheelCopies = String(copies);
     const padTop = document.createElement("div");
     padTop.className = "birth-wheel__pad";
     const padBottom = document.createElement("div");
     padBottom.className = "birth-wheel__pad";
-    scroller.appendChild(padTop);
-    values.forEach((item) => {
-      const el = document.createElement("div");
-      el.className = "birth-wheel__item";
-      el.setAttribute("role", "option");
-      el.setAttribute("data-value", item.value);
-      el.textContent = item.label;
-      if (String(item.value) === String(selected)) el.classList.add("is-on");
-      el.addEventListener("click", () => scrollWheelToValue(scroller, item.value));
-      scroller.appendChild(el);
-    });
-    scroller.appendChild(padBottom);
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(padTop);
+    const midCopy = Math.floor(copies / 2);
+    for (let copy = 0; copy < copies; copy += 1) {
+      values.forEach((item) => {
+        const el = document.createElement("div");
+        el.className = "birth-wheel__item";
+        el.setAttribute("role", "option");
+        el.setAttribute("data-value", item.value);
+        el.textContent = item.label;
+        if (copy === midCopy && String(item.value) === String(selected)) el.classList.add("is-on");
+        el.addEventListener("click", () => {
+          const items = [...scroller.querySelectorAll(".birth-wheel__item")];
+          scrollWheelToIndex(scroller, items.indexOf(el));
+        });
+        fragment.appendChild(el);
+      });
+    }
+    fragment.appendChild(padBottom);
+    scroller.appendChild(fragment);
     lockWheelGeometry(scroller);
     let snapTimer = 0;
     scroller.addEventListener("scroll", () => {
+      const looped = !scroller._wheelRecentering && recenterWheelLoop(scroller);
+      if (looped) wheelSelectedValue(scroller);
       window.clearTimeout(snapTimer);
       snapTimer = window.setTimeout(() => wheelSelectedValue(scroller), 80);
     });
@@ -2394,7 +2465,8 @@
       if (!dateWheelsReady) return;
       const y = Number(wheelSelectedValue(yearCol.scroller));
       const m = Number(wheelSelectedValue(monthCol.scroller));
-      const dayCount = wheels.querySelectorAll("[data-wheel='day'] .birth-wheel__item").length;
+      const dayScrollerEl = wheels.querySelector("[data-wheel='day'] .birth-wheel__scroller");
+      const dayCount = Number(dayScrollerEl && dayScrollerEl.dataset.wheelBase) || 0;
       if (dayCount !== daysInMonth(y, m)) {
         dayScroller.current = rebuildBirthDayWheel(
           wheels,
