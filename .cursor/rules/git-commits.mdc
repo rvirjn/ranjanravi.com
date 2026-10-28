@@ -1,0 +1,28 @@
+---
+description: Git commit authorship - every commit is by Ravi Ranjan only
+alwaysApply: true
+---
+
+# Git commits
+
+- Author and committer are always **Ravi Ranjan <raviranjan.amu@gmail.com>**.
+- Never mention AI, Cursor, agent, assistant, bot or any model name in commit messages, tags, branch names, PR titles/descriptions or code comments.
+- No `Co-authored-by:`, `Generated-by:` or similar trailers. Ravi Ranjan is the only author.
+
+Commit like this:
+
+```bash
+git -c user.name="Ravi Ranjan" -c user.email="raviranjan.amu@gmail.com" \
+  commit --author="Ravi Ranjan <raviranjan.amu@gmail.com>" -m "Add fee receipt printing"
+```
+
+Before pushing, check and amend if anything else appears:
+
+```bash
+git log -1 --format="%an <%ae> | %cn <%ce>%n%B"
+```
+
+```text
+BAD : "Add login page (generated with Cursor)"  /  "Co-authored-by: Cursor Agent"
+GOOD: "Add a single Login button that opens school.ranjanravi.com"
+```
