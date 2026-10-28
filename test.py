@@ -16,7 +16,6 @@ try:
     webbrowser.open_new_tab('http://13.127.99.82:6660')
 
     webbrowser.open_new_tab('http://school.ranjanravi.com')
-    # webbrowser.open_new_tab('http://mpsjaisinghpur.com')
     webbrowser.open_new_tab('http://13.127.99.82:5555') # school
 
     # webbrowser.open_new_tab('http://profile.ranjanravi.com')
