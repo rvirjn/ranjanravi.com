@@ -48,7 +48,7 @@
     "Weekly Timetable": "साप्ताहिक समय सारणी", "Fee Receipts": "फीस रसीदें", "Fee Defaulters": "फीस डिफ़ॉल्टर", "Search": "खोजें",
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
-    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "Staff Login": "स्टाफ लॉग इन",
+    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ERP)", "Staff Login": "स्टाफ लॉग इन",
     "User ID": "यूज़र आईडी", "Login with your User ID": "अपनी यूज़र आईडी से लॉग इन करें", "Back to login": "लॉग इन पर वापस",
     "Attendance Today": "आज की उपस्थिति", "Homework to Review": "जांच के लिए गृह कार्य", "Ungraded submissions": "बिना ग्रेड वाले",
     "Leave Requests": "छुट्टी अनुरोध", "Awaiting your approval": "आपकी स्वीकृति बाकी", "HW/CW Today": "आज का HW/CW", "Full timetable": "पूरी समय सारणी",
