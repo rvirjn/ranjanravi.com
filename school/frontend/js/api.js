@@ -43,7 +43,7 @@ const MPS = (() => {
 
     if (response.status === 401 && current && current.token && path !== "/auth/login") {
       clearSession();
-      location.replace("login.html?role=" + (current.role || "student") + "&expired=1");
+      location.replace("login.html?expired=1");
       throw new Error(json.error || "Session expired");
     }
     if (!response.ok) {

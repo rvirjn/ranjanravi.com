@@ -371,7 +371,7 @@
          ${principal ? '<button class="btn btn-light btn-sm" id="unlink"><i class="fa fa-chain-broken"></i> Unlink</button> <button class="btn btn-light btn-sm" id="groups"><i class="fa fa-users"></i> Check groups</button>' : ""}`
       : s.state === "offline"
         ? `<p>${badge("Offline", "danger")} The WhatsApp service is not running. Start it with <code>docker compose up -d</code>.</p>`
-        : `<p>${badge(s.state === "qr" ? "Waiting for scan" : s.state, "warn")} Link the school WhatsApp number <b>+91 9525089461</b>:</p>
+        : `<p>${badge(s.state === "qr" ? "Waiting for scan" : s.state, "warn")} Link the school WhatsApp number <b>${esc(s.school_number)}</b>:</p>
            <ol class="small"><li>Open WhatsApp on that phone &gt; <b>Settings &gt; Linked devices &gt; Link a device</b></li><li>Scan this QR code (it refreshes every ~20 seconds)</li></ol>
            ${s.qr ? `<img src="${s.qr}" alt="WhatsApp QR" class="qr-box">` : '<p class="muted">QR code is loading... click Refresh.</p>'}
            <div class="btn-group" style="margin-top:10px"><button class="btn btn-light btn-sm" id="refresh"><i class="fa fa-refresh"></i> Refresh</button>
@@ -411,8 +411,8 @@
     });
     on("#pair", async () => {
       try {
-        const r = await MPS.post("/whatsapp/pair", { number: "919525089461" });
-        modal("Link with phone number", `<p>On the phone with WhatsApp +91 9525089461: <b>Settings &gt; Linked devices &gt; Link a device &gt; Link with phone number instead</b>, then enter:</p><p class="pair-code">${esc(r.code)}</p>`);
+        const r = await MPS.post("/whatsapp/pair", {});
+        modal("Link with phone number", `<p>On the phone with WhatsApp ${esc(s.school_number)}: <b>Settings &gt; Linked devices &gt; Link a device &gt; Link with phone number instead</b>, then enter:</p><p class="pair-code">${esc(r.code)}</p>`);
       } catch (e) {
         UI.toast(e.message, "error");
       }
@@ -421,8 +421,8 @@
       openForm({
         title: "Send test WhatsApp",
         fields: [
-          { name: "number", label: "Mobile number", required: true, value: "9525089461" },
-          { name: "text", label: "Message", type: "textarea", value: "Test message from MS Public School portal." },
+          { name: "number", label: "Mobile number", required: true, value: s.school_number },
+          { name: "text", label: "Message", type: "textarea", value: `Test message from ${ctx.school.name || "the school"} portal.` },
         ],
         submitLabel: "Send",
         onSubmit: async (v) => {

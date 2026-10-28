@@ -272,7 +272,7 @@ const UI = (() => {
   // ---------- printing ----------
   function schoolHeader() {
     const s = state.school || {};
-    return `<div class="print-head"><h2>${esc(s.name || MPS_CONFIG.SCHOOL_NAME)}</h2>
+    return `<div class="print-head"><h2>${esc(s.name || "")}</h2>
       <p>${esc(s.address || "")}</p>
       <p>${esc((s.phones || []).join(", "))}${s.email ? " | " + esc(s.email) : ""}</p></div>`;
   }
@@ -296,8 +296,12 @@ const UI = (() => {
   // ---------- app shell ----------
   function startApp({ role, portalName, modules, userSub }) {
     const session = MPS.session();
-    if (!session || session.role !== role || !session.token) {
-      location.replace(`login.html?role=${role}`);
+    if (!session || !session.token) {
+      location.replace("login.html");
+      return;
+    }
+    if (session.role !== role) {
+      location.replace(session.home || "login.html");
       return;
     }
     state.school = session.school || {};
@@ -325,7 +329,7 @@ const UI = (() => {
 
     document.body.innerHTML = `<div class="app-shell" id="shell">
       <aside class="sidebar">
-        <div class="brand"><div class="logo">${esc(MPS_CONFIG.SCHOOL_SHORT)}</div><div><strong>${esc(MPS_CONFIG.SCHOOL_NAME)}</strong><span>${esc(portalName)}</span></div></div>
+        <div class="brand"><div class="logo" id="schoolShort"></div><div><strong id="schoolName"></strong><span>${esc(portalName)}</span></div></div>
         <div class="user-chip"><div class="avatar" id="userAvatar"></div><div><strong id="userName"></strong><span id="userSub"></span></div></div>
         <nav class="nav">${nav}</nav>
       </aside>
@@ -335,7 +339,7 @@ const UI = (() => {
           <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu"><i class="fa fa-bars"></i></button>
           <h1 id="pageTitle"></h1>
           <div class="top-actions">
-            <a class="btn btn-light btn-sm" href="${esc(MPS_CONFIG.WEBSITE_URL)}" target="_blank" rel="noopener" title="School website"><i class="fa fa-globe"></i><span>Website</span></a>
+            <a class="btn btn-light btn-sm" id="schoolWebsite" target="_blank" rel="noopener" title="School website" hidden><i class="fa fa-globe"></i><span>Website</span></a>
             <button class="btn btn-light btn-sm" id="logoutBtn"><i class="fa fa-sign-out"></i><span>Logout</span></button>
           </div>
         </header>
@@ -353,12 +357,22 @@ const UI = (() => {
     }
     paintUser();
 
+    function paintSchool() {
+      const s = state.school;
+      document.getElementById("schoolShort").textContent = s.short_name || initials(s.name);
+      document.getElementById("schoolName").textContent = s.name || "";
+      const website = document.getElementById("schoolWebsite");
+      website.hidden = !s.website;
+      if (s.website) website.href = s.website;
+    }
+    paintSchool();
+
     async function route() {
       const id = location.hash.replace("#", "") || modules[0].id;
       const mod = modules.find((m) => m.id === id) || modules[0];
       shell.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.id === mod.id));
       document.getElementById("pageTitle").textContent = mod.label;
-      document.title = `${mod.label} | ${MPS_CONFIG.SCHOOL_NAME}`;
+      document.title = `${mod.label} | ${state.school.name || MPS_CONFIG.PRODUCT_NAME}`;
       shell.classList.remove("nav-open");
       const host = document.createElement("div");
       host.className = "stack";
@@ -379,7 +393,7 @@ const UI = (() => {
         .catch(() => null)
         .finally(() => {
           MPS.clearSession();
-          location.replace("index.html");
+          location.replace("login.html");
         });
     });
     window.addEventListener("hashchange", route);
@@ -389,8 +403,9 @@ const UI = (() => {
       .then((data) => {
         ctx.user = data.user;
         state.school = data.school || {};
-        MPS.saveSession({ ...MPS.session(), user: data.user, school: data.school });
+        MPS.saveSession({ ...MPS.session(), user: data.user, school: data.school, home: data.home });
         paintUser();
+        paintSchool();
       })
       .catch(() => null);
   }

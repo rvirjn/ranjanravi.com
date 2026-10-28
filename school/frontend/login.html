@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#1b4d2b">
-  <title>Login | MS Public School</title>
+  <title>Login | School Portal</title>
   <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
   <link rel="stylesheet" href="css/portal.css">
 </head>
@@ -12,23 +12,16 @@
   <div class="login-page">
     <div class="login-card">
       <div class="login-head">
-        <div class="logo">MPS</div>
-        <h1>MS Public School</h1>
-        <p id="roleTitle">Student Login</p>
+        <div class="logo"><i class="fa fa-graduation-cap"></i></div>
+        <h1>School Portal</h1>
+        <p>Login with your User ID</p>
       </div>
       <div class="login-body">
-        <div class="role-switch four">
-          <a href="login.html?role=student" data-role="student"><i class="fa fa-graduation-cap"></i> Student</a>
-          <a href="login.html?role=teacher" data-role="teacher"><i class="fa fa-briefcase"></i> Teacher</a>
-          <a href="login.html?role=principal" data-role="principal"><i class="fa fa-university"></i> Principal</a>
-          <a href="login.html?role=accountant" data-role="accountant"><i class="fa fa-inr"></i> Accounts</a>
-        </div>
-
         <form id="loginForm">
           <div class="form-error" id="error" hidden></div>
           <div class="form-ok" id="notice" hidden></div>
           <div class="field">
-            <label for="login_id" id="idLabel">Admission Number</label>
+            <label for="login_id">User ID</label>
             <input id="login_id" name="login_id" required autocomplete="username" autocapitalize="characters">
           </div>
           <div class="field">
@@ -39,10 +32,10 @@
         </form>
 
         <form id="forgotForm" hidden>
-          <p class="muted small">Enter your ID. If an email is registered, a temporary password will be sent to it.</p>
+          <p class="muted small">Enter your User ID. If an email is registered, a temporary password will be sent to it.</p>
           <div class="form-ok" id="forgotMsg" hidden></div>
           <div class="field">
-            <label for="forgot_id" id="forgotLabel">Admission Number</label>
+            <label for="forgot_id">User ID</label>
             <input id="forgot_id" name="login_id" required autocapitalize="characters">
           </div>
           <button class="btn btn-block" type="submit"><i class="fa fa-envelope-o"></i> Send Temporary Password</button>
@@ -50,10 +43,7 @@
 
         <div class="login-links">
           <a href="#" id="forgotLink">Forgot password?</a>
-          <a href="index.html"><i class="fa fa-home"></i> Portal home</a>
         </div>
-        <div class="demo-hint" id="demoHint"></div>
-        <div class="lang-slot" style="text-align:center;margin-top:12px"></div>
       </div>
     </div>
   </div>
@@ -64,28 +54,12 @@
   <script>
     (function () {
       const params = new URLSearchParams(location.search);
-      const ROLES = {
-        student: { title: "Student / Parent Login", id: "Admission Number", demo: "Demo: <b>MPS2026001</b> / <b>student@123</b>" },
-        teacher: { title: "Teacher Login", id: "Employee ID", demo: "Demo: <b>MPST001</b> / <b>teacher@123</b>" },
-        principal: { title: "Principal Login", id: "Employee ID", demo: "Demo: <b>MPSP001</b> / <b>principal@123</b>" },
-        accountant: { title: "Accountant Login", id: "Employee ID", demo: "Demo: <b>MPSA001</b> / <b>accountant@123</b>" },
-      };
-      const role = ROLES[params.get("role")] ? params.get("role") : "student";
-      const home = `${role}.html`;
-      const labels = ROLES[role];
 
       const existing = MPS.session();
-      if (existing && existing.token && existing.role === role) {
-        location.replace(home);
+      if (existing && existing.token && existing.home && !params.get("expired")) {
+        location.replace(existing.home);
         return;
       }
-
-      document.title = labels.title + " | MS Public School";
-      document.getElementById("roleTitle").textContent = labels.title;
-      document.getElementById("idLabel").textContent = labels.id;
-      document.getElementById("forgotLabel").textContent = labels.id;
-      document.getElementById("demoHint").innerHTML = labels.demo;
-      document.querySelectorAll(".role-switch a").forEach((a) => a.classList.toggle("active", a.dataset.role === role));
 
       const error = document.getElementById("error");
       if (params.get("expired")) {
@@ -102,9 +76,9 @@
         submitBtn.disabled = true;
         try {
           const data = Object.fromEntries(new FormData(loginForm).entries());
-          const result = await MPS.post("/auth/login", { ...data, role });
-          MPS.saveSession({ token: result.token, role: result.role, user: result.user });
-          location.replace(home);
+          const result = await MPS.post("/auth/login", data);
+          MPS.saveSession({ token: result.token, role: result.role, home: result.home, user: result.user, school: result.school });
+          location.replace(result.home);
         } catch (err) {
           error.textContent = err.message;
           error.hidden = false;
@@ -125,7 +99,7 @@
         e.preventDefault();
         const msg = document.getElementById("forgotMsg");
         try {
-          const result = await MPS.post("/auth/password/forgot", { role, login_id: document.getElementById("forgot_id").value });
+          const result = await MPS.post("/auth/password/forgot", { login_id: document.getElementById("forgot_id").value });
           msg.textContent = result.message;
         } catch (err) {
           msg.textContent = err.message;

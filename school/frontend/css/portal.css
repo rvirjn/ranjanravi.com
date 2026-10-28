@@ -38,7 +38,7 @@ p { margin: 0 0 8px; }
 .small { font-size: 13px; }
 .nowrap { white-space: nowrap; }
 .right { text-align: right; }
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 .pre { white-space: pre-wrap; }
 
 /* ---------- Buttons & inputs ---------- */
@@ -341,28 +341,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .toast.error { background: var(--danger); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* ---------- Landing & login ---------- */
-.landing { min-height: 100vh; display: flex; flex-direction: column; background: radial-gradient(circle at 15% 10%, #dff1d6 0, transparent 45%), linear-gradient(160deg, #f3f9f2, #e3efe6); }
-.landing-head { display: flex; align-items: center; gap: 14px; padding: 18px 28px; }
-.landing-head .logo { width: 48px; height: 48px; border-radius: 12px; background: var(--green-600); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; }
-.landing-head strong { display: block; font-size: 18px; }
-.landing-head span { font-size: 13px; color: var(--muted); }
-.landing-head .spacer { flex: 1; }
-.landing-hero { text-align: center; padding: 32px 20px 10px; }
-.landing-hero h1 { font-size: 34px; color: var(--green-900); }
-.landing-hero p { color: var(--muted); font-size: 17px; margin-top: 8px; }
-.role-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 340px)); gap: 22px; justify-content: center; padding: 26px 20px; }
-@media (max-width: 760px) { .role-cards { grid-template-columns: 1fr; } .landing-hero h1 { font-size: 26px; } }
-.role-card { background: #fff; border-radius: 16px; padding: 26px; box-shadow: var(--shadow); border: 1px solid #e5ede7; display: flex; flex-direction: column; gap: 10px; color: var(--ink); transition: transform .15s, box-shadow .15s; }
-.role-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(16, 40, 24, .12); text-decoration: none; }
-.role-card .role-icon { width: 58px; height: 58px; border-radius: 14px; background: var(--green-100); color: var(--green-600); display: flex; align-items: center; justify-content: center; font-size: 26px; }
-.role-card.teacher .role-icon { background: var(--info-bg); color: var(--info); }
-.role-card h2 { font-size: 21px; }
-.role-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
-.role-card .btn { margin-top: auto; }
-.landing-info { max-width: 900px; margin: 0 auto 30px; padding: 0 20px; width: 100%; }
-.landing-foot { text-align: center; color: var(--muted); font-size: 13px; padding: 18px; margin-top: auto; }
-
+/* ---------- Login ---------- */
 .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 14px; background: linear-gradient(160deg, #f3f9f2, #dcebdf); }
 .login-card { width: 100%; max-width: 410px; background: #fff; border-radius: 16px; box-shadow: 0 10px 40px rgba(16, 40, 24, .12); overflow: hidden; }
 .login-card .login-head { background: linear-gradient(120deg, var(--green-700), var(--green-500)); color: #fff; padding: 24px; text-align: center; }
@@ -370,13 +349,6 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .login-card .login-head h1 { font-size: 21px; }
 .login-card .login-head p { margin: 4px 0 0; color: #e3f4e5; font-size: 14px; }
 .login-body { padding: 22px 24px 26px; }
-.role-switch { display: grid; grid-template-columns: 1fr 1fr; background: #eef3ef; border-radius: 10px; padding: 4px; margin-bottom: 18px; }
-.role-switch a { text-align: center; padding: 8px; border-radius: 8px; font-weight: 600; color: var(--muted); text-decoration: none; }
-.role-switch.four { grid-template-columns: repeat(4, 1fr); }
-.role-switch.four a { font-size: 13px; padding: 8px 4px; }
-.role-switch.four a .fa { display: block; margin-bottom: 2px; }
-.role-switch a.active { background: #fff; color: var(--green-700); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
-.demo-hint { background: var(--info-bg); color: #24477a; border-radius: 8px; padding: 9px 12px; font-size: 13px; margin-top: 16px; }
 .login-links { display: flex; justify-content: space-between; margin-top: 14px; font-size: 14px; }
 
 /* ---------- ID card / print ---------- */

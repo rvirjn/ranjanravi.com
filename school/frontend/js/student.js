@@ -695,7 +695,7 @@
 
   // ---------- Documents ----------
   function idCardHtml(s, classLabel, school) {
-    return `<div class="id-card"><div class="id-top"><b>${esc(school.name || MPS_CONFIG.SCHOOL_NAME)}</b><span>${esc(school.address || "")}</span></div>
+    return `<div class="id-card"><div class="id-top"><b>${esc(school.name || "")}</b><span>${esc(school.address || "")}</span></div>
       <div class="id-body"><div class="id-photo">${UI.initials(s.name)}</div><table>
         <tr><td colspan="2"><b style="font-size:15px">${esc(s.name)}</b></td></tr>
         <tr><td class="muted">Adm. No.</td><td>${esc(s.admission_no)}</td></tr>
