@@ -409,6 +409,50 @@
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => confirm("Remove?") && (await run(() => MPS.del(`/principal/events/${b.dataset.del}`))) && events(view, ctx)));
   }
 
+  // ---------- Classes ----------
+  async function classes(view, ctx) {
+    const d = await MPS.get("/principal/classes");
+    const FORM = (c) => [
+      { name: "name", label: "Class name", required: true, value: c.name, placeholder: "e.g. Class 8" },
+      { name: "section", label: "Section", value: c.section ?? "A" },
+      { name: "room", label: "Room", value: c.room },
+      { name: "subjects", label: "Subjects (comma separated)", value: (c.subjects || []).join(", "), placeholder: "English, Hindi, Mathematics" },
+      { name: "monthly_fee", label: "Monthly tuition fee (Rs)", type: "number", min: 0, value: c.monthly_fee ?? 0 },
+      { name: "whatsapp_group", label: "WhatsApp group name", value: c.whatsapp_group, hint: "Exact name of the class WhatsApp group" },
+      { name: "class_teacher_id", label: "Class teacher", type: "select", placeholder: "Not assigned", options: d.teachers.map((t) => ({ value: t.id, label: t.name })), value: c.class_teacher_id },
+      { name: "order", label: "Display order", type: "number", value: c.order, hint: "Lower numbers are listed first" },
+    ];
+    view.innerHTML = card(`Classes (${d.classes.length})`, table(
+      [
+        { label: "Class", render: (c) => `<b>${esc(c.name)}</b><div class="small muted">Section ${esc(c.section || "-")}${c.room ? ` &middot; ${esc(c.room)}` : ""}</div>` },
+        { label: "Subjects", render: (c) => `<span class="small">${esc((c.subjects || []).join(", "))}</span>` },
+        { label: "Class teacher", render: (c) => esc(c.class_teacher_name || "-") },
+        { label: "Students", key: "student_count", className: "right" },
+        { label: "Monthly fee", render: (c) => money(c.monthly_fee), className: "right" },
+        { label: "", className: "right nowrap", render: (c) => `<button class="btn btn-light btn-sm" data-edit="${c.id}"><i class="fa fa-pencil"></i></button>
+          <button class="btn btn-light btn-sm" data-del="${c.id}" title="Remove"><i class="fa fa-trash"></i></button>` },
+      ],
+      d.classes,
+      { empty: "No classes yet. Add the first class." }
+    ), { icon: "fa-th-large", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Add Class</button>' });
+    view.querySelector("#add").addEventListener("click", () => openForm({
+      title: "Add Class", fields: FORM({}), submitLabel: "Add",
+      onSubmit: async (v) => { const r = await MPS.post("/principal/classes", v); classes(view, ctx); return r; },
+    }));
+    view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      const c = d.classes.find((x) => x.id === b.dataset.edit);
+      openForm({
+        title: `Edit ${c.name}`, fields: FORM(c),
+        onSubmit: async (v) => { const r = await MPS.post(`/principal/classes/${c.id}`, v); classes(view, ctx); return r; },
+      });
+    }));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      const c = d.classes.find((x) => x.id === b.dataset.del);
+      if (!confirm(`Remove ${c.name}? Its timetable is removed too. Classes with students cannot be removed.`)) return;
+      if (await run(() => MPS.del(`/principal/classes/${c.id}`))) classes(view, ctx);
+    }));
+  }
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
@@ -435,6 +479,7 @@
       { id: "receipts", label: "Receipts", icon: "fa-file-text-o", group: "Fees", render: (v, c) => Accounts.receipts(v, c) },
       { id: "intimations", label: "Parent Payments", icon: "fa-bell", group: "Fees", render: Accounts.intimations },
       { id: "reminders", label: "Fee Reminders", icon: "fa-clock-o", group: "Fees", render: Accounts.reminders },
+      { id: "classes", label: "Classes", icon: "fa-th-large", group: "Settings", render: (v, c) => classes(v, c) },
       { id: "settings", label: "Classes & Fees", icon: "fa-sliders", group: "Settings", render: Accounts.settings },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],

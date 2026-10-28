@@ -359,8 +359,8 @@ const UI = (() => {
 
     function paintSchool() {
       const s = state.school;
-      document.getElementById("schoolShort").textContent = s.short_name || initials(s.name);
-      document.getElementById("schoolName").textContent = s.name || "";
+      document.getElementById("schoolShort").textContent = s.short_name || (s.name ? initials(s.name) : "ERP");
+      document.getElementById("schoolName").textContent = s.name || MPS_CONFIG.PRODUCT_NAME;
       const website = document.getElementById("schoolWebsite");
       website.hidden = !s.website;
       if (s.website) website.href = s.website;

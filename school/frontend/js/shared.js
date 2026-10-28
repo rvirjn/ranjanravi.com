@@ -357,7 +357,7 @@
   // WhatsApp connection, groups and message log (principal / accountant)
   // =====================================================================
   const MODE_TEXT = {
-    dry_run: "Dry run: messages are saved below but NOT sent. Set MPS_WHATSAPP_MODE=test (to your own number) or live in docker-compose.",
+    dry_run: "Dry run: messages are saved below but NOT sent. Set SCHOOL_WHATSAPP_MODE=test (to your own number) or live in docker-compose.",
     test: "Test mode: every message is delivered to the test number instead of parents / groups.",
     live: "Live: messages go to parents and class groups.",
   };
@@ -471,6 +471,63 @@
     view.querySelector("#month").addEventListener("change", (e) => attendanceReport(view, ctx, { classId, month: e.target.value }));
   }
 
-  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport });
+  // ---------- Office staff accounts (admin -> accountants, accountant -> principals) ----------
+  /**
+   * opts: { title, noun, icon, rows, defaultPassword, extraFields, extraColumns,
+   *         create(values), update(row, values), resetPassword(row), remove(row), reload() }
+   */
+  function staffAccounts(view, opts) {
+    const FORM = (s) => [
+      ...(opts.extraFields ? opts.extraFields(s) : []),
+      { name: "name", label: "Name", required: true, value: s.name },
+      { name: "designation", label: "Designation", value: s.designation },
+      { name: "phone", label: "Mobile", required: true, value: s.phone },
+      { name: "email", label: "Email", type: "email", value: s.email },
+    ];
+    view.innerHTML = card(`${opts.title} (${opts.rows.length})`, table(
+      [
+        { label: opts.noun, render: (s) => `<b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.employee_id)} &middot; ${esc(s.designation || "")}</div>` },
+        ...(opts.extraColumns || []),
+        { label: "Mobile", key: "phone" },
+        { label: "Email", key: "email" },
+        { label: "", className: "right", render: (s) => `<button class="btn btn-light btn-sm" data-edit="${esc(s.key || s.id)}"><i class="fa fa-pencil"></i></button>` },
+      ],
+      opts.rows,
+      { empty: `No ${opts.noun.toLowerCase()} added yet.` }
+    ), { icon: opts.icon, flush: true, actions: `<button class="btn btn-sm" id="addStaff"><i class="fa fa-user-plus"></i> Add ${esc(opts.noun)}</button>` });
+
+    view.querySelector("#addStaff").addEventListener("click", () => openForm({
+      title: `Add ${opts.noun}`, intro: `Login ID is created automatically. Default password: ${esc(opts.defaultPassword)}`,
+      fields: FORM({}), submitLabel: "Add",
+      onSubmit: async (v) => { const r = await opts.create(v); opts.reload(); return r; },
+    }));
+    view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      const s = opts.rows.find((x) => String(x.key || x.id) === b.dataset.edit);
+      const m = openForm({
+        title: `Edit ${s.name}`,
+        intro: `Login ID: <b>${esc(s.employee_id)}</b>`,
+        fields: [...FORM(s).filter((f) => !f.createOnly), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Inactive" }], value: String(s.active !== false) }],
+        onSubmit: async (v) => { const r = await opts.update(s, v); opts.reload(); return r; },
+      });
+      const actions = m.body.querySelector(".modal-actions");
+      const reset = document.createElement("button");
+      reset.type = "button";
+      reset.className = "btn btn-light btn-sm";
+      reset.textContent = "Reset password";
+      reset.addEventListener("click", () => confirm(`Reset password to ${opts.defaultPassword}?`) && run(() => opts.resetPassword(s)));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "btn btn-danger btn-sm";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", async () => {
+        if (!confirm(`Remove ${s.name} (${s.employee_id})? They will no longer be able to log in.`)) return;
+        if (await run(() => opts.remove(s))) { m.close(); opts.reload(); }
+      });
+      actions.prepend(reset);
+      actions.prepend(remove);
+    }));
+  }
+
+  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts });
   Object.assign(UI, { receiptHtml, showReceipt, progressCardHtml, showProgressCard, admitCardHtml, CODE_LABEL });
 })();

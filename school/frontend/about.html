@@ -7,7 +7,7 @@
   <title>About & Features | School Management Portal (ERP)</title>
   <meta name="description" content="School Management Portal (ERP): attendance, homework, results, fees and WhatsApp updates for students, parents, teachers, principal and accounts.">
   <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/portal.css?v=20261029c">
+  <link rel="stylesheet" href="css/portal.css?v=20261029d">
 </head>
 <body>
   <main class="doc-page">
@@ -35,6 +35,22 @@
       <li><b>Save teachers' time</b> with quick attendance, marks entry, report cards and class communication.</li>
     </ul>
 
+    <h2>Who adds whom</h2>
+    <p>Everything is set up from the portal; nobody signs up on their own.</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Account / item</th><th>Added, updated and removed by</th><th>Login ID</th><th>Default password</th></tr></thead>
+      <tbody>
+        <tr><td><b>School</b></td><td>Admin</td><td>School code, e.g. <code>ABC</code></td><td>-</td></tr>
+        <tr><td><b>Accountant</b></td><td>Admin</td><td><code>ABCA001</code></td><td><code>accountant@123</code></td></tr>
+        <tr><td><b>Principal</b></td><td>Accountant</td><td><code>ABCP001</code></td><td><code>principal@123</code></td></tr>
+        <tr><td><b>Classes</b></td><td>Principal</td><td>-</td><td>-</td></tr>
+        <tr><td><b>Teachers</b></td><td>Principal</td><td><code>ABCT001</code></td><td><code>teacher@123</code></td></tr>
+        <tr><td><b>Students</b></td><td>Principal (admissions)</td><td><code>ABC2026001</code></td><td><code>student@123</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Every login ID starts with the school code. The person who adds an account can also reset its password; users can
+      change their own password under <b>Change Password</b>.</p>
+
     <h2 id="pc">Using the portal on a PC or laptop</h2>
     <ul>
       <li>Open <a href="login.html">ranjanravi.com/school/frontend/login.html</a> in Google Chrome, Microsoft Edge, Firefox
@@ -48,6 +64,17 @@
       <li>On a shared or office computer, always click <b>Logout</b> when you finish.</li>
       <li>If a page looks out of date after an update, press <b>Ctrl + F5</b> to reload it.</li>
     </ul>
+
+    <h2>What the admin can do</h2>
+    <p>The admin is the owner of the installation and is not part of any school. The admin logs in on the same login page
+      with the admin User ID.</p>
+    <div class="table-wrap"><table class="table">
+      <tbody>
+        <tr><td><b>Schools</b></td><td>Add a school (code, name, address, phones, email, website, academic year, UPI and bank details for fees, WhatsApp number and message signature, social links); edit its details; make it inactive (nobody of that school can log in) or remove it with all its data</td></tr>
+        <tr><td><b>Accountants</b></td><td>Add, edit, deactivate and remove each school's accountant; reset the accountant's password</td></tr>
+        <tr><td><b>Account</b></td><td>Change password</td></tr>
+      </tbody>
+    </table></div>
 
     <h2>What a student / parent can do</h2>
     <div class="table-wrap"><table class="table">
@@ -80,11 +107,12 @@
         <tr><td><b>Overview</b></td><td>Whole-school dashboard: students and teachers present, fee collected and dues, today's classes, pending approvals, upcoming events</td></tr>
         <tr><td><b>Daily</b></td><td>Mark teacher attendance; mark and check student attendance for every class; post HW/CW for any class</td></tr>
         <tr><td><b>Reports</b></td><td>Student attendance report; teacher attendance report; class-wise and exam-wise results</td></tr>
-        <tr><td><b>People</b></td><td>Students and admissions (a new admission creates the student's login); teachers (add, edit, reset passwords); approvals for teacher leave, lesson plans, certificate requests, complaints, profile changes and parent payment messages</td></tr>
+        <tr><td><b>People</b></td><td>Students and admissions (a new admission creates the student's login); teachers (add, edit, deactivate, reset passwords); approvals for teacher leave, lesson plans, certificate requests, complaints, profile changes and parent payment messages</td></tr>
         <tr><td><b>Academics</b></td><td>Exams, datesheets and admit cards</td></tr>
         <tr><td><b>Communication</b></td><td>Notices (optionally sent to class WhatsApp groups); events and holidays; photo gallery; WhatsApp connection, message log and test messages</td></tr>
         <tr><td><b>Fees</b></td><td>Fee overview; collect fees and print receipts; dues and defaulters; receipts; parent payment messages; fee reminders</td></tr>
-        <tr><td><b>Settings</b></td><td>Classes, monthly fees, class teachers and WhatsApp group names</td></tr>
+        <tr><td><b>Settings</b></td><td><b>Classes</b>: add, edit and remove classes (name, section, room, subjects, monthly fee, WhatsApp group, class teacher, display order; a class with students cannot be removed until they are moved); transport fees</td></tr>
+        <tr><td><b>Account</b></td><td>Change password; English / Hindi</td></tr>
       </tbody>
     </table></div>
 
@@ -94,7 +122,7 @@
         <tr><td><b>Overview</b></td><td>Dashboard with today's and this month's collection, total and overdue dues, defaulters and recent receipts</td></tr>
         <tr><td><b>Fees</b></td><td>Student fee update: collect month-wise dues and other items (admission, development, exam, dress, books, etc.) and generate receipts (sent to parents on WhatsApp); receipts search and reprint; dues and defaulters by class; verify "I have paid" messages from parents; send fee notices and reminders</td></tr>
         <tr><td><b>Reports</b></td><td>Collection report for any date range: day-wise totals, collection by fee head and by payment mode</td></tr>
-        <tr><td><b>Settings</b></td><td>Fee structure and fee rules; WhatsApp connection and message log</td></tr>
+        <tr><td><b>Settings</b></td><td><b>Principal</b>: add, edit, deactivate and remove the school's principal and reset the principal's password; fee structure and fee rules; WhatsApp connection and message log</td></tr>
         <tr><td><b>Account</b></td><td>Change password; English / Hindi</td></tr>
       </tbody>
     </table></div>

@@ -1,5 +1,5 @@
 const MPS = (() => {
-  const SESSION_KEY = "mps_session";
+  const SESSION_KEY = "school_session";
 
   function session() {
     try {

@@ -27,7 +27,7 @@ const Accounts = (() => {
         ${card("Fee Rules", kv([["Collecting now", `${d.rules.billable_month_label} fee`], ["Collection window", d.rules.collection_window], ["Late fee", d.rules.late_fee_rule], ["WhatsApp reminders", d.rules.reminders]]), { icon: "fa-info-circle" })}
       </div>
       ${card("Recent Receipts", receiptTable(d.recent_receipts), { icon: "fa-file-text-o", flush: true, actions: '<a class="small" href="#receipts">All receipts</a>' })}`;
-    view.querySelectorAll("[data-class]").forEach((a) => a.addEventListener("click", () => sessionStorage.setItem("mps_collect_class", a.dataset.class)));
+    view.querySelectorAll("[data-class]").forEach((a) => a.addEventListener("click", () => sessionStorage.setItem("school_collect_class", a.dataset.class)));
     bindReceipts(view);
   }
 
@@ -51,14 +51,14 @@ const Accounts = (() => {
 
   // ---------- Fee collection: class -> student -> collect ----------
   async function collect(view, ctx, state = {}) {
-    const preset = sessionStorage.getItem("mps_collect_class");
+    const preset = sessionStorage.getItem("school_collect_class");
     if (preset) {
-      sessionStorage.removeItem("mps_collect_class");
+      sessionStorage.removeItem("school_collect_class");
       state = { classId: preset };
     }
-    const presetStudent = sessionStorage.getItem("mps_collect_student");
+    const presetStudent = sessionStorage.getItem("school_collect_student");
     if (presetStudent) {
-      sessionStorage.removeItem("mps_collect_student");
+      sessionStorage.removeItem("school_collect_student");
       state = JSON.parse(presetStudent);
     }
     if (state.studentId) return studentFee(view, ctx, state);
@@ -264,7 +264,7 @@ const Accounts = (() => {
         run(() => MPS.post("/accounts/reminders", { kind: "overdue", student_ids: d.students.map((s) => s.id) })));
     view.querySelectorAll("[data-student]").forEach((b) =>
       b.addEventListener("click", () => {
-        sessionStorage.setItem("mps_collect_student", JSON.stringify({ studentId: b.dataset.student }));
+        sessionStorage.setItem("school_collect_student", JSON.stringify({ studentId: b.dataset.student }));
         location.hash = "collect";
       })
     );
@@ -288,7 +288,7 @@ const Accounts = (() => {
     ), { icon: "fa-bell", flush: true });
     view.querySelectorAll("[data-record]").forEach((b) =>
       b.addEventListener("click", () => {
-        sessionStorage.setItem("mps_collect_student", JSON.stringify({ studentId: b.dataset.record }));
+        sessionStorage.setItem("school_collect_student", JSON.stringify({ studentId: b.dataset.record }));
         location.hash = "collect";
       })
     );
