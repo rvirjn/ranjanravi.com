@@ -351,13 +351,12 @@ const Accounts = (() => {
   }
 
   // ---------- Fee structure ----------
-  async function settings(view, ctx) {
+  async function settings(view) {
     const d = await MPS.get("/principal/classes");
-    view.innerHTML = `${card("Monthly Tuition Fee & WhatsApp Group", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th>${ctx.role === "principal" ? "<th>Class teacher</th>" : ""}<th></th></tr></thead><tbody>
+    view.innerHTML = `${card("Monthly Tuition Fee & WhatsApp Group", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th><th></th></tr></thead><tbody>
         ${d.classes.map((c) => `<tr data-cls="${c.id}"><td><b>${esc(c.name)}</b></td><td>${c.student_count}</td>
           <td><input type="number" class="amount-input" data-f="monthly_fee" value="${c.monthly_fee}" min="0"></td>
           <td><input data-f="whatsapp_group" value="${esc(c.whatsapp_group || "")}" placeholder="exact group name"></td>
-          ${ctx.role === "principal" ? `<td><select data-f="class_teacher_id">${d.teachers.map((t) => `<option value="${t.id}" ${t.id === c.class_teacher_id ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select></td>` : ""}
           <td><button class="btn btn-sm" data-save="${c.id}">Save</button></td></tr>`).join("")}</tbody></table></div>`, { icon: "fa-th-large", flush: true })}
       ${card("Transport Fee (monthly)", table([
         { label: "Route", render: (r) => `<b>${esc(r.route_name)}</b><div class="small muted">${esc(r.bus_no)}</div>` },
