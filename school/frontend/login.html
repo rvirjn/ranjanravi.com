@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="image/favicon-192.png">
   <link rel="apple-touch-icon" href="image/favicon-192.png">
   <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/portal.css?v=20261029m">
+  <link rel="stylesheet" href="css/portal.css?v=20261029n">
 </head>
 <body>
   <div class="login-page">
@@ -49,6 +49,12 @@
           <a href="about.html">About &amp; Features</a>
           <a href="privacy-policy.html">Privacy Policy</a>
         </div>
+        <div class="login-apk" id="apkDownload">
+          <a class="btn btn-light btn-block" href="download/RV-Smart-School-ERP.apk" download="RV-Smart-School-ERP.apk">
+            <i class="fa fa-android"></i> Download Android app
+          </a>
+          <p class="muted">RV-Smart-School-ERP.apk · version 1.0.0</p>
+        </div>
       </div>
     </div>
   </div>
@@ -59,6 +65,10 @@
   <script>
     (function () {
       const params = new URLSearchParams(location.search);
+
+      if (navigator.userAgent.indexOf("MPSPortalApp") !== -1) {
+        document.getElementById("apkDownload").hidden = true;
+      }
 
       const existing = MPS.session();
       if (existing && existing.token && existing.home && !params.get("expired")) {

@@ -50,7 +50,9 @@ const UI = (() => {
   }
 
   function avatar(name, photo) {
-    return photo ? `<img src="${esc(fileUrl(photo))}" alt="" class="avatar-img">` : esc(initials(name));
+    if (!photo) return esc(initials(name));
+    const letters = esc(initials(name));
+    return `<img src="${esc(fileUrl(photo))}" alt="${letters}" class="avatar-img" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
   }
 
   async function uploadFile(file, { icon = false } = {}) {
