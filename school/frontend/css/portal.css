@@ -376,8 +376,6 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .login-card .login-head p { margin: 4px 0 0; color: #e3f4e5; font-size: 14px; }
 .login-body { padding: 22px 24px 26px; }
 .login-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 14px; margin-top: 14px; font-size: 14px; }
-.login-apk { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; }
-.login-apk p { margin: 8px 0 0; font-size: 12px; }
 
 /* ---------- About & privacy policy pages ---------- */
 .doc-page { max-width: 780px; margin: 0 auto; padding: 32px 20px 48px; background: #fff; min-height: 100vh; }

@@ -69,3 +69,7 @@ saptarishi/backend/database/users.json
 # System Files
 .DS_Store
 Thumbs.db
+
+# Android packages stay off GitHub. Share the school app from Google Drive.
+*.apk
+*.aab
