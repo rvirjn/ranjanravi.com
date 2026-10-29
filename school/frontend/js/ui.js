@@ -136,7 +136,7 @@ const UI = (() => {
   }
 
   const empty = (text, icon = "fa-inbox") => `<div class="empty"><i class="fa ${icon}"></i>${esc(text)}</div>`;
-  const loading = () => `<div class="loading"><i class="fa fa-spinner fa-spin"></i> Loading...</div>`;
+  const loading = () => `<div class="loading"><span class="spin-ccw" aria-hidden="true"></span> Loading...</div>`;
   const errorBox = (message) => `<div class="error-box"><i class="fa fa-exclamation-circle"></i> ${esc(message)}</div>`;
 
   function table(columns, rows, opts = {}) {
@@ -287,7 +287,7 @@ const UI = (() => {
         }
         if (!files.length) return;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving photo';
+        btn.innerHTML = '<span class="spin-ccw" aria-hidden="true"></span> Saving photo';
         try {
           const file = await uploadFile(files[0], { icon: true });
           form.querySelector(`[name="${btn.dataset.photoFor}"]`).value = file;

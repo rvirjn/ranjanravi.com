@@ -225,23 +225,22 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .empty { padding: 28px 18px; text-align: center; color: var(--muted); }
 .empty .fa { font-size: 28px; display: block; margin-bottom: 8px; color: #b7c7bc; }
 .loading { padding: 40px; text-align: center; color: var(--muted); }
-@keyframes fa-spin-ccw {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-360deg); }
-}
-.fa-spinner.fa-spin {
+.spin-ccw {
   display: inline-block;
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.16em solid #d5e2da;
-  border-right-color: currentColor;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
   border-radius: 50%;
-  vertical-align: -0.15em;
-  box-sizing: border-box;
-  -webkit-animation: fa-spin-ccw 0.7s linear infinite !important;
-  animation: fa-spin-ccw 0.7s linear infinite !important;
+  vertical-align: -6px;
+  background: conic-gradient(from 90deg, #1b4d2b 0 80deg, rgba(27, 77, 43, 0) 80deg 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent 64%, #000 65%);
+  mask: radial-gradient(farthest-side, transparent 64%, #000 65%);
+  animation: spin-ccw 0.7s linear infinite;
 }
-.fa-spinner.fa-spin:before { content: none !important; }
+@keyframes spin-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
 .error-box { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius); padding: 18px; }
 
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -369,6 +368,11 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .fee-check { width: 18px; height: 18px; }
 .amount-input { width: 110px; }
 .lang-btn { font-weight: 700; }
+.login-lang { display: flex; justify-content: center; margin-top: 14px; }
+.login-lang .lang-btn { background: #fff; color: var(--green-800); border-color: transparent; }
+.doc-toolbar { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px; }
+html.lang-hi .en-copy { display: none !important; }
+html.lang-hi .hi-copy { display: block !important; }
 
 /* ---------- Modal & toast ---------- */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 25, 15, .45); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 40px 14px; overflow-y: auto; }

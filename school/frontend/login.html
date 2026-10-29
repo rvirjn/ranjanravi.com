@@ -9,7 +9,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="image/favicon-192.png">
   <link rel="apple-touch-icon" href="image/favicon-192.png">
   <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/portal.css?v=20261029q">
+  <link rel="stylesheet" href="css/portal.css?v=20261029r">
+  <script>try{if(localStorage.getItem("school_lang")==="hi")document.documentElement.classList.add("lang-hi")}catch(e){}</script>
 </head>
 <body>
   <div class="login-page">
@@ -18,6 +19,7 @@
         <div class="logo"><img src="image/campus-badge.png" alt="RV Smart School ERP"></div>
         <h1>RV Smart School (ERP)</h1>
         <p>Login with your User ID</p>
+        <div class="lang-slot login-lang"></div>
       </div>
       <div class="login-body">
         <form id="loginForm">
@@ -61,7 +63,7 @@
 
   <script src="js/config.js?v=20261029m"></script>
   <script src="js/api.js?v=20261029d"></script>
-  <script src="js/i18n.js?v=20261029m"></script>
+  <script src="js/i18n.js?v=20261029hi"></script>
   <script>
     (function () {
       const params = new URLSearchParams(location.search);
@@ -108,7 +110,10 @@
         const showForgot = forgotForm.hidden;
         forgotForm.hidden = !showForgot;
         loginForm.hidden = showForgot;
-        forgotLink.textContent = showForgot ? "Back to login" : "Forgot password?";
+        const hi = window.MPS_LANG === "hi";
+        forgotLink.textContent = showForgot
+          ? (hi ? "लॉग इन पर वापस" : "Back to login")
+          : (hi ? "पासवर्ड भूल गए?" : "Forgot password?");
       });
       forgotForm.addEventListener("submit", async (e) => {
         e.preventDefault();
