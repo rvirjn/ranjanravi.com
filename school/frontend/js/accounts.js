@@ -245,7 +245,7 @@ const Accounts = (() => {
     view.innerHTML = `<div class="toolbar"><div class="filters"><label style="margin:0">Pending for</label>
         <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select></div>
         <div class="btn-group">${badge(`${d.students.length} students · ${money(d.total_due)}`, "danger")}
-        ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> Send reminder to all</button>' : ""}</div></div>
+        ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send reminder to all</button>' : ""}</div></div>
       ${card("Fee Defaulters", table(
         [
           { label: "Class", key: "class_label" },
@@ -260,8 +260,11 @@ const Accounts = (() => {
     view.querySelector("#min").addEventListener("change", (e) => defaulters(view, ctx, Number(e.target.value)));
     const remind = view.querySelector("#remind");
     if (remind)
-      remind.addEventListener("click", () => confirm(`Send WhatsApp overdue reminder to ${d.students.length} families?`) &&
-        run(() => MPS.post("/accounts/reminders", { kind: "overdue", student_ids: d.students.map((s) => s.id) })));
+      remind.addEventListener("click", () => UI.whatsappPreview({
+        title: "View & Send reminder to all",
+        fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind: "overdue", student_ids: d.students.map((s) => s.id) }),
+        send: (payload) => MPS.post("/accounts/reminders", { kind: "overdue", ...payload }),
+      }));
     view.querySelectorAll("[data-student]").forEach((b) =>
       b.addEventListener("click", () => {
         sessionStorage.setItem("school_collect_student", JSON.stringify({ studentId: b.dataset.student }));
@@ -318,13 +321,17 @@ const Accounts = (() => {
     ];
     view.innerHTML = `${card("Automatic Rules", kv([["Collecting now", `${d.rules.billable_month_label} fee`], ["Window", d.rules.collection_window], ["Late fee", d.rules.late_fee_rule], ["Schedule", d.rules.reminders]]), { icon: "fa-clock-o" })}
       <div class="grid grid-3">${kinds
-        .map((k) => card(k.title, `<p class="small">${k.text}</p><button class="btn btn-sm" data-kind="${k.kind}"><i class="fa fa-whatsapp"></i> Send now</button>`, { icon: k.icon }))
+        .map((k) => card(k.title, `<p class="small">${k.text}</p><button class="btn btn-sm" data-kind="${k.kind}"><i class="fa fa-whatsapp"></i> View &amp; Send now</button>`, { icon: k.icon }))
         .join("")}</div>
       ${card("Job History", table([{ label: "Job", key: "id" }, { label: "Ran on", render: (r) => fmtDateTime(r.ran_on) },
         { label: "Result", render: (r) => `<span class="small">${esc(typeof r.result === "string" ? r.result : (r.result && r.result.summary) || JSON.stringify(r.result))}</span>` }],
         d.runs, { empty: "No jobs run yet." }), { icon: "fa-history", flush: true, actions: '<button class="btn btn-light btn-sm" id="runJobs">Run daily check now</button>' })}`;
     view.querySelectorAll("[data-kind]").forEach((b) =>
-      b.addEventListener("click", () => confirm("Send this WhatsApp message to all matching parents now?") && run(() => MPS.post("/accounts/reminders", { kind: b.dataset.kind })))
+      b.addEventListener("click", () => UI.whatsappPreview({
+        title: "View & Send now",
+        fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind: b.dataset.kind }),
+        send: (payload) => MPS.post("/accounts/reminders", { kind: b.dataset.kind, ...payload }),
+      }))
     );
     view.querySelector("#runJobs").addEventListener("click", async () => (await run(() => MPS.post("/accounts/jobs/run"))) && reminders(view, ctx));
   }

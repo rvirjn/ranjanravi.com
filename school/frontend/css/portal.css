@@ -345,7 +345,8 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 14px; background: linear-gradient(160deg, #f3f9f2, #dcebdf); }
 .login-card { width: 100%; max-width: 410px; background: #fff; border-radius: 16px; box-shadow: 0 10px 40px rgba(16, 40, 24, .12); overflow: hidden; }
 .login-card .login-head { background: linear-gradient(120deg, var(--green-700), var(--green-500)); color: #fff; padding: 24px; text-align: center; }
-.login-card .login-head .logo { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 14px; background: #fff; color: var(--green-700); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+.login-card .login-head .logo { width: 132px; height: 132px; margin: 0 auto 12px; border-radius: 50%; background: transparent; overflow: hidden; display: block; }
+.login-card .login-head .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .login-card .login-head h1 { font-size: 21px; }
 .login-card .login-head p { margin: 4px 0 0; color: #e3f4e5; font-size: 14px; }
 .login-body { padding: 22px 24px 26px; }

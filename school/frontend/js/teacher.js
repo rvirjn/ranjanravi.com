@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc, run } = UI;
+  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc, run, eventSpan } = UI;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -66,7 +66,7 @@
           { icon: "fa-envelope-o", flush: true, actions: '<a class="small" href="#messages">Inbox</a>' })}
         ${card("Notices", list(d.notices, (n) => `<li>${dateChip(n.date)}<div class="grow"><div class="title">${esc(n.title)}</div><div class="meta">${esc(n.posted_by)}</div></div></li>`, "No notices.", "fa-bullhorn"),
           { icon: "fa-bullhorn", flush: true, actions: '<a class="small" href="#notices">All</a>' })}
-        ${card("Events & Holidays", list(d.events, (e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${e.type === "holiday" ? "Holiday" : "Event"}</div></div></li>`, "No upcoming events.", "fa-calendar"),
+        ${card("Events & Holidays", list(d.events, (e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type === "holiday" ? "Holiday" : "Event"}</div></div></li>`, "No upcoming events.", "fa-calendar"),
           { icon: "fa-calendar", flush: true, actions: '<a class="small" href="#events">Calendar</a>' })}
       </div>`;
   }
@@ -297,9 +297,13 @@
           { label: "Due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
         ],
         d.students
-      ), { icon: "fa-inr", flush: true, actions: due.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> Send fee reminder</button>' : "" })}`;
+      ), { icon: "fa-inr", flush: true, actions: due.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send fee reminder</button>' : "" })}`;
     const remind = view.querySelector("#remind");
-    if (remind) remind.addEventListener("click", () => confirm(`Send WhatsApp fee reminder to parents of ${due.length} student(s)?`) && run(() => MPS.post("/teacher/fee-dues/remind", { student_ids: due.map((s) => s.id) })));
+    if (remind) remind.addEventListener("click", () => UI.whatsappPreview({
+      title: "View & Send fee reminder",
+      fetchPreview: () => MPS.post("/teacher/fee-dues/remind/preview", { student_ids: due.map((s) => s.id) }),
+      send: (payload) => MPS.post("/teacher/fee-dues/remind", payload),
+    }));
   }
 
   // ---------- My attendance ----------
@@ -696,32 +700,68 @@
 
   // ---------- Notices ----------
   async function notices(view, ctx) {
-    const { classes: list } = await MPS.get("/teacher/classes");
+    const classData = await MPS.get("/teacher/classes");
+    const list = classData.classes;
+    const groupAll = classData.whatsapp_group_all || "";
     const host = document.createElement("div");
     await UI.shared.notices(host);
     view.innerHTML = `<div class="toolbar"><div></div><button class="btn" id="newBtn"><i class="fa fa-bullhorn"></i> Post Notice for Students</button></div>`;
     view.appendChild(host);
-    view.querySelector("#newBtn").addEventListener("click", () =>
-      openForm({
+    view.querySelector("#newBtn").addEventListener("click", () => {
+      const m = openForm({
         title: "Post Notice",
         fields: [
           { name: "class_id", label: "Audience", type: "select", options: [{ value: "", label: "All students (school-wide)" }, ...list.map((c) => ({ value: c.id, label: `Students of ${c.label}` }))] },
           { name: "title", label: "Title", required: true, maxlength: 200 },
           { name: "body", label: "Notice", type: "textarea", required: true },
+          { name: "whatsapp", label: "Also send on WhatsApp?", type: "select", options: [{ value: "", label: "No" }, { value: "1", label: "Yes" }] },
         ],
         submitLabel: "Post",
         onSubmit: async (v) => {
-          const r = await MPS.post("/teacher/notices", v);
+          const r = await MPS.post("/teacher/notices", { ...v, whatsapp: Boolean(v.whatsapp) });
           notices(view, ctx);
           return r;
         },
-      })
-    );
+      });
+      const form = m.body.querySelector("form");
+      const hint = document.createElement("div");
+      hint.className = "field-hint";
+      hint.hidden = true;
+      form.querySelector('[name="whatsapp"]').closest(".field").appendChild(hint);
+      const showGroup = () => {
+        if (form.whatsapp.value !== "1") {
+          hint.hidden = true;
+          hint.replaceChildren();
+          return;
+        }
+        const chosen = list.find((c) => c.id === form.class_id.value);
+        const group = chosen ? chosen.whatsapp_group : groupAll;
+        hint.hidden = false;
+        hint.replaceChildren();
+        const line = document.createElement("div");
+        line.append(document.createTextNode("WhatsApp group name: "));
+        if (group) {
+          const name = document.createElement("b");
+          name.textContent = group;
+          line.append(name);
+        } else {
+          line.append(document.createTextNode("No WhatsApp group set"));
+        }
+        hint.append(line);
+      };
+      form.whatsapp.addEventListener("change", showGroup);
+      form.class_id.addEventListener("change", showGroup);
+    });
   }
 
   // ---------- Messages ----------
   async function messages(view, ctx, mode = "inbox") {
     const d = await MPS.get("/teacher/messages");
+    const students = await allStudents(d.classes);
+    const recipients = [
+      ...d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` })),
+      ...students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
+    ];
     const items = d[mode];
     view.innerHTML = `${tabs([{ id: "inbox", label: `Inbox (${d.inbox.length})` }, { id: "sent", label: `Sent (${d.sent.length})` }], mode)}
       ${card(mode === "inbox" ? "Inbox" : "Sent Messages", items.length ? `<ul class="list">${items
@@ -729,7 +769,12 @@
           <div class="grow"><div class="title">${esc(m.subject)}</div><div class="meta">${mode === "inbox" ? "From" : "To"} ${esc(mode === "inbox" ? m.from_name : m.to_name)} · ${fmtDateTime(m.date)}</div>
           <div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.body)}</div></div>
           ${mode === "inbox" && m.from_type === "student" ? `<button class="btn btn-light btn-sm" data-reply="${m.id}">Reply</button>` : ""}</li>`)
-        .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}`;
+        .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
+      ${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
+        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", recipients)}</div>
+        <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
+        <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
+        <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}`;
     onTabs(view, (tab) => messages(view, ctx, tab));
     view.querySelectorAll("[data-msg]").forEach((li) =>
       li.addEventListener("click", (e) => {
@@ -738,12 +783,23 @@
         modal(m.subject, `<p class="muted small">From <b>${esc(m.from_name)}</b> to <b>${esc(m.to_name)}</b> · ${fmtDateTime(m.date)}</p><p class="pre">${esc(m.body)}</p>`);
       })
     );
+    view.querySelector("#waSend").addEventListener("click", () => {
+      const to = view.querySelector("#waTo").value;
+      const subject = view.querySelector("#waSubject").value.trim();
+      const body = view.querySelector("#waBody").value.trim();
+      if (!to || !subject || !body) {
+        UI.toast("Choose who it is for, and write the subject and message.", "error");
+        return;
+      }
+      const [to_type, to_id] = to.split("|");
+      UI.whatsappPreview({
+        title: "View & Send",
+        emptyMessage: "No students found for this message.",
+        fetchPreview: () => MPS.post("/teacher/messages/whatsapp/preview", { to_type, to_id, subject, body }),
+        send: (payload) => MPS.post("/teacher/messages/whatsapp", payload),
+      });
+    });
     const compose = async (preset) => {
-      const students = await allStudents(d.classes);
-      const recipients = [
-        ...d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` })),
-        ...students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
-      ];
       openForm({
         title: "New Message",
         fields: [

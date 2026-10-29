@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip } = UI;
+  const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan } = UI;
 
   // ---------- Dashboard ----------
   async function dashboard(view) {
@@ -33,7 +33,7 @@
             ["Profile changes", p.profile_requests], ["Parent fee payments", p.payment_intimations],
           ].map(([label, n]) => `<li><div class="grow">${label}</div>${n ? badge(n, "warn") : '<span class="muted">0</span>'}</li>`).join("")}</ul>`,
             { icon: "fa-check-circle", flush: true, actions: '<a class="small" href="#approvals">Open</a>' })}
-          ${card("Upcoming", d.events.length ? `<ul class="list">${d.events.map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${e.type}</div></div></li>`).join("")}</ul>` : empty("Nothing upcoming"), { icon: "fa-calendar", flush: true })}
+          ${card("Upcoming", d.events.length ? `<ul class="list">${d.events.map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type}</div></div></li>`).join("")}</ul>` : empty("Nothing upcoming"), { icon: "fa-calendar", flush: true })}
         </div>
       </div>`;
   }
@@ -372,37 +372,87 @@
 
   // ---------- Notices & events ----------
   async function notices(view, ctx) {
-    const [{ classes }, { notices: items }] = await Promise.all([MPS.get("/classes"), MPS.get("/notices")]);
+    const [classData, { notices: items }] = await Promise.all([MPS.get("/classes"), MPS.get("/notices")]);
+    const classes = classData.classes;
+    const groupAll = classData.whatsapp_group_all || "";
+    const groupTeachers = classData.whatsapp_group_teachers || "";
     view.innerHTML = card("Notices & Circulars", items.length ? `<ul class="list">${items
       .map((n) => `<li>${dateChip(n.date)}<div class="grow"><div class="title">${esc(n.title)} ${badge(n.audience, "neutral")} ${n.class_label ? badge(n.class_label, "neutral") : ""}</div>
         <p class="pre">${esc(n.body)}</p><div class="meta">${esc(n.posted_by)}</div></div><button class="btn btn-light btn-sm" data-del="${n.id}"><i class="fa fa-trash"></i></button></li>`)
       .join("")}</ul>` : empty("No notices."), { icon: "fa-bullhorn", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Post Notice</button>' });
-    view.querySelector("#add").addEventListener("click", () => openForm({
-      title: "Post Notice",
-      fields: [
-        { name: "audience", label: "For", type: "select", options: [{ value: "all", label: "Everyone" }, { value: "students", label: "Students & parents" }, { value: "teachers", label: "Teachers only" }] },
-        { name: "class_id", label: "Class", type: "select", options: [{ value: "", label: "All classes" }, ...classes.map((c) => ({ value: c.id, label: c.label }))] },
-        { name: "title", label: "Title", required: true },
-        { name: "body", label: "Notice", type: "textarea", required: true },
-        { name: "whatsapp", label: "Also send to class WhatsApp group(s)?", type: "select", options: [{ value: "", label: "No" }, { value: "1", label: "Yes" }] },
-      ],
-      submitLabel: "Post",
-      onSubmit: async (v) => { const r = await MPS.post("/principal/notices", { ...v, whatsapp: Boolean(v.whatsapp) }); notices(view, ctx); return r; },
-    }));
+    view.querySelector("#add").addEventListener("click", () => {
+      const m = openForm({
+        title: "Post Notice",
+        fields: [
+          { name: "audience", label: "For", type: "select", options: [{ value: "all", label: "Everyone" }, { value: "students", label: "Students & parents" }, { value: "teachers", label: "Teachers only" }] },
+          { name: "class_id", label: "Class", type: "select", options: [{ value: "", label: "All classes" }, ...classes.map((c) => ({ value: c.id, label: c.label }))] },
+          { name: "title", label: "Title", required: true },
+          { name: "body", label: "Notice", type: "textarea", required: true },
+          { name: "whatsapp", label: "Also send on WhatsApp?", type: "select", options: [{ value: "", label: "No" }, { value: "1", label: "Yes" }] },
+        ],
+        submitLabel: "Post",
+        onSubmit: async (v) => { const r = await MPS.post("/principal/notices", { ...v, whatsapp: Boolean(v.whatsapp) }); notices(view, ctx); return r; },
+      });
+      const form = m.body.querySelector("form");
+      const hint = document.createElement("div");
+      hint.className = "field-hint";
+      hint.hidden = true;
+      form.querySelector('[name="whatsapp"]').closest(".field").appendChild(hint);
+      const showGroups = () => {
+        if (form.whatsapp.value !== "1") {
+          hint.hidden = true;
+          hint.replaceChildren();
+          return;
+        }
+        hint.hidden = false;
+        hint.replaceChildren();
+        const addGroup = (group, classLabel) => {
+          const line = document.createElement("div");
+          if (classLabel) line.append(document.createTextNode(`${classLabel} — `));
+          line.append(document.createTextNode("WhatsApp group name: "));
+          if (group) {
+            const name = document.createElement("b");
+            name.textContent = group;
+            line.append(name);
+          } else {
+            line.append(document.createTextNode("No WhatsApp group set"));
+          }
+          hint.append(line);
+        };
+        if (form.audience.value === "teachers") {
+          addGroup(groupTeachers);
+          return;
+        }
+        if (!form.class_id.value && form.audience.value === "all") {
+          addGroup(groupAll);
+          return;
+        }
+        const picked = form.class_id.value ? classes.filter((c) => c.id === form.class_id.value) : classes;
+        picked.forEach((c) => {
+          addGroup(c.whatsapp_group, c.label);
+        });
+      };
+      ["whatsapp", "class_id", "audience"].forEach((name) => form[name].addEventListener("change", showGroups));
+    });
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => confirm("Delete this notice?") && (await run(() => MPS.del(`/principal/notices/${b.dataset.del}`))) && notices(view, ctx)));
   }
 
   async function events(view, ctx) {
     const { events: items } = await MPS.get("/events");
     view.innerHTML = card("Events & Holidays", table([
-      { label: "Date", render: (e) => `<b>${fmtDate(e.date)}</b>`, className: "nowrap" }, { label: "Title", render: (e) => `<b>${esc(e.title)}</b><div class="small muted">${esc(e.description || "")}</div>` },
+      { label: "Date", render: (e) => `<b>${esc(eventSpan(e))}</b>`, className: "nowrap" }, { label: "Title", render: (e) => `<b>${esc(e.title)}</b><div class="small muted">${esc(e.description || "")}</div>` },
       { label: "Type", render: (e) => badge(e.type, e.type === "holiday" ? "warn" : "neutral") },
       { label: "", className: "right", render: (e) => `<button class="btn btn-light btn-sm" data-del="${e.id}"><i class="fa fa-trash"></i></button>` },
     ], items), { icon: "fa-calendar", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Add</button>' });
     view.querySelector("#add").addEventListener("click", () => openForm({
       title: "Add Event / Holiday",
-      fields: [{ name: "title", label: "Title", required: true }, { name: "date", label: "Date", type: "date", required: true },
-        { name: "type", label: "Type", type: "select", options: [{ value: "event", label: "Event" }, { value: "holiday", label: "Holiday" }] }, { name: "description", label: "Description", type: "textarea" }],
+      fields: [
+        { name: "title", label: "Title", required: true },
+        { name: "date", label: "From date", type: "date", required: true, value: todayIso() },
+        { name: "end_date", label: "To date", type: "date", required: true, value: todayIso(), hint: "Same as From date for one day. Pick a later To date when a festival or holiday lasts longer." },
+        { name: "type", label: "Type", type: "select", options: [{ value: "event", label: "Event" }, { value: "holiday", label: "Holiday" }] },
+        { name: "description", label: "Description", type: "textarea" },
+      ],
       submitLabel: "Add",
       onSubmit: async (v) => { const r = await MPS.post("/principal/events", v); events(view, ctx); return r; },
     }));

@@ -154,6 +154,11 @@ const UI = (() => {
     return `<div class="progress ${tone}"><div style="width:${Math.max(0, Math.min(100, value))}%"></div></div>`;
   }
 
+  function eventSpan(e) {
+    const end = e && e.end_date && e.end_date !== e.date ? e.end_date : "";
+    return end ? `${fmtDate(e.date)} – ${fmtDate(end)}` : fmtDate(e && e.date);
+  }
+
   function dateChip(value) {
     const [, m, d] = String(value).slice(0, 10).split("-");
     return `<div class="date-chip"><b>${Number(d)}</b><span>${MONTHS[Number(m) - 1]}</span></div>`;
@@ -267,6 +272,92 @@ const UI = (() => {
       }
     });
     return m;
+  }
+
+  /** Show each WhatsApp message and recipient, then send only the checked ones. */
+  async function whatsappPreview({ title, fetchPreview, send, emptyMessage }) {
+    let data;
+    try {
+      data = await fetchPreview();
+    } catch (e) {
+      toast(e.message, "error");
+      return;
+    }
+    const people = data.recipients || [];
+    if (!people.length) {
+      toast(emptyMessage || "Nobody with dues matches this message.", "error");
+      return;
+    }
+    const rows = people.map((p) => {
+      const phones = p.phones || [];
+      const who = phones.length ? phones.map((ph) => `${ph.label} ${ph.number}`).join(", ") : "No WhatsApp number";
+      return `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+        <label style="display:flex;gap:8px;align-items:flex-start;font-weight:600">
+          <input type="checkbox" class="wa-pick" data-id="${esc(p.student_id)}" ${phones.length ? "checked" : "disabled"} style="width:auto;margin-top:4px">
+          <span>${esc(p.name)} <span class="muted" style="font-weight:400">${esc(p.class_label || "")}</span>
+            <div class="small" style="font-weight:400">To: ${esc(who)}</div></span>
+        </label>
+        <textarea class="wa-msg" data-id="${esc(p.student_id)}" ${phones.length ? "" : "disabled"}>${esc(p.message || "")}</textarea>
+      </div>`;
+    }).join("");
+    const m = modal(title, `
+      <p class="small muted">Uncheck anyone you do not want to message. Edit a message to change it for that family only.</p>
+      <div class="field"><label for="wa-extra">Add this to every message</label>
+        <textarea id="wa-extra" placeholder="Optional. Added before the school signature."></textarea></div>
+      <div class="toolbar"><label style="display:flex;gap:8px;align-items:center;font-weight:400;margin:0">
+        <input type="checkbox" id="wa-all" checked style="width:auto"> Check all</label>
+        <span class="small muted" id="wa-count"></span></div>
+      ${rows}
+      <div class="form-error" hidden></div>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="wa-send"><i class="fa fa-whatsapp"></i> Send selected</button></div>`, { wide: true });
+    const root = m.body;
+    const picks = () => [...root.querySelectorAll(".wa-pick")].filter((c) => !c.disabled);
+    const chosen = () => picks().filter((c) => c.checked);
+    const count = () => { root.querySelector("#wa-count").textContent = `${chosen().length} of ${picks().length} selected`; };
+    count();
+    root.querySelector("#wa-all").addEventListener("change", (e) => {
+      picks().forEach((c) => { c.checked = e.target.checked; });
+      count();
+    });
+    root.querySelectorAll(".wa-pick").forEach((c) => c.addEventListener("change", () => {
+      const all = root.querySelector("#wa-all");
+      all.checked = picks().length > 0 && picks().every((x) => x.checked);
+      count();
+    }));
+    const err = root.querySelector(".form-error");
+    root.querySelector("#wa-send").addEventListener("click", async () => {
+      const picked = chosen();
+      if (!picked.length) {
+        err.textContent = "Select at least one person.";
+        err.hidden = false;
+        return;
+      }
+      const messages = {};
+      const student_ids = [];
+      for (const box of picked) {
+        const text = root.querySelector(`.wa-msg[data-id="${CSS.escape(box.dataset.id)}"]`).value.trim();
+        if (!text) {
+          err.textContent = "A selected message is empty.";
+          err.hidden = false;
+          return;
+        }
+        student_ids.push(box.dataset.id);
+        messages[box.dataset.id] = text;
+      }
+      const btn = root.querySelector("#wa-send");
+      btn.disabled = true;
+      err.hidden = true;
+      try {
+        const result = await send({ student_ids, messages, extra: root.querySelector("#wa-extra").value });
+        m.close();
+        if (result && result.message) toast(result.message);
+      } catch (e) {
+        err.textContent = e.message;
+        err.hidden = false;
+        btn.disabled = false;
+      }
+    });
   }
 
   // ---------- printing ----------
@@ -436,16 +527,17 @@ const UI = (() => {
           ? `<ul class="list">${items
               .map(
                 (e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div>
-                ${e.description ? `<div class="meta">${esc(e.description)}</div>` : ""}<div class="meta">${new Date(e.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long" })}</div></div></li>`
+                ${e.description ? `<div class="meta">${esc(e.description)}</div>` : ""}<div class="meta">${esc(eventSpan(e))}</div></div></li>`
               )
               .join("")}</ul>`
           : empty(emptyText, "fa-calendar");
-      const upcoming = events.filter((e) => e.date >= today);
+      const ends = (e) => e.end_date || e.date;
+      const upcoming = events.filter((e) => ends(e) >= today);
       view.innerHTML = `<div class="grid grid-2">
         ${card("Upcoming Events", list(upcoming.filter((e) => e.type === "event"), "No upcoming events."), { icon: "fa-star", flush: true })}
         ${card("Holidays", list(upcoming.filter((e) => e.type === "holiday"), "No upcoming holidays."), { icon: "fa-sun-o", flush: true })}
       </div>
-      ${card("Past Events & Holidays", list(events.filter((e) => e.date < today).reverse(), "Nothing yet."), { icon: "fa-history", flush: true })}`;
+      ${card("Past Events & Holidays", list(events.filter((e) => ends(e) < today).reverse(), "Nothing yet."), { icon: "fa-history", flush: true })}`;
     },
 
     async password(view) {
@@ -542,6 +634,7 @@ const UI = (() => {
   return {
     esc,
     fmtDate,
+    eventSpan,
     fmtTime,
     fmtDateTime,
     fmtMonth,
@@ -567,6 +660,7 @@ const UI = (() => {
     toast,
     run,
     modal,
+    whatsappPreview,
     fieldHtml,
     openForm,
     printDoc,

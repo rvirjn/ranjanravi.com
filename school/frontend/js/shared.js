@@ -114,7 +114,7 @@
       <div class="class-tiles">${d.classes
         .map(
           (c) => `<button type="button" class="class-tile ${c.posts ? "done" : ""}" data-class="${c.id}">
-            <b>${esc(c.label)}</b><span><i class="fa fa-whatsapp"></i> ${esc(c.whatsapp_group || "No group set")}</span>
+            <b>${esc(c.label)}</b><span><i class="fa fa-whatsapp"></i> WhatsApp group name: ${c.whatsapp_group ? `<b>${esc(c.whatsapp_group)}</b>` : "No WhatsApp group set"}</span>
             ${c.posts ? `<span class="tile-status ok"><i class="fa fa-check"></i> ${esc(c.subjects.join(", "))}</span>` : '<span class="tile-status pending">Not posted</span>'}</button>`
         )
         .join("")}</div>`;
@@ -145,7 +145,7 @@
 
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
-        ${badge(`WhatsApp group: ${d.whatsapp_group || "not set"}`, d.whatsapp_group ? "success" : "danger")}</div>
+        <span class="badge ${d.whatsapp_group ? "success" : "danger"}">WhatsApp group name: ${d.whatsapp_group ? `<b>${esc(d.whatsapp_group)}</b>` : "No WhatsApp group set"}</span></div>
       <div class="grid grid-side">
         ${card(`${d.class_label} · ${weekday(d.date)}, ${fmtDate(d.date)}`, `<div class="table-wrap"><table class="table diary-table"><thead><tr><th>Subject</th><th>Classwork (CW)</th><th>Homework (HW)</th></tr></thead>
           <tbody>${rows}<tr data-row="extra"><td><input name="subject" placeholder="Other subject"></td><td><input name="cw" placeholder="CW"></td><td><input name="hw" placeholder="HW"></td></tr></tbody></table></div>
@@ -383,7 +383,7 @@
           <p class="small muted">Messages: ${Object.entries(s.counts).map(([k, v]) => `${esc(k)} ${v}`).join(" &middot; ") || "none yet"}</p>
           <button class="btn btn-sm" id="testMsg"><i class="fa fa-paper-plane"></i> Send test message</button>`, { icon: "fa-sliders" })}
       </div>
-      ${card("Class WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">HW/CW and notices are posted to these group names. The school number must be a member of each group. Change names in Classes &amp; Fees.</p>
+      ${card("Class WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">Homework goes to the class group. A notice for everyone uses WhatsApp group name: <b>${esc(s.whatsapp_group_all || "No WhatsApp group set")}</b>. A notice for teachers uses WhatsApp group name: <b>${esc(s.whatsapp_group_teachers || "No WhatsApp group set")}</b>. The school number must be a member of each group.</p>
         ${table([{ label: "Class", key: "label" }, { label: "WhatsApp group name", render: (c) => (c.group ? `<b>${esc(c.group)}</b>` : badge("Not set", "danger")) }], s.class_groups)}`,
         { icon: "fa-users", flush: true })}
       ${card("Message Log", `<div style="padding:12px 18px 0" class="filters"><select id="purpose"><option value="">All messages</option>

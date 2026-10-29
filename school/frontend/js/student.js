@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc } = UI;
+  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc, eventSpan } = UI;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -116,7 +116,7 @@
 
     const events = d.events.length
       ? `<ul class="list">${d.events
-          .map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${e.type === "holiday" ? "Holiday" : "Event"}</div></div></li>`)
+          .map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type === "holiday" ? "Holiday" : "Event"}</div></div></li>`)
           .join("")}</ul>`
       : empty("No upcoming events.", "fa-calendar");
 
