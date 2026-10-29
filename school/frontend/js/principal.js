@@ -103,8 +103,7 @@
 
   // ---------- Students ----------
   const STUDENT_FORM = (s, d) => {
-    const numbers = (d && d.next_admission_numbers) || {};
-    const suggested = s.id ? "" : (numbers[todayIso().slice(0, 4)] || "001");
+    const suggested = s.id ? "" : ((d && d.next_admission_number) || "001");
     return [
     PHOTO(s),
     { name: "name", label: "Student name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
@@ -155,10 +154,10 @@
         title: "New Admission",
         loginPreview: {
           letter: "S", password: "s@123", withYear: true, suggest: true,
-          nextByYear: d.next_admission_numbers || {},
+          nextNumber: d.next_admission_number || "001",
           code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
         },
-        admissionCheck: { withYear: true, usedByYear: d.used_admission_numbers || {} },
+        admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "student" },
         fields: STUDENT_FORM({ class_id: state.classId }, d), submitLabel: "Add Student",
         onSubmit: async (v) => {
           const r = await MPS.post("/principal/students", v);
@@ -169,14 +168,9 @@
     );
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const s = d.students.find((x) => x.id === b.dataset.edit);
-      const years = [];
-      const fromId = String(s.admission_no || "").match(/S(\d{4})\d{3,}$/);
-      if (fromId) years.push(fromId[1]);
-      const fromDate = String(s.admission_date || "").slice(0, 4);
-      if (/^\d{4}$/.test(fromDate) && !years.includes(fromDate)) years.push(fromDate);
       const m = openForm({
         title: `Edit ${s.name}`,
-        admissionCheck: { withYear: true, usedByYear: d.used_admission_numbers || {}, allow: { number: UI.shared.admissionSuffix(s), years } },
+        admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "student", allow: { number: UI.shared.admissionSuffix(s) } },
         fields: [...STUDENT_FORM(s, d), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Left school (inactive)" }], value: String(s.active !== false) }],
         onSubmit: async (v) => {
           const r = await MPS.post(`/principal/students/${s.id}`, v);
@@ -243,7 +237,7 @@
         letter: "T", password: "t@123", suggest: true, nextNumber,
         code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
       },
-      admissionCheck: { usedNumbers: d.used_admission_numbers || [] },
+      admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "teacher" },
       fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => {
         const r = await MPS.post("/principal/teachers", v);
@@ -255,7 +249,7 @@
       const t = d.teachers.find((x) => x.id === b.dataset.edit);
       const m = openForm({
         title: `Edit ${t.name}`,
-        admissionCheck: { usedNumbers: d.used_admission_numbers || [], allow: { number: UI.shared.admissionSuffix(t) } },
+        admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "teacher", allow: { number: UI.shared.admissionSuffix(t) } },
         fields: [...FORM(t), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Inactive" }], value: String(t.active !== false) }],
         onSubmit: async (v) => {
           const r = await MPS.post(`/principal/teachers/${t.id}`, v);

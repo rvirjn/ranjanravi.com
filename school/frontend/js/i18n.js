@@ -153,6 +153,7 @@
     [/^(\d+) absent$/, "$1 अनुपस्थित"],
     [/^User ID (\S+) is already used$/, "यूज़र आईडी $1 पहले से है"],
     [/^Admission No\. (\S+) is already used$/, "प्रवेश संख्या $1 पहले से है"],
+    [/^Admission No\. (\S+) is already used by another (student|teacher|principal|accountant)$/, (m, num, who) => `प्रवेश संख्या ${num} किसी अन्य ${{ student: "विद्यार्थी", teacher: "शिक्षक", principal: "प्रधानाचार्य", accountant: "लेखाकार" }[who]} के पास पहले से है`],
   ];
 
   function translateText(text) {

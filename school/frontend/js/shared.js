@@ -528,6 +528,7 @@
         usedNumbers: opts.usedAdmissionNumbers || [],
         usedBySchool: opts.usedBySchool,
         schoolField: opts.schoolField,
+        who: String(opts.noun || "").toLowerCase(),
       },
       fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => { const r = await opts.create(v); opts.reload(); return r; },
@@ -539,6 +540,7 @@
         intro: `Login ID: <b>${esc(s.employee_id)}</b>`,
         admissionCheck: {
           usedNumbers: (opts.usedBySchool && s.school_id && opts.usedBySchool[s.school_id]) || opts.usedAdmissionNumbers || [],
+          who: String(opts.noun || "").toLowerCase(),
           allow: { number: admissionSuffix(s) },
         },
         fields: [...FORM(s).filter((f) => !f.createOnly), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Inactive" }], value: String(s.active !== false) }],

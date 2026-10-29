@@ -341,10 +341,36 @@ const UI = (() => {
   admissionLatest.setDate(admissionLatest.getDate() + 366);
   const admissionDate = { min: "1970-01-01", max: `${admissionLatest.getFullYear()}-${String(admissionLatest.getMonth() + 1).padStart(2, "0")}-${String(admissionLatest.getDate()).padStart(2, "0")}` };
 
-  function bindPersonName(input) {
+  function bindDigitsOnly(input) {
+    input.addEventListener("beforeinput", (e) => {
+      if (!e.data || e.inputType === "insertFromPaste") return;
+      if (/\D/.test(e.data)) e.preventDefault();
+    });
     input.addEventListener("input", () => {
-      const value = input.value.trim();
-      input.setCustomValidity(value && /\d/.test(value) ? "Name cannot contain a number" : "");
+      const next = input.value.replace(/\D/g, "").slice(0, 6);
+      if (input.value !== next) input.value = next;
+    });
+  }
+
+  function bindPersonName(input) {
+    const reject = () => {
+      input.setCustomValidity("Name cannot contain a number");
+      input.reportValidity();
+    };
+    input.addEventListener("beforeinput", (e) => {
+      if (!e.data || e.inputType === "insertFromPaste") return;
+      if (/\d/.test(e.data)) {
+        e.preventDefault();
+        reject();
+      }
+    });
+    input.addEventListener("input", () => {
+      if (/\d/.test(input.value)) {
+        input.value = input.value.replace(/\d/g, "");
+        reject();
+        return;
+      }
+      input.setCustomValidity("");
     });
   }
 
@@ -383,7 +409,13 @@ const UI = (() => {
       } else {
         used = check.usedNumbers || [];
       }
-      numberField.setCustomValidity(!allowed && used.includes(number) ? `Admission No. ${number} is already used` : "");
+      const message = !allowed && used.includes(number)
+        ? `Admission No. ${number} is already used${check.who ? ` by another ${check.who}` : ""}`
+        : "";
+      if (numberField.validationMessage !== message) {
+        numberField.setCustomValidity(message);
+        if (message) numberField.reportValidity();
+      }
     };
     numberField.addEventListener("input", paint);
     if (dateField) dateField.addEventListener("change", paint);
@@ -408,6 +440,7 @@ const UI = (() => {
     );
     const form = m.body.querySelector("form");
     form.querySelectorAll("[data-mobile]").forEach(bindMobileInput);
+    form.querySelectorAll('[name="admission_number"]').forEach(bindDigitsOnly);
     form.querySelectorAll("[data-person]").forEach(bindPersonName);
     if (admissionCheck) bindAdmissionCheck(form, admissionCheck);
     const errorEl = form.querySelector(".form-error");
