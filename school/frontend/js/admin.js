@@ -1,8 +1,9 @@
 (() => {
-  const { esc, badge, card, table, openForm, run } = UI;
+  const { esc, badge, card, table, openForm, run, avatar } = UI;
 
   const SCHOOL_FORM = (s, isNew) => [
     ...(isNew ? [{ name: "code", label: "School code", required: true, placeholder: "e.g. ABC", hint: "2 to 6 letters. Login IDs start with it (ABC2026001, ABCT001, ABCP001, ABCA001). Cannot be changed later." }] : []),
+    { name: "photo", label: "School icon", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
     { name: "name", label: "School name", required: true, value: s.name },
     { name: "short_name", label: "Short name (logo text)", value: s.short_name },
     { name: "tagline", label: "Tagline", value: s.tagline, placeholder: "e.g. Nursery to Class 8 (English Medium)" },
@@ -30,7 +31,7 @@
     const { schools: rows } = await MPS.get("/admin/schools");
     view.innerHTML = card(`Schools (${rows.length})`, table(
       [
-        { label: "School", render: (s) => `<b>${esc(s.name)}</b> ${badge(s.code, "neutral")}${s.active === false ? ` ${badge("Inactive", "danger")}` : ""}<div class="small muted">${esc(s.tagline || "")}</div>` },
+        { label: "School", render: (s) => `<div class="who"><div class="avatar">${avatar(s.short_name || s.name, s.photo)}</div><div><b>${esc(s.name)}</b> ${badge(s.code, "neutral")}${s.active === false ? ` ${badge("Inactive", "danger")}` : ""}<div class="small muted">${esc(s.tagline || "")}</div></div></div>` },
         { label: "Contact", render: (s) => `<span class="small">${esc((s.phones || []).join(", "))}${s.email ? `<br>${esc(s.email)}` : ""}</span>` },
         { label: "Classes", render: (s) => s.counts.classes, className: "right" },
         { label: "Students", render: (s) => s.counts.students, className: "right" },

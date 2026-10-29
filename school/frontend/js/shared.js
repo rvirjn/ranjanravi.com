@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, empty, table, kv, openForm, modal, printDoc, run, todayIso } = UI;
+  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, empty, table, kv, openForm, modal, printDoc, run, todayIso, avatar } = UI;
   const CODE_LABEL = { P: "Present", A: "Absent", LT: "Late", HD: "Half Day", L: "Leave" };
   const weekday = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long" });
 
@@ -478,6 +478,7 @@
    */
   function staffAccounts(view, opts) {
     const FORM = (s) => [
+      { name: "photo", label: "Photo", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
       ...(opts.extraFields ? opts.extraFields(s) : []),
       { name: "name", label: "Name", required: true, value: s.name },
       { name: "designation", label: "Designation", value: s.designation },
@@ -486,7 +487,7 @@
     ];
     view.innerHTML = card(`${opts.title} (${opts.rows.length})`, table(
       [
-        { label: opts.noun, render: (s) => `<b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.employee_id)} &middot; ${esc(s.designation || "")}</div>` },
+        { label: opts.noun, render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.employee_id)} &middot; ${esc(s.designation || "")}</div></div></div>` },
         ...(opts.extraColumns || []),
         { label: "Mobile", key: "phone" },
         { label: "Email", key: "email" },

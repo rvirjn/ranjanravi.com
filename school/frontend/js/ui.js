@@ -53,11 +53,11 @@ const UI = (() => {
     return photo ? `<img src="${esc(fileUrl(photo))}" alt="" class="avatar-img">` : esc(initials(name));
   }
 
-  async function uploadFile(file) {
+  async function uploadFile(file, { icon = false } = {}) {
     const session = MPS.session();
     const form = new FormData();
     form.append("file", file);
-    const response = await fetch(`${MPS_CONFIG.API_BASE}/upload`, {
+    const response = await fetch(`${MPS_CONFIG.API_BASE}/upload${icon ? "?icon=1" : ""}`, {
       method: "POST",
       headers: session && session.token ? { Authorization: "Bearer " + session.token } : {},
       body: form,
@@ -67,24 +67,34 @@ const UI = (() => {
     return json.file;
   }
 
-  /** Lets the user pick files; resolves to uploaded file names. */
-  function pickAndUpload({ accept = "image/*,application/pdf", multiple = false } = {}) {
-    return new Promise((resolve, reject) => {
+  /** Opens the file window. Resolves to the chosen files, or none if the window is closed. */
+  function pickFiles({ accept = "image/*,application/pdf", multiple = false } = {}) {
+    return new Promise((resolve) => {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = accept;
       input.multiple = multiple;
-      input.addEventListener("change", async () => {
-        try {
-          const names = [];
-          for (const file of input.files) names.push(await uploadFile(file));
-          resolve(names);
-        } catch (e) {
-          reject(e);
-        }
-      });
+      input.style.cssText = "position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0";
+      let settled = false;
+      const finish = (files) => {
+        if (settled) return;
+        settled = true;
+        input.remove();
+        resolve(files);
+      };
+      input.addEventListener("change", () => finish(Array.from(input.files || [])));
+      input.addEventListener("cancel", () => finish([]));
+      document.body.appendChild(input);
       input.click();
     });
+  }
+
+  /** Lets the user pick files; resolves to uploaded file names. */
+  async function pickAndUpload({ accept = "image/*,application/pdf", multiple = false, icon = false } = {}) {
+    const files = await pickFiles({ accept, multiple });
+    const names = [];
+    for (const file of files) names.push(await uploadFile(file, { icon }));
+    return names;
   }
 
   function todayIso() {
@@ -231,6 +241,13 @@ const UI = (() => {
         .join("")}</select>`;
     } else if (f.type === "textarea") {
       input = `<textarea id="${id}" name="${f.name}" ${req} placeholder="${esc(f.placeholder || "")}" maxlength="${f.maxlength || 4000}">${esc(f.value || "")}</textarea>`;
+    } else if (f.type === "photo") {
+      const preview = f.value
+        ? `<img src="${fileUrl(f.value)}" alt="" class="avatar-img">`
+        : `<i class="fa fa-user"></i>`;
+      input = `<div class="photo-pick"><div class="avatar" data-photo-preview="${esc(f.name)}">${preview}</div>
+        <button type="button" class="btn btn-light btn-sm" data-photo-for="${esc(f.name)}"><i class="fa fa-camera"></i> Choose photo</button>
+        <input type="hidden" name="${esc(f.name)}" value="${esc(f.value || "")}"></div>`;
     } else {
       const attrs = ["min", "max", "step", "maxlength", "minlength", "autocomplete"]
         .filter((a) => f[a] !== undefined)
@@ -252,8 +269,37 @@ const UI = (() => {
     const form = m.body.querySelector("form");
     const errorEl = form.querySelector(".form-error");
     const submit = form.querySelector('button[type="submit"]');
-    const first = form.querySelector("input, select, textarea");
+    const first = form.querySelector("input:not([type=hidden]), select, textarea");
     if (first) first.focus();
+    form.querySelectorAll("[data-photo-for]").forEach((btn) => {
+      const label = btn.innerHTML;
+      btn.addEventListener("click", async () => {
+        errorEl.hidden = true;
+        let files = [];
+        try {
+          files = await pickFiles({ accept: "image/png,image/jpeg,image/webp" });
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.hidden = false;
+          return;
+        }
+        if (!files.length) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving photo';
+        try {
+          const file = await uploadFile(files[0], { icon: true });
+          form.querySelector(`[name="${btn.dataset.photoFor}"]`).value = file;
+          const preview = form.querySelector(`[data-photo-preview="${btn.dataset.photoFor}"]`);
+          preview.innerHTML = `<img src="${fileUrl(file)}" alt="" class="avatar-img">`;
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.hidden = false;
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = label;
+        }
+      });
+    });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!form.reportValidity()) return;
@@ -449,9 +495,24 @@ const UI = (() => {
     paintUser();
 
     function paintSchool() {
-      const s = state.school;
-      document.getElementById("schoolShort").textContent = s.short_name || (s.name ? initials(s.name) : "ERP");
-      document.getElementById("schoolName").textContent = s.name || MPS_CONFIG.PRODUCT_NAME;
+      const s = state.school || {};
+      const logo = document.getElementById("schoolShort");
+      if (s.photo) {
+        logo.textContent = "";
+        logo.classList.add("has-icon");
+        logo.innerHTML = `<img src="${fileUrl(s.photo)}" alt="">`;
+        document.getElementById("schoolName").textContent = s.name || MPS_CONFIG.PRODUCT_NAME;
+      } else if (!s.name && !s.short_name) {
+        logo.textContent = "";
+        logo.classList.add("has-icon");
+        logo.innerHTML = '<img src="image/campus-badge.png" alt="RV Smart School">';
+        document.getElementById("schoolName").textContent = MPS_CONFIG.PRODUCT_NAME;
+      } else {
+        logo.classList.remove("has-icon");
+        logo.replaceChildren();
+        logo.textContent = s.short_name || initials(s.name);
+        document.getElementById("schoolName").textContent = s.name || MPS_CONFIG.PRODUCT_NAME;
+      }
       const website = document.getElementById("schoolWebsite");
       website.hidden = !s.website;
       if (s.website) website.href = s.website;

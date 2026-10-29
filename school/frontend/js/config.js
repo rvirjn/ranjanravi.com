@@ -8,6 +8,6 @@
   /** School name, logo text, website, etc. come from the logged-in user's school (session.school). */
   window.MPS_CONFIG = {
     API_BASE: LOCAL_HOSTS.includes(location.hostname) ? LOCAL_API_BASE : PRODUCTION_API_BASE,
-    PRODUCT_NAME: "School Management Portal (ERP)",
+    PRODUCT_NAME: "RV Smart School (ERP)",
   };
 })();

@@ -195,7 +195,8 @@
       ${card("Transport", route ? kv([["Route", route.route_name], ["Bus No.", route.bus_no], ["Driver", route.driver_name]]) : '<p class="muted">Not using school transport.</p>', { icon: "fa-bus" })}`;
     view.querySelector("#photoBtn").addEventListener("click", async () => {
       try {
-        const [file] = await UI.pickAndUpload({ accept: "image/*" });
+        const [file] = await UI.pickAndUpload({ accept: "image/png,image/jpeg,image/webp", icon: true });
+        if (!file) return;
         await UI.run(() => MPS.post("/me/photo", { file }));
         MPS.saveSession({ ...MPS.session(), user: { ...MPS.session().user, photo: file } });
         location.reload();
@@ -532,7 +533,7 @@
         m.body.querySelector("#shot").addEventListener("click", async () => {
           try {
             [screenshot] = await UI.pickAndUpload({ accept: "image/*" });
-            m.body.querySelector("#shotName").textContent = "Screenshot attached";
+            if (screenshot) m.body.querySelector("#shotName").textContent = "Screenshot attached";
           } catch (e) {
             UI.toast(e.message, "error");
           }

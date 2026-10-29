@@ -1,5 +1,6 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan } = UI;
+  const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan, avatar } = UI;
+  const PHOTO = (s) => ({ name: "photo", label: "Photo", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." });
 
   // ---------- Dashboard ----------
   async function dashboard(view) {
@@ -101,6 +102,7 @@
 
   // ---------- Students ----------
   const STUDENT_FORM = (s, d) => [
+    PHOTO(s),
     { name: "name", label: "Student name", required: true, value: s.name },
     { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id },
     { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
@@ -129,7 +131,7 @@
         [
           { label: "Class", key: "class_label" },
           { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div>` },
+          { label: "Student", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
           { label: "Father / Mobile", render: (s) => `${esc(s.father_name)}<div class="small muted">${esc(s.father_phone || "")}${s.mother_phone ? ` &middot; M: ${esc(s.mother_phone)}` : ""}</div>` },
           { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}"><i class="fa fa-pencil"></i></button>` },
         ],
@@ -192,6 +194,7 @@
   async function teachers(view, ctx) {
     const d = await MPS.get("/principal/teachers");
     const FORM = (t) => [
+      PHOTO(t),
       { name: "name", label: "Name", required: true, value: t.name },
       { name: "designation", label: "Designation", value: t.designation },
       { name: "subjects", label: "Subjects (comma separated)", value: (t.subjects || []).join(", ") },
@@ -204,7 +207,7 @@
     ];
     view.innerHTML = card(`Teachers (${d.teachers.length})`, table(
       [
-        { label: "Teacher", render: (t) => `<b>${esc(t.name)}</b>${t.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation || "")}</div>` },
+        { label: "Teacher", render: (t) => `<div class="who"><div class="avatar">${avatar(t.name, t.photo)}</div><div><b>${esc(t.name)}</b>${t.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation || "")}</div></div></div>` },
         { label: "Subjects", render: (t) => `<span class="small">${esc((t.subjects || []).join(", "))}</span>` },
         { label: "Classes", render: (t) => `<span class="small">${esc(t.class_labels.join(", "))}</span>${t.class_teacher_label ? `<div>${badge(`CT ${t.class_teacher_label}`, "success")}</div>` : ""}` },
         { label: "Mobile", key: "phone" },
