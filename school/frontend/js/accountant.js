@@ -9,6 +9,7 @@
       icon: "fa-university",
       rows: d.principals,
       defaultPassword: d.default_password,
+      idLetter: "P",
       create: (v) => MPS.post("/accounts/principals", v),
       update: (s, v) => MPS.post(`/accounts/principals/${s.id}`, v),
       resetPassword: (s) => MPS.post(`/accounts/principals/${s.id}/reset-password`),

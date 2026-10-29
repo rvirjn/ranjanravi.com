@@ -2,7 +2,7 @@
   const { esc, badge, card, table, openForm, run, avatar } = UI;
 
   const SCHOOL_FORM = (s, isNew) => [
-    ...(isNew ? [{ name: "code", label: "School code", required: true, placeholder: "e.g. ABC", hint: "2 to 6 letters. Login IDs start with it (ABC2026001, ABCT001, ABCP001, ABCA001). Cannot be changed later." }] : []),
+    ...(isNew ? [{ name: "code", label: "School code", required: true, placeholder: "e.g. ABC", hint: "2 to 6 letters. Login IDs start with it (ABCS2026001, ABCT001, ABCP001, ABCA001). Cannot be changed later." }] : []),
     { name: "photo", label: "School icon", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
     { name: "name", label: "School name", required: true, value: s.name },
     { name: "short_name", label: "Short name (logo text)", value: s.short_name },
@@ -73,6 +73,7 @@
       icon: "fa-inr",
       rows: rows.map((r) => ({ ...r, key: `${r.school_id}:${r.id}` })),
       defaultPassword,
+      idLetter: "A",
       extraFields: () => [{ name: "school_id", label: "School", type: "select", required: true, createOnly: true, placeholder: "Choose school",
         options: schoolRows.map((s) => ({ value: s.id, label: `${s.name} (${s.code})` })) }],
       extraColumns: [{ label: "School", render: (s) => esc(s.school_name) }],

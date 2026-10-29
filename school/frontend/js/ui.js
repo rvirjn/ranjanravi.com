@@ -629,8 +629,8 @@ const UI = (() => {
         "Change Password",
         `<form id="pwForm" style="max-width:420px">
           ${fieldHtml({ name: "current_password", label: "Current password", type: "password", required: true, autocomplete: "current-password" })}
-          ${fieldHtml({ name: "new_password", label: "New password", type: "password", required: true, minlength: 6, autocomplete: "new-password", hint: "At least 6 characters" })}
-          ${fieldHtml({ name: "confirm_password", label: "Confirm new password", type: "password", required: true, minlength: 6, autocomplete: "new-password" })}
+          ${fieldHtml({ name: "new_password", label: "New password", type: "password", required: true, minlength: 5, autocomplete: "new-password", hint: "At least 5 characters" })}
+          ${fieldHtml({ name: "confirm_password", label: "Confirm new password", type: "password", required: true, minlength: 5, autocomplete: "new-password" })}
           <div class="form-error" hidden></div>
           <button class="btn" type="submit"><i class="fa fa-key"></i> Update Password</button>
         </form>`,

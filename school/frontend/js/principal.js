@@ -105,6 +105,8 @@
   const STUDENT_FORM = (s, d) => [
     PHOTO(s),
     { name: "name", label: "Student name", required: true, value: s.name },
+    { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s), hint: "Last digits of the User ID, such as 001" },
+    { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: s.admission_date },
     { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id },
     { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
     { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: s.gender },
@@ -146,7 +148,7 @@
     });
     view.querySelector("#add").addEventListener("click", () =>
       openForm({
-        title: "New Admission", intro: "Login ID is generated automatically. Default password: student@123",
+        title: "New Admission", intro: "User ID is the school code, S, the year from Date of Admission, and this number. Default password: s@123",
         fields: STUDENT_FORM({ class_id: state.classId }, d), submitLabel: "Add Student",
         onSubmit: async (v) => {
           const r = await MPS.post("/principal/students", v);
@@ -170,7 +172,7 @@
       reset.type = "button";
       reset.className = "btn btn-light btn-sm";
       reset.textContent = "Reset password";
-      reset.addEventListener("click", () => confirm("Reset password to student@123?") && run(() => MPS.post(`/principal/users/student/${s.id}/reset-password`)));
+      reset.addEventListener("click", () => confirm("Reset password to s@123?") && run(() => MPS.post(`/principal/users/student/${s.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
     }));
     view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
@@ -185,7 +187,7 @@
         ${stat("Fee due", money(d.fees.due), { icon: "fa-inr", tone: d.fees.due ? "warn" : "ok" })}
         ${stat("Last result", d.results.length ? `${d.results[d.results.length - 1].percentage}%` : "-", { icon: "fa-trophy", tone: "info" })}
         ${stat("Pending months", d.fees.pending_months.length, { icon: "fa-exclamation-circle", tone: d.fees.pending_months.length >= 2 ? "danger" : "ok" })}</div>
-      ${kv([["Name", s.name], ["Admission No.", s.admission_no], ["Class", d.class_label], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
+      ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
         ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address]])}
       <div class="modal-actions"><button class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button></div>`;
     m.body.querySelector("#hpc").addEventListener("click", () => UI.showProgressCard(`/principal/students/${id}/progress-card`));
@@ -197,6 +199,8 @@
     const FORM = (t) => [
       PHOTO(t),
       { name: "name", label: "Name", required: true, value: t.name },
+      { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(t), hint: "Last digits of the User ID, such as 001" },
+      { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: t.admission_date },
       { name: "designation", label: "Designation", value: t.designation },
       { name: "subjects", label: "Subjects (comma separated)", value: (t.subjects || []).join(", ") },
       { name: "phone", label: "Mobile", required: true, value: t.phone },
@@ -218,7 +222,7 @@
       d.teachers
     ), { icon: "fa-user-circle", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-user-plus"></i> Add Teacher</button>' });
     view.querySelector("#add").addEventListener("click", () => openForm({
-      title: "Add Teacher", intro: "Default password: teacher@123", fields: FORM({}), submitLabel: "Add",
+      title: "Add Teacher", intro: "User ID is the school code, T, and this number. Default password: t@123", fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => {
         const r = await MPS.post("/principal/teachers", v);
         teachers(view, ctx);
@@ -240,7 +244,7 @@
       reset.type = "button";
       reset.className = "btn btn-light btn-sm";
       reset.textContent = "Reset password";
-      reset.addEventListener("click", () => confirm("Reset password to teacher@123?") && run(() => MPS.post(`/principal/users/teacher/${t.id}/reset-password`)));
+      reset.addEventListener("click", () => confirm("Reset password to t@123?") && run(() => MPS.post(`/principal/users/teacher/${t.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
     }));
   }

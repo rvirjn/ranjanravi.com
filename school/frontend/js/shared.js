@@ -476,11 +476,24 @@
    * opts: { title, noun, icon, rows, defaultPassword, extraFields, extraColumns,
    *         create(values), update(row, values), resetPassword(row), remove(row), reload() }
    */
+  function admissionSuffix(record) {
+    if (record && record.admission_number) return record.admission_number;
+    const id = String((record && (record.employee_id || record.admission_no)) || "");
+    const dated = id.match(/[STPA](\d{4})(\d{3,})$/);
+    if (dated) return dated[2];
+    const plain = id.match(/[STPA](\d{3,})$/);
+    if (plain) return plain[1];
+    const tail = id.match(/(\d{3})$/);
+    return tail ? tail[1] : "";
+  }
+
   function staffAccounts(view, opts) {
     const FORM = (s) => [
       { name: "photo", label: "Photo", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
       ...(opts.extraFields ? opts.extraFields(s) : []),
       { name: "name", label: "Name", required: true, value: s.name },
+      { name: "admission_number", label: "Admission No.", required: true, value: admissionSuffix(s), hint: "Last digits of the User ID, such as 001" },
+      { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: s.admission_date || "" },
       { name: "designation", label: "Designation", value: s.designation },
       { name: "phone", label: "Mobile", required: true, value: s.phone },
       { name: "email", label: "Email", type: "email", value: s.email },
@@ -498,7 +511,7 @@
     ), { icon: opts.icon, flush: true, actions: `<button class="btn btn-sm" id="addStaff"><i class="fa fa-user-plus"></i> Add ${esc(opts.noun)}</button>` });
 
     view.querySelector("#addStaff").addEventListener("click", () => openForm({
-      title: `Add ${opts.noun}`, intro: `Login ID is created automatically. Default password: ${esc(opts.defaultPassword)}`,
+      title: `Add ${opts.noun}`, intro: `User ID is the school code, ${esc(opts.idLetter)}, and this number. Default password: ${esc(opts.defaultPassword)}`,
       fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => { const r = await opts.create(v); opts.reload(); return r; },
     }));
@@ -549,6 +562,7 @@
     if (u.qualification) rows.push(["Qualification", u.qualification]);
     if (u.subjects && u.subjects.length) rows.push(["Subjects", u.subjects.join(", ")]);
     if (u.joining_date) rows.push(["Joining Date", fmtDate(u.joining_date)]);
+    if (u.admission_date) rows.push(["Date of Admission", fmtDate(u.admission_date)]);
     if (u.dob) rows.push(["Date of Birth", fmtDate(u.dob)]);
     if (u.gender) rows.push(["Gender", u.gender]);
     if (u.blood_group) rows.push(["Blood Group", u.blood_group]);
@@ -589,6 +603,6 @@
     );
   }
 
-  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile });
+  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile, admissionSuffix });
   Object.assign(UI, { receiptHtml, showReceipt, progressCardHtml, showProgressCard, admitCardHtml, CODE_LABEL });
 })();
