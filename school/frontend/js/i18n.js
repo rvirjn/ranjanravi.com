@@ -61,6 +61,15 @@
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
     "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ERP)", "RV Smart School (ERP)": "आरवी स्मार्ट स्कूल (ERP)", "Staff Login": "स्टाफ लॉग इन",
+    "About & Features": "परिचय और सुविधाएँ", "Privacy Policy": "गोपनीयता नीति", "Download Android app": "एंड्रॉइड ऐप डाउनलोड करें",
+    "Send Temporary Password": "अस्थायी पासवर्ड भेजें",
+    "Enter your User ID. If an email is registered, a temporary password will be sent to it.": "अपनी यूज़र आईडी लिखें। यदि ईमेल दर्ज है, तो उस पर अस्थायी पासवर्ड भेजा जाएगा।",
+    "Your session has ended. Please log in again.": "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉग इन करें।",
+    "Incorrect User ID or password": "यूज़र आईडी या पासवर्ड गलत है",
+    "If the User ID is registered with an email address, a temporary password has been sent. Otherwise please contact the school office.": "यदि यह यूज़र आईडी किसी ईमेल पते के साथ दर्ज है, तो अस्थायी पासवर्ड भेज दिया गया है। अन्यथा कृपया विद्यालय कार्यालय से संपर्क करें।",
+    "Cannot reach the school server. Check your internet connection and try again.": "विद्यालय सर्वर तक पहुँच नहीं हो पा रही। अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।",
+    "Session expired": "सत्र समाप्त हो गया",
+    "RV-Smart-School-ERP.apk · version 1.0.0": "RV-Smart-School-ERP.apk · संस्करण 1.0.0",
     "Classes": "कक्षाएं", "Add Class": "कक्षा जोड़ें", "Principal": "प्रधानाचार्य", "Add Principal": "प्रधानाचार्य जोड़ें",
     "Schools": "विद्यालय", "Add School": "विद्यालय जोड़ें", "Accountants": "लेखाकार", "Add Accountant": "लेखाकार जोड़ें",
     "Manage": "प्रबंधन", "Admin Portal": "एडमिन पोर्टल", "Reset password": "पासवर्ड रीसेट करें", "Remove": "हटाएं",
@@ -105,6 +114,11 @@
     "Father": "पिता", "Mother": "माता", "Mobile": "मोबाइल",
     "Monday": "सोमवार", "Tuesday": "मंगलवार", "Wednesday": "बुधवार", "Thursday": "गुरुवार", "Friday": "शुक्रवार", "Saturday": "शनिवार", "Sunday": "रविवार",
   };
+  const TITLES = {
+    "Login | RV Smart School (ERP)": "लॉग इन | आरवी स्मार्ट स्कूल (ERP)",
+    "About & Features | School Management Portal (ERP)": "परिचय और सुविधाएँ | विद्यालय प्रबंधन पोर्टल (ERP)",
+    "Privacy Policy | School Management Portal (ERP)": "गोपनीयता नीति | विद्यालय प्रबंधन पोर्टल (ERP)",
+  };
   const PATTERNS = [
     [/^(\d+) students$/, "$1 विद्यार्थी"],
     [/^Good (morning|afternoon|evening), (.+)$/, (m, part, name) => `${{ morning: "सुप्रभात", afternoon: "नमस्कार", evening: "शुभ संध्या" }[part]}, ${name}`],
@@ -123,9 +137,18 @@
     return null;
   }
 
+  function inHindiCopy(node) {
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    return !!(el && el.closest && el.closest(".hi-copy"));
+  }
+
   function translate(root) {
+    if (root.nodeType === 1 && inHindiCopy(root)) return;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) => (n.parentElement && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+      acceptNode: (n) => {
+        if (inHindiCopy(n)) return NodeFilter.FILTER_REJECT;
+        return n.parentElement && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      },
     });
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -161,10 +184,28 @@
     });
   }
 
+  function applyLangBlocks() {
+    const hi = lang === "hi";
+    document.querySelectorAll(".en-copy").forEach((el) => { el.hidden = hi; });
+    document.querySelectorAll(".hi-copy").forEach((el) => { el.hidden = !hi; });
+    document.querySelectorAll(".en-copy [id], .hi-copy [id]").forEach((el) => {
+      const base = el.id.replace(/-hi$/, "");
+      const inHi = !!el.closest(".hi-copy");
+      el.id = (hi === inHi) ? base : base + "-off";
+    });
+    if (location.hash) {
+      const target = document.getElementById(location.hash.slice(1));
+      if (target) target.scrollIntoView();
+    }
+  }
+
   function start() {
     addToggle();
+    applyLangBlocks();
     if (lang === "hi") {
       document.documentElement.lang = "hi";
+      document.documentElement.classList.add("lang-hi");
+      if (TITLES[document.title]) document.title = TITLES[document.title];
       translate(document.body);
     }
     new MutationObserver((mutations) => {
@@ -173,6 +214,7 @@
       mutations.forEach((m) => m.addedNodes.forEach((n) => {
         if (n.nodeType === 1) translate(n);
         else if (n.nodeType === 3) {
+          if (inHindiCopy(n)) return;
           const t = translateText(n.nodeValue);
           if (t !== null && t !== n.nodeValue) n.nodeValue = t;
         }

@@ -226,20 +226,52 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .empty .fa { font-size: 28px; display: block; margin-bottom: 8px; color: #b7c7bc; }
 .loading { padding: 40px; text-align: center; color: var(--muted); }
 .spin-ccw {
+  position: relative;
   display: inline-block;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   margin-right: 8px;
-  border-radius: 50%;
-  vertical-align: -6px;
-  background: conic-gradient(from 90deg, #1b4d2b 0 80deg, rgba(27, 77, 43, 0) 80deg 360deg);
-  -webkit-mask: radial-gradient(farthest-side, transparent 64%, #000 65%);
-  mask: radial-gradient(farthest-side, transparent 64%, #000 65%);
-  animation: spin-ccw 0.7s linear infinite;
+  vertical-align: middle;
+  color: #1b4d2b;
 }
-@keyframes spin-ccw {
+.spin-ccw .fa-spinner {
+  position: absolute;
+  inset: 0;
+  animation: spin-cw 0.8s linear infinite;
+}
+.spin-ccw .fa-spinner:before {
+  content: "";
+  position: absolute;
+  left: 12.5px;
+  top: 0.5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    8.5px 3.5px 0 rgba(27, 77, 43, .85),
+    12px 12px 0 rgba(27, 77, 43, .7),
+    8.5px 20.5px 0 rgba(27, 77, 43, .55),
+    0 24px 0 rgba(27, 77, 43, .4),
+    -8.5px 20.5px 0 rgba(27, 77, 43, .3),
+    -12px 12px 0 rgba(27, 77, 43, .2),
+    -8.5px 3.5px 0 rgba(27, 77, 43, .12);
+}
+.spin-ccw b {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+}
+@keyframes spin-cw {
   from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
+  to { transform: rotate(360deg); }
 }
 .error-box { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius); padding: 18px; }
 

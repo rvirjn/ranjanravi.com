@@ -1,4 +1,11 @@
 const UI = (() => {
+  setInterval(() => {
+    document.querySelectorAll(".spin-ccw b").forEach((el) => {
+      const next = (Number(el.textContent) || 0) + 1;
+      el.textContent = String(next > 99 ? 1 : next);
+    });
+  }, 700);
+
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const MONTHS_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const state = { school: {} };
@@ -136,7 +143,8 @@ const UI = (() => {
   }
 
   const empty = (text, icon = "fa-inbox") => `<div class="empty"><i class="fa ${icon}"></i>${esc(text)}</div>`;
-  const loading = () => `<div class="loading"><span class="spin-ccw" aria-hidden="true"></span> Loading...</div>`;
+  const spinner = () => `<span class="spin-ccw" aria-hidden="true"><i class="fa fa-spinner"></i><b>1</b></span>`;
+  const loading = () => `<div class="loading">${spinner()} Loading...</div>`;
   const errorBox = (message) => `<div class="error-box"><i class="fa fa-exclamation-circle"></i> ${esc(message)}</div>`;
 
   function table(columns, rows, opts = {}) {
@@ -287,7 +295,7 @@ const UI = (() => {
         }
         if (!files.length) return;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spin-ccw" aria-hidden="true"></span> Saving photo';
+        btn.innerHTML = `${spinner()} Saving photo`;
         try {
           const file = await uploadFile(files[0], { icon: true });
           form.querySelector(`[name="${btn.dataset.photoFor}"]`).value = file;
