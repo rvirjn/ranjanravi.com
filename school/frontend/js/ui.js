@@ -453,6 +453,7 @@ const UI = (() => {
         else location.hash = id;
       },
       refresh: () => route(),
+      noteApprovals: () => paintApprovalCount(),
     };
 
     let lastGroup = null;
@@ -460,7 +461,10 @@ const UI = (() => {
       .map((m) => {
         const heading = m.group && m.group !== lastGroup ? `<div class="nav-group">${esc(m.group)}</div>` : "";
         lastGroup = m.group || lastGroup;
-        return `${heading}<a href="#${m.id}" data-id="${m.id}"><i class="fa ${m.icon}"></i>${esc(m.label)}</a>`;
+        const label = m.id === "approvals"
+          ? `<span class="nav-label">${esc(m.label)}<span data-approvals></span></span>`
+          : esc(m.label);
+        return `${heading}<a href="#${m.id}" data-id="${m.id}"><i class="fa ${m.icon}"></i>${label}</a>`;
       })
       .join("");
 
@@ -519,6 +523,14 @@ const UI = (() => {
     }
     paintSchool();
 
+    function paintApprovalCount() {
+      const slot = document.querySelector("[data-approvals]");
+      if (!slot) return;
+      MPS.get("/me/approvals-count").then((d) => {
+        slot.textContent = `(${d.count})`;
+      }).catch(() => null);
+    }
+
     async function route() {
       const id = location.hash.replace("#", "") || modules[0].id;
       const mod = modules.find((m) => m.id === id) || modules[0];
@@ -536,6 +548,7 @@ const UI = (() => {
       } catch (e) {
         host.innerHTML = errorBox(e.message);
       }
+      paintApprovalCount();
     }
 
     document.getElementById("menuBtn").addEventListener("click", () => shell.classList.toggle("nav-open"));

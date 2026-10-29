@@ -48,7 +48,7 @@
         ${stat("Attendance Today", `${d.classes_marked_today} / ${d.classes_total}`, { icon: "fa-check-square-o", tone: d.is_holiday ? "info" : d.classes_marked_today < d.classes_total ? "warn" : "ok",
           sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked" })}
         ${stat("Homework to Review", d.homework_to_review, { icon: "fa-pencil-square-o", tone: d.homework_to_review ? "warn" : "ok", sub: "Ungraded submissions" })}
-        ${stat("Leave Requests", d.pending_student_leaves, { icon: "fa-calendar-times-o", tone: d.pending_student_leaves ? "warn" : "ok", sub: "Awaiting your approval" })}
+        ${stat("Pending Approvals", d.pending_student_leaves, { icon: "fa-check-circle", tone: d.pending_student_leaves ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
         ${stat("HW/CW Today", d.class_teacher_of ? (d.diary_posted_today ? "Posted" : "Not posted") : "-", { icon: "fa-whatsapp", tone: d.class_teacher_of && !d.diary_posted_today ? "warn" : "ok", sub: d.class_teacher_of || "" })}
       </div>
       <div class="grid grid-2">
@@ -72,15 +72,10 @@
   }
 
   // ---------- Profile ----------
-  async function profile(view) {
+  async function profile(view, ctx) {
+    await UI.shared.myProfile(view, ctx);
     const d = await MPS.get("/teacher/profile");
-    const t = d.teacher;
-    view.innerHTML = `${card("Teacher Details", kv([
-      ["Name", t.name], ["Employee ID", t.employee_id], ["Designation", t.designation], ["Qualification", t.qualification],
-      ["Subjects", (t.subjects || []).join(", ")], ["Joining Date", fmtDate(t.joining_date)], ["Date of Birth", fmtDate(t.dob)],
-      ["Gender", t.gender], ["Blood Group", t.blood_group], ["Phone", t.phone], ["Email", t.email], ["Address", t.address],
-    ]), { icon: "fa-user" })}
-    ${card("Classes Assigned", classTable(d.classes), { icon: "fa-users", flush: true })}`;
+    view.insertAdjacentHTML("beforeend", card("Classes Assigned", classTable(d.classes), { icon: "fa-users", flush: true }));
   }
 
   const classTable = (classes) =>
@@ -630,10 +625,10 @@
   async function studentLeaves(view, ctx) {
     const d = await MPS.get("/teacher/student-leaves");
     if (!d.class_label) {
-      view.innerHTML = card("Student Leave Requests", empty("Leave requests are approved by class teachers. You are not a class teacher.", "fa-calendar-times-o"));
+      view.innerHTML = card("Approvals", empty("Leave requests are approved by class teachers. You are not a class teacher.", "fa-calendar-times-o"));
       return;
     }
-    view.innerHTML = card(`Leave Requests · ${d.class_label}`, table(
+    view.innerHTML = card(`Approvals · ${d.class_label}`, table(
       [
         { label: "Student", render: (l) => `<b>${esc(l.student_name)}</b><div class="small muted">Applied ${fmtDate(l.applied_on)}</div>` },
         { label: "Dates", render: (l) => `${fmtDate(l.from_date)}${l.to_date !== l.from_date ? ` to ${fmtDate(l.to_date)}` : ""}`, className: "nowrap" },
@@ -653,6 +648,7 @@
           submitLabel: b.dataset.status === "Approved" ? "Approve" : "Reject",
           onSubmit: async (v) => {
             const r = await MPS.post(`/teacher/student-leaves/${b.dataset.review}`, { status: b.dataset.status, note: v.note });
+            if (ctx.noteApprovals) ctx.noteApprovals();
             studentLeaves(view, ctx);
             return r;
           },
@@ -877,6 +873,7 @@
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Overview", render: profile },
+      { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
       { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Overview", render: (v) => UI.shared.timetable(v, "/teacher/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>`) },
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => UI.shared.diary(v, c) },
@@ -892,7 +889,6 @@
       { id: "co-scholastic", label: "Co-Scholastic Grades", icon: "fa-paint-brush", group: "Exams", render: (v, c) => coScholastic(v, c) },
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Exams", render: remarks },
       { id: "fee-dues", label: "Class Fee Dues", icon: "fa-inr", group: "Communication", render: feeDues },
-      { id: "student-leaves", label: "Student Leave Requests", icon: "fa-calendar-times-o", group: "Communication", render: studentLeaves },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },

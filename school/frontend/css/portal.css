@@ -113,6 +113,7 @@ textarea { min-height: 96px; resize: vertical; }
   text-decoration: none;
 }
 .nav a .fa { width: 18px; text-align: center; color: #9fc8aa; }
+.nav-label { display: inline; }
 .nav a:hover { background: rgba(255, 255, 255, .08); }
 .nav a.active { background: var(--green-300); color: var(--green-900); font-weight: 600; }
 .nav a.active .fa { color: var(--green-900); }

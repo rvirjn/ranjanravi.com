@@ -18,6 +18,7 @@
         ${stat("Teachers Present", d.teachers_marked ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : '<a href="#teacher-attendance">Mark now</a>' })}
         ${stat("Fee Collected (month)", money(d.fees.collected_month), { icon: "fa-inr", tone: "info", sub: `Today ${money(d.fees.collected_today)}` })}
         ${stat("Fee Dues", money(d.fees.total_due), { icon: "fa-exclamation-circle", tone: "danger", sub: `${d.fees.defaulters} students 2+ months` })}
+        ${stat("Pending Approvals", pendingTotal, { icon: "fa-check-circle", tone: pendingTotal ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
       </div>
       <div class="grid grid-side">
         ${card("Today's Classes", table(
@@ -344,14 +345,14 @@
         { label: "", className: "right", render: (r) => (r.status === "Pending" ? `<button class="btn btn-sm" data-reply="${r.id}">Respond</button>` : "") },
       ], d.complaints, { empty: "No complaints." }),
       profile_requests: table([
-        { label: "Student", render: (r) => `<b>${esc(r.student_name)}</b><div class="small muted">${fmtDate(r.date)}</div>` },
-        { label: "Changes", render: (r) => Object.entries(r.changes).map(([k, v]) => `<div class="small">${esc(k)}: <b>${esc(v)}</b></div>`).join("") },
+        { label: "Person", render: (r) => `<b>${esc(r.person_name || r.student_name)}</b><div class="small muted">${esc(r.role_label || "Student")} · ${fmtDate(r.date)}</div>` },
+        { label: "Changes", render: (r) => Object.entries(r.changes).map(([k, v]) => `<div class="small">${esc({ phone: "Mobile", email: "Email", address: "Address", father_phone: "Father's mobile", mother_phone: "Mother's mobile" }[k] || k)}: <b>${esc(v)}</b></div>`).join("") },
         { label: "Status", render: (r) => badge(r.status) }, { label: "", className: "right nowrap", render: (r) => (r.status === "Pending" ? act(r.id, "profile") : "") },
       ], d.profile_requests, { empty: "No profile change requests." }),
     };
     view.innerHTML = `${tabsHtml}${card("Approvals", bodies[tab], { icon: "fa-check-circle", flush: true })}`;
     onTabs(view, (t) => approvals(view, ctx, t));
-    const reload = () => approvals(view, ctx, tab);
+    const reload = () => { if (ctx.noteApprovals) ctx.noteApprovals(); approvals(view, ctx, tab); };
     const decide = (kind, id, approve) => {
       const map = {
         leave: () => MPS.post(`/principal/teacher-leaves/${id}`, { status: approve ? "Approved" : "Rejected" }),
@@ -511,6 +512,8 @@
     userSub: (u) => `${u.employee_id} · Principal`,
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
+      { id: "profile", label: "My Profile", icon: "fa-user", group: "Overview", render: (v, c) => UI.shared.myProfile(v, c) },
+      { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => approvals(v, c) },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => teacherAttendance(v, c) },
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => UI.shared.diary(v, c) },
@@ -519,7 +522,6 @@
       { id: "results", label: "Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "students", label: "Students & Admissions", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
-      { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "People", render: (v, c) => approvals(v, c) },
       { id: "exams", label: "Exams & Admit Cards", icon: "fa-file-text-o", group: "Academics", render: exams },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },

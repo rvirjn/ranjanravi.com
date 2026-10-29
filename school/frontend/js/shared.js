@@ -529,6 +529,66 @@
     }));
   }
 
-  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts });
+  const CHANGE_LABEL = { phone: "Mobile", email: "Email", address: "Address" };
+  const ROLE_TITLE = { teacher: "Teacher", principal: "Principal", accountant: "Accountant" };
+
+  async function myProfile(view, ctx) {
+    const d = await MPS.get("/me/profile");
+    const u = d.user;
+    const title = ROLE_TITLE[d.role] || "Staff";
+    const pending = d.pending_requests.length
+      ? `<div class="form-ok" style="margin-top:14px">Update request pending with the office: ${d.pending_requests
+          .map((r) => Object.entries(r.changes).map(([k, v]) => `${esc(CHANGE_LABEL[k] || k)} → ${esc(v)}`).join(", "))
+          .join("; ")}</div>`
+      : "";
+    const rows = [
+      ["Name", u.name],
+      ["Employee ID", u.employee_id],
+      ["Designation", u.designation || title],
+    ];
+    if (u.qualification) rows.push(["Qualification", u.qualification]);
+    if (u.subjects && u.subjects.length) rows.push(["Subjects", u.subjects.join(", ")]);
+    if (u.joining_date) rows.push(["Joining Date", fmtDate(u.joining_date)]);
+    if (u.dob) rows.push(["Date of Birth", fmtDate(u.dob)]);
+    if (u.gender) rows.push(["Gender", u.gender]);
+    if (u.blood_group) rows.push(["Blood Group", u.blood_group]);
+    view.innerHTML = `
+      ${card("Photo", `<div style="display:flex;gap:16px;align-items:center"><div class="avatar" style="width:84px;height:84px;font-size:28px">${avatar(u.name, u.photo)}</div>
+        <button class="btn btn-light btn-sm" id="photoBtn"><i class="fa fa-camera"></i> ${u.photo ? "Change" : "Upload"} photo</button></div>`, { icon: "fa-camera" })}
+      ${card(`${title} Details`, kv(rows), { icon: "fa-user" })}
+      ${card("Contact", kv([
+        ["Mobile", u.phone], ["Email", u.email], ["Address", u.address],
+      ]) + pending, { icon: "fa-home", actions: '<button class="btn btn-sm" id="editBtn"><i class="fa fa-pencil"></i> Request Update</button>' })}`;
+    view.querySelector("#photoBtn").addEventListener("click", async () => {
+      try {
+        const [file] = await UI.pickAndUpload({ accept: "image/png,image/jpeg,image/webp", icon: true });
+        if (!file) return;
+        await run(() => MPS.post("/me/photo", { file }));
+        MPS.saveSession({ ...MPS.session(), user: { ...MPS.session().user, photo: file } });
+        location.reload();
+      } catch (e) {
+        UI.toast(e.message, "error");
+      }
+    });
+    view.querySelector("#editBtn").addEventListener("click", () =>
+      openForm({
+        title: "Request Contact Update",
+        intro: "The school office will verify and update your record.",
+        fields: [
+          { name: "phone", label: "Mobile", value: u.phone },
+          { name: "email", label: "Email", type: "email", value: u.email },
+          { name: "address", label: "Address", type: "textarea", value: u.address },
+        ],
+        submitLabel: "Send Request",
+        onSubmit: async (v) => {
+          const r = await MPS.post("/me/profile/update-request", v);
+          ctx.refresh();
+          return r;
+        },
+      })
+    );
+  }
+
+  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile });
   Object.assign(UI, { receiptHtml, showReceipt, progressCardHtml, showProgressCard, admitCardHtml, CODE_LABEL });
 })();

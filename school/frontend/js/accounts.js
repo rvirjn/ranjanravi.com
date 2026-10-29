@@ -11,8 +11,8 @@ const Accounts = (() => {
         ${stat("This Month", money(d.collected_month), { icon: "fa-calendar", tone: "info" })}
         ${stat("Total Dues", money(d.total_due), { icon: "fa-exclamation-circle", tone: "warn", sub: `${money(d.overdue)} overdue` })}
         ${stat("2+ Months Pending", d.defaulters, { icon: "fa-users", tone: "danger", sub: `<a href="#defaulters">View list</a>` })}
+        ${stat("Pending Approvals", (d.pending_approvals || 0) + (d.pending_intimations || 0), { icon: "fa-check-circle", tone: (d.pending_approvals || d.pending_intimations) ? "warn" : "ok", sub: `<a href="#approvals">Open</a>` })}
       </div>
-      ${d.pending_intimations ? `<div class="form-ok"><i class="fa fa-bell"></i> ${d.pending_intimations} parent payment(s) waiting for verification. <a href="#intimations">Verify now</a></div>` : ""}
       <div class="grid grid-side">
         ${card("Class-wise Dues", table(
           [
@@ -274,9 +274,11 @@ const Accounts = (() => {
   }
 
   // ---------- Parent payment intimations ----------
-  async function intimations(view, ctx) {
+  async function intimations(view, ctx, opts = {}) {
     const d = await MPS.get("/accounts/intimations");
-    view.innerHTML = card("Payments reported by parents", table(
+    const root = opts.into || view;
+    const reload = opts.reload || (() => intimations(view, ctx));
+    root.innerHTML = card("Payments reported by parents", table(
       [
         { label: "Date", render: (i) => fmtDate(i.date), className: "nowrap" },
         { label: "Student", render: (i) => `<b>${esc(i.student_name)}</b><div class="small muted">${esc(i.class_label)}</div>` },
@@ -289,13 +291,13 @@ const Accounts = (() => {
       d.intimations,
       { empty: "No payments reported by parents.", emptyIcon: "fa-bell-o" }
     ), { icon: "fa-bell", flush: true });
-    view.querySelectorAll("[data-record]").forEach((b) =>
+    root.querySelectorAll("[data-record]").forEach((b) =>
       b.addEventListener("click", () => {
         sessionStorage.setItem("school_collect_student", JSON.stringify({ studentId: b.dataset.record }));
         location.hash = "collect";
       })
     );
-    view.querySelectorAll("[data-reject]").forEach((b) =>
+    root.querySelectorAll("[data-reject]").forEach((b) =>
       b.addEventListener("click", () =>
         openForm({
           title: "Payment not received",
@@ -303,7 +305,7 @@ const Accounts = (() => {
           submitLabel: "Mark not received",
           onSubmit: async (v) => {
             const r = await MPS.post(`/accounts/intimations/${b.dataset.reject}`, { status: "Rejected", note: v.note });
-            intimations(view, ctx);
+            reload();
             return r;
           },
         })
