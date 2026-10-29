@@ -341,6 +341,32 @@ const UI = (() => {
   admissionLatest.setDate(admissionLatest.getDate() + 366);
   const admissionDate = { min: "1970-01-01", max: `${admissionLatest.getFullYear()}-${String(admissionLatest.getMonth() + 1).padStart(2, "0")}-${String(admissionLatest.getDate()).padStart(2, "0")}` };
 
+  const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+  function bindEmailInput(input) {
+    const paint = () => {
+      const value = input.value.trim();
+      input.setCustomValidity(value && !EMAIL_RE.test(value) ? "Enter a valid email address" : "");
+    };
+    const show = () => {
+      paint();
+      const errorEl = input.form && input.form.querySelector(".form-error");
+      if (!input.validationMessage) {
+        if (errorEl && errorEl.textContent === "Enter a valid email address") errorEl.hidden = true;
+        return;
+      }
+      if (errorEl) {
+        errorEl.textContent = input.validationMessage;
+        errorEl.hidden = false;
+      }
+      input.reportValidity();
+    };
+    input.addEventListener("input", paint);
+    input.addEventListener("change", paint);
+    input.addEventListener("blur", show);
+    paint();
+  }
+
   function bindDigitsOnly(input) {
     input.addEventListener("beforeinput", (e) => {
       if (!e.data || e.inputType === "insertFromPaste") return;
@@ -440,6 +466,7 @@ const UI = (() => {
     );
     const form = m.body.querySelector("form");
     form.querySelectorAll("[data-mobile]").forEach(bindMobileInput);
+    form.querySelectorAll('input[type="email"]').forEach(bindEmailInput);
     form.querySelectorAll('[name="admission_number"]').forEach(bindDigitsOnly);
     form.querySelectorAll("[data-person]").forEach(bindPersonName);
     if (admissionCheck) bindAdmissionCheck(form, admissionCheck);
@@ -507,7 +534,13 @@ const UI = (() => {
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!form.reportValidity()) return;
+      if (!form.checkValidity()) {
+        const bad = [...form.elements].find((el) => el.willValidate && !el.validity.valid);
+        errorEl.textContent = (bad && bad.validationMessage) || "Check the highlighted fields";
+        errorEl.hidden = false;
+        if (bad) bad.reportValidity();
+        return;
+      }
       const values = Object.fromEntries(new FormData(form).entries());
       submit.disabled = true;
       errorEl.hidden = true;
