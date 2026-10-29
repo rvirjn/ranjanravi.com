@@ -11,7 +11,6 @@
       <div class="welcome"><div><h2>Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, Principal</h2>
         <p>${esc(d.weekday)}, ${fmtDate(d.today)}${d.is_holiday ? " &middot; Holiday" : ""}</p></div>
         <div class="btn-group"><a class="btn btn-light" href="#teacher-attendance"><i class="fa fa-user-circle"></i> Teacher Attendance</a>
-        <a class="btn btn-light" href="#attendance"><i class="fa fa-check-square-o"></i> Student Attendance</a>
         <a class="btn btn-light" href="#approvals"><i class="fa fa-check-circle"></i> Approvals${pendingTotal ? ` (${pendingTotal})` : ""}</a></div></div>
       <div class="grid grid-4">
         ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked` })}
@@ -527,6 +526,33 @@
     }));
   }
 
+  async function diaryReport(view, ctx, state = {}) {
+    const day = state.date || todayIso();
+    const q = new URLSearchParams({ date: day });
+    if (state.classId) q.set("class_id", state.classId);
+    const d = await MPS.get(`/principal/diary-report?${q}`);
+    const dash = '<span class="muted">-</span>';
+    view.innerHTML = `
+      <div class="toolbar"><div class="filters">
+        <label style="margin:0">Date</label><input type="date" id="day" value="${day}" max="${todayIso()}">
+        <select id="cls"><option value="">All classes</option>${d.classes.map((c) => `<option value="${c.id}" ${c.id === state.classId ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
+      </div>${badge(d.summary, d.posted_classes === d.total_classes && d.total_classes ? "success" : "warn")}</div>
+      ${card(`HW/CW · ${fmtDate(d.date)}`, table(
+        [
+          { label: "Class", render: (r) => `<b>${esc(r.class_label)}</b>` },
+          { label: "Subject", render: (r) => (r.posted ? esc(r.subject) || dash : badge("Not posted", "warn")) },
+          { label: "Classwork", render: (r) => (r.cw ? esc(r.cw) : dash) },
+          { label: "Homework", render: (r) => (r.hw ? esc(r.hw) : dash) },
+          { label: "Posted by", render: (r) => (r.teacher_name ? esc(r.teacher_name) : dash) },
+          { label: "Time", render: (r) => (r.posted_on ? fmtTime(r.posted_on) : dash) },
+        ],
+        d.rows,
+        { empty: "No classes to show." }
+      ), { icon: "fa-book", flush: true })}`;
+    view.querySelector("#day").addEventListener("change", (e) => diaryReport(view, ctx, { date: e.target.value, classId: state.classId }));
+    view.querySelector("#cls").addEventListener("change", (e) => diaryReport(view, ctx, { date: day, classId: e.target.value }));
+  }
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
@@ -536,24 +562,18 @@
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Overview", render: (v, c) => UI.shared.myProfile(v, c) },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => approvals(v, c) },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => teacherAttendance(v, c) },
-      { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
-      { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => UI.shared.diary(v, c) },
       { id: "attendance-report", label: "Student Attendance Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => UI.shared.attendanceReport(v, c) },
       { id: "teacher-report", label: "Teacher Attendance Report", icon: "fa-line-chart", group: "Reports", render: (v, c) => teacherAttendanceReport(v, c) },
-      { id: "results", label: "Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
-      { id: "students", label: "Students & Admissions", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
+      { id: "diary-report", label: "HW/CW Report", icon: "fa-book", group: "Reports", render: (v, c) => diaryReport(v, c) },
+      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
+      { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
+      { id: "classes", label: "Classes", icon: "fa-th-large", group: "People", render: (v, c) => classes(v, c) },
       { id: "exams", label: "Exams & Admit Cards", icon: "fa-file-text-o", group: "Academics", render: exams },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },
       { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c, { manage: true }) },
       { id: "whatsapp", label: "WhatsApp", icon: "fa-whatsapp", group: "Communication", render: (v, c) => UI.shared.whatsapp(v, c) },
-      { id: "collect", label: "Student Fee Update", icon: "fa-money", group: "Fees", render: (v, c) => Accounts.collect(v, c) },
-      { id: "defaulters", label: "Dues & Defaulters", icon: "fa-exclamation-triangle", group: "Fees", render: (v, c) => Accounts.defaulters(v, c) },
-      { id: "receipts", label: "Receipts", icon: "fa-file-text-o", group: "Fees", render: (v, c) => Accounts.receipts(v, c) },
-      { id: "intimations", label: "Parent Payments", icon: "fa-bell", group: "Fees", render: Accounts.intimations },
-      { id: "reminders", label: "Fee Reminders", icon: "fa-clock-o", group: "Fees", render: Accounts.reminders },
-      { id: "classes", label: "Classes", icon: "fa-th-large", group: "Settings", render: (v, c) => classes(v, c) },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],
   });

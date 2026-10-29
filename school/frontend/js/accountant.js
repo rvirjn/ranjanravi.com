@@ -64,10 +64,10 @@
       { id: "receipts", label: "Receipts", icon: "fa-file-text-o", group: "Fees", render: (v, c) => Accounts.receipts(v, c) },
       { id: "defaulters", label: "Dues & Defaulters", icon: "fa-exclamation-triangle", group: "Fees", render: (v, c) => Accounts.defaulters(v, c) },
       { id: "reminders", label: "Fee Reminders", icon: "fa-whatsapp", group: "Fees", render: Accounts.reminders },
+      { id: "settings", label: "Fee Structure", icon: "fa-sliders", group: "Fees", render: Accounts.settings },
       { id: "report", label: "Collection Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => Accounts.report(v, c) },
-      { id: "principals", label: "Principal", icon: "fa-university", group: "Settings", render: principals },
-      { id: "settings", label: "Fee Structure", icon: "fa-sliders", group: "Settings", render: Accounts.settings },
-      { id: "whatsapp", label: "WhatsApp", icon: "fa-whatsapp", group: "Settings", render: (v, c) => UI.shared.whatsapp(v, c) },
+      { id: "principals", label: "Principal", icon: "fa-university", group: "People", render: principals },
+      { id: "whatsapp", label: "WhatsApp", icon: "fa-whatsapp", group: "Communication", render: (v, c) => UI.shared.whatsapp(v, c) },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],
   });

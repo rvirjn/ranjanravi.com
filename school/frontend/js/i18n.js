@@ -8,7 +8,7 @@
 
   const HI = {
     // groups & navigation
-    "Overview": "सारांश", "Academics": "पढ़ाई", "Finance": "वित्त", "School": "विद्यालय", "Requests": "अनुरोध", "Account": "खाता",
+    "Overview": "सारांश", "Academics": "पढ़ाई", "Finance": "वित्त", "School": "विद्यालय", "Other": "अन्य", "Requests": "अनुरोध", "Account": "खाता",
     "Daily": "दैनिक", "Classroom": "कक्षा", "Exams": "परीक्षा", "Communication": "संचार", "Staff": "स्टाफ", "Reports": "रिपोर्ट",
     "People": "लोग", "Fees": "फीस", "Settings": "सेटिंग्स",
     "Dashboard": "डैशबोर्ड", "My Profile": "मेरी प्रोफ़ाइल", "Attendance": "उपस्थिति", "Classwork & Homework": "कक्षा कार्य और गृह कार्य",
@@ -21,9 +21,10 @@
     "Attendance Report": "उपस्थिति रिपोर्ट", "My Classes & Students": "मेरी कक्षाएं और विद्यार्थी", "Homework Assignments": "गृह कार्य",
     "Lesson Plans": "पाठ योजना", "Marks Entry": "अंक प्रविष्टि", "Results & Report Cards": "परिणाम और रिपोर्ट कार्ड", "Co-Scholastic Grades": "सह-शैक्षिक ग्रेड",
     "Student Remarks": "विद्यार्थी टिप्पणी", "Class Fee Dues": "कक्षा फीस बकाया", "Student Leave Requests": "विद्यार्थी छुट्टी अनुरोध",
-    "My Attendance": "मेरी उपस्थिति", "My Leave": "मेरी छुट्टी", "Salary Slips": "वेतन पर्ची", "Duties & Substitutions": "ड्यूटी और प्रतिस्थापन",
+    "My Attendance": "मेरी उपस्थिति", "My Leave": "मेरी छुट्टी", "Salary Slips": "वेतन पर्ची", "My Salary Slips": "मेरी वेतन पर्ची", "Duties & Substitutions": "ड्यूटी और प्रतिस्थापन",
     "Teacher Attendance": "शिक्षक उपस्थिति", "Student Attendance Report": "विद्यार्थी उपस्थिति रिपोर्ट", "Teacher Attendance Report": "शिक्षक उपस्थिति रिपोर्ट",
-    "Results": "परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
+    "HW/CW Report": "गृह कार्य / कक्षा कार्य रिपोर्ट", "Classwork": "कक्षा कार्य", "Homework": "गृह कार्य", "Posted by": "किसने भेजा", "Time": "समय",
+    "Results": "परिणाम", "Student Results": "विद्यार्थी परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
     "Exams & Admit Cards": "परीक्षा और प्रवेश पत्र", "WhatsApp": "व्हाट्सएप", "Fee Overview": "फीस सारांश", "Student Fee Update": "विद्यार्थी फीस जमा",
     "Dues & Defaulters": "बकाया और डिफ़ॉल्टर", "Receipts": "रसीदें", "Parent Payments": "अभिभावक भुगतान", "Fee Reminders": "फीस रिमाइंडर",
     "Classes & Fees": "कक्षाएं और फीस", "Collection Report": "संग्रह रिपोर्ट", "Fee Structure": "फीस संरचना",
@@ -151,6 +152,7 @@
     [/^Today's (Classes|Schedule) \((\w+)\)$/, (m, what, day) => `आज ${what === "Classes" ? "की कक्षाएं" : "का कार्यक्रम"} (${HI[day] || day})`],
     [/^(\d+) present$/, "$1 उपस्थित"],
     [/^(\d+) absent$/, "$1 अनुपस्थित"],
+    [/^(\d+) of (\d+) classes posted$/, "$1 / $2 कक्षाओं का HW/CW भेजा गया"],
     [/^User ID (\S+) is already used$/, "यूज़र आईडी $1 पहले से है"],
     [/^Admission No\. (\S+) is already used$/, "प्रवेश संख्या $1 पहले से है"],
     [/^Admission No\. (\S+) is already used by another (student|teacher|principal|accountant)$/, (m, num, who) => `प्रवेश संख्या ${num} किसी अन्य ${{ student: "विद्यार्थी", teacher: "शिक्षक", principal: "प्रधानाचार्य", accountant: "लेखाकार" }[who]} के पास पहले से है`],
