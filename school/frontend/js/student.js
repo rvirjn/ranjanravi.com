@@ -454,35 +454,52 @@
   async function fees(view, ctx) {
     const d = await MPS.get("/student/fees");
     const sm = d.summary;
-    const bank = d.payment.bank || {};
-    const pending = d.intimations.filter((i) => i.status === "Pending");
+    const scannerSrc = d.payment.payment_qr ? UI.fileUrl(d.payment.payment_qr) : (d.payment.scanner || "");
+    const reportStatus = (i) => (i.status === "Rejected" ? "Not received" : i.status === "Recorded" ? "Approved" : (i.status || "Pending"));
     view.innerHTML = `
-      <div class="grid grid-4">
-        ${stat("Total Fees", money(sm.total), { icon: "fa-list-alt", tone: "info", sub: "this session" })}
-        ${stat("Paid", money(sm.paid), { icon: "fa-check" })}
-        ${stat("Balance Due", money(sm.due), { icon: "fa-inr", tone: sm.due ? "warn" : "ok", sub: sm.pending_months.length ? `${sm.pending_months.length} month(s) pending` : "" })}
-        ${stat("Overdue", money(sm.overdue), { icon: "fa-exclamation-circle", tone: sm.overdue ? "danger" : "ok" })}
-      </div>
-      <div class="grid grid-side">
-        ${card("Dues (month-wise)", d.dues.length ? table(
+      <div class="fee-layout">
+        <div class="fee-col">
+          <div class="fee-tiles">
+            ${stat("Total due", money(sm.due), { icon: "fa-inr", tone: sm.due ? "warn" : "ok" })}
+            ${stat("Tuition fee due", money(sm.tuition_due || 0), { icon: "fa-book", tone: sm.tuition_due ? "warn" : "ok" })}
+            ${stat("Other fee due", money(sm.other_due || 0), { icon: "fa-shopping-bag", tone: sm.other_due ? "warn" : "ok" })}
+          </div>
+      ${card("Dues (month-wise)", d.dues.length ? table(
+        [
+          { label: "Month / Item", render: (g) => `<b>${esc(g.label)}</b>` },
+          { label: "Details", render: (g) => `<span class="small">${esc(g.heads.join(", "))}</span>` },
+          { label: "Due", render: (g) => `<b>${money(g.amount)}</b>`, className: "right" },
+        ],
+        d.dues,
+        { footer: `<td>Total payable</td><td></td><td class="right">${money(sm.due)}</td>` }
+      ) : empty("No dues. All fees are paid. Thank you!", "fa-check-circle"),
+        { icon: "fa-inr", flush: true, actions: sm.due ? '<button class="btn btn-sm" id="paidBtn"><i class="fa fa-check"></i> I have paid</button>' : "" })}
+        <div style="margin-top:18px">
+        ${card("Online Payments I reported", table(
           [
-            { label: "Month / Item", render: (g) => `<b>${esc(g.label)}</b>` },
-            { label: "Details", render: (g) => `<span class="small">${esc(g.heads.join(", "))}</span>` },
-            { label: "Due", render: (g) => `<b>${money(g.amount)}</b>`, className: "right" },
+            { label: "Date", render: (i) => fmtDate(i.date), className: "nowrap" },
+            { label: "Amount", render: (i) => `<b>${money(i.amount)}</b>`, className: "right" },
+            { label: "Paid on / via", render: (i) => `${fmtDate(i.paid_on)}<div class="small muted">${esc(i.method)} ${esc(i.reference || "")}</div>${i.note ? `<div class="small">${esc(i.note)}</div>` : ""}` },
+            { label: "Status", render: (i) => `${badge(reportStatus(i))}${i.receipt_no ? `<div class="small">${esc(i.receipt_no)}</div>` : ""}${i.review_note ? `<div class="small muted">${esc(i.review_note)}</div>` : ""}` },
           ],
-          d.dues,
-          { footer: `<td>Total payable</td><td></td><td class="right">${money(sm.due)}</td>` }
-        ) : empty("No dues. All fees are paid. Thank you!", "fa-check-circle"),
-          { icon: "fa-inr", flush: true, actions: sm.due ? '<button class="btn btn-sm" id="paidBtn"><i class="fa fa-check"></i> I have paid</button>' : "" })}
+          d.intimations,
+          { empty: "You have not reported a payment yet.", emptyIcon: "fa-bell-o" }
+        ), { icon: "fa-bell", flush: true })}
+        </div>
+        </div>
         ${card("Pay by Scanner", `<div style="text-align:center">
-            ${d.payment.payment_qr ? `<img src="${esc(UI.fileUrl(d.payment.payment_qr))}" alt="Payment scanner" class="scanner">` : ""}
+            ${scannerSrc ? `<img src="${esc(scannerSrc)}" alt="Payment scanner" class="scanner">` : ""}
             <p style="margin-top:8px"><b>${esc(d.payment.payment_qr_name || "")}</b><br>Scan with PhonePe, Google Pay, Paytm or any UPI app</p>
-            <p class="small">UPI ID: <b>${esc(d.payment.upi)}</b></p></div>
-          ${kv([["Bank Account", bank.account_no], ["Bank", `${bank.bank_name || ""}, ${bank.branch || ""}`], ["IFSC", bank.ifsc]])}
-          <p class="small muted" style="margin-top:10px">After paying, tap <b>I have paid</b> and send the transaction ID / screenshot. The accountant will verify and issue the receipt.</p>`,
-          { icon: "fa-qrcode" })}
+            <p class="small">UPI ID: <b>${esc(d.payment.upi || "")}</b></p></div>
+          <form id="payForm">
+            <div class="field"><label for="payAmount">Amount paid (Rs)</label><input id="payAmount" name="amount" type="number" required min="1" value="${sm.due || ""}"></div>
+            <div class="field"><label for="payRef">Transaction ID / UTR</label><input id="payRef" name="reference" required placeholder="from the payment app"></div>
+            <button type="button" class="btn btn-light btn-sm" id="payShot"><i class="fa fa-camera"></i> Attach payment screenshot</button> <span id="payShotName" class="small muted"></span>
+            <div class="form-error" hidden></div>
+            <div class="modal-actions"><button type="submit" class="btn">Send to Accountant</button></div>
+          </form>`,
+          { icon: "fa-qrcode", className: "pay-box" })}
       </div>
-      ${pending.length ? `<div class="form-ok">Payment details sent, waiting for verification: ${pending.map((i) => `${money(i.amount)} on ${fmtDate(i.paid_on)}`).join(", ")}</div>` : ""}
       ${card("All Fee Items", table(
         [
           { label: "Particulars", render: (c) => `<b>${esc(c.description)}</b>` },
@@ -508,10 +525,22 @@
     view.querySelectorAll("[data-receipt]").forEach((b) =>
       b.addEventListener("click", async () => UI.showReceipt(await MPS.get(`/student/fees/receipt/${b.dataset.receipt}`)))
     );
+    let screenshot = null;
+    const shot = view.querySelector("#payShot");
+    if (shot)
+      shot.addEventListener("click", async () => {
+        try {
+          const [file] = await UI.pickAndUpload({ accept: "image/*" });
+          screenshot = file || null;
+          view.querySelector("#payShotName").textContent = screenshot ? "Screenshot attached" : "";
+        } catch (e) {
+          UI.toast(e.message, "error");
+        }
+      });
     const paidBtn = view.querySelector("#paidBtn");
     if (paidBtn)
       paidBtn.addEventListener("click", () => {
-        let screenshot = null;
+        let paidShot = null;
         const m = openForm({
           title: "Payment Done",
           intro: `Total due: <b>${money(sm.due)}</b>. Enter the payment details so the accountant can verify it.<br>
@@ -525,20 +554,46 @@
           ],
           submitLabel: "Send to Accountant",
           onSubmit: async (v) => {
-            const r = await MPS.post("/student/fees/intimate", { ...v, screenshot });
+            const r = await MPS.post("/student/fees/intimate", { ...v, screenshot: paidShot });
             fees(view, ctx);
             return r;
           },
         });
         m.body.querySelector("#shot").addEventListener("click", async () => {
           try {
-            [screenshot] = await UI.pickAndUpload({ accept: "image/*" });
-            if (screenshot) m.body.querySelector("#shotName").textContent = "Screenshot attached";
+            const [file] = await UI.pickAndUpload({ accept: "image/*" });
+            paidShot = file || null;
+            if (paidShot) m.body.querySelector("#shotName").textContent = "Screenshot attached";
           } catch (e) {
             UI.toast(e.message, "error");
           }
         });
       });
+    const payForm = view.querySelector("#payForm");
+    payForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!payForm.reportValidity()) return;
+      const values = Object.fromEntries(new FormData(payForm).entries());
+      const errorEl = payForm.querySelector(".form-error");
+      const submit = payForm.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      errorEl.hidden = true;
+      try {
+        const result = await MPS.post("/student/fees/intimate", {
+          amount: values.amount,
+          paid_on: UI.todayIso(),
+          method: "UPI / PhonePe",
+          reference: values.reference,
+          screenshot,
+        });
+        if (result && result.message) UI.toast(result.message);
+        fees(view, ctx);
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+        submit.disabled = false;
+      }
+    });
   }
 
   // ---------- Leave ----------

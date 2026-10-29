@@ -145,6 +145,15 @@ textarea { min-height: 96px; resize: vertical; }
 .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .grid-side { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+.fee-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+.fee-col { display: flex; flex-direction: column; min-height: 100%; }
+.fee-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; flex: 1; }
+.fee-tiles .stat { padding: 16px 14px; gap: 12px; height: 100%; }
+.fee-tiles .stat .stat-icon { width: 48px; height: 48px; font-size: 22px; border-radius: 10px; }
+.fee-tiles .stat-value { font-size: 26px; }
+.fee-tiles .stat-label { font-size: 15px; line-height: 1.25; }
+@media (max-width: 900px) { .fee-layout { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .fee-tiles { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .grid-side { grid-template-columns: 1fr; } }
 @media (max-width: 1100px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
@@ -159,6 +168,8 @@ textarea { min-height: 96px; resize: vertical; }
 .card-body.flush { padding: 0; }
 
 .stat { padding: 16px 18px; display: flex; gap: 14px; align-items: center; }
+button.stat { width: 100%; border: 1px solid #edf1ee; background: var(--card); font: inherit; color: inherit; cursor: pointer; text-align: left; }
+button.stat:hover { border-color: var(--green-600); }
 .stat .stat-icon {
   width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
   background: var(--green-100); color: var(--green-600);
@@ -320,6 +331,12 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .qr-box { width: 260px; max-width: 100%; border: 8px solid #fff; box-shadow: var(--shadow); border-radius: 10px; }
 .pair-code { font-size: 30px; font-weight: 800; letter-spacing: 6px; text-align: center; background: var(--green-50); padding: 14px; border-radius: 10px; }
 .scanner { max-width: 260px; width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+.pay-box .card-body { padding: 12px 14px; }
+.pay-box .scanner { width: 168px; max-width: 100%; }
+.pay-box p { margin: 4px 0; }
+.pay-box .kv { grid-template-columns: 1fr; gap: 6px; margin-top: 8px; }
+.pay-box .field { margin-bottom: 8px; }
+.pay-box form { margin-top: 8px !important; }
 .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .gallery-grid img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; display: block; }
