@@ -225,6 +225,23 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .empty { padding: 28px 18px; text-align: center; color: var(--muted); }
 .empty .fa { font-size: 28px; display: block; margin-bottom: 8px; color: #b7c7bc; }
 .loading { padding: 40px; text-align: center; color: var(--muted); }
+@keyframes fa-spin-ccw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+.fa-spinner.fa-spin {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  border: 0.16em solid #d5e2da;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  vertical-align: -0.15em;
+  box-sizing: border-box;
+  -webkit-animation: fa-spin-ccw 0.7s linear infinite !important;
+  animation: fa-spin-ccw 0.7s linear infinite !important;
+}
+.fa-spinner.fa-spin:before { content: none !important; }
 .error-box { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius); padding: 18px; }
 
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
