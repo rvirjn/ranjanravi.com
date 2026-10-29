@@ -238,7 +238,31 @@ const UI = (() => {
   function option(o, selected) {
     const value = typeof o === "object" ? o.value : o;
     const label = typeof o === "object" ? o.label : o;
-    return `<option value="${esc(value)}" ${String(value) === String(selected ?? "") ? "selected" : ""}>${esc(label)}</option>`;
+    const code = typeof o === "object" && o.code ? ` data-code="${esc(o.code)}"` : "";
+    return `<option value="${esc(value)}"${code} ${String(value) === String(selected ?? "") ? "selected" : ""}>${esc(label)}</option>`;
+  }
+
+  function mobileDigits(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+    return digits.slice(0, 10);
+  }
+
+  function bindMobileInput(input) {
+    input.addEventListener("input", () => {
+      const raw = input.value;
+      const digits = raw.replace(/\D/g, "");
+      if (raw.includes("+") || (digits.length === 12 && digits.startsWith("91")) || (digits.length === 11 && digits.startsWith("0"))) {
+        input.value = "";
+        input.setCustomValidity("Enter a 10 digit mobile number, without +91");
+        input.reportValidity();
+        return;
+      }
+      input.setCustomValidity("");
+      const next = digits.slice(0, 10);
+      if (input.value !== next) input.value = next;
+    });
   }
 
   function fieldHtml(f) {
@@ -251,6 +275,8 @@ const UI = (() => {
         .join("")}</select>`;
     } else if (f.type === "textarea") {
       input = `<textarea id="${id}" name="${f.name}" ${req} placeholder="${esc(f.placeholder || "")}" maxlength="${f.maxlength || 4000}">${esc(f.value || "")}</textarea>`;
+    } else if (f.type === "mobile") {
+      input = `<input id="${id}" name="${f.name}" type="text" inputmode="numeric" autocomplete="tel" maxlength="16" pattern="[0-9]{10}" title="Enter a 10 digit mobile number, without +91" data-mobile value="${esc(mobileDigits(f.value))}" placeholder="${esc(f.placeholder || "10 digit mobile")}" ${req}>`;
     } else if (f.type === "photo") {
       const preview = f.value
         ? `<img src="${fileUrl(f.value)}" alt="" class="avatar-img">`
@@ -259,25 +285,161 @@ const UI = (() => {
         <button type="button" class="btn btn-light btn-sm" data-photo-for="${esc(f.name)}"><i class="fa fa-camera"></i> Choose photo</button>
         <input type="hidden" name="${esc(f.name)}" value="${esc(f.value || "")}"></div>`;
     } else {
-      const attrs = ["min", "max", "step", "maxlength", "minlength", "autocomplete"]
+      const attrs = ["min", "max", "step", "maxlength", "minlength", "autocomplete", "pattern", "title", "inputmode"]
         .filter((a) => f[a] !== undefined)
         .map((a) => `${a}="${esc(f[a])}"`)
         .join(" ");
-      input = `<input id="${id}" name="${f.name}" type="${f.type || "text"}" value="${esc(f.value ?? "")}" placeholder="${esc(f.placeholder || "")}" ${attrs} ${req}>`;
+      input = `<input id="${id}" name="${f.name}" type="${f.type || "text"}" value="${esc(f.value ?? "")}" placeholder="${esc(f.placeholder || "")}" ${attrs} ${f.person ? "data-person" : ""} ${req}>`;
     }
     return `<div class="field"><label for="${id}">${esc(f.label)}</label>${input}${f.hint ? `<div class="field-hint">${esc(f.hint)}</div>` : ""}</div>`;
   }
 
-  function openForm({ title, intro, fields, submitLabel = "Save", onSubmit }) {
+  function admissionPad(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+    if (!digits || Number(digits) < 1) return "";
+    return String(Number(digits)).padStart(3, "0");
+  }
+
+  function previewSchoolCode(form, preview) {
+    if (preview.schoolField) {
+      const sel = form.querySelector(`[name="${preview.schoolField}"]`);
+      const opt = sel && sel.selectedOptions && sel.selectedOptions[0];
+      return String((opt && opt.dataset.code) || "").toUpperCase();
+    }
+    const school = state.school || {};
+    return String(preview.code || school.code || school.short_name || "").toUpperCase();
+  }
+
+  function suggestedAdmission(form, preview) {
+    if (preview.nextBySchool && preview.schoolField) {
+      const sel = form.querySelector(`[name="${preview.schoolField}"]`);
+      const id = sel && sel.value;
+      return (id && preview.nextBySchool[id]) || "";
+    }
+    if (preview.nextByYear) {
+      const date = (form.admission_date && form.admission_date.value) || todayIso();
+      const year = String(date).slice(0, 4);
+      return preview.nextByYear[year] || "001";
+    }
+    return preview.nextNumber || "";
+  }
+
+  function previewLoginId(form, preview) {
+    const number = admissionPad(form.admission_number && form.admission_number.value);
+    const code = previewSchoolCode(form, preview);
+    if (!code || !number) return "";
+    if (preview.withYear) {
+      const date = (form.admission_date && form.admission_date.value) || (form.joining_date && form.joining_date.value);
+      const year = String(date || "").slice(0, 4);
+      if (!/^\d{4}$/.test(year)) return "";
+      return `${code}${preview.letter}${year}${number}`;
+    }
+    return `${code}${preview.letter}${number}`;
+  }
+
+  const admissionLatest = new Date();
+  admissionLatest.setDate(admissionLatest.getDate() + 366);
+  const admissionDate = { min: "1970-01-01", max: `${admissionLatest.getFullYear()}-${String(admissionLatest.getMonth() + 1).padStart(2, "0")}-${String(admissionLatest.getDate()).padStart(2, "0")}` };
+
+  function bindPersonName(input) {
+    input.addEventListener("input", () => {
+      const value = input.value.trim();
+      input.setCustomValidity(value && /\d/.test(value) ? "Name cannot contain a number" : "");
+    });
+  }
+
+  function bindAdmissionCheck(form, check) {
+    const numberField = form.admission_number;
+    if (!numberField || !check) return;
+    const dateField = form.admission_date || form.joining_date;
+    const paint = () => {
+      const raw = numberField.value.trim();
+      if (raw && !/^\d{1,6}$/.test(raw)) {
+        numberField.setCustomValidity("Admission No. must be a number such as 001 or 002");
+        return;
+      }
+      const number = admissionPad(raw);
+      if (!number) {
+        numberField.setCustomValidity("");
+        return;
+      }
+      let year = "";
+      if (check.withYear) {
+        year = String((dateField && dateField.value) || "").slice(0, 4);
+        if (!/^\d{4}$/.test(year)) {
+          numberField.setCustomValidity("");
+          return;
+        }
+      }
+      const allow = check.allow || {};
+      const years = allow.years || (allow.year ? [allow.year] : []);
+      const allowed = allow.number && admissionPad(allow.number) === number && (!check.withYear || years.includes(year));
+      let used = [];
+      if (check.usedBySchool && check.schoolField) {
+        const sel = form.querySelector(`[name="${check.schoolField}"]`);
+        used = (sel && check.usedBySchool[sel.value]) || [];
+      } else if (check.withYear) {
+        used = (check.usedByYear && check.usedByYear[year]) || [];
+      } else {
+        used = check.usedNumbers || [];
+      }
+      numberField.setCustomValidity(!allowed && used.includes(number) ? `Admission No. ${number} is already used` : "");
+    };
+    numberField.addEventListener("input", paint);
+    if (dateField) dateField.addEventListener("change", paint);
+    if (check.schoolField) {
+      const sel = form.querySelector(`[name="${check.schoolField}"]`);
+      if (sel) sel.addEventListener("change", paint);
+    }
+    paint();
+  }
+
+  function openForm({ title, intro, fields, submitLabel = "Save", onSubmit, loginPreview, admissionCheck }) {
+    const previewHtml = loginPreview
+      ? `<div class="login-preview"><div><b>User ID:</b> <span data-login-id></span></div><div><b>password:</b> ${esc(loginPreview.password)}</div></div>`
+      : "";
     const m = modal(
       title,
       `<form>${intro ? `<p class="muted">${intro}</p>` : ""}${fields.map(fieldHtml).join("")}
+        ${previewHtml}
         <div class="form-error" hidden></div>
         <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
         <button type="submit" class="btn">${esc(submitLabel)}</button></div></form>`
     );
     const form = m.body.querySelector("form");
+    form.querySelectorAll("[data-mobile]").forEach(bindMobileInput);
+    form.querySelectorAll("[data-person]").forEach(bindPersonName);
+    if (admissionCheck) bindAdmissionCheck(form, admissionCheck);
     const errorEl = form.querySelector(".form-error");
+    if (loginPreview) {
+      const slot = form.querySelector("[data-login-id]");
+      const paint = () => { slot.textContent = previewLoginId(form, loginPreview); };
+      if (loginPreview.suggest) {
+        const numberField = form.admission_number;
+        const dateField = form.admission_date || form.joining_date;
+        if (dateField && !dateField.value) dateField.value = todayIso();
+        const applySuggestion = () => {
+          if (!numberField || numberField.dataset.userEdited === "1") return;
+          const next = suggestedAdmission(form, loginPreview);
+          if (!next) return;
+          numberField.value = next;
+        };
+        if (numberField) {
+          numberField.addEventListener("input", (e) => {
+            if (e.isTrusted) numberField.dataset.userEdited = "1";
+          });
+        }
+        if (dateField) dateField.addEventListener("change", applySuggestion);
+        if (loginPreview.schoolField) {
+          const sel = form.querySelector(`[name="${loginPreview.schoolField}"]`);
+          if (sel) sel.addEventListener("change", applySuggestion);
+        }
+        applySuggestion();
+      }
+      form.addEventListener("input", paint);
+      form.addEventListener("change", paint);
+      paint();
+    }
     const submit = form.querySelector('button[type="submit"]');
     const first = form.querySelector("input:not([type=hidden]), select, textarea");
     if (first) first.focus();
@@ -747,6 +909,7 @@ const UI = (() => {
     whatsappPreview,
     fieldHtml,
     openForm,
+    admissionDate,
     printDoc,
     startApp,
     shared,

@@ -3,13 +3,13 @@
 
   const SCHOOL_FORM = (s, isNew) => [
     ...(isNew ? [{ name: "code", label: "School code", required: true, placeholder: "e.g. ABC", hint: "2 to 6 letters. Login IDs start with it (ABCS2026001, ABCT001, ABCP001, ABCA001). Cannot be changed later." }] : []),
-    { name: "photo", label: "School icon", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
+    { name: "photo", label: "School icon", type: "photo", value: s.photo },
     { name: "name", label: "School name", required: true, value: s.name },
     { name: "short_name", label: "Short name (logo text)", value: s.short_name },
     { name: "tagline", label: "Tagline", value: s.tagline, placeholder: "e.g. Nursery to Class 8 (English Medium)" },
     { name: "address", label: "Address", type: "textarea", value: s.address },
-    { name: "phones", label: "Phone numbers (comma separated)", value: (s.phones || []).join(", ") },
-    { name: "email", label: "Email", type: "email", value: s.email },
+    { name: "phones", label: "Phone numbers (comma separated)", value: (s.phones || []).join(", "), hint: "10 digits each, separated by commas. Do not add +91." },
+    { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: s.email },
     { name: "website", label: "Website", value: s.website, placeholder: "https://" },
     { name: "academic_year", label: "Academic year", value: s.academic_year, placeholder: "e.g. 2026-27" },
     { name: "upi", label: "UPI ID for fees", value: s.upi },
@@ -18,7 +18,7 @@
     { name: "bank_branch", label: "Bank branch", value: (s.bank || {}).branch },
     { name: "bank_account_no", label: "Bank account number", value: (s.bank || {}).account_no },
     { name: "bank_ifsc", label: "IFSC", value: (s.bank || {}).ifsc },
-    { name: "whatsapp_number", label: "School WhatsApp number", value: s.whatsapp_number },
+    { name: "whatsapp_number", label: "School WhatsApp number", type: "mobile", value: s.whatsapp_number },
     { name: "whatsapp_group_all", label: "WhatsApp group name for everyone", value: s.whatsapp_group_all, placeholder: "SAV All student & Teachers" },
     { name: "whatsapp_group_teachers", label: "WhatsApp group name for teachers", value: s.whatsapp_group_teachers, placeholder: "SAV All Teachers" },
     { name: "whatsapp_signature", label: "WhatsApp message signature", type: "textarea", value: s.whatsapp_signature, placeholder: "- School name, Town\nPh: ..." },
@@ -65,7 +65,7 @@
   }
 
   async function accountants(view) {
-    const [{ accountants: rows, default_password: defaultPassword }, { schools: schoolRows }] = await Promise.all([MPS.get("/admin/accountants"), MPS.get("/admin/schools")]);
+    const [{ accountants: rows, default_password: defaultPassword, next_admission_numbers: nextNumbers, used_admission_numbers: usedNumbers }, { schools: schoolRows }] = await Promise.all([MPS.get("/admin/accountants"), MPS.get("/admin/schools")]);
     const path = (s) => `/admin/schools/${s.school_id}/accountants/${s.id}`;
     UI.shared.staffAccounts(view, {
       title: "Accountants",
@@ -74,8 +74,11 @@
       rows: rows.map((r) => ({ ...r, key: `${r.school_id}:${r.id}` })),
       defaultPassword,
       idLetter: "A",
+      schoolField: "school_id",
+      nextBySchool: nextNumbers || {},
+      usedBySchool: usedNumbers || {},
       extraFields: () => [{ name: "school_id", label: "School", type: "select", required: true, createOnly: true, placeholder: "Choose school",
-        options: schoolRows.map((s) => ({ value: s.id, label: `${s.name} (${s.code})` })) }],
+        options: schoolRows.map((s) => ({ value: s.id, label: `${s.name} (${s.code})`, code: s.code })) }],
       extraColumns: [{ label: "School", render: (s) => esc(s.school_name) }],
       create: (v) => MPS.post(`/admin/schools/${v.school_id}/accountants`, v),
       update: (s, v) => MPS.post(path(s), v),

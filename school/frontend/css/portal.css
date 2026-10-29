@@ -414,6 +414,8 @@ html.lang-hi .hi-copy { display: block !important; }
 .modal-head h3 { flex: 1; font-size: 17px; }
 .modal-body { padding: 18px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.login-preview { margin: 12px 0 8px; padding: 10px 12px; background: var(--green-50); border: 1px solid var(--line); border-radius: 8px; line-height: 1.6; }
+.login-preview [data-login-id] { font-weight: 650; letter-spacing: .02em; }
 .toast-wrap { position: fixed; right: 16px; bottom: 16px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
 .toast { background: var(--green-800); color: #fff; padding: 11px 16px; border-radius: 10px; box-shadow: var(--shadow); font-size: 14px; max-width: 340px; animation: toast-in .2s ease; }
 .toast.error { background: var(--danger); }

@@ -10,6 +10,8 @@
       rows: d.principals,
       defaultPassword: d.default_password,
       idLetter: "P",
+      nextAdmissionNumber: d.next_admission_number || "001",
+      usedAdmissionNumbers: d.used_admission_numbers || [],
       create: (v) => MPS.post("/accounts/principals", v),
       update: (s, v) => MPS.post(`/accounts/principals/${s.id}`, v),
       resetPassword: (s) => MPS.post(`/accounts/principals/${s.id}/reset-password`),

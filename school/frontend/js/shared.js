@@ -421,7 +421,7 @@
       openForm({
         title: "Send test WhatsApp",
         fields: [
-          { name: "number", label: "Mobile number", required: true, value: s.school_number },
+          { name: "number", label: "Mobile number", type: "mobile", required: true, value: s.school_number },
           { name: "text", label: "Message", type: "textarea", value: `Test message from ${ctx.school.name || "the school"} portal.` },
         ],
         submitLabel: "Send",
@@ -488,16 +488,19 @@
   }
 
   function staffAccounts(view, opts) {
-    const FORM = (s) => [
-      { name: "photo", label: "Photo", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." },
+    const FORM = (s) => {
+      const isNew = !s.employee_id && !s.id;
+      return [
+      { name: "photo", label: "Photo", type: "photo", value: s.photo },
       ...(opts.extraFields ? opts.extraFields(s) : []),
-      { name: "name", label: "Name", required: true, value: s.name },
-      { name: "admission_number", label: "Admission No.", required: true, value: admissionSuffix(s), hint: "Last digits of the User ID, such as 001" },
-      { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: s.admission_date || "" },
+      { name: "name", label: "Name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
+      { name: "admission_number", label: "Admission No.", required: true, value: admissionSuffix(s) || (isNew ? (opts.nextAdmissionNumber || "") : ""), hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
+      { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (isNew ? todayIso() : "") },
       { name: "designation", label: "Designation", value: s.designation },
-      { name: "phone", label: "Mobile", required: true, value: s.phone },
-      { name: "email", label: "Email", type: "email", value: s.email },
+      { name: "phone", label: "Mobile", type: "mobile", required: true, value: s.phone },
+      { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: s.email },
     ];
+    };
     view.innerHTML = card(`${opts.title} (${opts.rows.length})`, table(
       [
         { label: opts.noun, render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.employee_id)} &middot; ${esc(s.designation || "")}</div></div></div>` },
@@ -511,7 +514,21 @@
     ), { icon: opts.icon, flush: true, actions: `<button class="btn btn-sm" id="addStaff"><i class="fa fa-user-plus"></i> Add ${esc(opts.noun)}</button>` });
 
     view.querySelector("#addStaff").addEventListener("click", () => openForm({
-      title: `Add ${opts.noun}`, intro: `User ID is the school code, ${esc(opts.idLetter)}, and this number. Default password: ${esc(opts.defaultPassword)}`,
+      title: `Add ${opts.noun}`,
+      loginPreview: {
+        letter: opts.idLetter,
+        password: opts.defaultPassword,
+        suggest: true,
+        nextNumber: opts.nextAdmissionNumber || "",
+        nextBySchool: opts.nextBySchool,
+        code: opts.schoolCode || ((MPS.session().school || {}).code) || ((MPS.session().school || {}).short_name) || "",
+        schoolField: opts.schoolField,
+      },
+      admissionCheck: {
+        usedNumbers: opts.usedAdmissionNumbers || [],
+        usedBySchool: opts.usedBySchool,
+        schoolField: opts.schoolField,
+      },
       fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => { const r = await opts.create(v); opts.reload(); return r; },
     }));
@@ -520,6 +537,10 @@
       const m = openForm({
         title: `Edit ${s.name}`,
         intro: `Login ID: <b>${esc(s.employee_id)}</b>`,
+        admissionCheck: {
+          usedNumbers: (opts.usedBySchool && s.school_id && opts.usedBySchool[s.school_id]) || opts.usedAdmissionNumbers || [],
+          allow: { number: admissionSuffix(s) },
+        },
         fields: [...FORM(s).filter((f) => !f.createOnly), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Inactive" }], value: String(s.active !== false) }],
         onSubmit: async (v) => { const r = await opts.update(s, v); opts.reload(); return r; },
       });
@@ -562,7 +583,7 @@
     if (u.qualification) rows.push(["Qualification", u.qualification]);
     if (u.subjects && u.subjects.length) rows.push(["Subjects", u.subjects.join(", ")]);
     if (u.joining_date) rows.push(["Joining Date", fmtDate(u.joining_date)]);
-    if (u.admission_date) rows.push(["Date of Admission", fmtDate(u.admission_date)]);
+    else if (u.admission_date) rows.push(["Date of Admission", fmtDate(u.admission_date)]);
     if (u.dob) rows.push(["Date of Birth", fmtDate(u.dob)]);
     if (u.gender) rows.push(["Gender", u.gender]);
     if (u.blood_group) rows.push(["Blood Group", u.blood_group]);
@@ -589,8 +610,8 @@
         title: "Request Contact Update",
         intro: "The school office will verify and update your record.",
         fields: [
-          { name: "phone", label: "Mobile", value: u.phone },
-          { name: "email", label: "Email", type: "email", value: u.email },
+          { name: "phone", label: "Mobile", type: "mobile", required: true, value: u.phone },
+          { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: u.email },
           { name: "address", label: "Address", type: "textarea", value: u.address },
         ],
         submitLabel: "Send Request",

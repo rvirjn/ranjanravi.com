@@ -1,6 +1,6 @@
 (() => {
   const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan, avatar } = UI;
-  const PHOTO = (s) => ({ name: "photo", label: "Photo", type: "photo", value: s.photo, hint: "Shown at the top left. Large photos are saved as a small PNG." });
+  const PHOTO = (s) => ({ name: "photo", label: "Photo", type: "photo", value: s.photo });
 
   // ---------- Dashboard ----------
   async function dashboard(view) {
@@ -102,24 +102,28 @@
   }
 
   // ---------- Students ----------
-  const STUDENT_FORM = (s, d) => [
+  const STUDENT_FORM = (s, d) => {
+    const numbers = (d && d.next_admission_numbers) || {};
+    const suggested = s.id ? "" : (numbers[todayIso().slice(0, 4)] || "001");
+    return [
     PHOTO(s),
-    { name: "name", label: "Student name", required: true, value: s.name },
-    { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s), hint: "Last digits of the User ID, such as 001" },
-    { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: s.admission_date },
+    { name: "name", label: "Student name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
+    { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s) || suggested, hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
+    { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (s.id ? "" : todayIso()) },
     { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id },
     { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
     { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: s.gender },
     { name: "dob", label: "Date of birth", type: "date", value: s.dob },
-    { name: "father_name", label: "Father's name", required: true, value: s.father_name },
-    { name: "father_phone", label: "Father's mobile (WhatsApp)", required: true, value: s.father_phone },
-    { name: "mother_name", label: "Mother's name", value: s.mother_name },
-    { name: "mother_phone", label: "Mother's mobile (WhatsApp)", value: s.mother_phone },
-    { name: "phone", label: "Parent / guardian mobile", value: s.phone },
+    { name: "father_name", label: "Father's name", required: true, value: s.father_name, person: true, title: "Name cannot contain a number" },
+    { name: "father_phone", label: "Father's mobile (WhatsApp)", type: "mobile", required: true, value: s.father_phone },
+    { name: "mother_name", label: "Mother's name", value: s.mother_name, person: true, title: "Name cannot contain a number" },
+    { name: "mother_phone", label: "Mother's mobile (WhatsApp)", type: "mobile", value: s.mother_phone },
+    { name: "phone", label: "Parent / guardian mobile", type: "mobile", value: s.phone },
     { name: "address", label: "Address", type: "textarea", value: s.address },
     { name: "transport_route_id", label: "Transport", type: "select", options: [{ value: "", label: "Own transport" }, ...d.routes.map((r) => ({ value: r.id, label: r.label }))], value: s.transport_route_id || "" },
     { name: "blood_group", label: "Blood group", value: s.blood_group },
   ];
+  };
 
   async function students(view, ctx, state = {}) {
     const q = new URLSearchParams();
@@ -148,7 +152,13 @@
     });
     view.querySelector("#add").addEventListener("click", () =>
       openForm({
-        title: "New Admission", intro: "User ID is the school code, S, the year from Date of Admission, and this number. Default password: s@123",
+        title: "New Admission",
+        loginPreview: {
+          letter: "S", password: "s@123", withYear: true, suggest: true,
+          nextByYear: d.next_admission_numbers || {},
+          code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
+        },
+        admissionCheck: { withYear: true, usedByYear: d.used_admission_numbers || {} },
         fields: STUDENT_FORM({ class_id: state.classId }, d), submitLabel: "Add Student",
         onSubmit: async (v) => {
           const r = await MPS.post("/principal/students", v);
@@ -159,8 +169,14 @@
     );
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const s = d.students.find((x) => x.id === b.dataset.edit);
+      const years = [];
+      const fromId = String(s.admission_no || "").match(/S(\d{4})\d{3,}$/);
+      if (fromId) years.push(fromId[1]);
+      const fromDate = String(s.admission_date || "").slice(0, 4);
+      if (/^\d{4}$/.test(fromDate) && !years.includes(fromDate)) years.push(fromDate);
       const m = openForm({
         title: `Edit ${s.name}`,
+        admissionCheck: { withYear: true, usedByYear: d.used_admission_numbers || {}, allow: { number: UI.shared.admissionSuffix(s), years } },
         fields: [...STUDENT_FORM(s, d), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Left school (inactive)" }], value: String(s.active !== false) }],
         onSubmit: async (v) => {
           const r = await MPS.post(`/principal/students/${s.id}`, v);
@@ -196,17 +212,17 @@
   // ---------- Teachers ----------
   async function teachers(view, ctx) {
     const d = await MPS.get("/principal/teachers");
+    const nextNumber = d.next_admission_number || "001";
     const FORM = (t) => [
       PHOTO(t),
-      { name: "name", label: "Name", required: true, value: t.name },
-      { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(t), hint: "Last digits of the User ID, such as 001" },
-      { name: "admission_date", label: "Date of Admission", type: "date", required: true, value: t.admission_date },
+      { name: "name", label: "Name", required: true, value: t.name, person: true, title: "Name cannot contain a number" },
+      { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(t) || (t.id ? "" : nextNumber), hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
+      { name: "joining_date", label: "Joining date", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: t.joining_date || t.admission_date || (t.id ? "" : todayIso()) },
       { name: "designation", label: "Designation", value: t.designation },
       { name: "subjects", label: "Subjects (comma separated)", value: (t.subjects || []).join(", ") },
-      { name: "phone", label: "Mobile", required: true, value: t.phone },
-      { name: "email", label: "Email", type: "email", value: t.email },
+      { name: "phone", label: "Mobile", type: "mobile", required: true, value: t.phone },
+      { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: t.email },
       { name: "qualification", label: "Qualification", value: t.qualification },
-      { name: "joining_date", label: "Joining date", type: "date", value: t.joining_date },
       { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: t.gender },
       { name: "address", label: "Address", type: "textarea", value: t.address },
     ];
@@ -222,7 +238,13 @@
       d.teachers
     ), { icon: "fa-user-circle", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-user-plus"></i> Add Teacher</button>' });
     view.querySelector("#add").addEventListener("click", () => openForm({
-      title: "Add Teacher", intro: "User ID is the school code, T, and this number. Default password: t@123", fields: FORM({}), submitLabel: "Add",
+      title: "Add Teacher",
+      loginPreview: {
+        letter: "T", password: "t@123", suggest: true, nextNumber,
+        code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
+      },
+      admissionCheck: { usedNumbers: d.used_admission_numbers || [] },
+      fields: FORM({}), submitLabel: "Add",
       onSubmit: async (v) => {
         const r = await MPS.post("/principal/teachers", v);
         teachers(view, ctx);
@@ -233,6 +255,7 @@
       const t = d.teachers.find((x) => x.id === b.dataset.edit);
       const m = openForm({
         title: `Edit ${t.name}`,
+        admissionCheck: { usedNumbers: d.used_admission_numbers || [], allow: { number: UI.shared.admissionSuffix(t) } },
         fields: [...FORM(t), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Inactive" }], value: String(t.active !== false) }],
         onSubmit: async (v) => {
           const r = await MPS.post(`/principal/teachers/${t.id}`, v);

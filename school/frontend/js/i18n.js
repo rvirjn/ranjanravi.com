@@ -57,6 +57,8 @@
     "Last digits of the User ID, such as 001": "यूज़र आईडी के अंतिम अंक, जैसे 001",
     "Admission No. is required": "प्रवेश संख्या आवश्यक है",
     "Date of Admission is required": "प्रवेश तिथि आवश्यक है",
+    "Joining date is required": "जॉइनिंग तिथि आवश्यक है",
+    "Joining date": "जॉइनिंग तिथि", "Joining Date": "जॉइनिंग तिथि",
     "Admission No. must be a number such as 001 or 002": "प्रवेश संख्या 001 या 002 जैसी संख्या होनी चाहिए",
     "Date of Admission must be a date (YYYY-MM-DD)": "प्रवेश तिथि YYYY-MM-DD रूप में होनी चाहिए",
     "User ID is the school code, S, the year from Date of Admission, and this number. Default password: s@123": "यूज़र आईडी में विद्यालय कोड, S, प्रवेश तिथि का वर्ष और यह नंबर होता है। डिफ़ॉल्ट पासवर्ड: s@123",
@@ -72,7 +74,6 @@
     "No profile change requests from the principal.": "प्रधानाचार्य की ओर से कोई प्रोफ़ाइल बदलाव अनुरोध नहीं है।",
     "Person": "व्यक्ति",
     "Choose photo": "फोटो चुनें", "School icon": "स्कूल आइकन",
-    "Shown at the top left. Large photos are saved as a small PNG.": "ऊपर बाईं ओर दिखेगा। बड़ी फोटो छोटी PNG के रूप में सेव होती है।",
     "Weekly Timetable": "साप्ताहिक समय सारणी", "Fee Receipts": "फीस रसीदें", "Fee Defaulters": "फीस डिफ़ॉल्टर", "Search": "खोजें",
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
@@ -89,7 +90,7 @@
     "Classes": "कक्षाएं", "Add Class": "कक्षा जोड़ें", "Principal": "प्रधानाचार्य", "Add Principal": "प्रधानाचार्य जोड़ें",
     "Schools": "विद्यालय", "Add School": "विद्यालय जोड़ें", "Accountants": "लेखाकार", "Add Accountant": "लेखाकार जोड़ें",
     "Manage": "प्रबंधन", "Admin Portal": "एडमिन पोर्टल", "Reset password": "पासवर्ड रीसेट करें", "Remove": "हटाएं",
-    "User ID": "यूज़र आईडी", "Login with your User ID": "अपनी यूज़र आईडी से लॉग इन करें", "Back to login": "लॉग इन पर वापस",
+    "User ID": "यूज़र आईडी", "User ID:": "यूज़र आईडी:", "password:": "पासवर्ड:", "Login with your User ID": "अपनी यूज़र आईडी से लॉग इन करें", "Back to login": "लॉग इन पर वापस",
     "Attendance Today": "आज की उपस्थिति", "Homework to Review": "जांच के लिए गृह कार्य", "Ungraded submissions": "बिना ग्रेड वाले",
     "Leave Requests": "छुट्टी अनुरोध", "Awaiting your approval": "आपकी स्वीकृति बाकी", "HW/CW Today": "आज का HW/CW", "Full timetable": "पूरी समय सारणी",
     "All": "सभी", "Enter Marks": "अंक दर्ज करें", "Your Upcoming Online Classes": "आपकी आगामी ऑनलाइन कक्षाएं", "Start": "शुरू करें",
@@ -128,6 +129,15 @@
     "Date given by parent": "अभिभावक द्वारा भुगतान तिथि", "Paid by": "भुगतानकर्ता", "Mode": "माध्यम", "Given to (received by)": "प्राप्तकर्ता",
     "Note": "टिप्पणी", "Previous Receipts": "पिछली रसीदें", "Pending months": "बाकी महीने", "Last paid": "अंतिम भुगतान", "Dues": "बकाया",
     "Father": "पिता", "Mother": "माता", "Mobile": "मोबाइल",
+    "10 digit mobile": "10 अंकों का मोबाइल",
+    "Enter a 10 digit mobile number, without +91": "बिना +91 के 10 अंकों का मोबाइल नंबर लिखें",
+    "Name cannot contain a number": "नाम में अंक नहीं हो सकता",
+    "Name is required": "नाम आवश्यक है",
+    "Enter a valid email address": "सही ईमेल पता लिखें",
+    "Admission No. must be a number such as 001 or 002": "प्रवेश संख्या 001 या 002 जैसी संख्या होनी चाहिए",
+    "Date of Admission is not a valid date": "प्रवेश तिथि सही नहीं है",
+    "Joining date is not a valid date": "जॉइनिंग तिथि सही नहीं है",
+    "10 digits each, separated by commas. Do not add +91.": "हर नंबर 10 अंक का हो, अल्पविराम से अलग। +91 न जोड़ें।",
     "Monday": "सोमवार", "Tuesday": "मंगलवार", "Wednesday": "बुधवार", "Thursday": "गुरुवार", "Friday": "शुक्रवार", "Saturday": "शनिवार", "Sunday": "रविवार",
   };
   const TITLES = {
@@ -142,6 +152,7 @@
     [/^(\d+) present$/, "$1 उपस्थित"],
     [/^(\d+) absent$/, "$1 अनुपस्थित"],
     [/^User ID (\S+) is already used$/, "यूज़र आईडी $1 पहले से है"],
+    [/^Admission No\. (\S+) is already used$/, "प्रवेश संख्या $1 पहले से है"],
   ];
 
   function translateText(text) {
