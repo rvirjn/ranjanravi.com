@@ -125,6 +125,7 @@
     "Pending Approvals": "लंबित स्वीकृतियां", "Upcoming": "आगामी", "Open": "खोलें", "Submit Teacher Attendance": "शिक्षक उपस्थिति जमा करें",
     "Update & Send": "अपडेट करें और भेजें",
     "View & Send": "देखें और भेजें",
+    "View and Post": "देखें और पोस्ट करें",
     "View & Send now": "देखें और अभी भेजें",
     "WhatsApp Message": "व्हाट्सएप संदेश",
     "Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.": "ऊपर वाले ईमेल जैसा: किसे भेजना है, विषय और संदेश। इसे पहले देखें, फिर व्हाट्सएप पर भेजें।",

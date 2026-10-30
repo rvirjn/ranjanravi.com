@@ -468,10 +468,10 @@
     view.innerHTML = card("Notices & Circulars", items.length ? `<ul class="list">${items
       .map((n) => `<li>${dateChip(n.date)}<div class="grow"><div class="title">${esc(n.title)} ${badge(n.audience, "neutral")} ${n.class_label ? badge(n.class_label, "neutral") : ""}</div>
         <p class="pre">${esc(n.body)}</p><div class="meta">${esc(n.posted_by)}</div></div><button class="btn btn-light btn-sm" data-del="${n.id}"><i class="fa fa-trash"></i></button></li>`)
-      .join("")}</ul>` : empty("No notices."), { icon: "fa-bullhorn", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Post Notice</button>' });
+      .join("")}</ul>` : empty("No notices."), { icon: "fa-bullhorn", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> View and Post</button>' });
     view.querySelector("#add").addEventListener("click", () => {
       const m = openForm({
-        title: "Post Notice",
+        title: "View and Post",
         fields: [
           { name: "audience", label: "For", type: "select", options: [{ value: "all", label: "Everyone" }, { value: "students", label: "Students & parents" }, { value: "teachers", label: "Teachers only" }] },
           { name: "class_id", label: "Class", type: "select", options: [{ value: "", label: "All classes" }, ...classes.map((c) => ({ value: c.id, label: c.label }))] },
@@ -479,7 +479,7 @@
           { name: "body", label: "Notice", type: "textarea", required: true },
           { name: "whatsapp", label: "Also send on WhatsApp?", type: "select", options: [{ value: "", label: "No" }, { value: "1", label: "Yes" }] },
         ],
-        submitLabel: "Post",
+        submitLabel: "View and Post",
         onSubmit: async (v) => { const r = await MPS.post("/principal/notices", { ...v, whatsapp: Boolean(v.whatsapp) }); notices(view, ctx); return r; },
       });
       const form = m.body.querySelector("form");
@@ -752,6 +752,7 @@
       ...d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` })),
       ...d.students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
     ];
+    const waRecipients = [{ value: "teachers|all", label: "All teachers" }, ...recipients];
     const items = d[mode];
     const teacherList = d.teachers.length
       ? `<ul class="list">${d.teachers
@@ -767,7 +768,7 @@
           ${mode === "inbox" && (m.from_type === "student" || m.from_type === "teacher") ? `<button class="btn btn-light btn-sm" data-reply="${m.id}">Reply</button>` : ""}</li>`)
         .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
       <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
-        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", recipients)}</div>
+        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", waRecipients)}</div>
         <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
         <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
         <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
