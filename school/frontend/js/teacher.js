@@ -12,11 +12,17 @@
     c = c || {};
     let action;
     if (c.check_out) {
-      action = `<p style="margin:0"><b>${checkInCase(c)}</b> &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
+      action = `<p style="margin:0 0 8px"><b>${checkInCase(c)}</b> &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
+      if (c.checkin_open !== false) action += `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check-In</button>`;
     } else if (c.check_in) {
+      const note = c.checkin_open === false
+        ? "Check-out after school closing time is saved on your attendance. It is not sent on WhatsApp."
+        : "Checking out before school closing time is sent on WhatsApp.";
       action = `<p style="margin:0 0 8px"><b>${checkInCase(c)}</b></p>
         <button class="btn" id="checkoutBtn" type="button"><i class="fa fa-sign-out"></i> Check out</button>
-        <p class="small muted" style="margin-top:8px">Check-out is saved on your attendance. It is not sent on WhatsApp.</p>`;
+        <p class="small muted" style="margin-top:8px">${note}</p>`;
+    } else if (c.checkin_open === false) {
+      action = `<p style="margin:0">Check-in is not allowed after school closing time.</p>`;
     } else {
       action = `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check-In</button>`;
     }
@@ -34,7 +40,10 @@
     const group = d.whatsapp_group
       ? `Sent to WhatsApp group name: <b>${esc(d.whatsapp_group)}</b> when you check in.`
       : "No WhatsApp group set, so this check-in message will not be sent.";
-    return card("Check-in WhatsApp message", `<p class="small" style="margin:0 0 10px">${group}</p><div class="preview-box">${esc(d.checkin_message || "")}</div>`, { icon: "fa-whatsapp" });
+    const early = d.checkout_message
+      ? `<p class="small" style="margin:12px 0 10px">Checking out before school closing time is sent to the same group.</p><div class="preview-box">${esc(d.checkout_message)}</div>`
+      : "";
+    return card("Check-in WhatsApp message", `<p class="small" style="margin:0 0 10px">${group}</p><div class="preview-box">${esc(d.checkin_message || "")}</div>${early}`, { icon: "fa-whatsapp" });
   }
 
   async function checkIn(view) {
