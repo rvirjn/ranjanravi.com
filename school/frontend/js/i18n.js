@@ -36,6 +36,8 @@
     "Mark All Present": "सभी को उपस्थित करें", "Submit Attendance": "उपस्थिति जमा करें", "All classes": "सभी कक्षाएं", "Not marked": "दर्ज नहीं",
     "Marked": "दर्ज", "Not posted": "नहीं भेजा", "Posted": "भेजा गया", "My class": "मेरी कक्षा", "Date": "तारीख", "Month": "महीना", "Class": "कक्षा",
     "Check-in is not allowed after school closing time.": "स्कूल बंद होने के बाद चेक-इन नहीं हो सकता।",
+    "Check-in is not allowed before teacher timing.": "शिक्षक समय से पहले चेक-इन नहीं हो सकता।",
+    "Teacher check-in starts at this time. There is no early check-in. A later check-in shows how many minutes late.": "शिक्षक चेक-इन इसी समय से शुरू होता है। समय से पहले चेक-इन नहीं होता। देर से आने पर कितने मिनट देर हुई, वह दिखता है।",
     "Checking out before school closing time is sent on WhatsApp.": "स्कूल बंद होने से पहले चेक-आउट व्हाट्सएप पर भेजा जाता है।",
     "Checking out before school closing time is sent to the same group.": "स्कूल बंद होने से पहले चेक-आउट उसी ग्रुप पर भेजा जाता है।",
     "Check-out after school closing time is saved on your attendance. It is not sent on WhatsApp.": "स्कूल बंद होने के बाद चेक-आउट हाजिरी में दर्ज होता है। यह व्हाट्सएप पर नहीं भेजा जाता।",

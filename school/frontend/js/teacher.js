@@ -21,6 +21,8 @@
       action = `<p style="margin:0 0 8px"><b>${checkInCase(c)}</b></p>
         <button class="btn" id="checkoutBtn" type="button"><i class="fa fa-sign-out"></i> Check out</button>
         <p class="small muted" style="margin-top:8px">${note}</p>`;
+    } else if (c.checkin_block === "before") {
+      action = `<p style="margin:0">Check-in is not allowed before teacher timing.</p>`;
     } else if (c.checkin_open === false) {
       action = `<p style="margin:0">Check-in is not allowed after school closing time.</p>`;
     } else {
