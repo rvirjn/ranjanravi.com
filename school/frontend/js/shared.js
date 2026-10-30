@@ -7,8 +7,12 @@
   // Class attendance: class tiles -> roster with PRESENT / ABSENT buttons
   // =====================================================================
   async function classAttendance(view, ctx, state = {}) {
+    await UI.runScreen(view, () => renderClassAttendance(view, ctx, state));
+  }
+
+  async function renderClassAttendance(view, ctx, state = {}) {
     const day = state.date || todayIso();
-    if (state.classId) return attendanceRoster(view, ctx, { ...state, date: day });
+    if (state.classId) return await attendanceRoster(view, ctx, { ...state, date: day });
     const d = await MPS.get(`/attendance/classes?date=${day}`);
     const marked = d.classes.filter((c) => c.marked).length;
     view.innerHTML = `
@@ -105,8 +109,12 @@
   // HW / CW update -> class WhatsApp group
   // =====================================================================
   async function diary(view, ctx, state = {}) {
+    await UI.runScreen(view, () => renderDiary(view, ctx, state));
+  }
+
+  async function renderDiary(view, ctx, state = {}) {
     const day = state.date || todayIso();
-    if (state.classId) return diaryForm(view, ctx, { ...state, date: day });
+    if (state.classId) return await diaryForm(view, ctx, { ...state, date: day });
     const d = await MPS.get(`/diary/overview?date=${day}`);
     view.innerHTML = `
       <div class="toolbar"><div class="filters"><label style="margin:0">Date</label><input type="date" id="day" value="${day}" max="${todayIso()}"></div>

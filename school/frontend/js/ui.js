@@ -147,6 +147,20 @@ const UI = (() => {
   const loading = () => `<div class="loading">${spinner()} Loading...</div>`;
   const errorBox = (message) => `<div class="error-box"><i class="fa fa-exclamation-circle"></i> ${esc(message)}</div>`;
 
+  function showLoading(view) {
+    view.innerHTML = loading();
+    window.scrollTo(0, 0);
+  }
+
+  async function runScreen(view, work) {
+    showLoading(view);
+    try {
+      await work();
+    } catch (e) {
+      view.innerHTML = errorBox(e.message);
+    }
+  }
+
   function table(columns, rows, opts = {}) {
     if (!rows || !rows.length) return empty(opts.empty || "Nothing to show yet.", opts.emptyIcon);
     const head = columns.map((c) => `<th class="${c.className || ""}">${esc(c.label)}</th>`).join("");
@@ -1008,6 +1022,8 @@ const UI = (() => {
     stat,
     empty,
     loading,
+    showLoading,
+    runScreen,
     errorBox,
     table,
     kv,

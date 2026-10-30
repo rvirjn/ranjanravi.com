@@ -51,6 +51,10 @@ const Accounts = (() => {
 
   // ---------- Fee collection: class -> student -> collect ----------
   async function collect(view, ctx, state = {}) {
+    await UI.runScreen(view, () => renderCollect(view, ctx, state));
+  }
+
+  async function renderCollect(view, ctx, state = {}) {
     const preset = sessionStorage.getItem("school_collect_class");
     if (preset) {
       sessionStorage.removeItem("school_collect_class");
@@ -61,8 +65,8 @@ const Accounts = (() => {
       sessionStorage.removeItem("school_collect_student");
       state = JSON.parse(presetStudent);
     }
-    if (state.studentId) return studentFee(view, ctx, state);
-    if (state.classId) return classStudents(view, ctx, state);
+    if (state.studentId) return await studentFee(view, ctx, state);
+    if (state.classId) return await classStudents(view, ctx, state);
     const d = await MPS.get("/accounts/dashboard");
     view.innerHTML = `<div class="toolbar"><span class="small muted">Collecting <b>${esc(d.rules.billable_month_label)}</b> fee &middot; ${esc(d.rules.collection_window)}</span>
         <div class="filters"><input id="search" placeholder="Search student / admission no." style="min-width:240px"></div></div>
@@ -77,6 +81,7 @@ const Accounts = (() => {
       timer = setTimeout(async () => {
         const q = e.target.value.trim();
         const box = view.querySelector("#results");
+        if (!box) return;
         if (q.length < 2) {
           box.innerHTML = "";
           return;
