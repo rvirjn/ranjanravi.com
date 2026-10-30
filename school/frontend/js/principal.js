@@ -553,6 +553,129 @@
     view.querySelector("#cls").addEventListener("change", (e) => diaryReport(view, ctx, { date: day, classId: e.target.value }));
   }
 
+  // ---------- Teachers timetable ----------
+  async function teacherTimetable(view, ctx, state = {}) {
+    const d = await MPS.get("/principal/timetable");
+    const teacherId = d.teachers.some((t) => t.id === state.teacherId) ? state.teacherId : "";
+    const mine = d.periods.filter((p) => !teacherId || p.teacher_id === teacherId);
+    const teacher = d.teachers.find((t) => t.id === teacherId);
+    const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    const numbers = [...new Set(mine.map((p) => p.period))].sort((a, b) => a - b);
+    const times = {};
+    mine.forEach((p) => (times[p.period] = `${fmtTime(p.start)} - ${fmtTime(p.end)}`));
+    const cell = (day, n) => {
+      const p = mine.find((x) => x.day === day && x.period === n);
+      if (!p) return `<td class="slot ${day === today ? "today" : ""}"><span class="muted">-</span></td>`;
+      return `<td class="slot ${day === today ? "today" : ""}"><b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>
+        <div class="btn-group" style="margin-top:6px;justify-content:center">
+          <button class="btn btn-light btn-sm" data-edit="${esc(p.id)}" title="Edit"><i class="fa fa-pencil"></i></button>
+          <button class="btn btn-light btn-sm" data-del="${esc(p.id)}" title="Remove"><i class="fa fa-trash"></i></button>
+        </div></td>`;
+    };
+    const grid = numbers.length
+      ? `<div class="table-wrap"><table class="table timetable"><thead><tr><th>Time</th>${d.days
+          .map((day) => `<th class="${day === today ? "today" : ""}">${esc(day)}</th>`).join("")}</tr></thead><tbody>${numbers
+          .map((n) => `<tr><td class="period-col"><b>Period ${n}</b>${times[n]}</td>${d.days.map((day) => cell(day, n)).join("")}</tr>`)
+          .join("")}</tbody></table></div>`
+      : empty(teacherId ? "No periods for this teacher yet. Add the first one." : "No periods yet. Add the first one.", "fa-clock-o");
+    const list = table(
+      [
+        { label: "Teacher", render: (p) => `<b>${esc(p.teacher_name)}</b>` },
+        { label: "Day", key: "day" },
+        { label: "Period", render: (p) => `Period ${p.period}`, className: "nowrap" },
+        { label: "Time", render: (p) => `${fmtTime(p.start)} - ${fmtTime(p.end)}`, className: "nowrap" },
+        { label: "Class", key: "class_label" },
+        { label: "Subject", render: (p) => esc(p.subject) },
+        { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-edit="${esc(p.id)}" title="Edit"><i class="fa fa-pencil"></i></button>
+          <button class="btn btn-light btn-sm" data-del="${esc(p.id)}" title="Remove"><i class="fa fa-trash"></i></button>` },
+      ],
+      mine,
+      { empty: "No periods yet. Add the first one." }
+    );
+    view.innerHTML = `
+      <div class="toolbar"><div class="filters">
+        <label style="margin:0">Teacher</label>
+        <select id="teacher"><option value="">All teachers</option>${d.teachers.map((t) => `<option value="${esc(t.id)}" ${t.id === teacherId ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
+      </div><span class="small muted">Students see the periods of their own class.</span></div>
+      ${card(teacher ? teacher.name : `All teachers (${mine.length})`, teacherId ? grid : list, {
+        icon: "fa-clock-o", flush: true,
+        actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Add Period</button>',
+      })}`;
+    const reload = (id) => teacherTimetable(view, ctx, { teacherId: id === undefined ? teacherId : id });
+    view.querySelector("#teacher").addEventListener("change", (e) => reload(e.target.value));
+    view.querySelector("#add").addEventListener("click", () => periodForm(d, { teacher_id: teacherId }, reload));
+    view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      const p = d.periods.find((x) => x.id === b.dataset.edit);
+      if (p) periodForm(d, p, reload);
+    }));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      const p = d.periods.find((x) => x.id === b.dataset.del);
+      if (!p || !confirm(`Remove ${p.subject} (${p.class_label}) on ${p.day}, period ${p.period}?`)) return;
+      if (await run(() => MPS.del(`/principal/timetable/${p.id}`))) reload();
+    }));
+  }
+
+  function periodForm(d, period, reload) {
+    if (!d.teachers.length) {
+      UI.toast("Add a teacher first.", "error");
+      return;
+    }
+    if (!d.classes.length) {
+      UI.toast("Add a class first.", "error");
+      return;
+    }
+    const teachers = d.teachers.slice();
+    if (period.teacher_id && !teachers.some((t) => t.id === period.teacher_id)) {
+      teachers.unshift({ id: period.teacher_id, name: period.teacher_name || period.teacher_id });
+    }
+    const classId = period.class_id || d.classes[0].id;
+    const known = d.periods.find((p) => p.period === Number(period.period || 1) && p.id !== period.id);
+    const start = String(period.start || (known && known.start) || "08:00").slice(0, 5);
+    const end = String(period.end || (known && known.end) || "08:40").slice(0, 5);
+    const subjectsOf = (id) => {
+      const cls = d.classes.find((c) => c.id === id);
+      return (cls && cls.subjects) || [];
+    };
+    const m = openForm({
+      title: period.id ? "Edit Period" : "Add Period",
+      fields: [
+        { name: "teacher_id", label: "Teacher", type: "select", required: true, value: period.teacher_id || d.teachers[0].id, options: teachers.map((t) => ({ value: t.id, label: t.name })) },
+        { name: "class_id", label: "Class", type: "select", required: true, value: classId, options: d.classes.map((c) => ({ value: c.id, label: c.label })) },
+        { name: "subject", label: "Subject", type: "select", required: true, value: period.subject, placeholder: "Select a subject", options: subjectsOf(classId).map((s) => ({ value: s, label: s })), hint: "Subjects come from the class. Add them under Classes." },
+        { name: "day", label: "Day", type: "select", required: true, value: period.day || "Monday", options: d.days },
+        { name: "period", label: "Period", type: "number", required: true, min: 1, max: 12, value: period.period || 1 },
+        { name: "start", label: "Start time", type: "time", required: true, value: start },
+        { name: "end", label: "End time", type: "time", required: true, value: end },
+      ],
+      submitLabel: period.id ? "Save" : "Add",
+      onSubmit: async (v) => {
+        const path = period.id ? `/principal/timetable/${period.id}` : "/principal/timetable";
+        const r = await MPS.post(path, v);
+        reload(v.teacher_id);
+        return r;
+      },
+    });
+    const form = m.body.querySelector("form");
+    const subject = form.subject;
+    const paintSubjects = () => {
+      const current = subject.value;
+      const options = subjectsOf(form.class_id.value);
+      subject.innerHTML = options.length
+        ? options.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")
+        : `<option value="">No subjects on this class</option>`;
+      if (options.includes(current)) subject.value = current;
+      subject.setCustomValidity(options.length ? "" : "Add subjects on this class first, under Classes");
+    };
+    form.class_id.addEventListener("change", paintSubjects);
+    paintSubjects();
+    form.period.addEventListener("change", () => {
+      const match = d.periods.find((p) => String(p.period) === form.period.value && p.id !== period.id);
+      if (!match) return;
+      form.start.value = String(match.start).slice(0, 5);
+      form.end.value = String(match.end).slice(0, 5);
+    });
+  }
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
@@ -564,6 +687,7 @@
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
       { id: "classes", label: "Classes", icon: "fa-th-large", group: "People", render: (v, c) => classes(v, c) },
+      { id: "timetable", label: "Teachers Timetable", icon: "fa-clock-o", group: "Academics", render: (v, c) => teacherTimetable(v, c) },
       { id: "exams", label: "Exams & Admit Cards", icon: "fa-file-text-o", group: "Academics", render: exams },
       { id: "attendance-report", label: "Student Attendance Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => UI.shared.attendanceReport(v, c) },
       { id: "teacher-report", label: "Teacher Attendance Report", icon: "fa-line-chart", group: "Reports", render: (v, c) => teacherAttendanceReport(v, c) },
