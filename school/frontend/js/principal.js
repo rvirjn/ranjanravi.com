@@ -753,6 +753,7 @@
       ...d.students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
     ];
     const waRecipients = [{ value: "teachers|all", label: "All teachers" }, ...recipients];
+    const groupTeachers = d.whatsapp_group_teachers || "";
     const items = d[mode];
     const teacherList = d.teachers.length
       ? `<ul class="list">${d.teachers
@@ -768,7 +769,8 @@
           ${mode === "inbox" && (m.from_type === "student" || m.from_type === "teacher") ? `<button class="btn btn-light btn-sm" data-reply="${m.id}">Reply</button>` : ""}</li>`)
         .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
       <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
-        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", waRecipients)}</div>
+        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", waRecipients)}
+          <p class="small muted" id="waGroupHint" hidden></p></div>
         <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
         <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
         <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
@@ -781,6 +783,19 @@
         modal(m.subject, `<p class="muted small">From <b>${esc(m.from_name)}</b> to <b>${esc(m.to_name)}</b> · ${fmtDateTime(m.date)}</p><p class="pre">${esc(m.body)}</p>`);
       })
     );
+    const waHint = view.querySelector("#waGroupHint");
+    const showGroupHint = () => {
+      const allTeachers = view.querySelector("#waTo").value === "teachers|all";
+      waHint.hidden = !allTeachers;
+      waHint.replaceChildren();
+      if (!allTeachers) return;
+      waHint.append(document.createTextNode("Message will go to WhatsApp group name: "));
+      const name = document.createElement("b");
+      name.textContent = groupTeachers || "No WhatsApp group set";
+      waHint.append(name);
+    };
+    view.querySelector("#waTo").addEventListener("change", showGroupHint);
+    showGroupHint();
     view.querySelector("#waSend").addEventListener("click", () => {
       const to = view.querySelector("#waTo").value;
       const subject = view.querySelector("#waSubject").value.trim();

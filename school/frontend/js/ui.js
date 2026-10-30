@@ -558,6 +558,46 @@ const UI = (() => {
     return m;
   }
 
+  /** One message to a WhatsApp group, after the sender has seen the text and the group name. */
+  function whatsappGroupPreview({ title, group, send }) {
+    const name = String((group && group.name) || "").trim();
+    if (!name) {
+      toast("No WhatsApp group set for teachers.", "error");
+      return;
+    }
+    const m = modal(title, `
+      <p class="small muted">Message will go to WhatsApp group name: <b>${esc(name)}</b></p>
+      <div class="field"><label for="wa-group-msg">Message</label>
+        <textarea id="wa-group-msg">${esc(group.message || "")}</textarea></div>
+      <div class="field"><label for="wa-extra">Add this to every message</label>
+        <textarea id="wa-extra" placeholder="Optional. Added before the school signature."></textarea></div>
+      <div class="form-error" hidden></div>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="wa-send"><i class="fa fa-whatsapp"></i> Send</button></div>`);
+    const root = m.body;
+    const err = root.querySelector(".form-error");
+    root.querySelector("#wa-send").addEventListener("click", async () => {
+      const text = root.querySelector("#wa-group-msg").value.trim();
+      if (!text) {
+        err.textContent = "A selected message is empty.";
+        err.hidden = false;
+        return;
+      }
+      const btn = root.querySelector("#wa-send");
+      btn.disabled = true;
+      err.hidden = true;
+      try {
+        const result = await send({ group: group.id || "teachers", message: text, extra: root.querySelector("#wa-extra").value });
+        m.close();
+        if (result && result.message) toast(result.message);
+      } catch (e) {
+        err.textContent = e.message;
+        err.hidden = false;
+        btn.disabled = false;
+      }
+    });
+  }
+
   /** Show each WhatsApp message and recipient, then send only the checked ones. */
   async function whatsappPreview({ title, fetchPreview, send, emptyMessage }) {
     let data;
@@ -565,6 +605,10 @@ const UI = (() => {
       data = await fetchPreview();
     } catch (e) {
       toast(e.message, "error");
+      return;
+    }
+    if (data.group) {
+      whatsappGroupPreview({ title, group: data.group, send });
       return;
     }
     const people = data.recipients || [];
