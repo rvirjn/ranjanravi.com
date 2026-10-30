@@ -46,7 +46,7 @@
     "Online Payments I reported": "मैंने जो ऑनलाइन भुगतान बताया", "You have not reported a payment yet.": "आपने अभी कोई भुगतान नहीं बताया।", "Not received": "प्राप्त नहीं हुआ", "Paid on / via": "भुगतान तिथि / माध्यम",
     "Today's Classes": "आज की कक्षाएं", "Homework Due": "बाकी गृह कार्य", "Latest Notices": "नई सूचनाएं", "Upcoming Exams": "आगामी परीक्षाएं",
     "Apply Leave": "छुट्टी के लिए आवेदन", "Pay Fees": "फीस भरें", "Report Card": "रिपोर्ट कार्ड", "Holistic Progress Card": "समग्र प्रगति कार्ड",
-    "Admit Card": "प्रवेश पत्र", "Record Fee": "फीस दर्ज करें", "Collect": "जमा करें", "Students": "विद्यार्थी", "Working Days": "कार्य दिवस",
+    "Admit Card": "प्रवेश पत्र", "Record Fee": "फीस दर्ज करें", "Collect": "जमा करें", "Students": "विद्यार्थी", "My Students": "मेरे विद्यार्थी", "My Teachers": "मेरे शिक्षक", "No students yet.": "अभी कोई विद्यार्थी नहीं।", "You are not a class teacher.": "आप किसी कक्षा के कक्षा शिक्षक नहीं हैं।", "Working Days": "कार्य दिवस",
     "Change Password ": "पासवर्ड बदलें", "Current password": "वर्तमान पासवर्ड", "New password": "नया पासवर्ड", "Confirm new password": "नया पासवर्ड दोबारा",
     "Update Password": "पासवर्ड अपडेट करें", "At least 5 characters": "कम से कम 5 अक्षर",
     "Login ID is generated automatically. Default password: s@123": "लॉग इन आईडी अपने आप बनती है। डिफ़ॉल्ट पासवर्ड: s@123",

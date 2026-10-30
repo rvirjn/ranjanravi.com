@@ -686,18 +686,30 @@
       ...students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
     ];
     const items = d[mode];
-    view.innerHTML = `${tabs([{ id: "inbox", label: `Inbox (${d.inbox.length})` }, { id: "sent", label: `Sent (${d.sent.length})` }], mode)}
+    const homeIds = new Set(d.classes.filter((c) => c.is_class_teacher).map((c) => c.id));
+    const seen = new Set();
+    const mine = students.filter((s) => homeIds.has(s.class_id) && (seen.has(s.id) ? false : seen.add(s.id)));
+    const myStudents = !homeIds.size
+      ? empty("You are not a class teacher.", "fa-users")
+      : mine.length
+        ? `<ul class="list">${mine
+          .map((s) => `<li><div class="avatar" style="background:var(--info-bg);color:var(--info)">${UI.initials(s.name)}</div><div class="grow"><div class="title">${esc(s.name)}</div><div class="meta">${esc(s.class_label)} · Roll ${esc(s.roll_no)}</div></div></li>`)
+          .join("")}</ul>`
+        : empty("No students yet.", "fa-users");
+    view.innerHTML = `<div class="grid grid-side">
+      <div>${tabs([{ id: "inbox", label: `Inbox (${d.inbox.length})` }, { id: "sent", label: `Sent (${d.sent.length})` }], mode)}
       ${card(mode === "inbox" ? "Inbox" : "Sent Messages", items.length ? `<ul class="list">${items
         .map((m) => `<li style="cursor:pointer" data-msg="${m.id}"><div class="avatar" style="background:var(--green-100)">${UI.initials(mode === "inbox" ? m.from_name : m.to_name)}</div>
           <div class="grow"><div class="title">${esc(m.subject)}</div><div class="meta">${mode === "inbox" ? "From" : "To"} ${esc(mode === "inbox" ? m.from_name : m.to_name)} · ${fmtDateTime(m.date)}</div>
           <div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.body)}</div></div>
           ${mode === "inbox" && m.from_type === "student" ? `<button class="btn btn-light btn-sm" data-reply="${m.id}">Reply</button>` : ""}</li>`)
         .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
-      ${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
+      <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
         <div class="field"><label for="waTo">To</label>${selectHtml("waTo", recipients)}</div>
         <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
         <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
-        <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}`;
+        <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
+      ${card("My Students", myStudents, { icon: "fa-users", flush: true })}</div>`;
     onTabs(view, (tab) => messages(view, ctx, tab));
     view.querySelectorAll("[data-msg]").forEach((li) =>
       li.addEventListener("click", (e) => {
