@@ -6,24 +6,21 @@
     return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   };
 
+  const checkInCase = (row) => esc(row.checkin_label || (row.check_in ? "Check-In" : ""));
+
   function punchHtml(c) {
     c = c || {};
-    const hours = c.school_open_time && c.school_close_time
-      ? `School time ${fmtTime(c.school_open_time)} to ${fmtTime(c.school_close_time)}. A missed check-out is saved ${c.auto_checkout_hours || 2} hours after closing.`
-      : "School opening and closing time are not set yet. You can still check in.";
-    const group = c.whatsapp_group_teachers ? ` (${esc(c.whatsapp_group_teachers)})` : "";
     let action;
     if (c.check_out) {
-      action = `<p style="margin:8px 0 0"><b>In</b> ${fmtTime(c.check_in)} &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
+      action = `<p style="margin:0"><b>${checkInCase(c)}</b> &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
     } else if (c.check_in) {
-      action = `<p style="margin:8px 0"><b>Checked in</b> at ${fmtTime(c.check_in)}</p>
+      action = `<p style="margin:0 0 8px"><b>${checkInCase(c)}</b></p>
         <button class="btn" id="checkoutBtn" type="button"><i class="fa fa-sign-out"></i> Check out</button>
         <p class="small muted" style="margin-top:8px">Check-out is saved on your attendance. It is not sent on WhatsApp.</p>`;
     } else {
-      action = `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check in</button>
-        <p class="small muted" style="margin-top:8px">Check-in marks you present and sends a message to the teachers WhatsApp group${group}.</p>`;
+      action = `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check-In</button>`;
     }
-    return card("Check In / Check Out", `<p class="muted" style="margin-top:0">${hours}</p>${action}`, { icon: "fa-sign-in" });
+    return card("Check In / Check Out", action, { icon: "fa-sign-in" });
   }
 
   function bindPunch(root, reload) {
@@ -39,7 +36,7 @@
       ${card("Recent check-ins", table(
         [
           { label: "Date", render: (x) => fmtDate(x.date) },
-          { label: "In", render: (x) => (x.check_in ? fmtTime(x.check_in) : "-") },
+          { label: "In", render: (x) => (x.check_in ? checkInCase(x) : "-") },
           { label: "Out", render: (x) => (x.check_out ? `${fmtTime(x.check_out)}${x.auto_checkout ? ` ${badge("Auto", "warn")}` : ""}` : "-") },
         ],
         d.recent,
@@ -338,7 +335,7 @@
         [
           { label: "Date", render: (x) => `${fmtDate(x.date)} <span class="small muted">${new Date(x.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short" })}</span>` },
           { label: "Status", render: (x) => badge(UI.CODE_LABEL[x.status] || x.status) },
-          { label: "In", render: (x) => (x.check_in ? fmtTime(x.check_in) : "-") },
+          { label: "In", render: (x) => (x.check_in ? checkInCase(x) : "-") },
           { label: "Out", render: (x) => (x.check_out ? `${fmtTime(x.check_out)}${x.auto_checkout ? ` ${badge("Auto", "warn")}` : ""}` : "-") },
         ],
         d.days.slice().reverse(),

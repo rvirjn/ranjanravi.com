@@ -52,7 +52,7 @@
       ${card(`Teachers · ${d.day}, ${fmtDate(d.date)}`, d.teachers
         .map((t) => `<div class="att-row" data-sid="${t.id}"><div class="att-name"><div class="avatar" style="width:36px;height:36px;background:var(--info-bg);color:var(--info)">${UI.avatar(t.name, t.photo)}</div>
           <div><b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation || "")}${t.on_leave ? ` &middot; ${badge("On approved leave", "warn")}` : ""}</div>
-          <div class="small muted">${t.check_in ? `In ${fmtTime(t.check_in)}${t.check_out ? ` · Out ${fmtTime(t.check_out)}${t.auto_checkout ? " (auto)" : ""}` : " · Not checked out"}` : "Not checked in"}</div></div></div>
+          <div class="small muted">${t.check_in ? `${esc(t.checkin_label || "Check-In")}${t.check_out ? ` · Out ${fmtTime(t.check_out)}${t.auto_checkout ? " (auto)" : ""}` : " · Not checked out"}` : "Not checked in"}</div></div></div>
           <div class="att-actions"><button type="button" class="att-btn present" data-set="P">PRESENT</button><button type="button" class="att-btn absent" data-set="A">ABSENT</button>
           <span class="att-more"><button type="button" class="att-mini" data-set="LT">Late</button><button type="button" class="att-mini" data-set="HD">Half day</button><button type="button" class="att-mini" data-set="L">Leave</button></span></div></div>`)
         .join(""), { icon: "fa-user-circle", flush: true })}
