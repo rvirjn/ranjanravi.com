@@ -2,6 +2,45 @@
   const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan, avatar } = UI;
   const PHOTO = (s) => ({ name: "photo", label: "Photo", type: "photo", value: s.photo });
 
+  const checkInCase = (row) => esc(row.checkin_label || (row.check_in ? "Check-In" : ""));
+
+  function punchHtml(c) {
+    c = c || {};
+    let action;
+    if (c.check_out) {
+      action = `<p style="margin:0"><b>${checkInCase(c)}</b> &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
+    } else if (c.check_in) {
+      action = `<p style="margin:0 0 8px"><b>${checkInCase(c)}</b></p>
+        <button class="btn" id="checkoutBtn" type="button"><i class="fa fa-sign-out"></i> Check out</button>
+        <p class="small muted" style="margin-top:8px">Check-out is saved on your attendance. It is not sent on WhatsApp.</p>`;
+    } else {
+      action = `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check-In</button>`;
+    }
+    return card("Check In / Check Out", action, { icon: "fa-sign-in" });
+  }
+
+  function bindPunch(root, reload) {
+    const inn = root.querySelector("#checkinBtn");
+    const out = root.querySelector("#checkoutBtn");
+    if (inn) inn.addEventListener("click", async () => { if (await run(() => MPS.post("/principal/checkin"))) reload(); });
+    if (out) out.addEventListener("click", async () => { if (await run(() => MPS.post("/principal/checkout"))) reload(); });
+  }
+
+  async function checkIn(view) {
+    const d = await MPS.get("/principal/checkin");
+    view.innerHTML = `${punchHtml(d.today)}
+      ${card("Recent check-ins", table(
+        [
+          { label: "Date", render: (x) => fmtDate(x.date) },
+          { label: "In", render: (x) => (x.check_in ? checkInCase(x) : "-") },
+          { label: "Out", render: (x) => (x.check_out ? `${fmtTime(x.check_out)}${x.auto_checkout ? ` ${badge("Auto", "warn")}` : ""}` : "-") },
+        ],
+        d.recent,
+        { empty: "No check-ins yet.", emptyIcon: "fa-sign-in" }
+      ), { icon: "fa-clock-o", flush: true })}`;
+    bindPunch(view, () => checkIn(view));
+  }
+
   // ---------- Dashboard ----------
   async function dashboard(view) {
     const d = await MPS.get("/principal/dashboard");
@@ -12,6 +51,7 @@
         <p>${esc(d.weekday)}, ${fmtDate(d.today)}${d.is_holiday ? " &middot; Holiday" : ""}</p></div>
         <div class="btn-group"><a class="btn btn-light" href="#teacher-attendance"><i class="fa fa-user-circle"></i> Teacher Attendance</a>
         <a class="btn btn-light" href="#approvals"><i class="fa fa-check-circle"></i> Approvals${pendingTotal ? ` (${pendingTotal})` : ""}</a></div></div>
+      ${punchHtml(d.checkin)}
       <div class="grid grid-4">
         ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked` })}
         ${stat("Teachers Present", d.teachers_recorded ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : d.teachers_recorded ? "warn" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : (d.teachers_recorded ? `${d.teachers_total - d.teachers_recorded} not marked · <a href="#teacher-attendance">Open</a>` : '<a href="#teacher-attendance">Mark now</a>') })}
@@ -37,6 +77,7 @@
           ${card("Upcoming", d.events.length ? `<ul class="list">${d.events.map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type}</div></div></li>`).join("")}</ul>` : empty("Nothing upcoming"), { icon: "fa-calendar", flush: true })}
         </div>
       </div>`;
+    bindPunch(view, () => dashboard(view));
   }
 
   // ---------- Teacher attendance ----------
@@ -611,7 +652,7 @@
       <div class="toolbar"><div class="filters">
         <label style="margin:0">Teacher</label>
         <select id="teacher"><option value="">All teachers</option>${d.teachers.map((t) => `<option value="${esc(t.id)}" ${t.id === teacherId ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
-      </div><span class="small muted">Students see the periods of their own class.</span></div>
+      </div><span class="small muted">${d.assembly_from && d.assembly_to ? `Assembly ${fmtTime(d.assembly_from)} – ${fmtTime(d.assembly_to)}. Periods start after ${fmtTime(d.assembly_to)}.` : "Set the assembly timing on the school before adding a period."} Students see the periods of their own class.</span></div>
       ${card(teacher ? teacher.name : `All teachers (${mine.length})`, teacherId ? grid : list, {
         icon: "fa-clock-o", flush: true,
         actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Add Period</button>',
@@ -645,8 +686,9 @@
     }
     const classId = period.class_id || d.classes[0].id;
     const known = d.periods.find((p) => p.period === Number(period.period || 1) && p.id !== period.id);
-    const start = String(period.start || (known && known.start) || "08:00").slice(0, 5);
-    const end = String(period.end || (known && known.end) || "08:40").slice(0, 5);
+    const start = String(period.start || (known && known.start) || "").slice(0, 5);
+    const end = String(period.end || (known && known.end) || "").slice(0, 5);
+    const afterAssembly = d.assembly_to ? `Must start after assembly ends (${fmtTime(d.assembly_to)}).` : "Set the assembly timing on the school first.";
     const subjectsOf = (id) => {
       const cls = d.classes.find((c) => c.id === id);
       return (cls && cls.subjects) || [];
@@ -659,7 +701,7 @@
         { name: "subject", label: "Subject", type: "select", required: true, value: period.subject, placeholder: "Select a subject", options: subjectsOf(classId).map((s) => ({ value: s, label: s })), hint: "Subjects come from the class. Add them under Classes." },
         { name: "day", label: "Day", type: "select", required: true, value: period.day || "Monday", options: d.days },
         { name: "period", label: "Period", type: "number", required: true, min: 1, max: 12, value: period.period || 1 },
-        { name: "start", label: "Start time", type: "time", required: true, value: start },
+        { name: "start", label: "Start time", type: "time", required: true, value: start, hint: afterAssembly },
         { name: "end", label: "End time", type: "time", required: true, value: end },
       ],
       submitLabel: period.id ? "Save" : "Add",
@@ -778,6 +820,7 @@
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => approvals(v, c) },
+      { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => teacherAttendance(v, c) },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },

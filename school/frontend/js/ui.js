@@ -547,7 +547,7 @@ const UI = (() => {
       try {
         const result = await onSubmit(values);
         m.close();
-        if (result && result.message) toast(result.message);
+        if (result && result.message) toast(result.message, result.whatsapp_sent === false ? "error" : "success");
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.hidden = false;
