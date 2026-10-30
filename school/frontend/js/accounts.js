@@ -139,7 +139,7 @@ const Accounts = (() => {
             ${UI.fieldHtml({ name: "reference", label: "UPI / cheque reference", value: pendingInt[0] ? pendingInt[0].reference : "" })}
             ${UI.fieldHtml({ name: "received_by", label: "Given to (received by)", value: d.received_by })}
             ${UI.fieldHtml({ name: "note", label: "Note" })}
-            <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" name="whatsapp" checked style="width:auto"> Send WhatsApp receipt to parent</label>
+            <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent.</p>
           </form>
           <div class="sticky-bar static"><span>Total: <b id="total" style="font-size:20px">Rs 0</b></span><button class="btn" id="submit"><i class="fa fa-check"></i> Submit &amp; Generate Receipt</button></div>`, { icon: "fa-credit-card", flush: false })}
         </div>
@@ -201,7 +201,7 @@ const Accounts = (() => {
       const form = view.querySelector("#payForm");
       if (!form.reportValidity()) return;
       const values = Object.fromEntries(new FormData(form).entries());
-      const payload = { ...values, whatsapp: Boolean(values.whatsapp), lines: lines(), items: items(), intimation_id: pendingInt[0] ? pendingInt[0].id : null };
+      const payload = { ...values, lines: lines(), items: items(), intimation_id: pendingInt[0] ? pendingInt[0].id : null };
       if (!payload.lines.length && !payload.items.length) {
         UI.toast("Select a due or add an item", "error");
         return;
