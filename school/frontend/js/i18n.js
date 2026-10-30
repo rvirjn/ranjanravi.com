@@ -140,6 +140,8 @@
     "Same as From date for one day. Pick a later To date when a festival or holiday lasts longer.": "एक दिन के लिए दोनों तिथियाँ एक जैसी रखें। त्योहार या छुट्टी कई दिन की हो तो अंतिम तिथि आगे चुनें।",
     "No WhatsApp group set": "व्हाट्सएप ग्रुप सेट नहीं है",
     "WhatsApp group name:": "व्हाट्सएप ग्रुप का नाम:",
+    "Message will go to WhatsApp group name:": "संदेश इस व्हाट्सएप ग्रुप पर जाएगा। व्हाट्सएप ग्रुप का नाम:",
+    "No WhatsApp group set for teachers.": "शिक्षकों का व्हाट्सएप ग्रुप सेट नहीं है।",
     "WhatsApp group name": "व्हाट्सएप ग्रुप का नाम",
     "Also send on WhatsApp?": "व्हाट्सएप पर भी भेजें?",
     "WhatsApp group name for everyone": "सबके लिए व्हाट्सएप ग्रुप का नाम",

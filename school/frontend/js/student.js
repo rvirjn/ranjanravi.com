@@ -760,8 +760,8 @@
         : empty("No complaints or feedback submitted.", "fa-comments-o"),
       { icon: "fa-comments-o", flush: true, actions: '<button class="btn btn-sm" id="newBtn"><i class="fa fa-plus"></i> New</button>' }
     );
-    view.querySelector("#newBtn").addEventListener("click", () =>
-      openForm({
+    view.querySelector("#newBtn").addEventListener("click", () => {
+      const m = openForm({
         title: "Complaint / Feedback",
         fields: [
           { name: "category", label: "Category", type: "select", options: d.categories, required: true },
@@ -773,8 +773,25 @@
           ctx.refresh();
           return r;
         },
-      })
-    );
+      });
+      const actions = m.body.querySelector(".modal-actions");
+      actions.style.flexWrap = "wrap";
+      actions.style.alignItems = "center";
+      const note = document.createElement("span");
+      note.className = "field-hint";
+      note.style.margin = "0 auto 0 0";
+      note.style.alignSelf = "center";
+      const group = d.whatsapp_group_teachers || "";
+      note.append(document.createTextNode("Message will go to WhatsApp group name: "));
+      if (group) {
+        const name = document.createElement("b");
+        name.textContent = group;
+        note.append(name);
+      } else {
+        note.append(document.createTextNode("No WhatsApp group set"));
+      }
+      actions.prepend(note);
+    });
   }
 
   // ---------- Documents ----------
