@@ -395,11 +395,12 @@
           { label: "Message", render: (m) => `<div class="small pre" style="max-width:420px;max-height:90px;overflow:auto">${esc(m.text)}</div>` },
           { label: "Status", render: (m) => badge(m.status) + (m.error ? `<div class="small" style="color:var(--danger)">${esc(m.error)}</div>` : "") },
           { label: "", render: (m) => (m.status === "failed" ? `<button class="btn btn-light btn-sm" data-retry="${m.id}">Retry</button>` : "") },
-        ], o.messages, { empty: "No WhatsApp messages yet.", emptyIcon: "fa-whatsapp" })}`, { icon: "fa-list", flush: true })}`;
+        ], o.messages, { empty: "No WhatsApp messages yet.", emptyIcon: "fa-whatsapp" })}`, { icon: "fa-list", flush: true, actions: `<button type="button" class="btn btn-light btn-sm" id="refreshLog"><i class="fa fa-refresh"></i> Refresh</button>` })}`;
 
     const reload = () => whatsappPage(view, ctx, filter);
     const on = (id, fn) => view.querySelector(id) && view.querySelector(id).addEventListener("click", fn);
     on("#refresh", reload);
+    on("#refreshLog", reload);
     on("#unlink", async () => confirm("Unlink WhatsApp from the portal?") && (await run(() => MPS.post("/whatsapp/logout"))) && reload());
     on("#groups", async () => {
       try {
@@ -434,9 +435,10 @@
     );
     view.querySelector("#purpose").addEventListener("change", (e) => whatsappPage(view, ctx, e.target.value));
     view.querySelectorAll("[data-retry]").forEach((b) => b.addEventListener("click", async () => (await run(() => MPS.post(`/whatsapp/retry/${b.dataset.retry}`))) && reload()));
-    if (!linked && s.state !== "offline") {
+    const waiting = (o.messages || []).some((m) => m.status === "queued");
+    if (waiting || (!linked && s.state !== "offline")) {
       clearTimeout(whatsappPage.timer);
-      whatsappPage.timer = setTimeout(() => document.body.contains(view) && reload(), 20000);
+      whatsappPage.timer = setTimeout(() => document.body.contains(view) && reload(), waiting ? 3000 : 20000);
     }
   }
 
