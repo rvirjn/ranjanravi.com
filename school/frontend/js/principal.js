@@ -149,6 +149,7 @@
     return [
     PHOTO(s),
     { name: "name", label: "Student name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
+    { name: "designation", label: "Designation", value: s.designation || "Student" },
     { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s) || suggested, hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
     { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (s.id ? "" : todayIso()) },
     { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id },
@@ -262,7 +263,7 @@
       { name: "name", label: "Name", required: true, value: t.name, person: true, title: "Name cannot contain a number" },
       { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(t) || (t.id ? "" : nextNumber), hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
       { name: "joining_date", label: "Joining date", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: t.joining_date || t.admission_date || (t.id ? "" : todayIso()) },
-      { name: "designation", label: "Designation", value: t.designation },
+      { name: "designation", label: "Designation", value: t.designation || "Teacher" },
       { name: "subjects", label: "Subjects (comma separated)", value: (t.subjects || []).join(", ") },
       { name: "phone", label: "Mobile", type: "mobile", required: true, value: t.phone },
       { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: t.email },
