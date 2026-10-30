@@ -801,7 +801,6 @@
     userSub: (u) => `Adm. ${u.admission_no} · Roll ${u.roll_no}`,
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
-      { id: "profile", label: "My Profile", icon: "fa-user", group: "Overview", render: profile },
       { id: "attendance", label: "Attendance", icon: "fa-calendar-check-o", group: "Academics", render: attendance },
       { id: "diary", label: "Classwork & Homework", icon: "fa-book", group: "Academics", render: diary },
       { id: "timetable", label: "Timetable", icon: "fa-clock-o", group: "Academics", render: (v) => UI.shared.timetable(v, "/student/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.teacher_name)}</span>`) },
@@ -822,6 +821,7 @@
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Requests", render: (v, c) => messages(v, c) },
       { id: "complaints", label: "Complaints & Feedback", icon: "fa-comments-o", group: "Requests", render: complaints },
       { id: "documents", label: "ID Card & Certificates", icon: "fa-id-card-o", group: "Requests", render: documents },
+      { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],
   });
