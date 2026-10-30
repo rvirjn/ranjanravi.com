@@ -98,7 +98,7 @@ const Accounts = (() => {
   async function classStudents(view, ctx, state) {
     const d = await MPS.get(`/accounts/class/${state.classId}`);
     view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
-        ${badge(`Class dues ${money(d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
+        ${badge(`Class dues ${money(d.due_total != null ? d.due_total : d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
       ${card(`${d.class_label} · Students`, table(
         [
           { label: "Roll", key: "roll_no" },
@@ -121,7 +121,7 @@ const Accounts = (() => {
     const pendingInt = d.intimations.filter((i) => i.status === "Pending");
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${esc(d.class_label)} students</button>
-        <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}</span></div>
+        <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.summary.sibling_names || []).length ? ` <span class="small muted">Combined with ${esc(d.summary.sibling_names.join(", "))}. Same due on each sibling.</span>` : ""}</span></div>
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
         <div class="stack">

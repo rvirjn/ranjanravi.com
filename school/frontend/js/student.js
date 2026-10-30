@@ -160,7 +160,7 @@
       <div class="grid grid-4">
         ${stat("Attendance", `${att.percentage}%`, { icon: "fa-calendar-check-o", tone: att.percentage < 75 ? "warn" : "ok", sub: `${att.present} of ${att.working_days} days present` })}
         ${stat("Homework Pending", d.pending_homework.length, { icon: "fa-pencil-square-o", tone: overdueHw ? "danger" : "info", sub: overdueHw ? `${overdueHw} overdue` : "Nothing overdue" })}
-        ${stat("Fee Due", money(d.fees.due), { icon: "fa-inr", tone: d.fees.overdue ? "danger" : "ok", sub: d.fees.overdue ? `${money(d.fees.overdue)} overdue` : "No overdue fees" })}
+        ${stat("Fee Due", money(d.fees.due), { icon: "fa-inr", tone: d.fees.overdue ? "danger" : "ok", sub: (d.fees.sibling_names || []).length ? `Combined with ${esc(d.fees.sibling_names.join(", "))}` : (d.fees.overdue ? `${money(d.fees.overdue)} overdue` : "No overdue fees") })}
         ${stat("Last Result", res ? `${res.percentage}%` : "-", { icon: "fa-trophy", tone: "info", sub: res ? `${esc(res.exam_name)} · Grade ${esc(res.grade)}` : "No results yet" })}
       </div>
       ${diaryCard}
@@ -467,7 +467,7 @@
       <div class="fee-layout">
         <div class="fee-col">
           <div class="fee-tiles">
-            ${stat("Total due", money(sm.due), { icon: "fa-inr", tone: sm.due ? "warn" : "ok" })}
+            ${stat("Total due", money(sm.due), { icon: "fa-inr", tone: sm.due ? "warn" : "ok", sub: (sm.sibling_names || []).length ? `Combined with ${esc(sm.sibling_names.join(", "))}` : "" })}
             ${stat("Tuition fee due", money(sm.tuition_due || 0), { icon: "fa-book", tone: sm.tuition_due ? "warn" : "ok" })}
             ${stat("Other fee due", money(sm.other_due || 0), { icon: "fa-shopping-bag", tone: sm.other_due ? "warn" : "ok" })}
           </div>

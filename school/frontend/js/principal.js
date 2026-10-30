@@ -171,7 +171,7 @@
     { name: "designation", label: "Designation", value: s.designation || "Student" },
     { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s) || suggested, hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
     { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (s.id ? "" : todayIso()) },
-    { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id },
+    { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id, hint: s.id ? "Changing class updates unpaid tuition to that class fee. A sibling in a different class is charged their own class fee, and both show the same due." : "" },
     { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
     { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: s.gender },
     { name: "dob", label: "Date of birth", type: "date", value: s.dob },
@@ -248,11 +248,11 @@
       m.body.querySelector(".modal-actions").prepend(reset);
     }));
     view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
-      if (!confirm("Mark this student as left school?")) return;
+      if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;
       if (await run(() => MPS.post(`/principal/students/${b.dataset.left}`, { active: "false" }))) students(view, ctx, state);
     }));
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
-      if (!confirm("Delete this student? All data, including fee receipts, will be deleted.")) return;
+      if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
       if (await run(() => MPS.del(`/principal/students/${b.dataset.del}`))) students(view, ctx, state);
     }));
     view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
