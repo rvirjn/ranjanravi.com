@@ -26,9 +26,17 @@
     if (out) out.addEventListener("click", async () => { if (await run(() => MPS.post("/principal/checkout"))) reload(); });
   }
 
+  function checkinWhatsapp(d) {
+    const group = d.whatsapp_group
+      ? `Sent to WhatsApp group name: <b>${esc(d.whatsapp_group)}</b> when you check in.`
+      : "No WhatsApp group set, so this check-in message will not be sent.";
+    return card("Check-in WhatsApp message", `<p class="small" style="margin:0 0 10px">${group}</p><div class="preview-box">${esc(d.checkin_message || "")}</div>`, { icon: "fa-whatsapp" });
+  }
+
   async function checkIn(view) {
     const d = await MPS.get("/principal/checkin");
     view.innerHTML = `${punchHtml(d.today)}
+      ${checkinWhatsapp(d)}
       ${card("Recent check-ins", table(
         [
           { label: "Date", render: (x) => fmtDate(x.date) },
