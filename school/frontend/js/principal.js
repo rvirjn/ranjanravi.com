@@ -269,8 +269,107 @@
         ${stat("Pending months", d.fees.pending_months.length, { icon: "fa-exclamation-circle", tone: d.fees.pending_months.length >= 2 ? "danger" : "ok" })}</div>
       ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
         ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address]])}
+      ${(s.history || []).length ? `<h4>Previous sessions</h4><ul>${s.history.map((h) => `<li>${esc(h.session)} · ${esc(h.class_label || "")}${h.roll_no ? `, roll ${esc(h.roll_no)}` : ""} · ${esc(h.status || "")}</li>`).join("")}</ul>` : ""}
       <div class="modal-actions"><button class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button></div>`;
     m.body.querySelector("#hpc").addEventListener("click", () => UI.showProgressCard(`/principal/students/${id}/progress-card`));
+  }
+
+  async function promote(view) {
+    const d = await MPS.get("/principal/promotion");
+    if (!d.session) {
+      view.innerHTML = card("Promote to next session", `<p>${esc(d.message || "The academic year is not set yet.")} The admin sets it once on the school, for example <b>2026-27</b>.</p>`, { icon: "fa-level-up" });
+      return;
+    }
+    const classOptions = d.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("");
+    const byClass = new Map(d.classes.map((c) => [c.id, []]));
+    const other = [];
+    d.students.forEach((s) => (byClass.has(s.class_id) ? byClass.get(s.class_id) : other).push(s));
+    const section = (title, rows) => {
+      if (!rows.length) return "";
+      return card(title, `<table class="table"><thead><tr><th>Roll</th><th>Student</th><th>Move</th><th>New class</th></tr></thead><tbody>
+        ${rows.map((s) => `<tr>
+          <td>${esc(s.roll_no ?? "")}</td>
+          <td><b>${esc(s.name)}</b></td>
+          <td><select class="move" data-id="${esc(s.id)}">
+            <option value="promoted" ${s.action === "promoted" ? "selected" : ""}>Promoted</option>
+            <option value="detained" ${s.action === "detained" ? "selected" : ""}>Detained</option>
+            <option value="left" ${s.action === "left" ? "selected" : ""}>Left school</option>
+          </select></td>
+          <td><select class="dest" data-id="${esc(s.id)}">${classOptions}</select></td>
+        </tr>`).join("")}
+      </tbody></table>`, { icon: "fa-users", flush: true });
+    };
+    const groups = d.classes.map((c) => section(c.label, byClass.get(c.id) || [])).join("") + section("Other", other);
+    const undo = d.undo;
+    const undoCard = undo
+      ? card("Move back", `<p><b>${esc(undo.to_session)}</b> was opened from <b>${esc(undo.from_session)}</b>. ${undo.students.length} student${undo.students.length === 1 ? "" : "s"} can go back to their earlier classes.</p>
+          <button class="btn btn-light" id="undoBtn" type="button"><i class="fa fa-undo"></i> Move back to ${esc(undo.from_session)}</button>`, { icon: "fa-undo" })
+      : "";
+    view.innerHTML = `${undoCard}<div class="toolbar"><div><b>${esc(d.session)}</b> moves to <b>${esc(d.next_session)}</b>
+        <div class="small muted">Attendance, marks, diary, homework and fees for ${esc(d.session)} stay. Roll numbers in each class start again from 1, in name order. The last class defaults to Left school.</div></div>
+        <button class="btn" id="promoteBtn" type="button"><i class="fa fa-level-up"></i> Review and open ${esc(d.next_session)}</button></div>
+      ${groups || card("Students", "<p>No active students. Opening the next year only changes the academic year.</p>", { icon: "fa-users" })}`;
+    const sync = (id) => {
+      const move = view.querySelector(`.move[data-id="${CSS.escape(id)}"]`);
+      const dest = view.querySelector(`.dest[data-id="${CSS.escape(id)}"]`);
+      const student = d.students.find((s) => s.id === id);
+      if (!move || !dest || !student) return;
+      if (![...dest.options].some((o) => o.value === (student.next_class_id || student.class_id))) dest.value = student.class_id || "";
+      else dest.value = student.next_class_id || student.class_id || "";
+      dest.disabled = move.value !== "promoted";
+    };
+    const placeText = (label, roll) => `${label || ""}${roll != null && roll !== "" ? `, roll ${roll}` : ""}`;
+    const outcomeText = (row) => (row.action === "left" ? "Left school" : placeText(row.to_label, row.to_roll));
+    const moveName = (action) => (action === "promoted" ? "Promoted" : action === "detained" ? "Detained" : "Left school");
+    d.students.forEach((s) => sync(s.id));
+    view.querySelectorAll(".move").forEach((sel) => sel.addEventListener("change", () => sync(sel.dataset.id)));
+    const chosenMoves = () => d.students.map((s) => ({
+      student_id: s.id,
+      action: view.querySelector(`.move[data-id="${CSS.escape(s.id)}"]`).value,
+      class_id: view.querySelector(`.dest[data-id="${CSS.escape(s.id)}"]`).value,
+    }));
+    view.querySelector("#promoteBtn").addEventListener("click", async () => {
+      const moves = chosenMoves();
+      let plan;
+      try {
+        plan = await MPS.post("/principal/promotion/review", { next_session: d.next_session, moves });
+      } catch (e) {
+        UI.toast(e.message, "error");
+        return;
+      }
+      const m = modal(`Open ${plan.next_session}`, `<p>The school year changes from <b>${esc(plan.session)}</b> to <b>${esc(plan.next_session)}</b>.</p>
+        <p>${plan.promoted} promoted, ${plan.detained} detained, ${plan.left} left school.</p>
+        <p class="small muted">Attendance, marks, diary, homework and fees for ${esc(plan.session)} stay as they are. You can move back to ${esc(plan.session)} afterwards if this was a mistake, until another year is opened.</p>
+        <div style="max-height:50vh;overflow:auto"><table class="table"><thead><tr><th>Student</th><th>Now</th><th>Move</th><th>After opening ${esc(plan.next_session)}</th></tr></thead><tbody>
+          ${plan.rows.map((r) => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(placeText(r.from_label, r.from_roll))}</td><td>${esc(moveName(r.action))}</td><td>${esc(outcomeText(r))}</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="modal-actions"><button class="btn btn-light" id="reviewCancel" type="button">Cancel</button>
+          <button class="btn" id="reviewOpen" type="button">Open ${esc(plan.next_session)}</button></div>`, { wide: true });
+      m.body.querySelector("#reviewCancel").addEventListener("click", () => m.close());
+      m.body.querySelector("#reviewOpen").addEventListener("click", async () => {
+        if (await run(() => MPS.post("/principal/promotion", { next_session: d.next_session, moves }))) {
+          m.close();
+          promote(view);
+        }
+      });
+    });
+    const undoBtn = view.querySelector("#undoBtn");
+    if (undoBtn && undo) undoBtn.addEventListener("click", () => {
+      const m = modal(`Move back to ${undo.from_session}`, `<p>The school year returns to <b>${esc(undo.from_session)}</b>. Students go back to the class and roll they had then. Students who had left school become active again.</p>
+        <p class="small muted">Records saved under ${esc(undo.to_session)} stay in the database and do not show while ${esc(undo.from_session)} is open. Students added after this move stay in their current class. Only this latest move can be taken back.</p>
+        <div style="max-height:50vh;overflow:auto"><table class="table"><thead><tr><th>Student</th><th>Now</th><th>Will go back to</th></tr></thead><tbody>
+          ${undo.students.map((r) => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.now_label === "Left school" ? "Left school" : placeText(r.now_label, r.now_roll))}</td><td>${esc(placeText(r.back_label, r.back_roll))}</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="modal-actions"><button class="btn btn-light" id="undoCancel" type="button">Cancel</button>
+          <button class="btn" id="undoConfirm" type="button">Move back to ${esc(undo.from_session)}</button></div>`, { wide: true });
+      m.body.querySelector("#undoCancel").addEventListener("click", () => m.close());
+      m.body.querySelector("#undoConfirm").addEventListener("click", async () => {
+        if (await run(() => MPS.post("/principal/promotion/undo", { from_session: undo.from_session }))) {
+          m.close();
+          promote(view);
+        }
+      });
+    });
   }
 
   // ---------- Teachers ----------
@@ -349,7 +448,7 @@
     const d = await MPS.get("/principal/exams");
     view.innerHTML = card("Exams", table(
       [
-        { label: "Exam", render: (e) => `<b>${esc(e.name)}</b><div class="small muted">${esc(e.term || "")} &middot; max ${e.max_marks} per subject</div>` },
+        { label: "Exam", render: (e) => `<b>${esc(e.name)}</b><div class="small muted">${esc(e.term || "")}${e.session ? ` · ${esc(e.session)}` : ""} &middot; max ${e.max_marks} per subject</div>` },
         { label: "Dates", render: (e) => `${fmtDate(e.start_date)} - ${fmtDate(e.end_date)}`, className: "nowrap" },
         { label: "Status", render: (e) => badge(e.status) },
         { label: "", className: "right nowrap", render: (e) => `<button class="btn btn-light btn-sm" data-admit="${e.id}"><i class="fa fa-id-card-o"></i> Admit cards</button>
@@ -399,7 +498,7 @@
       { label: "Grade", render: (x) => (x.max_total ? badge(x.grade, "success") : "-") }, { label: "Rank", render: (x) => x.rank || "-", className: "right" },
     ], r.results);
     view.innerHTML = `<div class="toolbar"><div class="filters">
-        <select id="exam">${d.exams.map((e) => `<option value="${e.id}" ${e.id === examId ? "selected" : ""}>${esc(e.name)}</option>`).join("")}</select>
+        <select id="exam">${d.exams.map((e) => `<option value="${e.id}" ${e.id === examId ? "selected" : ""}>${esc(e.name)}${e.session ? ` (${esc(e.session)})` : ""}</option>`).join("")}</select>
         <select id="cls">${d.classes.map((c) => `<option value="${c.id}" ${c.id === classId ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select></div>
         <button class="btn" id="print"><i class="fa fa-print"></i> Print</button></div>
       <div class="grid grid-3">${stat("Class average", `${r.class_average}%`, { icon: "fa-line-chart", tone: "info" })}
@@ -861,6 +960,7 @@
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
       { id: "classes", label: "Classes", icon: "fa-th-large", group: "People", render: (v, c) => classes(v, c) },
+      { id: "promote", label: "Promote", icon: "fa-level-up", group: "People", render: (v) => promote(v) },
       { id: "timetable", label: "Teachers Timetable", icon: "fa-clock-o", group: "Academics", render: (v, c) => teacherTimetable(v, c) },
       { id: "exams", label: "Exams & Admit Cards", icon: "fa-file-text-o", group: "Academics", render: exams },
       { id: "attendance-report", label: "Student Attendance Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => UI.shared.attendanceReport(v, c) },

@@ -11,7 +11,7 @@
     { name: "phones", label: "Phone numbers (comma separated)", value: (s.phones || []).join(", "), hint: "10 digits each, separated by commas. Do not add +91." },
     { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: s.email },
     { name: "website", label: "Website", value: s.website, placeholder: "https://" },
-    { name: "academic_year", label: "Academic year", value: s.academic_year, placeholder: "e.g. 2026-27" },
+    { name: "academic_year", label: "Academic year", value: s.academic_year, placeholder: "e.g. 2026-27", hint: "Set once, when the school is added. The principal moves students to the next year." },
     { name: "school_open_time", label: "School opening time", type: "time", required: true, value: s.school_open_time || "", hint: "Teacher check-in starts at this time. There is no early check-in. A later check-in shows how many minutes late." },
     { name: "school_close_time", label: "School closing time", type: "time", required: true, value: s.school_close_time || "", hint: "Check-in is not allowed after this time. A missed check-out is saved 2 hours later." },
     { name: "assembly_from", label: "Assembly from", type: "time", required: true, value: s.assembly_from || "" },

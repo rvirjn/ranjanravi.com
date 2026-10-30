@@ -283,13 +283,23 @@
 
   async function showProgressCard(path) {
     const m = modal("Holistic Progress Card", UI.loading(), { wide: true });
-    try {
-      const d = await MPS.get(path);
-      m.body.innerHTML = `${progressCardHtml(d)}<div class="modal-actions"><button class="btn" id="printHpc"><i class="fa fa-print"></i> Print</button></div>`;
-      m.body.querySelector("#printHpc").addEventListener("click", () => printDoc("Progress Card", progressCardHtml(d)));
-    } catch (e) {
-      m.body.innerHTML = UI.errorBox(e.message);
-    }
+    const load = async (session) => {
+      try {
+        const joiner = path.includes("?") ? "&" : "?";
+        const d = await MPS.get(session ? `${path}${joiner}session=${encodeURIComponent(session)}` : path);
+        const sessions = d.sessions || [];
+        const picker = sessions.length > 1
+          ? `<div class="toolbar"><label class="small">Session <select id="hpcSession">${sessions.map((s) => `<option value="${esc(s.session)}" ${s.session === d.session ? "selected" : ""}>${esc(s.session)} · ${esc(s.class_label)}</option>`).join("")}</select></label></div>`
+          : "";
+        m.body.innerHTML = `${picker}${progressCardHtml(d)}<div class="modal-actions"><button class="btn" id="printHpc"><i class="fa fa-print"></i> Print</button></div>`;
+        const sel = m.body.querySelector("#hpcSession");
+        if (sel) sel.addEventListener("change", () => load(sel.value));
+        m.body.querySelector("#printHpc").addEventListener("click", () => printDoc("Progress Card", progressCardHtml(d)));
+      } catch (e) {
+        m.body.innerHTML = UI.errorBox(e.message);
+      }
+    };
+    await load("");
   }
 
   // =====================================================================
