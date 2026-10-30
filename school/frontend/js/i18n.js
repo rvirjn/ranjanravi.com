@@ -16,7 +16,7 @@
     "Study Material": "अध्ययन सामग्री", "Online Classes": "ऑनलाइन कक्षाएं", "Exams Dates": "परीक्षा तिथियाँ",
     "Results & Report Card": "परिणाम और रिपोर्ट कार्ड", "Remarks & Achievements": "टिप्पणियां और उपलब्धियां", "Fees & Payments": "फीस और भुगतान",
     "Notices": "सूचनाएं", "Events & Holidays": "कार्यक्रम और छुट्टियां", "Photo Gallery": "फोटो गैलरी", "Transport": "परिवहन", "Library": "पुस्तकालय",
-    "Leave Application": "छुट्टी आवेदन", "Messages": "संदेश", "Complains": "शिकायत", "My Certificates": "मेरे प्रमाण पत्र",
+    "Leave Application": "छुट्टी आवेदन", "Messages": "संदेश", "Complains": "शिकायत", "Complaint": "शिकायत", "No complaints.": "कोई शिकायत नहीं।", "Respond": "जवाब दें", "Respond to complaint": "शिकायत का जवाब दें", "Response": "जवाब", "Student Leave": "विद्यार्थी छुट्टी", "My Certificates": "मेरे प्रमाण पत्र",
     "Change Password": "पासवर्ड बदलें", "Student Attendance": "विद्यार्थी उपस्थिति", "HW/CW Update": "गृह कार्य / कक्षा कार्य भेजें",
     "Attendance Report": "उपस्थिति रिपोर्ट", "Students Reports": "विद्यार्थी रिपोर्ट", "Homework Assignments": "गृह कार्य",
     "Lesson Plans": "पाठ योजना", "Marks Entry": "अंक प्रविष्टि", "Results & Report Cards": "परिणाम और रिपोर्ट कार्ड", "Grades Entry": "ग्रेड प्रविष्टि",

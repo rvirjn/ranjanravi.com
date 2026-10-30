@@ -11,7 +11,7 @@ const Accounts = (() => {
         ${stat("This Month", money(d.collected_month), { icon: "fa-calendar", tone: "info" })}
         ${stat("Total Dues", money(d.total_due), { icon: "fa-exclamation-circle", tone: "warn", sub: `${money(d.overdue)} overdue` })}
         ${stat("2+ Months Pending", d.defaulters, { icon: "fa-users", tone: "danger", sub: `<a href="#defaulters">View list</a>` })}
-        ${stat("Pending Approvals", (d.pending_approvals || 0) + (d.pending_intimations || 0), { icon: "fa-check-circle", tone: (d.pending_approvals || d.pending_intimations) ? "warn" : "ok", sub: `<a href="#approvals">Open</a>` })}
+        ${stat("Pending Approvals", (d.pending_approvals || 0) + (d.pending_intimations || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_approvals || d.pending_intimations || d.pending_complaints) ? "warn" : "ok", sub: `<a href="#approvals">Open</a>` })}
       </div>
       <div class="grid grid-side">
         ${card("Class-wise Dues", table(

@@ -626,6 +626,26 @@
     );
   }
 
-  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile, admissionSuffix });
+  async function complaints(view) {
+    const d = await MPS.get("/complaints");
+    view.innerHTML = card("Complains", table([
+      { label: "Student", render: (r) => `<b>${esc(r.student_name)}</b><div class="small muted">${esc(r.class_label || "-")} · ${fmtDate(r.date)} · ${esc(r.category)}</div>` },
+      { label: "Complaint", render: (r) => esc(r.description) },
+      { label: "Status", render: (r) => badge(r.status) + (r.response ? `<div class="small muted">${esc(r.response)}</div>` : "") },
+      { label: "", className: "right", render: (r) => (r.status === "Pending" ? `<button class="btn btn-sm" data-reply="${r.id}">Respond</button>` : "") },
+    ], d.complaints, { empty: "No complaints.", emptyIcon: "fa-comments-o" }), { icon: "fa-comments-o", flush: true });
+    view.querySelectorAll("[data-reply]").forEach((b) => b.addEventListener("click", () => openForm({
+      title: "Respond to complaint",
+      fields: [{ name: "response", label: "Response", type: "textarea", required: true }],
+      submitLabel: "Send",
+      onSubmit: async (v) => {
+        const r = await MPS.post(`/complaints/${b.dataset.reply}`, v);
+        complaints(view);
+        return r;
+      },
+    })));
+  }
+
+  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile, admissionSuffix, complaints });
   Object.assign(UI, { receiptHtml, showReceipt, progressCardHtml, showProgressCard, admitCardHtml, CODE_LABEL });
 })();

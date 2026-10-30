@@ -58,7 +58,7 @@
           sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked" })}
         ${stat("Homework to Review", d.homework_to_review, { icon: "fa-pencil-square-o", tone: d.homework_to_review ? "warn" : "ok",
           sub: `<span>Ungraded submissions</span> · <a href="${(d.homework_review_ids || []).length === 1 ? `#diary/${esc(d.homework_review_ids[0])}` : "#diary/review"}">Open</a>` })}
-        ${stat("Pending Approvals", d.pending_student_leaves, { icon: "fa-check-circle", tone: d.pending_student_leaves ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
+        ${stat("Pending Approvals", (d.pending_student_leaves || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_student_leaves || d.pending_complaints) ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
         ${stat("HW/CW Today", d.class_teacher_of ? (d.diary_posted_today ? "Posted" : "Not posted") : "-", { icon: "fa-whatsapp", tone: d.class_teacher_of && !d.diary_posted_today ? "warn" : "ok", sub: d.class_teacher_of || "" })}
       </div>
       <div class="grid grid-2">
@@ -605,13 +605,25 @@
   }
 
   // ---------- Student leaves ----------
-  async function studentLeaves(view, ctx) {
-    const d = await MPS.get("/teacher/student-leaves");
-    if (!d.class_label) {
-      view.innerHTML = card("Approvals", empty("Leave requests are approved by class teachers. You are not a class teacher.", "fa-calendar-times-o"));
+  async function studentLeaves(view, ctx, tab = "leaves") {
+    const [d, complaints] = await Promise.all([MPS.get("/teacher/student-leaves"), MPS.get("/complaints")]);
+    const leavePending = (d.leaves || []).filter((l) => l.status === "Pending").length;
+    const complaintPending = (complaints.complaints || []).filter((c) => c.status === "Pending").length;
+    view.innerHTML = `${tabs([
+      { id: "leaves", label: `Student Leave (${leavePending})` },
+      { id: "complaints", label: `Complains (${complaintPending})` },
+    ], tab)}<div id="approvalBody"></div>`;
+    onTabs(view, (t) => studentLeaves(view, ctx, t));
+    const body = view.querySelector("#approvalBody");
+    if (tab === "complaints") {
+      await UI.shared.complaints(body);
       return;
     }
-    view.innerHTML = card(`Approvals · ${d.class_label}`, table(
+    if (!d.class_label) {
+      body.innerHTML = card("Approvals", empty("Leave requests are approved by class teachers. You are not a class teacher.", "fa-calendar-times-o"));
+      return;
+    }
+    body.innerHTML = card(`Approvals · ${d.class_label}`, table(
       [
         { label: "Student", render: (l) => `<b>${esc(l.student_name)}</b><div class="small muted">Applied ${fmtDate(l.applied_on)}</div>` },
         { label: "Dates", render: (l) => `${fmtDate(l.from_date)}${l.to_date !== l.from_date ? ` to ${fmtDate(l.to_date)}` : ""}`, className: "nowrap" },
@@ -623,7 +635,7 @@
       d.leaves,
       { empty: "No leave requests.", emptyIcon: "fa-calendar-times-o" }
     ), { icon: "fa-calendar-times-o", flush: true });
-    view.querySelectorAll("[data-review]").forEach((b) =>
+    body.querySelectorAll("[data-review]").forEach((b) =>
       b.addEventListener("click", () =>
         openForm({
           title: `${b.dataset.status === "Approved" ? "Approve" : "Reject"} Leave`,
@@ -632,7 +644,7 @@
           onSubmit: async (v) => {
             const r = await MPS.post(`/teacher/student-leaves/${b.dataset.review}`, { status: b.dataset.status, note: v.note });
             if (ctx.noteApprovals) ctx.noteApprovals();
-            studentLeaves(view, ctx);
+            studentLeaves(view, ctx, "leaves");
             return r;
           },
         })
@@ -835,6 +847,7 @@
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: UI.shared.notices },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
+      { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
       { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
       { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },

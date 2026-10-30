@@ -173,16 +173,25 @@
   }
 
   async function approvals(view, ctx, tab = "payments") {
-    const reqs = await MPS.get("/accounts/profile-requests");
-    const pays = await MPS.get("/accounts/intimations");
+    const [reqs, pays, complaints] = await Promise.all([
+      MPS.get("/accounts/profile-requests"),
+      MPS.get("/accounts/intimations"),
+      MPS.get("/complaints"),
+    ]);
     const profilePending = (reqs.requests || []).filter((r) => r.status === "Pending").length;
     const payPending = (pays.intimations || []).filter((i) => i.status === "Pending").length;
+    const complaintPending = (complaints.complaints || []).filter((c) => c.status === "Pending").length;
     view.innerHTML = `${UI.tabs([
       { id: "payments", label: `Parent Payments (${payPending})` },
       { id: "profile", label: `Profile Changes (${profilePending})` },
+      { id: "complaints", label: `Complains (${complaintPending})` },
     ], tab)}<div id="approvalBody"></div>`;
     UI.onTabs(view, (t) => approvals(view, ctx, t));
     const body = view.querySelector("#approvalBody");
+    if (tab === "complaints") {
+      await UI.shared.complaints(body);
+      return;
+    }
     if (tab === "profile") {
       const labels = { phone: "Mobile", email: "Email", address: "Address" };
       body.innerHTML = card("Profile Changes", table([
@@ -217,6 +226,7 @@
       { id: "routes", label: "Bus Routes", icon: "fa-bus", group: "People", render: routes },
       { id: "settings", label: "Monthly Fees", icon: "fa-sliders", group: "People", render: Accounts.settings },
       { id: "report", label: "Fee Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => Accounts.report(v, c) },
+      { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
       { id: "defaulters", label: "Dues Reminders", icon: "fa-exclamation-triangle", group: "Communication", render: (v, c) => Accounts.defaulters(v, c) },
       { id: "reminders", label: "Auto Fee Reminders", icon: "fa-whatsapp", group: "Communication", render: Accounts.reminders },
       { id: "whatsapp", label: "WhatsApp", icon: "fa-whatsapp", group: "Communication", render: (v, c) => UI.shared.whatsapp(v, c) },

@@ -337,7 +337,7 @@
     const c = d.counts;
     const tabsHtml = tabs([
       { id: "teacher_leaves", label: `Teacher Leave (${c.teacher_leaves})` }, { id: "lesson_plans", label: `Lesson Plans (${c.lesson_plans})` },
-      { id: "certificates", label: `Certificates (${c.certificates})` }, { id: "complaints", label: `Complaints (${c.complaints})` },
+      { id: "certificates", label: `Certificates (${c.certificates})` }, { id: "complaints", label: `Complains (${c.complaints})` },
       { id: "profile_requests", label: `Profile Changes (${c.profile_requests})` },
     ], tab);
     const act = (id, kind) => `<button class="btn btn-sm" data-ok="${id}" data-kind="${kind}">Approve</button> <button class="btn btn-danger btn-sm" data-no="${id}" data-kind="${kind}">Reject</button>`;
@@ -359,17 +359,18 @@
         { label: "Certificate", key: "type" }, { label: "Purpose", render: (r) => esc(r.reason) }, { label: "Status", render: (r) => badge(r.status) + (r.remark ? `<div class="small muted">${esc(r.remark)}</div>` : "") },
         { label: "", className: "right nowrap", render: (r) => (r.status === "Pending" ? act(r.id, "cert") : "") },
       ], d.certificates, { empty: "No certificate requests." }),
-      complaints: table([
-        { label: "Student", render: (r) => `<b>${esc(r.student_name)}</b><div class="small muted">${fmtDate(r.date)} &middot; ${esc(r.category)}</div>` },
-        { label: "Complaint", render: (r) => esc(r.description) }, { label: "Status", render: (r) => badge(r.status) + (r.response ? `<div class="small muted">${esc(r.response)}</div>` : "") },
-        { label: "", className: "right", render: (r) => (r.status === "Pending" ? `<button class="btn btn-sm" data-reply="${r.id}">Respond</button>` : "") },
-      ], d.complaints, { empty: "No complaints." }),
       profile_requests: table([
         { label: "Person", render: (r) => `<b>${esc(r.person_name || r.student_name)}</b><div class="small muted">${esc(r.role_label || "Student")} · ${fmtDate(r.date)}</div>` },
         { label: "Changes", render: (r) => Object.entries(r.changes).map(([k, v]) => `<div class="small">${esc({ phone: "Mobile", email: "Email", address: "Address", father_phone: "Father's mobile", mother_phone: "Mother's mobile" }[k] || k)}: <b>${esc(v)}</b></div>`).join("") },
         { label: "Status", render: (r) => badge(r.status) }, { label: "", className: "right nowrap", render: (r) => (r.status === "Pending" ? act(r.id, "profile") : "") },
       ], d.profile_requests, { empty: "No profile change requests." }),
     };
+    if (tab === "complaints") {
+      view.innerHTML = `${tabsHtml}<div id="approvalBody"></div>`;
+      onTabs(view, (t) => approvals(view, ctx, t));
+      await UI.shared.complaints(view.querySelector("#approvalBody"));
+      return;
+    }
     view.innerHTML = `${tabsHtml}${card("Approvals", bodies[tab], { icon: "fa-check-circle", flush: true })}`;
     onTabs(view, (t) => approvals(view, ctx, t));
     const reload = () => { if (ctx.noteApprovals) ctx.noteApprovals(); approvals(view, ctx, tab); };
@@ -388,10 +389,6 @@
     };
     view.querySelectorAll("[data-ok]").forEach((b) => b.addEventListener("click", () => decide(b.dataset.kind, b.dataset.ok, true)));
     view.querySelectorAll("[data-no]").forEach((b) => b.addEventListener("click", () => decide(b.dataset.kind, b.dataset.no, false)));
-    view.querySelectorAll("[data-reply]").forEach((b) => b.addEventListener("click", () => openForm({
-      title: "Respond to complaint", fields: [{ name: "response", label: "Response", type: "textarea", required: true }], submitLabel: "Send",
-      onSubmit: async (v) => { const r = await MPS.post(`/principal/complaints/${b.dataset.reply}`, v); reload(); return r; },
-    })));
   }
 
   // ---------- Notices & events ----------
@@ -694,6 +691,7 @@
       { id: "diary-report", label: "HW/CW Reports", icon: "fa-book", group: "Reports", render: (v, c) => diaryReport(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
+      { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },
       { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c, { manage: true }) },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: (v, c) => UI.shared.myProfile(v, c) },
