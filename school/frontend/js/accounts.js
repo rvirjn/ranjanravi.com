@@ -322,9 +322,9 @@ const Accounts = (() => {
   async function reminders(view, ctx) {
     const d = await MPS.get("/accounts/jobs");
     const kinds = [
-      { kind: "notice", title: "Monthly fee notice", text: "Sent automatically on the 1st: fee for last month + old dues.", icon: "fa-bullhorn" },
-      { kind: "reminder", title: "Last-date reminder", text: "Sent automatically on the 5th to everyone with dues.", icon: "fa-bell" },
-      { kind: "overdue", title: "Overdue reminder", text: "Sent every alternate day after the 5th to students with 2+ months pending.", icon: "fa-exclamation-triangle" },
+      { kind: "notice", title: "Monthly fee notice", text: "Send with View & Send now. Fee for last month plus old dues.", icon: "fa-bullhorn" },
+      { kind: "reminder", title: "Last-date reminder", text: "Send with View & Send now to everyone who still has dues.", icon: "fa-bell" },
+      { kind: "overdue", title: "Overdue reminder", text: "Send with View & Send now to students with 2 or more months pending.", icon: "fa-exclamation-triangle" },
     ];
     view.innerHTML = `${card("Automatic Rules", kv([["Collecting now", `${d.rules.billable_month_label} fee`], ["Window", d.rules.collection_window], ["Late fee", d.rules.late_fee_rule], ["Schedule", d.rules.reminders]]), { icon: "fa-clock-o" })}
       <div class="grid grid-3">${kinds

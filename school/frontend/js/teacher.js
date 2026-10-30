@@ -122,7 +122,7 @@
   async function classes(view, ctx, selected) {
     const { classes: list } = await MPS.get("/teacher/classes");
     if (!list.length) {
-      view.innerHTML = card("My Classes", empty("No classes assigned.", "fa-users"));
+      view.innerHTML = card("Students Reports", empty("No classes assigned.", "fa-users"));
       return;
     }
     const classId = selected || (list.find((c) => c.is_class_teacher) || list[0]).id;
@@ -178,7 +178,7 @@
         ${selectHtml("cls", d.classes.map((c) => ({ value: c.id, label: c.label })), d.class_id)}
         ${selectHtml("term", d.terms.map((t) => ({ value: t, label: t })), d.term)}</div>
         <span class="small muted">A = Outstanding, B = Very good, C = Fair</span></div>
-      ${card(`Co-Scholastic Grades · ${d.class_label} · ${d.term}`, `<div class="table-wrap"><table class="table"><thead><tr><th>Roll</th><th>Student</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+      ${card(`Grades Entry · ${d.class_label} · ${d.term}`, `<div class="table-wrap"><table class="table"><thead><tr><th>Roll</th><th>Student</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
         <div class="sticky-bar static"><span></span><button class="btn" id="save"><i class="fa fa-save"></i> Save Grades</button></div>`, { icon: "fa-paint-brush", flush: true })}`;
     view.querySelector("#cls").addEventListener("change", (e) => coScholastic(view, ctx, { classId: e.target.value, term: d.term }));
     view.querySelector("#term").addEventListener("change", (e) => coScholastic(view, ctx, { classId: d.class_id, term: e.target.value }));
@@ -857,9 +857,9 @@
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
       { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
-      { id: "co-scholastic", label: "Co-Scholastic Grades", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
+      { id: "co-scholastic", label: "Grades Entry", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
-      { id: "classes", label: "My Classes & Students", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
+      { id: "classes", label: "Students Reports", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
