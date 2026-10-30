@@ -357,11 +357,11 @@ const Accounts = (() => {
         { empty: "No collections.", footer: `<td>Total</td><td></td><td class="right">${money(d.total)}</td>` })}`;
     view.innerHTML = `<div class="toolbar"><div class="filters"><label style="margin:0">From</label><input type="date" id="from" value="${d.from}">
         <label style="margin:0">To</label><input type="date" id="to" value="${d.to}"></div><button class="btn" id="print"><i class="fa fa-print"></i> Print</button></div>
-      ${card("Fee Collection Report", body, { icon: "fa-bar-chart" })}`;
+      ${card("Fee Report", body, { icon: "fa-bar-chart" })}`;
     const reload = () => report(view, ctx, { from: view.querySelector("#from").value, to: view.querySelector("#to").value });
     view.querySelector("#from").addEventListener("change", reload);
     view.querySelector("#to").addEventListener("change", reload);
-    view.querySelector("#print").addEventListener("click", () => printDoc("Collection Report", `<h3 style="text-align:center">Fee Collection Report</h3>${body}`));
+    view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>${body}`));
   }
 
   // ---------- Fee structure ----------

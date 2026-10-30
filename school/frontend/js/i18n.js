@@ -27,7 +27,7 @@
     "Results": "परिणाम", "Student Results": "विद्यार्थी परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
     "Exams & Admit Cards": "परीक्षा और प्रवेश पत्र", "WhatsApp": "व्हाट्सएप", "Fee Overview": "फीस सारांश", "Collect Fee": "फीस जमा करें",
     "Dues Reminders": "बकाया रिमाइंडर", "Receipts": "रसीदें", "Download Receipts": "रसीद डाउनलोड करें", "Parent Payments": "अभिभावक भुगतान", "Auto Fee Reminders": "स्वतः फीस रिमाइंडर",
-    "Classes & Fees": "कक्षाएं और फीस", "Collection Report": "संग्रह रिपोर्ट", "Monthly Fees": "मासिक फीस", "Monthly Tuition Fee": "मासिक ट्यूशन फीस",
+    "Classes & Fees": "कक्षाएं और फीस", "Fee Report": "फीस रिपोर्ट", "Monthly Fees": "मासिक फीस", "Monthly Tuition Fee": "मासिक ट्यूशन फीस",
     "Student Portal": "विद्यार्थी पोर्टल", "Teacher Portal": "शिक्षक पोर्टल", "Principal Portal": "प्रधानाचार्य पोर्टल", "Accounts Portal": "लेखा पोर्टल",
     // buttons & common words
     "Logout": "लॉग आउट", "Website": "वेबसाइट", "Login": "लॉग इन", "Logging in...": "लॉग इन हो रहा है...", "Sending...": "भेजा जा रहा है...", "Submit": "जमा करें", "Save": "सहेजें", "Cancel": "रद्द करें", "Send": "भेजें",

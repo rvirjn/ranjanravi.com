@@ -840,12 +840,11 @@
   }
 
   async function hwCw(view, ctx) {
-    view.innerHTML = `<div id="hwAssignments"></div><div id="diaryPane" style="margin-top:16px"></div>`;
-    const top = view.querySelector("#hwAssignments");
-    await homework(top, ctx, {
+    view.innerHTML = `<div id="diaryPane"></div><div id="hwAssignments" style="margin-top:16px"></div>`;
+    await UI.shared.diary(view.querySelector("#diaryPane"), ctx);
+    await homework(view.querySelector("#hwAssignments"), ctx, {
       onSubmissions: (id) => homeworkSubmissions(view, ctx, id, () => hwCw(view, ctx)),
     });
-    await UI.shared.diary(view.querySelector("#diaryPane"), ctx);
   }
 
   UI.startApp({
@@ -857,20 +856,20 @@
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
+      { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
+      { id: "co-scholastic", label: "Co-Scholastic Grades", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
+      { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
+      { id: "classes", label: "My Classes & Students", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
+      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
+      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
+      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
+      { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
       { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
       { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },
       { id: "lesson-plans", label: "Lesson Plans", icon: "fa-tasks", group: "Other", render: lessonPlans },
       { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Other", render: onlineClasses },
       { id: "library", label: "Library", icon: "fa-book", group: "Other", render: (v) => UI.shared.library(v, "/teacher/library") },
-      { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
-      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Academics", render: (v, c) => results(v, c) },
-      { id: "co-scholastic", label: "Co-Scholastic Grades", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
-      { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
-      { id: "classes", label: "My Classes & Students", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
-      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
-      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
-      { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
-      { id: "duties", label: "Duties & Substitutions", icon: "fa-briefcase", group: "Staff", render: duties },
+      { id: "duties", label: "Duties & Substitutions", icon: "fa-briefcase", group: "Other", render: duties },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
       { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Account", render: (v) => UI.shared.timetable(v, "/teacher/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>`) },
       { id: "my-attendance", label: "My Attendance", icon: "fa-calendar-check-o", group: "Account", render: myAttendance },
