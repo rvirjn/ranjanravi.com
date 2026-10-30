@@ -354,7 +354,7 @@
   }
 
   // =====================================================================
-  // WhatsApp connection, groups and message log (principal / accountant)
+  // WhatsApp connection, groups and message log (accountant)
   // =====================================================================
   const MODE_TEXT = {
     dry_run: "Dry run: messages are saved below but NOT sent. Set SCHOOL_WHATSAPP_MODE=test (to your own number) or live in docker-compose.",

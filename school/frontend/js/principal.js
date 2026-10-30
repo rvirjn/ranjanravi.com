@@ -696,7 +696,6 @@
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },
       { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c, { manage: true }) },
-      { id: "whatsapp", label: "WhatsApp", icon: "fa-whatsapp", group: "Communication", render: (v, c) => UI.shared.whatsapp(v, c) },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: (v, c) => UI.shared.myProfile(v, c) },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],

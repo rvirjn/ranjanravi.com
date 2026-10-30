@@ -46,6 +46,13 @@
       : card("Classwork & Homework", empty("Your teachers have not posted CW/HW yet.", "fa-book"));
   }
 
+  async function classworkHomework(view, ctx, focus) {
+    view.innerHTML = `<div id="diaryPane"></div><div id="hwSubmission" style="margin-top:16px"></div>`;
+    await diary(view.querySelector("#diaryPane"));
+    await homework(view.querySelector("#hwSubmission"), ctx);
+    if (focus === "submit") view.querySelector("#hwSubmission").scrollIntoView();
+  }
+
   // ---------- Quizzes ----------
   async function quizzes(view, ctx) {
     const { quizzes: items } = await MPS.get("/student/quizzes");
@@ -159,7 +166,7 @@
       ${diaryCard}
       <div class="grid grid-2">
         ${card(`Today's Classes (${d.weekday})`, schedule, { icon: "fa-clock-o", flush: true, actions: '<a class="small" href="#timetable">Full timetable</a>' })}
-        ${card("Homework Due", homework, { icon: "fa-pencil-square-o", flush: true, actions: '<a class="small" href="#homework">View all</a>' })}
+        ${card("Homework Due", homework, { icon: "fa-pencil-square-o", flush: true, actions: '<a class="small" href="#diary/submit">View all</a>' })}
       </div>
       ${online}
       <div class="grid grid-3">
@@ -681,14 +688,35 @@
   async function messages(view, ctx, mode = "inbox") {
     const [d, t] = await Promise.all([MPS.get("/student/messages"), MPS.get("/student/teachers")]);
     const items = d[mode];
+    const teachers = t.teachers.map((x) => ({ value: x.id, label: `${x.name} (${x.subjects.join(", ")})` }));
     view.innerHTML = `<div class="grid grid-side">
       <div>${tabs([{ id: "inbox", label: `Inbox (${d.inbox.length})` }, { id: "sent", label: `Sent (${d.sent.length})` }], mode)}
-        ${card(mode === "inbox" ? "Inbox" : "Sent Messages", messageList(items, mode), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}</div>
+        ${card(mode === "inbox" ? "Inbox" : "Sent Messages", messageList(items, mode), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
+        <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
+          <div class="field"><label for="waTo">To</label><select id="waTo">${teachers.map((o) => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("")}</select></div>
+          <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
+          <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
+          <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
       ${card("My Teachers", `<ul class="list">${t.teachers
         .map((x) => `<li><div class="avatar" style="background:var(--info-bg);color:var(--info)">${UI.initials(x.name)}</div><div class="grow"><div class="title">${esc(x.name)} ${x.is_class_teacher ? badge("Class Teacher", "success") : ""}</div><div class="meta">${esc(x.subjects.join(", "))}</div></div></li>`)
         .join("")}</ul>`, { icon: "fa-users", flush: true })}</div>`;
     onTabs(view, (tab) => messages(view, ctx, tab));
     bindMessages(view, items);
+    view.querySelector("#waSend").addEventListener("click", () => {
+      const to_teacher_id = view.querySelector("#waTo").value;
+      const subject = view.querySelector("#waSubject").value.trim();
+      const body = view.querySelector("#waBody").value.trim();
+      if (!to_teacher_id || !subject || !body) {
+        UI.toast("Choose who it is for, and write the subject and message.", "error");
+        return;
+      }
+      UI.whatsappPreview({
+        title: "View & Send",
+        emptyMessage: "No teacher found for this message.",
+        fetchPreview: () => MPS.post("/student/messages/whatsapp/preview", { to_teacher_id, subject, body }),
+        send: (payload) => MPS.post("/student/messages/whatsapp", payload),
+      });
+    });
     view.querySelector("#composeBtn").addEventListener("click", () =>
       openForm({
         title: "Message a Teacher",
@@ -723,7 +751,7 @@
   async function complaints(view, ctx) {
     const d = await MPS.get("/student/complaints");
     view.innerHTML = card(
-      "Complaints & Feedback",
+      "Complains",
       d.complaints.length
         ? d.complaints
             .map((c) => `<div class="item-card"><div class="row"><div>${badge(c.category, "neutral")} <span class="small muted">${fmtDate(c.date)}</span></div>${badge(c.status)}</div>
@@ -795,33 +823,34 @@
     );
   }
 
+  if ((location.hash || "").replace("#", "").split("/")[0] === "homework") location.replace("#diary/submit");
+
   UI.startApp({
     role: "student",
     portalName: "Student Portal",
     userSub: (u) => `Adm. ${u.admission_no} · Roll ${u.roll_no}`,
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
-      { id: "attendance", label: "Attendance", icon: "fa-calendar-check-o", group: "Academics", render: attendance },
-      { id: "diary", label: "Classwork & Homework", icon: "fa-book", group: "Academics", render: diary },
-      { id: "timetable", label: "Timetable", icon: "fa-clock-o", group: "Academics", render: (v) => UI.shared.timetable(v, "/student/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.teacher_name)}</span>`) },
-      { id: "homework", label: "Homework Submission", icon: "fa-pencil-square-o", group: "Academics", render: (v, c) => homework(v, c) },
-      { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Academics", render: quizzes },
-      { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Academics", render: materials },
-      { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Academics", render: onlineClasses },
-      { id: "exams", label: "Exams & Datesheet", icon: "fa-file-text-o", group: "Academics", render: exams },
-      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Academics", render: results },
-      { id: "progress", label: "Remarks & Achievements", icon: "fa-star", group: "Academics", render: progressReport },
+      { id: "diary", label: "Classwork & Homework", icon: "fa-book", group: "Daily", render: (v, c, focus) => classworkHomework(v, c, focus) },
+      { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },
+      { id: "exams", label: "Exams Dates", icon: "fa-file-text-o", group: "Academics", render: exams },
+      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: results },
+      { id: "progress", label: "Remarks & Achievements", icon: "fa-star", group: "Reports", render: progressReport },
       { id: "fees", label: "Fees & Payments", icon: "fa-inr", group: "Fees", render: fees },
-      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Other", render: UI.shared.notices },
-      { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Other", render: UI.shared.events },
-      { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Other", render: (v, c) => UI.shared.gallery(v, c) },
-      { id: "transport", label: "Transport", icon: "fa-bus", group: "Other", render: transport },
+      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: UI.shared.notices },
+      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
+      { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: complaints },
+      { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
+      { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c) },
+      { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
+      { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },
       { id: "library", label: "Library", icon: "fa-book", group: "Other", render: (v) => UI.shared.library(v, "/student/library") },
-      { id: "leaves", label: "Leave Application", icon: "fa-calendar-times-o", group: "Requests", render: leaves },
-      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Requests", render: (v, c) => messages(v, c) },
-      { id: "complaints", label: "Complaints & Feedback", icon: "fa-comments-o", group: "Requests", render: complaints },
-      { id: "documents", label: "ID Card & Certificates", icon: "fa-id-card-o", group: "Requests", render: documents },
+      { id: "transport", label: "Transport", icon: "fa-bus", group: "Other", render: transport },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
+      { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Account", render: (v) => UI.shared.timetable(v, "/student/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.teacher_name)}</span>`) },
+      { id: "attendance", label: "My Attendance", icon: "fa-calendar-check-o", group: "Account", render: attendance },
+      { id: "leaves", label: "My Leave", icon: "fa-calendar-times-o", group: "Account", render: leaves },
+      { id: "documents", label: "My Certificates", icon: "fa-id-card-o", group: "Account", render: documents },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
     ],
   });
