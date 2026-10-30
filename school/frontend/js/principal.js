@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan, avatar } = UI;
+  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, tabs, onTabs, openForm, modal, printDoc, run, todayIso, dateChip, eventSpan, avatar } = UI;
   const PHOTO = (s) => ({ name: "photo", label: "Photo", type: "photo", value: s.photo });
 
   // ---------- Dashboard ----------
@@ -691,6 +691,86 @@
     });
   }
 
+  const selectHtml = (id, options) =>
+    `<select id="${id}">${options.map((o) => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("")}</select>`;
+
+  async function messages(view, ctx, mode = "inbox") {
+    const d = await MPS.get("/principal/messages");
+    const recipients = [
+      ...d.teachers.map((t) => ({ value: `teacher|${t.id}`, label: `Teacher: ${t.name}` })),
+      ...d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` })),
+      ...d.students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
+    ];
+    const items = d[mode];
+    const teacherList = d.teachers.length
+      ? `<ul class="list">${d.teachers
+        .map((t) => `<li><div class="avatar" style="background:var(--info-bg);color:var(--info)">${UI.initials(t.name)}</div><div class="grow"><div class="title">${esc(t.name)}</div><div class="meta">${esc(t.designation || t.employee_id)}</div></div></li>`)
+        .join("")}</ul>`
+      : empty("No teachers yet.", "fa-users");
+    view.innerHTML = `<div class="grid grid-side">
+      <div>${tabs([{ id: "inbox", label: `Inbox (${d.inbox.length})` }, { id: "sent", label: `Sent (${d.sent.length})` }], mode)}
+      ${card(mode === "inbox" ? "Inbox" : "Sent Messages", items.length ? `<ul class="list">${items
+        .map((m) => `<li style="cursor:pointer" data-msg="${m.id}"><div class="avatar" style="background:var(--green-100)">${UI.initials(mode === "inbox" ? m.from_name : m.to_name)}</div>
+          <div class="grow"><div class="title">${esc(m.subject)}</div><div class="meta">${mode === "inbox" ? "From" : "To"} ${esc(mode === "inbox" ? m.from_name : m.to_name)} · ${fmtDateTime(m.date)}</div>
+          <div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.body)}</div></div>
+          ${mode === "inbox" && (m.from_type === "student" || m.from_type === "teacher") ? `<button class="btn btn-light btn-sm" data-reply="${m.id}">Reply</button>` : ""}</li>`)
+        .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
+      <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
+        <div class="field"><label for="waTo">To</label>${selectHtml("waTo", recipients)}</div>
+        <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
+        <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
+        <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
+      ${card("Teachers", teacherList, { icon: "fa-users", flush: true })}</div>`;
+    onTabs(view, (tab) => messages(view, ctx, tab));
+    view.querySelectorAll("[data-msg]").forEach((li) =>
+      li.addEventListener("click", (e) => {
+        if (e.target.closest("[data-reply]")) return;
+        const m = items.find((x) => x.id === li.dataset.msg);
+        modal(m.subject, `<p class="muted small">From <b>${esc(m.from_name)}</b> to <b>${esc(m.to_name)}</b> · ${fmtDateTime(m.date)}</p><p class="pre">${esc(m.body)}</p>`);
+      })
+    );
+    view.querySelector("#waSend").addEventListener("click", () => {
+      const to = view.querySelector("#waTo").value;
+      const subject = view.querySelector("#waSubject").value.trim();
+      const body = view.querySelector("#waBody").value.trim();
+      if (!to || !subject || !body) {
+        UI.toast("Choose who it is for, and write the subject and message.", "error");
+        return;
+      }
+      const [to_type, to_id] = to.split("|");
+      UI.whatsappPreview({
+        title: "View & Send",
+        emptyMessage: "No one found for this message.",
+        fetchPreview: () => MPS.post("/principal/messages/whatsapp/preview", { to_type, to_id, subject, body }),
+        send: (payload) => MPS.post("/principal/messages/whatsapp", payload),
+      });
+    });
+    const compose = async (preset) => {
+      openForm({
+        title: "New Message",
+        fields: [
+          { name: "to", label: "To", type: "select", required: true, options: recipients, value: preset && preset.to },
+          { name: "subject", label: "Subject", required: true, maxlength: 200, value: preset && preset.subject },
+          { name: "body", label: "Message", type: "textarea", required: true },
+        ],
+        submitLabel: "Send",
+        onSubmit: async (v) => {
+          const [to_type, to_id] = v.to.split("|");
+          const r = await MPS.post("/principal/messages", { to_type, to_id, subject: v.subject, body: v.body });
+          messages(view, ctx, "sent");
+          return r;
+        },
+      });
+    };
+    view.querySelector("#composeBtn").addEventListener("click", () => compose());
+    view.querySelectorAll("[data-reply]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const m = items.find((x) => x.id === b.dataset.reply);
+        compose({ to: `${m.from_type}|${m.from_id}`, subject: m.subject.startsWith("Re:") ? m.subject : `Re: ${m.subject}` });
+      })
+    );
+  }
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
@@ -709,6 +789,7 @@
       { id: "diary-report", label: "HW/CW Reports", icon: "fa-book", group: "Reports", render: (v, c) => diaryReport(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
+      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
       { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },
       { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c, { manage: true }) },
