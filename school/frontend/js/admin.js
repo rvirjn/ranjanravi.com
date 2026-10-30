@@ -12,6 +12,8 @@
     { name: "email", label: "Email", type: "email", pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+", title: "Enter a valid email address", value: s.email },
     { name: "website", label: "Website", value: s.website, placeholder: "https://" },
     { name: "academic_year", label: "Academic year", value: s.academic_year, placeholder: "e.g. 2026-27" },
+    { name: "school_open_time", label: "School opening time", type: "time", required: true, value: s.school_open_time || "", hint: "Teacher check-in uses this. A teacher who forgets to check out is checked out 2 hours after the closing time." },
+    { name: "school_close_time", label: "School closing time", type: "time", required: true, value: s.school_close_time || "" },
     { name: "upi", label: "UPI ID for fees", value: s.upi },
     { name: "payment_qr_name", label: "Name shown on payment scanner", value: s.payment_qr_name },
     { name: "bank_bank_name", label: "Bank name", value: (s.bank || {}).bank_name },
@@ -31,7 +33,7 @@
     const { schools: rows } = await MPS.get("/admin/schools");
     view.innerHTML = card(`Schools (${rows.length})`, table(
       [
-        { label: "School", render: (s) => `<div class="who"><div class="avatar">${avatar(s.short_name || s.name, s.photo)}</div><div><b>${esc(s.name)}</b> ${badge(s.code, "neutral")}${s.active === false ? ` ${badge("Inactive", "danger")}` : ""}<div class="small muted">${esc(s.tagline || "")}</div></div></div>` },
+        { label: "School", render: (s) => `<div class="who"><div class="avatar">${avatar(s.short_name || s.name, s.photo)}</div><div><b>${esc(s.name)}</b> ${badge(s.code, "neutral")}${s.active === false ? ` ${badge("Inactive", "danger")}` : ""}<div class="small muted">${esc(s.tagline || "")}</div><div class="small muted">${s.school_open_time && s.school_close_time ? `School time ${esc(UI.fmtTime(s.school_open_time))} – ${esc(UI.fmtTime(s.school_close_time))}` : "School time not set"}</div></div></div>` },
         { label: "Contact", render: (s) => `<span class="small">${esc((s.phones || []).join(", "))}${s.email ? `<br>${esc(s.email)}` : ""}</span>` },
         { label: "Classes", render: (s) => s.counts.classes, className: "right" },
         { label: "Students", render: (s) => s.counts.students, className: "right" },

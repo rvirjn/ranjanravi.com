@@ -507,7 +507,7 @@
         ...(opts.extraColumns || []),
         { label: "Mobile", key: "phone" },
         { label: "Email", key: "email" },
-        { label: "", className: "right", render: (s) => `<button class="btn btn-light btn-sm" data-edit="${esc(s.key || s.id)}"><i class="fa fa-pencil"></i></button>` },
+        { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-edit="${esc(s.key || s.id)}" title="Edit"><i class="fa fa-pencil"></i></button>${opts.rowActions ? ` <button class="btn btn-light btn-sm" data-left="${esc(s.key || s.id)}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${esc(s.key || s.id)}" title="Delete"><i class="fa fa-trash"></i></button>` : ""}` },
       ],
       opts.rows,
       { empty: `No ${opts.noun.toLowerCase()} added yet.` }
@@ -563,6 +563,19 @@
       actions.prepend(reset);
       actions.prepend(remove);
     }));
+    if (opts.rowActions) {
+      const who = String(opts.noun || "person").toLowerCase();
+      view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
+        const s = opts.rows.find((x) => String(x.key || x.id) === b.dataset.left);
+        if (!s || !confirm(`Mark this ${who} as left school?`)) return;
+        if (await run(() => opts.update(s, { active: "false" }))) opts.reload();
+      }));
+      view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+        const s = opts.rows.find((x) => String(x.key || x.id) === b.dataset.del);
+        if (!s || !confirm(`Delete this ${who}? All data for this ${who} will be deleted.`)) return;
+        if (await run(() => opts.remove(s))) opts.reload();
+      }));
+    }
   }
 
   const CHANGE_LABEL = { phone: "Mobile", email: "Email", address: "Address" };

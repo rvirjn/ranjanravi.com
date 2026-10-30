@@ -6,6 +6,48 @@
     return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   };
 
+  function punchHtml(c) {
+    c = c || {};
+    const hours = c.school_open_time && c.school_close_time
+      ? `School time ${fmtTime(c.school_open_time)} to ${fmtTime(c.school_close_time)}. A missed check-out is saved ${c.auto_checkout_hours || 2} hours after closing.`
+      : "School opening and closing time are not set yet. You can still check in.";
+    const group = c.whatsapp_group_teachers ? ` (${esc(c.whatsapp_group_teachers)})` : "";
+    let action;
+    if (c.check_out) {
+      action = `<p style="margin:8px 0 0"><b>In</b> ${fmtTime(c.check_in)} &middot; <b>Out</b> ${fmtTime(c.check_out)}${c.auto_checkout ? ` ${badge("Auto check-out", "warn")}` : ""}</p>`;
+    } else if (c.check_in) {
+      action = `<p style="margin:8px 0"><b>Checked in</b> at ${fmtTime(c.check_in)}</p>
+        <button class="btn" id="checkoutBtn" type="button"><i class="fa fa-sign-out"></i> Check out</button>
+        <p class="small muted" style="margin-top:8px">Check-out is saved on your attendance. It is not sent on WhatsApp.</p>`;
+    } else {
+      action = `<button class="btn" id="checkinBtn" type="button"><i class="fa fa-sign-in"></i> Check in</button>
+        <p class="small muted" style="margin-top:8px">Check-in marks you present and sends a message to the teachers WhatsApp group${group}.</p>`;
+    }
+    return card("Check In / Check Out", `<p class="muted" style="margin-top:0">${hours}</p>${action}`, { icon: "fa-sign-in" });
+  }
+
+  function bindPunch(root, reload) {
+    const inn = root.querySelector("#checkinBtn");
+    const out = root.querySelector("#checkoutBtn");
+    if (inn) inn.addEventListener("click", async () => { if (await run(() => MPS.post("/teacher/checkin"))) reload(); });
+    if (out) out.addEventListener("click", async () => { if (await run(() => MPS.post("/teacher/checkout"))) reload(); });
+  }
+
+  async function checkIn(view) {
+    const d = await MPS.get("/teacher/checkin");
+    view.innerHTML = `${punchHtml(d.today)}
+      ${card("Recent check-ins", table(
+        [
+          { label: "Date", render: (x) => fmtDate(x.date) },
+          { label: "In", render: (x) => (x.check_in ? fmtTime(x.check_in) : "-") },
+          { label: "Out", render: (x) => (x.check_out ? `${fmtTime(x.check_out)}${x.auto_checkout ? ` ${badge("Auto", "warn")}` : ""}` : "-") },
+        ],
+        d.recent,
+        { empty: "No check-ins yet.", emptyIcon: "fa-sign-in" }
+      ), { icon: "fa-clock-o", flush: true })}`;
+    bindPunch(view, () => checkIn(view));
+  }
+
   const classSubjectOptions = (classes) =>
     classes.flatMap((c) => c.subjects.map((s) => ({ value: `${c.id}|${s}`, label: `${c.label} · ${s}` })));
 
@@ -53,6 +95,7 @@
           <a class="btn btn-light" href="#timetable"><i class="fa fa-clock-o"></i> ${nextLabel}</a>
         </div>
       </div>
+      ${punchHtml(d.checkin)}
       <div class="grid grid-4">
         ${stat("Attendance Today", `${d.classes_marked_today} / ${d.classes_total}`, { icon: "fa-check-square-o", tone: d.is_holiday ? "info" : d.classes_marked_today < d.classes_total ? "warn" : "ok",
           sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked" })}
@@ -79,6 +122,7 @@
         ${card("Events & Holidays", list(d.events, (e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type === "holiday" ? "Holiday" : "Event"}</div></div></li>`, "No upcoming events.", "fa-calendar"),
           { icon: "fa-calendar", flush: true, actions: '<a class="small" href="#events">Calendar</a>' })}
       </div>`;
+    bindPunch(view, () => dashboard(view));
   }
 
   // ---------- Profile ----------
@@ -294,6 +338,8 @@
         [
           { label: "Date", render: (x) => `${fmtDate(x.date)} <span class="small muted">${new Date(x.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short" })}</span>` },
           { label: "Status", render: (x) => badge(UI.CODE_LABEL[x.status] || x.status) },
+          { label: "In", render: (x) => (x.check_in ? fmtTime(x.check_in) : "-") },
+          { label: "Out", render: (x) => (x.check_out ? `${fmtTime(x.check_out)}${x.auto_checkout ? ` ${badge("Auto", "warn")}` : ""}` : "-") },
         ],
         d.days.slice().reverse(),
         { empty: "Attendance not marked yet." }
@@ -837,6 +883,7 @@
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
+      { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
       { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },

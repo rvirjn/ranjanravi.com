@@ -168,6 +168,7 @@
       update: (s, v) => MPS.post(`/accounts/principals/${s.id}`, v),
       resetPassword: (s) => MPS.post(`/accounts/principals/${s.id}/reset-password`),
       remove: (s) => MPS.del(`/accounts/principals/${s.id}`),
+      rowActions: true,
       reload: () => principals(view),
     });
   }

@@ -14,7 +14,7 @@
         <a class="btn btn-light" href="#approvals"><i class="fa fa-check-circle"></i> Approvals${pendingTotal ? ` (${pendingTotal})` : ""}</a></div></div>
       <div class="grid grid-4">
         ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked` })}
-        ${stat("Teachers Present", d.teachers_marked ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : '<a href="#teacher-attendance">Mark now</a>' })}
+        ${stat("Teachers Present", d.teachers_recorded ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : d.teachers_recorded ? "warn" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : (d.teachers_recorded ? `${d.teachers_total - d.teachers_recorded} not marked · <a href="#teacher-attendance">Open</a>` : '<a href="#teacher-attendance">Mark now</a>') })}
         ${stat("Fee Collected (month)", money(d.fees.collected_month), { icon: "fa-inr", tone: "info", sub: `Today ${money(d.fees.collected_today)}` })}
         ${stat("Fee Dues", money(d.fees.total_due), { icon: "fa-exclamation-circle", tone: "danger", sub: `${d.fees.defaulters} students 2+ months` })}
         ${stat("Pending Approvals", pendingTotal, { icon: "fa-check-circle", tone: pendingTotal ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
@@ -48,9 +48,11 @@
         <button class="btn" id="allP"><i class="fa fa-check-square-o"></i> Mark All Present</button></div>
       ${d.marked ? `<div class="form-ok">Already marked at ${fmtTime(d.marked_on)}. You can change and submit again.</div>` : ""}
       ${d.is_holiday ? '<div class="form-error">This date is a holiday or Sunday.</div>' : ""}
+      ${d.school_open_time ? `<p class="small muted">School time ${fmtTime(d.school_open_time)} – ${fmtTime(d.school_close_time)}. In and out times come from teacher check-in.</p>` : ""}
       ${card(`Teachers · ${d.day}, ${fmtDate(d.date)}`, d.teachers
         .map((t) => `<div class="att-row" data-sid="${t.id}"><div class="att-name"><div class="avatar" style="width:36px;height:36px;background:var(--info-bg);color:var(--info)">${UI.avatar(t.name, t.photo)}</div>
-          <div><b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation || "")}${t.on_leave ? ` &middot; ${badge("On approved leave", "warn")}` : ""}</div></div></div>
+          <div><b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation || "")}${t.on_leave ? ` &middot; ${badge("On approved leave", "warn")}` : ""}</div>
+          <div class="small muted">${t.check_in ? `In ${fmtTime(t.check_in)}${t.check_out ? ` · Out ${fmtTime(t.check_out)}${t.auto_checkout ? " (auto)" : ""}` : " · Not checked out"}` : "Not checked in"}</div></div></div>
           <div class="att-actions"><button type="button" class="att-btn present" data-set="P">PRESENT</button><button type="button" class="att-btn absent" data-set="A">ABSENT</button>
           <span class="att-more"><button type="button" class="att-mini" data-set="LT">Late</button><button type="button" class="att-mini" data-set="HD">Half day</button><button type="button" class="att-mini" data-set="L">Leave</button></span></div></div>`)
         .join(""), { icon: "fa-user-circle", flush: true })}
@@ -138,7 +140,7 @@
           { label: "Roll", key: "roll_no" },
           { label: "Student", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
           { label: "Father / Mobile", render: (s) => `${esc(s.father_name)}<div class="small muted">${esc(s.father_phone || "")}${s.mother_phone ? ` &middot; M: ${esc(s.mother_phone)}` : ""}</div>` },
-          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}"><i class="fa fa-pencil"></i></button>` },
+          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${s.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
         ],
         d.students
       ), { icon: "fa-users", flush: true })}`;
@@ -184,6 +186,14 @@
       reset.addEventListener("click", () => confirm("Reset password to s@123?") && run(() => MPS.post(`/principal/users/student/${s.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
     }));
+    view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Mark this student as left school?")) return;
+      if (await run(() => MPS.post(`/principal/students/${b.dataset.left}`, { active: "false" }))) students(view, ctx, state);
+    }));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Delete this student? All data, including fee receipts, will be deleted.")) return;
+      if (await run(() => MPS.del(`/principal/students/${b.dataset.del}`))) students(view, ctx, state);
+    }));
     view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
   }
 
@@ -226,7 +236,7 @@
         { label: "Classes", render: (t) => `<span class="small">${esc(t.class_labels.join(", "))}</span>${t.class_teacher_label ? `<div>${badge(`CT ${t.class_teacher_label}`, "success")}</div>` : ""}` },
         { label: "Mobile", key: "phone" },
         { label: "Attendance", render: (t) => `${t.attendance}%` },
-        { label: "", className: "right", render: (t) => `<button class="btn btn-light btn-sm" data-edit="${t.id}"><i class="fa fa-pencil"></i></button>` },
+        { label: "", className: "right nowrap", render: (t) => `<button class="btn btn-light btn-sm" data-edit="${t.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${t.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${t.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
       ],
       d.teachers
     ), { icon: "fa-user-circle", flush: true, actions: '<button class="btn btn-sm" id="add"><i class="fa fa-user-plus"></i> Add Teacher</button>' });
@@ -262,6 +272,14 @@
       reset.textContent = "Reset password";
       reset.addEventListener("click", () => confirm("Reset password to t@123?") && run(() => MPS.post(`/principal/users/teacher/${t.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
+    }));
+    view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Mark this teacher as left school?")) return;
+      if (await run(() => MPS.post(`/principal/teachers/${b.dataset.left}`, { active: "false" }))) teachers(view, ctx);
+    }));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Delete this teacher? All data, including salary slips, will be deleted.")) return;
+      if (await run(() => MPS.del(`/principal/teachers/${b.dataset.del}`))) teachers(view, ctx);
     }));
   }
 
