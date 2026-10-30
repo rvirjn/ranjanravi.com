@@ -272,35 +272,6 @@
     );
   }
 
-  // ---------- Class fee dues (class teacher) ----------
-  async function feeDues(view) {
-    const d = await MPS.get("/teacher/fee-dues");
-    if (!d.class_label) {
-      view.innerHTML = card("Class Fee Dues", empty("Fee dues are shown to class teachers for their own class.", "fa-inr"));
-      return;
-    }
-    const due = d.students.filter((s) => s.due > 0);
-    view.innerHTML = `<div class="grid grid-3">
-        ${stat("Students with dues", `${due.length} / ${d.students.length}`, { icon: "fa-users", tone: due.length ? "warn" : "ok" })}
-        ${stat("Total due", money(due.reduce((t, s) => t + s.due, 0)), { icon: "fa-inr", tone: "danger" })}
-        ${stat("2+ months pending", d.students.filter((s) => s.pending_months.length >= 2).length, { icon: "fa-exclamation-circle", tone: "danger" })}</div>
-      ${card(`Fee Dues · ${d.class_label}`, table(
-        [
-          { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
-          { label: "Pending months", render: (s) => (s.pending_months.length ? esc(s.pending_months.join(", ")) : '<span class="muted">-</span>') },
-          { label: "Due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
-        ],
-        d.students
-      ), { icon: "fa-inr", flush: true, actions: due.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send fee reminder</button>' : "" })}`;
-    const remind = view.querySelector("#remind");
-    if (remind) remind.addEventListener("click", () => UI.whatsappPreview({
-      title: "View & Send fee reminder",
-      fetchPreview: () => MPS.post("/teacher/fee-dues/remind/preview", { student_ids: due.map((s) => s.id) }),
-      send: (payload) => MPS.post("/teacher/fee-dues/remind", payload),
-    }));
-  }
-
   // ---------- My attendance ----------
   async function myAttendance(view) {
     const d = await MPS.get("/teacher/my-attendance");
@@ -320,7 +291,7 @@
   }
 
   // ---------- Homework ----------
-  async function homeworkSubmissions(view, ctx, homeworkId) {
+  async function homeworkSubmissions(view, ctx, homeworkId, onBack) {
     const d = await MPS.get(`/teacher/homework/${homeworkId}/submissions`);
     const hw = d.homework;
     view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="backBtn"><i class="fa fa-arrow-left"></i> Back to homework</button></div>
@@ -334,7 +305,7 @@
               <div style="margin-top:8px"><button class="btn btn-sm" data-grade="${s.student_id}"><i class="fa fa-check"></i> ${sub.grade ? "Change Grade" : "Grade"}</button></div>` : ""}</div>`;
         })
         .join(""), { icon: "fa-inbox", flush: true })}`;
-    view.querySelector("#backBtn").addEventListener("click", () => homework(view, ctx));
+    view.querySelector("#backBtn").addEventListener("click", () => (onBack ? onBack() : homework(view, ctx)));
     view.querySelectorAll("[data-grade]").forEach((b) =>
       b.addEventListener("click", () => {
         const s = d.students.find((x) => x.student_id === b.dataset.grade);
@@ -346,7 +317,7 @@
           ],
           onSubmit: async (v) => {
             const r = await MPS.post(`/teacher/homework/${homeworkId}/grade`, { ...v, student_id: s.student_id });
-            homeworkSubmissions(view, ctx, homeworkId);
+            homeworkSubmissions(view, ctx, homeworkId, onBack);
             return r;
           },
         });
@@ -354,9 +325,9 @@
     );
   }
 
-  async function homework(view, ctx) {
+  async function homework(root, ctx, opts = {}) {
     const d = await MPS.get("/teacher/homework");
-    view.innerHTML = card("Homework & Assignments", table(
+    root.innerHTML = card("Homework & Assignments", table(
       [
         { label: "Homework", render: (h) => `<b>${esc(h.title)}</b><div class="small muted">${esc(h.class_label)} · ${esc(h.subject)}</div>` },
         { label: "Given", render: (h) => fmtDate(h.assigned_on), className: "nowrap" },
@@ -368,14 +339,16 @@
       d.homework,
       { empty: "No homework assigned yet.", emptyIcon: "fa-pencil-square-o" }
     ), { icon: "fa-pencil-square-o", flush: true, actions: '<button class="btn btn-sm" id="newBtn"><i class="fa fa-plus"></i> Assign Homework</button>' });
-    view.querySelectorAll("[data-subs]").forEach((b) => b.addEventListener("click", () => homeworkSubmissions(view, ctx, b.dataset.subs)));
-    view.querySelectorAll("[data-del]").forEach((b) =>
+    root.querySelectorAll("[data-subs]").forEach((b) =>
+      b.addEventListener("click", () => (opts.onSubmissions ? opts.onSubmissions(b.dataset.subs) : homeworkSubmissions(root, ctx, b.dataset.subs)))
+    );
+    root.querySelectorAll("[data-del]").forEach((b) =>
       b.addEventListener("click", async () => {
         if (!confirm("Delete this homework and all its submissions?")) return;
-        if (await run(() => MPS.del(`/teacher/homework/${b.dataset.del}`))) homework(view, ctx);
+        if (await run(() => MPS.del(`/teacher/homework/${b.dataset.del}`))) homework(root, ctx, opts);
       })
     );
-    view.querySelector("#newBtn").addEventListener("click", () =>
+    root.querySelector("#newBtn").addEventListener("click", () =>
       openForm({
         title: "Assign Homework",
         fields: [
@@ -387,7 +360,7 @@
         submitLabel: "Assign",
         onSubmit: async (v) => {
           const r = await MPS.post("/teacher/homework", splitClassSubject(v));
-          homework(view, ctx);
+          homework(root, ctx, opts);
           return r;
         },
       })
@@ -866,6 +839,15 @@
     ), { icon: "fa-briefcase", flush: true });
   }
 
+  async function hwCw(view, ctx) {
+    view.innerHTML = `<div id="hwAssignments"></div><div id="diaryPane" style="margin-top:16px"></div>`;
+    const top = view.querySelector("#hwAssignments");
+    await homework(top, ctx, {
+      onSubmissions: (id) => homeworkSubmissions(view, ctx, id, () => hwCw(view, ctx)),
+    });
+    await UI.shared.diary(view.querySelector("#diaryPane"), ctx);
+  }
+
   UI.startApp({
     role: "teacher",
     portalName: "Teacher Portal",
@@ -874,9 +856,7 @@
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
-      { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => UI.shared.diary(v, c) },
-      { id: "classes", label: "My Classes & Students", icon: "fa-users", group: "Other", render: (v, c) => classes(v, c) },
-      { id: "homework", label: "Homework Assignments", icon: "fa-pencil-square-o", group: "Other", render: homework },
+      { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
       { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
       { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },
       { id: "lesson-plans", label: "Lesson Plans", icon: "fa-tasks", group: "Other", render: lessonPlans },
@@ -886,12 +866,10 @@
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Academics", render: (v, c) => results(v, c) },
       { id: "co-scholastic", label: "Co-Scholastic Grades", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
-      { id: "attendance-report", label: "Student Attendance Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => UI.shared.attendanceReport(v, c) },
-      { id: "fee-dues", label: "Class Fee Dues", icon: "fa-inr", group: "Communication", render: feeDues },
+      { id: "classes", label: "My Classes & Students", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
-      { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c) },
       { id: "duties", label: "Duties & Substitutions", icon: "fa-briefcase", group: "Staff", render: duties },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
       { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Account", render: (v) => UI.shared.timetable(v, "/teacher/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>`) },

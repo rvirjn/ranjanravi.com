@@ -246,13 +246,13 @@ const Accounts = (() => {
         <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select></div>
         <div class="btn-group">${badge(`${d.students.length} students · ${money(d.total_due)}`, "danger")}
         ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send reminder to all</button>' : ""}</div></div>
-      ${card("Fee Defaulters", table(
+      ${card("Dues Reminders", table(
         [
           { label: "Class", key: "class_label" },
           { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Pending months", render: (s) => `${badge(`${s.pending_months.length}`, "danger")} <span class="small">${esc(s.pending_months.join(", "))}</span>` },
           { label: "Dues", render: (s) => `<b>${money(s.due)}</b>`, className: "right" },
-          { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}">Collect</button>` },
+          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` },
         ],
         d.students,
         { empty: "No defaulters. Great!", emptyIcon: "fa-smile-o" }
@@ -267,8 +267,13 @@ const Accounts = (() => {
       }));
     view.querySelectorAll("[data-student]").forEach((b) =>
       b.addEventListener("click", () => {
-        sessionStorage.setItem("school_collect_student", JSON.stringify({ studentId: b.dataset.student }));
-        location.hash = "collect";
+        const student = d.students.find((s) => s.id === b.dataset.student);
+        const kind = student && student.pending_months.length >= 2 ? "overdue" : "reminder";
+        UI.whatsappPreview({
+          title: "View & Send reminder",
+          fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind, student_ids: [b.dataset.student] }),
+          send: (payload) => MPS.post("/accounts/reminders", { kind, ...payload }),
+        });
       })
     );
   }
@@ -362,7 +367,7 @@ const Accounts = (() => {
   // ---------- Fee structure ----------
   async function settings(view) {
     const d = await MPS.get("/principal/classes");
-    view.innerHTML = `${card("Monthly Tuition Fee & WhatsApp Group", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th><th></th></tr></thead><tbody>
+    view.innerHTML = `${card("Monthly Tuition Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th><th></th></tr></thead><tbody>
         ${d.classes.map((c) => `<tr data-cls="${c.id}"><td><b>${esc(c.name)}</b></td><td>${c.student_count}</td>
           <td><input type="number" class="amount-input" data-f="monthly_fee" value="${c.monthly_fee}" min="0"></td>
           <td><input data-f="whatsapp_group" value="${esc(c.whatsapp_group || "")}" placeholder="exact group name"></td>
@@ -372,7 +377,7 @@ const Accounts = (() => {
         { label: "Monthly fee (Rs)", render: (r) => `<input type="number" class="amount-input" data-route-fee="${r.id}" value="${r.monthly_fee || 0}" min="0">` },
         { label: "", render: (r) => `<button class="btn btn-sm" data-route="${r.id}">Save</button>` },
       ], d.routes), { icon: "fa-bus", flush: true })}
-      <p class="small muted">Fee changes apply to months billed from now on. Already billed months are not changed.</p>`;
+      <p class="small muted">Add or edit a bus route under People. Fee changes apply to months billed from now on. Already billed months are not changed.</p>`;
     view.querySelectorAll("[data-save]").forEach((b) =>
       b.addEventListener("click", () => {
         const row = view.querySelector(`[data-cls="${b.dataset.save}"]`);

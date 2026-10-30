@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="image/favicon-192.png">
   <link rel="apple-touch-icon" href="image/favicon-192.png">
   <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/portal.css?v=20261029w">
+  <link rel="stylesheet" href="css/portal.css?v=20261030a">
   <script>try{if(localStorage.getItem("school_lang")==="hi")document.documentElement.classList.add("lang-hi")}catch(e){}</script>
 </head>
 <body>
@@ -33,7 +33,7 @@
             <label for="password">Password</label>
             <input id="password" name="password" type="password" required autocomplete="current-password">
           </div>
-          <button class="btn btn-block" type="submit" id="submitBtn"><i class="fa fa-sign-in"></i> Login</button>
+          <button class="btn btn-block" type="submit" id="submitBtn"><i class="fa fa-sign-in"></i> <span id="submitLabel">Login</span></button>
         </form>
 
         <form id="forgotForm" hidden>
@@ -43,7 +43,7 @@
             <label for="forgot_id">User ID</label>
             <input id="forgot_id" name="login_id" required autocapitalize="characters">
           </div>
-          <button class="btn btn-block" type="submit"><i class="fa fa-envelope-o"></i> Send Temporary Password</button>
+          <button class="btn btn-block" type="submit" id="forgotBtn"><i class="fa fa-envelope-o"></i> <span id="forgotLabel">Send Temporary Password</span></button>
         </form>
 
         <div class="login-links">
@@ -63,7 +63,7 @@
 
   <script src="js/config.js?v=20261029m"></script>
   <script src="js/api.js?v=20261029d"></script>
-  <script src="js/i18n.js?v=20261029hi"></script>
+  <script src="js/i18n.js?v=20261030a"></script>
   <script>
     (function () {
       const params = new URLSearchParams(location.search);
@@ -85,12 +85,28 @@
         notice.hidden = false;
       }
 
+      const hi = () => window.MPS_LANG === "hi";
+      function setBusy(btn, label, busyText) {
+        btn.disabled = true;
+        btn.classList.add("is-busy");
+        btn.setAttribute("aria-busy", "true");
+        if (!label.dataset.idle) label.dataset.idle = label.textContent;
+        label.textContent = busyText;
+      }
+      function clearBusy(btn, label) {
+        btn.disabled = false;
+        btn.classList.remove("is-busy");
+        btn.removeAttribute("aria-busy");
+        if (label.dataset.idle) label.textContent = label.dataset.idle;
+      }
+
       const loginForm = document.getElementById("loginForm");
       const submitBtn = document.getElementById("submitBtn");
+      const submitLabel = document.getElementById("submitLabel");
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         error.hidden = true;
-        submitBtn.disabled = true;
+        setBusy(submitBtn, submitLabel, hi() ? "लॉग इन हो रहा है..." : "Logging in...");
         try {
           const data = Object.fromEntries(new FormData(loginForm).entries());
           const result = await MPS.post("/auth/login", data);
@@ -99,7 +115,7 @@
         } catch (err) {
           error.textContent = err.message;
           error.hidden = false;
-          submitBtn.disabled = false;
+          clearBusy(submitBtn, submitLabel);
         }
       });
 
@@ -115,9 +131,13 @@
           ? (hi ? "लॉग इन पर वापस" : "Back to login")
           : (hi ? "पासवर्ड भूल गए?" : "Forgot password?");
       });
+      const forgotBtn = document.getElementById("forgotBtn");
+      const forgotLabel = document.getElementById("forgotLabel");
       forgotForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("forgotMsg");
+        msg.hidden = true;
+        setBusy(forgotBtn, forgotLabel, hi() ? "भेजा जा रहा है..." : "Sending...");
         try {
           const result = await MPS.post("/auth/password/forgot", { login_id: document.getElementById("forgot_id").value });
           msg.textContent = result.message;
@@ -125,6 +145,7 @@
           msg.textContent = err.message;
         }
         msg.hidden = false;
+        clearBusy(forgotBtn, forgotLabel);
       });
     })();
   </script>

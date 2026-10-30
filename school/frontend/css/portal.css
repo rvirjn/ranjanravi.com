@@ -50,6 +50,19 @@ p { margin: 0 0 8px; }
 }
 .btn:hover { background: var(--green-700); text-decoration: none; }
 .btn:disabled { opacity: .6; cursor: wait; }
+.btn.is-busy,
+.btn.is-busy:disabled { opacity: 1; cursor: default; }
+.btn.is-busy::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin-cw 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.btn.is-busy .fa { display: none; }
 .btn-light { background: #fff; color: var(--ink); border-color: var(--line); }
 .btn-light:hover { background: var(--green-50); }
 .btn-danger { background: var(--danger); }
