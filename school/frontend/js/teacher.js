@@ -32,6 +32,15 @@
     const t = d.teacher;
     const myClass = d.class_teacher_of ? (d.attendance_marked_today ? "Marked" : "Not marked") : null;
     const list = (items, render, emptyText, icon) => (items.length ? `<ul class="list">${items.map(render).join("")}</ul>` : empty(emptyText, icon));
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const mins = (value) => {
+      const [h, m] = String(value || "").slice(0, 5).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const next = d.schedule.find((p) => mins(p.end) > nowMin);
+    const nextLabel = next
+      ? `${esc(next.subject)} · ${esc(next.class_label)} · ${fmtTime(next.start)} - ${fmtTime(next.end)}`
+      : (d.schedule.length ? "No more periods today." : "No classes today.");
 
     view.innerHTML = `
       <div class="welcome">
@@ -41,19 +50,20 @@
         <div class="btn-group">
           <a class="btn btn-light" href="#attendance"><i class="fa fa-check-square-o"></i> Student Attendance</a>
           <a class="btn btn-light" href="#diary"><i class="fa fa-whatsapp"></i> HW/CW Update</a>
-          <a class="btn btn-light" href="#marks"><i class="fa fa-table"></i> Enter Marks</a>
+          <a class="btn btn-light" href="#timetable"><i class="fa fa-clock-o"></i> ${nextLabel}</a>
         </div>
       </div>
       <div class="grid grid-4">
         ${stat("Attendance Today", `${d.classes_marked_today} / ${d.classes_total}`, { icon: "fa-check-square-o", tone: d.is_holiday ? "info" : d.classes_marked_today < d.classes_total ? "warn" : "ok",
           sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked" })}
-        ${stat("Homework to Review", d.homework_to_review, { icon: "fa-pencil-square-o", tone: d.homework_to_review ? "warn" : "ok", sub: "Ungraded submissions" })}
+        ${stat("Homework to Review", d.homework_to_review, { icon: "fa-pencil-square-o", tone: d.homework_to_review ? "warn" : "ok",
+          sub: `<span>Ungraded submissions</span> · <a href="${(d.homework_review_ids || []).length === 1 ? `#diary/${esc(d.homework_review_ids[0])}` : "#diary/review"}">Open</a>` })}
         ${stat("Pending Approvals", d.pending_student_leaves, { icon: "fa-check-circle", tone: d.pending_student_leaves ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
         ${stat("HW/CW Today", d.class_teacher_of ? (d.diary_posted_today ? "Posted" : "Not posted") : "-", { icon: "fa-whatsapp", tone: d.class_teacher_of && !d.diary_posted_today ? "warn" : "ok", sub: d.class_teacher_of || "" })}
       </div>
       <div class="grid grid-2">
         ${card(`Today's Schedule (${d.weekday})`, list(d.schedule, (p) => `<li><div class="period-chip"><b>Period ${p.period}</b>${fmtTime(p.start)} - ${fmtTime(p.end)}</div>
-            <div class="grow"><div class="title">${esc(p.subject)}</div><div class="meta">${esc(p.class_label)}</div></div></li>`, "No classes today.", "fa-smile-o"),
+            <div class="grow"><div class="title">${esc(p.subject)} ${p === next ? badge("Next", "success") : ""}</div><div class="meta">${esc(p.class_label)}</div></div></li>`, "No classes today.", "fa-smile-o"),
           { icon: "fa-clock-o", flush: true, actions: '<a class="small" href="#timetable">Full timetable</a>' })}
         ${card("Duties & Substitutions", list(d.duties, (x) => `<li>${dateChip(x.date)}<div class="grow"><div class="title">${esc(x.type)}</div><div class="meta">${esc(x.detail)}</div></div></li>`, "No upcoming duties.", "fa-briefcase"),
           { icon: "fa-briefcase", flush: true, actions: '<a class="small" href="#duties">All</a>' })}
@@ -783,12 +793,17 @@
     ), { icon: "fa-briefcase", flush: true });
   }
 
-  async function hwCw(view, ctx) {
+  async function hwCw(view, ctx, focus) {
+    if (focus && focus !== "review") {
+      await homeworkSubmissions(view, ctx, focus, () => { location.hash = "diary"; });
+      return;
+    }
     view.innerHTML = `<div id="diaryPane"></div><div id="hwAssignments" style="margin-top:16px"></div>`;
     await UI.shared.diary(view.querySelector("#diaryPane"), ctx);
     await homework(view.querySelector("#hwAssignments"), ctx, {
-      onSubmissions: (id) => homeworkSubmissions(view, ctx, id, () => hwCw(view, ctx)),
+      onSubmissions: (id) => { location.hash = `diary/${id}`; },
     });
+    if (focus === "review") view.querySelector("#hwAssignments").scrollIntoView();
   }
 
   UI.startApp({

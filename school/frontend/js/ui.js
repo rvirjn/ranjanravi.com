@@ -770,7 +770,9 @@ const UI = (() => {
     }
 
     async function route() {
-      const id = location.hash.replace("#", "") || modules[0].id;
+      const raw = (location.hash.replace("#", "") || modules[0].id).split("/");
+      const id = raw[0];
+      const extra = raw.slice(1).join("/");
       const mod = modules.find((m) => m.id === id) || modules[0];
       shell.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.id === mod.id));
       document.getElementById("pageTitle").textContent = mod.label;
@@ -782,7 +784,7 @@ const UI = (() => {
       view.replaceChildren(host);
       window.scrollTo(0, 0);
       try {
-        await mod.render(host, ctx);
+        await mod.render(host, ctx, extra);
       } catch (e) {
         host.innerHTML = errorBox(e.message);
       }
