@@ -667,62 +667,6 @@
     );
   }
 
-  // ---------- Notices ----------
-  async function notices(view, ctx) {
-    const classData = await MPS.get("/teacher/classes");
-    const list = classData.classes;
-    const groupAll = classData.whatsapp_group_all || "";
-    const host = document.createElement("div");
-    await UI.shared.notices(host);
-    view.innerHTML = `<div class="toolbar"><div></div><button class="btn" id="newBtn"><i class="fa fa-bullhorn"></i> Post Notice for Students</button></div>`;
-    view.appendChild(host);
-    view.querySelector("#newBtn").addEventListener("click", () => {
-      const m = openForm({
-        title: "Post Notice",
-        fields: [
-          { name: "class_id", label: "Audience", type: "select", options: [{ value: "", label: "All students (school-wide)" }, ...list.map((c) => ({ value: c.id, label: `Students of ${c.label}` }))] },
-          { name: "title", label: "Title", required: true, maxlength: 200 },
-          { name: "body", label: "Notice", type: "textarea", required: true },
-          { name: "whatsapp", label: "Also send on WhatsApp?", type: "select", options: [{ value: "", label: "No" }, { value: "1", label: "Yes" }] },
-        ],
-        submitLabel: "Post",
-        onSubmit: async (v) => {
-          const r = await MPS.post("/teacher/notices", { ...v, whatsapp: Boolean(v.whatsapp) });
-          notices(view, ctx);
-          return r;
-        },
-      });
-      const form = m.body.querySelector("form");
-      const hint = document.createElement("div");
-      hint.className = "field-hint";
-      hint.hidden = true;
-      form.querySelector('[name="whatsapp"]').closest(".field").appendChild(hint);
-      const showGroup = () => {
-        if (form.whatsapp.value !== "1") {
-          hint.hidden = true;
-          hint.replaceChildren();
-          return;
-        }
-        const chosen = list.find((c) => c.id === form.class_id.value);
-        const group = chosen ? chosen.whatsapp_group : groupAll;
-        hint.hidden = false;
-        hint.replaceChildren();
-        const line = document.createElement("div");
-        line.append(document.createTextNode("WhatsApp group name: "));
-        if (group) {
-          const name = document.createElement("b");
-          name.textContent = group;
-          line.append(name);
-        } else {
-          line.append(document.createTextNode("No WhatsApp group set"));
-        }
-        hint.append(line);
-      };
-      form.whatsapp.addEventListener("change", showGroup);
-      form.class_id.addEventListener("change", showGroup);
-    });
-  }
-
   // ---------- Messages ----------
   async function messages(view, ctx, mode = "inbox") {
     const d = await MPS.get("/teacher/messages");
@@ -861,7 +805,7 @@
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
       { id: "classes", label: "Students Reports", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
-      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
+      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: UI.shared.notices },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
       { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },

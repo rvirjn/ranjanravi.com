@@ -23,7 +23,7 @@
     "Student Remarks": "विद्यार्थी टिप्पणी", "Class Fee Dues": "कक्षा फीस बकाया", "Student Leave Requests": "विद्यार्थी छुट्टी अनुरोध",
     "My Attendance": "मेरी उपस्थिति", "My Leave": "मेरी छुट्टी", "Salary Slips": "वेतन पर्ची", "My Salary Slips": "मेरी वेतन पर्ची", "Duties & Substitutions": "ड्यूटी और प्रतिस्थापन",
     "Teacher Attendance": "शिक्षक उपस्थिति", "Student Attendance Report": "विद्यार्थी उपस्थिति रिपोर्ट", "Teacher Attendance Report": "शिक्षक उपस्थिति रिपोर्ट",
-    "HW/CW Report": "गृह कार्य / कक्षा कार्य रिपोर्ट", "Classwork": "कक्षा कार्य", "Homework": "गृह कार्य", "Posted by": "किसने भेजा", "Time": "समय",
+    "HW/CW Reports": "गृह कार्य / कक्षा कार्य रिपोर्ट", "Classwork": "कक्षा कार्य", "Homework": "गृह कार्य", "Posted by": "किसने भेजा", "Time": "समय",
     "Results": "परिणाम", "Student Results": "विद्यार्थी परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
     "Exams & Admit Cards": "परीक्षा और प्रवेश पत्र", "WhatsApp": "व्हाट्सएप", "Fee Overview": "फीस सारांश", "Collect Fee": "फीस जमा करें",
     "Dues Reminders": "बकाया रिमाइंडर", "Receipts": "रसीदें", "Download Receipts": "रसीद डाउनलोड करें", "Parent Payments": "अभिभावक भुगतान", "Auto Fee Reminders": "स्वतः फीस रिमाइंडर",

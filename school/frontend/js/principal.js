@@ -567,7 +567,7 @@
       { id: "exams", label: "Exams & Admit Cards", icon: "fa-file-text-o", group: "Academics", render: exams },
       { id: "attendance-report", label: "Student Attendance Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => UI.shared.attendanceReport(v, c) },
       { id: "teacher-report", label: "Teacher Attendance Report", icon: "fa-line-chart", group: "Reports", render: (v, c) => teacherAttendanceReport(v, c) },
-      { id: "diary-report", label: "HW/CW Report", icon: "fa-book", group: "Reports", render: (v, c) => diaryReport(v, c) },
+      { id: "diary-report", label: "HW/CW Reports", icon: "fa-book", group: "Reports", render: (v, c) => diaryReport(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: notices },
       { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: events },
