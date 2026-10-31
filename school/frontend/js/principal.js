@@ -172,6 +172,7 @@
     { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s) || suggested, hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
     { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (s.id ? "" : todayIso()) },
     { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id, hint: s.id ? "Changing class updates unpaid tuition to that class fee. A sibling in a different class is charged their own class fee, and both show the same due." : "" },
+    { name: "fee_rebate", label: "Monthly fee rebate (Rs)", type: "number", min: 0, value: s.fee_rebate || 0, hint: "Taken off this student's class fee. Leave 0 to charge the full class fee. Siblings in the same class share one fee, and each child's own rebate is taken off that fee." },
     { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
     { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: s.gender },
     { name: "dob", label: "Date of birth", type: "date", value: s.dob },
@@ -267,7 +268,7 @@
         ${stat("Fee due", money(d.fees.due), { icon: "fa-inr", tone: d.fees.due ? "warn" : "ok" })}
         ${stat("Last result", d.results.length ? `${d.results[d.results.length - 1].percentage}%` : "-", { icon: "fa-trophy", tone: "info" })}
         ${stat("Pending months", d.fees.pending_months.length, { icon: "fa-exclamation-circle", tone: d.fees.pending_months.length >= 2 ? "danger" : "ok" })}</div>
-      ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
+      ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Monthly rebate", money(s.fee_rebate || 0)], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
         ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address]])}
       ${(s.history || []).length ? `<h4>Previous sessions</h4><ul>${s.history.map((h) => `<li>${esc(h.session)} · ${esc(h.class_label || "")}${h.roll_no ? `, roll ${esc(h.roll_no)}` : ""} · ${esc(h.status || "")}</li>`).join("")}</ul>` : ""}
       <div class="modal-actions"><button class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button></div>`;
