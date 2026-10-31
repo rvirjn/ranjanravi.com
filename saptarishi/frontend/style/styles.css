@@ -5833,6 +5833,10 @@ body.premium-modal-open {
   display: none !important;
 }
 
+.premium-modal [hidden] {
+  display: none !important;
+}
+
 .premium-modal {
   position: relative;
   box-sizing: border-box;

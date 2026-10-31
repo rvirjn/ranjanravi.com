@@ -695,9 +695,7 @@
   if (addWalletBtn) {
     addWalletBtn.addEventListener("click", async () => {
       if (AUTH.openWalletFlow) {
-        const ok = await AUTH.openWalletFlow({
-          message: "Scan the QR and enter your coupon code to add money to your wallet."
-        });
+        const ok = await AUTH.openWalletFlow({ addMoney: true });
         if (ok) await loadProfileData();
       }
     });

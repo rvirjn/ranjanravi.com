@@ -72,11 +72,9 @@
   let planLineEl = null;
   let memberEl = null;
   let addMoneyBtn = null;
-  let backBtn = null;
   let titleEl = null;
   let planPickerEl = null;
   let plansNoteEl = null;
-  let openedFromSummary = false;
   let busy = false;
   let plans = DEFAULT_PLANS.slice();
   let selectedPlanId = plans[0]?.id || "wallet_51";
@@ -186,7 +184,6 @@
           </div>
         </div>
         <div id="wallet-modal-payment-panel" class="premium-modal__panel" hidden>
-          <button type="button" class="premium-modal__back" id="wallet-modal-back" data-i18n="wallet.back">← wallet</button>
           <h3 class="premium-modal__add-title" data-i18n="profile.addWallet">Add money to wallet</h3>
           <div id="wallet-modal-plan-picker" class="premium-modal__plans" role="radiogroup" data-i18n-aria="wallet.choose" aria-label="Choose amount"></div>
           <div class="premium-modal__qr-wrap">
@@ -237,7 +234,7 @@
           </form>
           <form id="wallet-modal-form" class="premium-modal__form" autocomplete="off">
             <div class="form-field">
-              <label for="wallet-modal-coupon" data-i18n="wallet.coupon">Enter coupon code</label>
+              <label for="wallet-modal-coupon" data-i18n="wallet.coupon">Enter coupon code sended to your mail</label>
               <input
                 type="text"
                 id="wallet-modal-coupon"
@@ -272,7 +269,6 @@
     memberEl = overlay.querySelector("#wallet-modal-member");
     summaryPanel = overlay.querySelector("#wallet-modal-summary-panel");
     addMoneyBtn = overlay.querySelector("#wallet-modal-add-btn");
-    backBtn = overlay.querySelector("#wallet-modal-back");
     txnForm = overlay.querySelector("#wallet-modal-txn-form");
     form = overlay.querySelector("#wallet-modal-form");
     amountEl = overlay.querySelector("#wallet-modal-amount");
@@ -320,7 +316,7 @@
     overlay.querySelector("#wallet-modal-close").addEventListener("click", () => close(false));
     overlay.querySelector("#wallet-modal-done").addEventListener("click", () => close(true));
     if (addMoneyBtn) {
-      addMoneyBtn.addEventListener("click", () => showAddMoneyView({ fromSummary: true }));
+      addMoneyBtn.addEventListener("click", () => showAddMoneyView());
     }
     const unlimitedBtn = overlay.querySelector("#wallet-modal-unlimited-btn");
     if (unlimitedBtn) {
@@ -328,9 +324,6 @@
         close(false);
         if (AUTH.openPremiumFlow) await AUTH.openPremiumFlow();
       });
-    }
-    if (backBtn) {
-      backBtn.addEventListener("click", () => showSummaryView());
     }
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) close(false);
@@ -485,7 +478,6 @@
   }
 
   function showSummaryView() {
-    openedFromSummary = false;
     if (titleEl) titleEl.textContent = "Wallet";
     if (leadEl) {
       leadEl.textContent = "";
@@ -497,21 +489,17 @@
     renderWalletSummary();
   }
 
-  function showAddMoneyView({ fromSummary = false, message = "" } = {}) {
-    openedFromSummary = Boolean(fromSummary);
+  function showAddMoneyView({ message = "" } = {}) {
     if (titleEl) titleEl.textContent = "Add money to wallet";
     if (leadEl) {
-      leadEl.textContent =
-        message ||
-        (isIosNativeApp()
-          ? "Select an amount, then buy with Apple."
-          : "Select an amount, scan the QR, pay, then enter your coupon code.");
-      leadEl.hidden = !leadEl.textContent;
+      const text =
+        message || (isIosNativeApp() ? "Select an amount, then buy with Apple." : "");
+      leadEl.textContent = text;
+      leadEl.hidden = !text;
     }
     if (summaryPanel) summaryPanel.hidden = true;
     if (paymentPanel) paymentPanel.hidden = false;
     if (successPanel) successPanel.hidden = true;
-    if (backBtn) backBtn.hidden = !openedFromSummary;
     renderPlanPicker();
   }
 
@@ -659,7 +647,7 @@
     loadWalletInfo();
 
     if (wantsAddMoney(options)) {
-      showAddMoneyView({ fromSummary: false, message: options.message || "" });
+      showAddMoneyView({ message: options.message || "" });
       const txnFocus = overlay.querySelector("#wallet-modal-txn");
       if (txnFocus && !isIosNativeApp()) {
         window.requestAnimationFrame(() => txnFocus.focus());
