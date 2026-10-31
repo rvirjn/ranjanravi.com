@@ -311,7 +311,8 @@ const UI = (() => {
   function admissionPad(value) {
     const digits = String(value || "").replace(/\D/g, "");
     if (!digits || Number(digits) < 1) return "";
-    return String(Number(digits)).padStart(3, "0");
+    if (digits.length > 3) return digits;
+    return digits.padStart(3, "0");
   }
 
   function previewSchoolCode(form, preview) {
@@ -387,7 +388,7 @@ const UI = (() => {
       if (/\D/.test(e.data)) e.preventDefault();
     });
     input.addEventListener("input", () => {
-      const next = input.value.replace(/\D/g, "").slice(0, 6);
+      const next = input.value.replace(/\D/g, "").slice(0, 12);
       if (input.value !== next) input.value = next;
     });
   }
@@ -420,7 +421,7 @@ const UI = (() => {
     const dateField = form.admission_date || form.joining_date;
     const paint = () => {
       const raw = numberField.value.trim();
-      if (raw && !/^\d{1,6}$/.test(raw)) {
+      if (raw && !/^\d{1,12}$/.test(raw)) {
         numberField.setCustomValidity("Admission No. must be a number such as 001 or 002");
         return;
       }
@@ -439,7 +440,8 @@ const UI = (() => {
       }
       const allow = check.allow || {};
       const years = allow.years || (allow.year ? [allow.year] : []);
-      const allowed = allow.number && admissionPad(allow.number) === number && (!check.withYear || years.includes(year));
+      const sameNumber = (left, right) => String(Number(left)) === String(Number(right));
+      const allowed = allow.number && sameNumber(allow.number, number) && (!check.withYear || years.includes(year));
       let used = [];
       if (check.usedBySchool && check.schoolField) {
         const sel = form.querySelector(`[name="${check.schoolField}"]`);
@@ -449,7 +451,7 @@ const UI = (() => {
       } else {
         used = check.usedNumbers || [];
       }
-      const message = !allowed && used.includes(number)
+      const message = !allowed && used.some((item) => sameNumber(item, number))
         ? `Admission No. ${number} is already used${check.who ? ` by another ${check.who}` : ""}`
         : "";
       if (numberField.validationMessage !== message) {

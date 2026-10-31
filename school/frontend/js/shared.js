@@ -514,7 +514,7 @@
       { name: "photo", label: "Photo", type: "photo", value: s.photo },
       ...(opts.extraFields ? opts.extraFields(s) : []),
       { name: "name", label: "Name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
-      { name: "admission_number", label: "Admission No.", required: true, value: admissionSuffix(s) || (isNew ? (opts.nextAdmissionNumber || "") : ""), hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,6}", inputmode: "numeric", maxlength: 6, title: "Admission No. must be a number such as 001 or 002" },
+      { name: "admission_number", label: "Admission No.", required: true, value: admissionSuffix(s) || (isNew ? (opts.nextAdmissionNumber || "") : ""), hint: "Last digits of the User ID, such as 001", pattern: "[0-9]{1,12}", inputmode: "numeric", maxlength: 12, title: "Admission No. must be a number such as 001 or 002" },
       { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (isNew ? todayIso() : "") },
       { name: "designation", label: "Designation", value: s.designation || opts.noun },
       { name: "phone", label: "Mobile", type: "mobile", required: true, value: s.phone },
