@@ -95,7 +95,7 @@
     "Fee Receipts": "फीस रसीदें", "Fee Defaulters": "फीस डिफ़ॉल्टर", "Search": "खोजें",
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
-    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ERP)", "RV Smart School (ERP)": "आरवी स्मार्ट स्कूल (ERP)", "Staff Login": "स्टाफ लॉग इन",
+    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ERP)", "RV Smart School (ERP)": "आरवी स्मार्ट स्कूल (ERP)", "RV Smart ERP": "आरवी स्मार्ट ERP", "Staff Login": "स्टाफ लॉग इन",
     "About & Features": "परिचय और सुविधाएँ", "Privacy Policy": "गोपनीयता नीति", "Download Android app": "एंड्रॉइड ऐप डाउनलोड करें",
     "Send Temporary Password": "अस्थायी पासवर्ड भेजें",
     "Enter your User ID. If an email is registered, a temporary password will be sent to it.": "अपनी यूज़र आईडी लिखें। यदि ईमेल दर्ज है, तो उस पर अस्थायी पासवर्ड भेजा जाएगा।",
@@ -104,7 +104,7 @@
     "If the User ID is registered with an email address, a temporary password has been sent. Otherwise please contact the school office.": "यदि यह यूज़र आईडी किसी ईमेल पते के साथ दर्ज है, तो अस्थायी पासवर्ड भेज दिया गया है। अन्यथा कृपया विद्यालय कार्यालय से संपर्क करें।",
     "Cannot reach the school server. Check your internet connection and try again.": "विद्यालय सर्वर तक पहुँच नहीं हो पा रही। अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।",
     "Session expired": "सत्र समाप्त हो गया",
-    "RV-Smart-School-ERP.apk · version 1.0.0": "RV-Smart-School-ERP.apk · संस्करण 1.0.0",
+    "RV-Smart-ERP.apk · version 1.0.0": "RV-Smart-ERP.apk · संस्करण 1.0.0",
     "Classes": "कक्षाएं", "Add Class": "कक्षा जोड़ें", "Principal": "प्रधानाचार्य", "Add Principal": "प्रधानाचार्य जोड़ें",
     "Bus Routes": "बस रूट", "Add Bus Route": "बस रूट जोड़ें", "No bus routes yet. Add the first route.": "अभी कोई बस रूट नहीं है। पहला रूट जोड़ें।",
     "Route name": "रूट का नाम", "Bus number": "बस नंबर", "Bus No.": "बस नंबर", "Driver name": "चालक का नाम", "Driver": "चालक",
@@ -175,7 +175,7 @@
     "Monday": "सोमवार", "Tuesday": "मंगलवार", "Wednesday": "बुधवार", "Thursday": "गुरुवार", "Friday": "शुक्रवार", "Saturday": "शनिवार", "Sunday": "रविवार",
   };
   const TITLES = {
-    "Login | RV Smart School (ERP)": "लॉग इन | आरवी स्मार्ट स्कूल (ERP)",
+    "Login | RV Smart ERP": "लॉग इन | आरवी स्मार्ट ERP",
     "About & Features | School Management Portal (ERP)": "परिचय और सुविधाएँ | विद्यालय प्रबंधन पोर्टल (ERP)",
     "Privacy Policy | School Management Portal (ERP)": "गोपनीयता नीति | विद्यालय प्रबंधन पोर्टल (ERP)",
   };
