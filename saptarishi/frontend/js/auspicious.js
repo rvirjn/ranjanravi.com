@@ -382,7 +382,10 @@
   }
 
   if (auspiciousForm) {
-    auspiciousForm.addEventListener("submit", handleAuspiciousFormSubmit);
+    auspiciousForm.addEventListener(
+      "submit",
+      CU && CU.singleFlightSubmit ? CU.singleFlightSubmit(handleAuspiciousFormSubmit) : handleAuspiciousFormSubmit
+    );
   }
 
   setDefaultAuspiciousDateRange();

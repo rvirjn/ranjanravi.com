@@ -790,7 +790,9 @@
       if (event.key === "Enter") event.preventDefault();
     });
   }
-  if (form) form.addEventListener("submit", handleSubmit);
+  if (form) {
+    form.addEventListener("submit", CU && CU.singleFlightSubmit ? CU.singleFlightSubmit(handleSubmit) : handleSubmit);
+  }
   setBirthMode("open");
   if (CU && CU.enhanceBirthChooser) CU.enhanceBirthChooser(form);
 

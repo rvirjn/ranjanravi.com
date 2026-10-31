@@ -586,18 +586,19 @@
     });
   }
 
+  const runCompareShow = async (event) => {
+    event.preventDefault();
+    await handleCompareShow();
+  };
+  const guardedCompareShow =
+    CU && CU.singleFlightSubmit ? CU.singleFlightSubmit(runCompareShow) : runCompareShow;
+
   if (compareShowBtn) {
-    compareShowBtn.addEventListener("click", (event) => {
-      event.preventDefault();
-      handleCompareShow();
-    });
+    compareShowBtn.addEventListener("click", guardedCompareShow);
   }
 
   if (compareForm) {
-    compareForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      handleCompareShow();
-    });
+    compareForm.addEventListener("submit", guardedCompareShow);
   }
 
   window.SaptarishiKundaliCompare = {

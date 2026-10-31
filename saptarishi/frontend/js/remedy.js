@@ -1593,7 +1593,10 @@
       if (event.key === "Enter") event.preventDefault();
     });
   }
-  form.addEventListener("submit", handleRemedyFormSubmit);
+  form.addEventListener(
+    "submit",
+    CU && CU.singleFlightSubmit ? CU.singleFlightSubmit(handleRemedyFormSubmit) : handleRemedyFormSubmit
+  );
   setBirthMode("open");
   refreshRemedySavedViews();
   globalThis.addEventListener("saptarishi-auth-changed", refreshRemedySavedViews);

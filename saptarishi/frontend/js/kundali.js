@@ -8456,7 +8456,10 @@ if (document.getElementById("birth-form")) {
     placePreset.addEventListener("change", syncCustomPlaceFieldVisibility);
   }
   if (form) {
-    form.addEventListener("submit", handleBirthFormSubmit);
+    form.addEventListener(
+      "submit",
+      CU && CU.singleFlightSubmit ? CU.singleFlightSubmit(handleBirthFormSubmit) : handleBirthFormSubmit
+    );
     ensureKundaliQaUi().catch(() => {});
   }
   if (tabOpenKundali) {

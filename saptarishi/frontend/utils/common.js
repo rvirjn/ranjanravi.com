@@ -3495,7 +3495,42 @@
     initializeCommonLayout();
   }
 
+  /**
+   * Wrap a submit/click handler so repeat user clicks are ignored until the
+   * running request finishes. Submits fired from code (saved-birth replay,
+   * auto-run) are not trusted events and always go through.
+   */
+  function singleFlightSubmit(handler) {
+    let running = 0;
+    return async function guardedSubmit(event) {
+      if (running && event && event.isTrusted) {
+        event.preventDefault();
+        return undefined;
+      }
+      const target = event && event.currentTarget;
+      const owner = target instanceof HTMLFormElement ? target : (target && target.form) || null;
+      const buttons = owner
+        ? Array.from(owner.querySelectorAll('button[type="submit"]')).filter((btn) => !btn.disabled)
+        : [];
+      running += 1;
+      buttons.forEach((btn) => {
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+      });
+      try {
+        return await handler.call(this, event);
+      } finally {
+        running -= 1;
+        buttons.forEach((btn) => {
+          btn.disabled = false;
+          btn.removeAttribute("aria-busy");
+        });
+      }
+    };
+  }
+
   global.SaptarishiCommonUtils = {
+    singleFlightSubmit,
     isNativeAppShell,
     isLocalDevUiHost,
     getApiOrigin,
