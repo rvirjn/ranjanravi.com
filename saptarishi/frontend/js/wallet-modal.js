@@ -60,6 +60,7 @@
   let resolvePending = null;
   let statusEl = null;
   let form = null;
+  let txnForm = null;
   let amountEl = null;
   let planSummaryEl = null;
   let contactPhoneEl = null;
@@ -137,6 +138,12 @@
     updateSelectedPlanDisplay();
   }
 
+  function couponExample(amountInr) {
+    const map = (AC && AC.WALLET_COUPON_PREFIX_BY_AMOUNT) || {};
+    const prefix = map[amountInr] || map[String(amountInr)] || "WL";
+    return `e.g. ${prefix}-XXXX`;
+  }
+
   function updateSelectedPlanDisplay() {
     const plan = planById(selectedPlanId);
     if (amountEl && plan) {
@@ -144,6 +151,10 @@
     }
     if (planSummaryEl) {
       planSummaryEl.textContent = "";
+    }
+    const couponInput = overlay && overlay.querySelector("#wallet-modal-coupon");
+    if (couponInput && plan) {
+      couponInput.placeholder = couponExample(plan.amount_inr);
     }
   }
 
@@ -204,6 +215,26 @@
             <p class="premium-modal__steps">Apple requires in-app purchase on iPhone. Choose an amount, then tap Buy with Apple.</p>
             <button type="button" id="wallet-modal-apple-buy">Buy with Apple</button>
           </div>
+          <form id="wallet-modal-txn-form" class="premium-modal__form premium-modal__txn-form" autocomplete="off">
+            <div class="form-field">
+              <label for="wallet-modal-txn" data-i18n="wallet.txn">Enter last 4 digits of your Transaction id :</label>
+              <input
+                type="text"
+                id="wallet-modal-txn"
+                inputmode="numeric"
+                required
+                minlength="4"
+                maxlength="4"
+                pattern="[0-9]{4}"
+                placeholder="e.g. 4821"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <div class="form-field form-field--submit">
+              <button type="submit" id="wallet-modal-get-coupon" data-i18n="wallet.getCoupon">Get Coupon code</button>
+            </div>
+          </form>
           <form id="wallet-modal-form" class="premium-modal__form" autocomplete="off">
             <div class="form-field">
               <label for="wallet-modal-coupon" data-i18n="wallet.coupon">Enter coupon code</label>
@@ -242,6 +273,7 @@
     summaryPanel = overlay.querySelector("#wallet-modal-summary-panel");
     addMoneyBtn = overlay.querySelector("#wallet-modal-add-btn");
     backBtn = overlay.querySelector("#wallet-modal-back");
+    txnForm = overlay.querySelector("#wallet-modal-txn-form");
     form = overlay.querySelector("#wallet-modal-form");
     amountEl = overlay.querySelector("#wallet-modal-amount");
     planSummaryEl = overlay.querySelector("#wallet-modal-plan-summary");
@@ -309,6 +341,55 @@
         close(false);
       }
     });
+
+    const txnInput = overlay.querySelector("#wallet-modal-txn");
+    if (txnInput) {
+      txnInput.addEventListener("input", () => {
+        txnInput.value = txnInput.value.replace(/\D/g, "").slice(0, 4);
+      });
+    }
+    if (txnForm) {
+      txnForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (busy) return;
+        if (!AUTH.getToken()) {
+          showStatus("Please sign in first, then request your coupon code.", true);
+          return;
+        }
+        if (typeof AUTH.requestWalletCoupon !== "function") {
+          showStatus("Refresh the page, then try Get Coupon code again.", true);
+          return;
+        }
+        const digits = (txnInput && txnInput.value ? txnInput.value : "").replace(/\D/g, "");
+        if (digits.length !== 4) {
+          showStatus("Enter the last 4 digits of your transaction id.", true);
+          return;
+        }
+        const plan = planById(selectedPlanId);
+        const amount = Number(plan?.amount_inr) || 0;
+        if (!amount) {
+          showStatus("Select an amount first.", true);
+          return;
+        }
+        setBusy(true);
+        showStatus("Sending email…", false);
+        try {
+          const payload = await AUTH.requestWalletCoupon({
+            transactionLast4: digits,
+            amountInr: amount
+          });
+          setBusy(false);
+          showStatus(
+            payload.message ||
+              `Email sent. ₹${amount} is recharged. We will send the coupon code soon.`,
+            false
+          );
+        } catch (err) {
+          setBusy(false);
+          showStatus(err.message || "Could not send the email.", true);
+        }
+      });
+    }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -464,10 +545,12 @@
 
   function setBusy(value) {
     busy = value;
-    if (!form) return;
-    form.querySelectorAll("input, button").forEach((el) => {
-      el.disabled = value;
-    });
+    for (const node of [txnForm, form]) {
+      if (!node) continue;
+      node.querySelectorAll("input, button").forEach((el) => {
+        el.disabled = value;
+      });
+    }
     if (planPickerEl) {
       planPickerEl.querySelectorAll("input").forEach((el) => {
         el.disabled = value;
@@ -536,6 +619,7 @@
 
   function resetPanels() {
     if (successPanel) successPanel.hidden = true;
+    if (txnForm) txnForm.reset();
     if (form) form.reset();
     showStatus("");
   }
@@ -576,9 +660,9 @@
 
     if (wantsAddMoney(options)) {
       showAddMoneyView({ fromSummary: false, message: options.message || "" });
-      const couponInput = overlay.querySelector("#wallet-modal-coupon");
-      if (couponInput && !isIosNativeApp()) {
-        window.requestAnimationFrame(() => couponInput.focus());
+      const txnFocus = overlay.querySelector("#wallet-modal-txn");
+      if (txnFocus && !isIosNativeApp()) {
+        window.requestAnimationFrame(() => txnFocus.focus());
       }
     } else {
       showSummaryView();

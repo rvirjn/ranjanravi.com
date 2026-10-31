@@ -6068,6 +6068,29 @@ body.premium-modal-open {
   margin-bottom: var(--space-sm);
 }
 
+.premium-modal__txn-form {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.15rem;
+}
+
+.premium-modal__form label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.premium-modal__form input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  color: var(--color-text);
+  background: #fff;
+  border: 1.5px solid rgba(120, 90, 10, 0.22);
+  border-radius: var(--radius-sm);
+}
+
 .premium-modal__form button[type="submit"] {
   width: 100%;
   padding: 0.65rem 1rem;

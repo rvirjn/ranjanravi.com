@@ -767,6 +767,17 @@
     return payload;
   }
 
+  async function requestWalletCoupon({ transactionLast4, amountInr } = {}) {
+    return apiFetch(AC.API_WALLET_PATH, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "request_coupon",
+        transaction_last4: String(transactionLast4 || "").trim(),
+        amount_inr: Number(amountInr) || 0
+      })
+    });
+  }
+
   async function buyPremiumWithWallet(planId) {
     const payload = await apiFetch(AC.API_WALLET_PATH, {
       method: "POST",
@@ -1261,6 +1272,7 @@
     activatePremium,
     fetchWalletInfo,
     activateWalletTopup,
+    requestWalletCoupon,
     buyPremiumWithWallet,
     chargeWalletForService,
     openWalletFlow,
