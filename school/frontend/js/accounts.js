@@ -94,21 +94,50 @@ const Accounts = (() => {
 
   async function classStudents(view, ctx, state) {
     const d = await MPS.get(`/accounts/class/${state.classId}`);
-    view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
+    let sortKey = "";
+    let sortDir = "asc";
+    const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "name") {
+        list.sort((a, b) => dir * byName(a, b) || String(a.roll_no ?? "").localeCompare(String(b.roll_no ?? ""), undefined, { numeric: true }));
+      } else if (sortKey === "due") {
+        list.sort((a, b) => dir * ((Number(a.due) || 0) - (Number(b.due) || 0)) || byName(a, b));
+      }
+      return list;
+    }
+
+    function paint() {
+      view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
         ${badge(`Class dues ${money(d.due_total != null ? d.due_total : d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
       ${card(`${d.class_label} · Students`, table(
         [
           { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
+          { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Pending months", render: (s) => (s.pending_months.length ? `${s.pending_months.length >= 2 ? badge(`${s.pending_months.length} months`, "danger") : ""} <span class="small">${esc(s.pending_months.join(", "))}</span>` : '<span class="muted">-</span>') },
           { label: "Last paid", render: (s) => fmtDate(s.last_payment), className: "nowrap" },
-          { label: "Dues", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
+          { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
         ],
-        d.students
+        sortedStudents(),
+        { sort: { key: sortKey, dir: sortDir } }
       ), { icon: "fa-users", flush: true })}`;
-    view.querySelector("#back").addEventListener("click", () => collect(view, ctx, {}));
-    view.querySelectorAll("[data-student]").forEach((b) => b.addEventListener("click", () => collect(view, ctx, { classId: state.classId, studentId: b.dataset.student })));
+      view.querySelector("#back").addEventListener("click", () => collect(view, ctx, {}));
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
+      }));
+      view.querySelectorAll("[data-student]").forEach((b) => b.addEventListener("click", () => collect(view, ctx, { classId: state.classId, studentId: b.dataset.student })));
+    }
+
+    paint();
   }
 
   async function studentFee(view, ctx, state) {

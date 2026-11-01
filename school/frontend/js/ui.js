@@ -163,7 +163,15 @@ const UI = (() => {
 
   function table(columns, rows, opts = {}) {
     if (!rows || !rows.length) return empty(opts.empty || "Nothing to show yet.", opts.emptyIcon);
-    const head = columns.map((c) => `<th class="${c.className || ""}">${esc(c.label)}</th>`).join("");
+    const sort = opts.sort || {};
+    const head = columns.map((c) => {
+      if (!c.sort) return `<th class="${c.className || ""}">${esc(c.label)}</th>`;
+      const active = sort.key === c.sort;
+      const dir = active ? sort.dir : "";
+      const icon = dir === "asc" ? "fa-sort-asc" : dir === "desc" ? "fa-sort-desc" : "fa-sort";
+      const aria = dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none";
+      return `<th class="${c.className || ""}" aria-sort="${aria}"><button type="button" class="th-sort${active ? " active" : ""}" data-sort="${esc(c.sort)}">${esc(c.label)} <i class="fa ${icon}" aria-hidden="true"></i></button></th>`;
+    }).join("");
     const body = rows
       .map(
         (row, i) =>

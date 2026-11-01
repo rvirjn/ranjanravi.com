@@ -198,7 +198,9 @@
         <input id="q" placeholder="Search name / admission / father / mobile" style="min-width:240px"></div>
         <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
       <div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
-    view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => students(view, ctx, { classId: b.dataset.class })));
+    view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => {
+      UI.runScreen(view, () => students(view, ctx, { classId: b.dataset.class }));
+    }));
     let timer;
     view.querySelector("#q").addEventListener("input", (e) => {
       clearTimeout(timer);
@@ -247,41 +249,82 @@
     if (state.classId) q.set("class_id", state.classId);
     if (state.q) q.set("q", state.q);
     const d = await MPS.get(`/principal/students?${q}`);
-    const title = state.q ? `Search · ${d.students.length}` : `${(d.classes.find((c) => c.id === state.classId) || {}).label || "Class"} · ${d.students.length}`;
-    view.innerHTML = `<div class="toolbar"><div class="filters">
+    let sortKey = "";
+    let sortDir = "asc";
+    const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+    const rollValue = (s) => {
+      if (s.roll_no === null || s.roll_no === undefined || s.roll_no === "") return null;
+      const n = Number(s.roll_no);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "roll") {
+        list.sort((a, b) => {
+          const ar = rollValue(a);
+          const br = rollValue(b);
+          if (ar === null && br === null) return byName(a, b);
+          if (ar === null) return 1;
+          if (br === null) return -1;
+          return dir * (ar - br) || byName(a, b);
+        });
+      } else if (sortKey === "name") {
+        list.sort((a, b) => dir * byName(a, b) || ((rollValue(a) ?? 0) - (rollValue(b) ?? 0)));
+      }
+      return list;
+    }
+
+    function paint() {
+      const title = state.q ? `Search · ${d.students.length}` : `${(d.classes.find((c) => c.id === state.classId) || {}).label || "Class"} · ${d.students.length}`;
+      view.innerHTML = `<div class="toolbar"><div class="filters">
         <button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
         <input id="q" placeholder="Search name / admission / father / mobile" value="${esc(state.q || "")}" style="min-width:240px"></div>
         <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
       ${card(title, table(
         [
           { label: "Class", key: "class_label" },
-          { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
+          { label: "Roll", sort: "roll", key: "roll_no" },
+          { label: "Student", sort: "name", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
           { label: "Father / Mobile", render: (s) => `${esc(s.father_name)}<div class="small muted">${esc(s.father_phone || "")}${s.mother_phone ? ` &middot; M: ${esc(s.mother_phone)}` : ""}</div>` },
           { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${s.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
         ],
-        d.students
+        sortedStudents(),
+        { sort: { key: sortKey, dir: sortDir } }
       ), { icon: "fa-users", flush: true })}`;
-    view.querySelector("#back").addEventListener("click", () => students(view, ctx, {}));
-    let timer;
-    view.querySelector("#q").addEventListener("input", (e) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => students(view, ctx, { ...state, q: e.target.value.trim() }), 400);
-    });
-    view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, state, d, null));
-    view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
-      const s = d.students.find((x) => x.id === b.dataset.edit);
-      openAdmission(view, ctx, state, d, s);
-    }));
-    view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
-      if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;
-      if (await run(() => MPS.post(`/principal/students/${b.dataset.left}`, { active: "false" }))) students(view, ctx, state);
-    }));
-    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
-      if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
-      if (await run(() => MPS.del(`/principal/students/${b.dataset.del}`))) students(view, ctx, state);
-    }));
-    view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
+      view.querySelector("#back").addEventListener("click", () => students(view, ctx, {}));
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
+      }));
+      let timer;
+      view.querySelector("#q").addEventListener("input", (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => students(view, ctx, { ...state, q: e.target.value.trim() }), 400);
+      });
+      view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, state, d, null));
+      view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+        const s = d.students.find((x) => x.id === b.dataset.edit);
+        openAdmission(view, ctx, state, d, s);
+      }));
+      view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;
+        if (await run(() => MPS.post(`/principal/students/${b.dataset.left}`, { active: "false" }))) students(view, ctx, state);
+      }));
+      view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
+        if (await run(() => MPS.del(`/principal/students/${b.dataset.del}`))) students(view, ctx, state);
+      }));
+      view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
+    }
+
+    paint();
   }
 
   async function studentDetail(id) {
