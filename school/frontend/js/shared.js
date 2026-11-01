@@ -487,8 +487,12 @@
         ],
         d.students
       ), { icon: "fa-bar-chart", flush: true })}`;
-    view.querySelector("#cls").addEventListener("change", (e) => attendanceReport(view, ctx, { classId: e.target.value, month: state.month }));
-    view.querySelector("#month").addEventListener("change", (e) => attendanceReport(view, ctx, { classId, month: e.target.value }));
+    view.querySelector("#cls").addEventListener("change", (e) => {
+      UI.runScreen(view, () => attendanceReport(view, ctx, { classId: e.target.value, month: state.month }));
+    });
+    view.querySelector("#month").addEventListener("change", (e) => {
+      UI.runScreen(view, () => attendanceReport(view, ctx, { classId, month: e.target.value }));
+    });
   }
 
   // ---------- Office staff accounts (admin -> accountants, accountant -> principals) ----------
