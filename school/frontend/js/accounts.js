@@ -9,25 +9,18 @@ const Accounts = (() => {
       <div class="grid grid-4">
         ${stat("Collected Today", money(d.collected_today), { icon: "fa-inr", sub: `${d.receipts_today} receipt(s)` })}
         ${stat("This Month", money(d.collected_month), { icon: "fa-calendar", tone: "info" })}
-        ${stat("Total Dues", money(d.total_due), { icon: "fa-exclamation-circle", tone: "warn", sub: `${money(d.overdue)} overdue` })}
-        ${stat("2+ Months Pending", d.defaulters, { icon: "fa-users", tone: "danger", sub: `<a href="#defaulters">View list</a>` })}
+        ${stat("Dues", "By class", { icon: "fa-exclamation-circle", tone: "info", sub: `<a href="#collect">Open a class</a>` })}
         ${stat("Pending Approvals", (d.pending_approvals || 0) + (d.pending_intimations || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_approvals || d.pending_intimations || d.pending_complaints) ? "warn" : "ok", sub: `<a href="#approvals">Open</a>` })}
       </div>
       <div class="grid grid-side">
-        ${card("Class-wise Dues", table(
-          [
-            { label: "Class", render: (c) => `<b>${esc(c.label)}</b>` },
-            { label: "Students", key: "students", className: "right" },
-            { label: "2+ months", render: (c) => (c.defaulters ? badge(c.defaulters, "danger") : "-"), className: "right" },
-            { label: "Dues", render: (c) => `<b>${money(c.due)}</b>`, className: "right" },
-            { label: "", className: "right", render: (c) => `<a class="btn btn-sm" href="#collect" data-class="${c.id}">Collect</a>` },
-          ],
-          d.classes
-        ), { icon: "fa-th-large", flush: true })}
+        ${card("Classes", `<div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span><span class="tile-status pending">Open to see dues</span></button>`).join("")}</div>`, { icon: "fa-th-large" })}
         ${card("Fee Rules", kv([["Collecting now", `${d.rules.billable_month_label} fee`], ["Collection window", d.rules.collection_window], ["Late fee", d.rules.late_fee_rule], ["WhatsApp reminders", d.rules.reminders]]), { icon: "fa-info-circle" })}
       </div>
       ${card("Recent Receipts", receiptTable(d.recent_receipts), { icon: "fa-file-text-o", flush: true, actions: '<a class="small" href="#receipts">All receipts</a>' })}`;
-    view.querySelectorAll("[data-class]").forEach((a) => a.addEventListener("click", () => sessionStorage.setItem("school_collect_class", a.dataset.class)));
+    view.querySelectorAll("[data-class]").forEach((a) => a.addEventListener("click", () => {
+      sessionStorage.setItem("school_collect_class", a.dataset.class);
+      location.hash = "collect";
+    }));
     bindReceipts(view);
   }
 
@@ -71,8 +64,7 @@ const Accounts = (() => {
     view.innerHTML = `<div class="toolbar"><span class="small muted">Collecting <b>${esc(d.rules.billable_month_label)}</b> fee &middot; ${esc(d.rules.collection_window)}</span>
         <div class="filters"><input id="search" placeholder="Search student / admission no." style="min-width:240px"></div></div>
       <div class="class-tiles">${d.classes
-        .map((c) => `<button type="button" class="class-tile ${c.due ? "" : "done"}" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.students} students</span>
-          <span class="tile-status ${c.due ? "pending" : "ok"}">${c.due ? `Dues ${money(c.due)}` : "No dues"}</span>${c.defaulters ? `<em style="background:var(--danger-bg);color:var(--danger)">${c.defaulters} late</em>` : ""}</button>`)
+        .map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span><span class="tile-status pending">Open</span></button>`)
         .join("")}</div><div id="results"></div>`;
     view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => collect(view, ctx, { classId: b.dataset.class })));
     let timer;
@@ -245,9 +237,18 @@ const Accounts = (() => {
   }
 
   // ---------- Defaulters ----------
-  async function defaulters(view, ctx, minMonths) {
-    const d = await MPS.get(`/accounts/defaulters${minMonths ? `?min_months=${minMonths}` : ""}`);
-    view.innerHTML = `<div class="toolbar"><div class="filters"><label style="margin:0">Pending for</label>
+  async function defaulters(view, ctx, state = {}) {
+    if (typeof state === "number") state = { minMonths: state };
+    if (!state.classId) {
+      const d = await MPS.get("/accounts/defaulters");
+      view.innerHTML = `<p class="small muted">Pick a class. Dues for that class are calculated when it opens.</p>
+        <div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
+      view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => defaulters(view, ctx, { classId: b.dataset.class })));
+      return;
+    }
+    const minMonths = state.minMonths;
+    const d = await MPS.get(`/accounts/defaulters?class_id=${encodeURIComponent(state.classId)}${minMonths ? `&min_months=${minMonths}` : ""}`);
+    view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button><div class="filters"><label style="margin:0">Pending for</label>
         <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select></div>
         <div class="btn-group">${badge(`${d.students.length} students · ${money(d.total_due)}`, "danger")}
         ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send reminder to all</button>' : ""}</div></div>
@@ -262,7 +263,8 @@ const Accounts = (() => {
         d.students,
         { empty: "No defaulters. Great!", emptyIcon: "fa-smile-o" }
       ), { icon: "fa-exclamation-triangle", flush: true })}`;
-    view.querySelector("#min").addEventListener("change", (e) => defaulters(view, ctx, Number(e.target.value)));
+    view.querySelector("#back").addEventListener("click", () => defaulters(view, ctx, {}));
+    view.querySelector("#min").addEventListener("change", (e) => defaulters(view, ctx, { classId: state.classId, minMonths: Number(e.target.value) }));
     const remind = view.querySelector("#remind");
     if (remind)
       remind.addEventListener("click", () => UI.whatsappPreview({

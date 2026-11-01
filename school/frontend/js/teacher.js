@@ -79,11 +79,6 @@
       .map((o) => `<option value="${esc(o.value)}" ${String(o.value) === String(selected ?? "") ? "selected" : ""}>${esc(o.label)}</option>`)
       .join("")}</select>`;
 
-  async function allStudents(classes) {
-    const lists = await Promise.all(classes.map((c) => MPS.get(`/teacher/students?class_id=${c.id}`)));
-    return lists.flatMap((l) => l.students.map((s) => ({ ...s, class_label: l.class_label })));
-  }
-
   // ---------- Dashboard ----------
   async function dashboard(view) {
     const d = await MPS.get("/teacher/dashboard");
@@ -659,10 +654,15 @@
       ],
       d.remarks,
       { empty: "You have not added any remarks yet.", emptyIcon: "fa-comment-o" }
-    ), { icon: "fa-comment-o", flush: true, actions: '<button class="btn btn-sm" id="newBtn"><i class="fa fa-plus"></i> Add Remark</button>' });
+    ), { icon: "fa-comment-o", flush: true, actions: `${d.classes.length > 1 ? `<select id="remarkClass">${d.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("")}</select> ` : ""}<button class="btn btn-sm" id="newBtn"><i class="fa fa-plus"></i> Add Remark</button>` });
     view.querySelector("#newBtn").addEventListener("click", async () => {
-      const students = await allStudents(d.classes);
-      remarkForm(d.types, students.map((s) => ({ value: s.id, label: `${s.name} (${s.class_label}, Roll ${s.roll_no})` })), null, () => remarks(view, ctx));
+      const chosen = d.classes.length === 1 ? d.classes[0].id : (view.querySelector("#remarkClass") || {}).value;
+      if (!chosen) {
+        UI.toast("Choose a class first", "error");
+        return;
+      }
+      const roster = await MPS.get(`/teacher/students?class_id=${encodeURIComponent(chosen)}`);
+      remarkForm(d.types, roster.students.map((s) => ({ value: s.id, label: `${s.name} (Roll ${s.roll_no})` })), null, () => remarks(view, ctx));
     });
   }
 
@@ -754,20 +754,15 @@
   // ---------- Messages ----------
   async function messages(view, ctx, mode = "inbox") {
     const d = await MPS.get("/teacher/messages");
-    const students = await allStudents(d.classes);
-    const recipients = [
-      ...d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` })),
-      ...students.map((s) => ({ value: `student|${s.id}`, label: `${s.name} (${s.class_label})` })),
-    ];
+    const recipients = d.classes.map((c) => ({ value: `class|${c.id}`, label: `Whole class: ${c.label}` }));
+    const home = d.classes.find((c) => c.is_class_teacher);
+    const mine = home ? (await MPS.get(`/teacher/students?class_id=${encodeURIComponent(home.id)}`)).students : [];
     const items = d[mode];
-    const homeIds = new Set(d.classes.filter((c) => c.is_class_teacher).map((c) => c.id));
-    const seen = new Set();
-    const mine = students.filter((s) => homeIds.has(s.class_id) && (seen.has(s.id) ? false : seen.add(s.id)));
-    const myStudents = !homeIds.size
+    const myStudents = !home
       ? empty("You are not a class teacher.", "fa-users")
       : mine.length
         ? `<ul class="list">${mine
-          .map((s) => `<li><div class="avatar" style="background:var(--info-bg);color:var(--info)">${UI.initials(s.name)}</div><div class="grow"><div class="title">${esc(s.name)}</div><div class="meta">${esc(s.class_label)} · Roll ${esc(s.roll_no)}</div></div></li>`)
+          .map((s) => `<li><div class="avatar" style="background:var(--info-bg);color:var(--info)">${UI.initials(s.name)}</div><div class="grow"><div class="title">${esc(s.name)}</div><div class="meta">${esc(home.label)} · Roll ${esc(s.roll_no)}</div></div></li>`)
           .join("")}</ul>`
         : empty("No students yet.", "fa-users");
     view.innerHTML = `<div class="grid grid-side">
@@ -780,6 +775,11 @@
         .join("")}</ul>` : empty("No messages.", "fa-envelope-o"), { icon: "fa-envelope-o", flush: true, actions: '<button class="btn btn-sm" id="composeBtn"><i class="fa fa-pencil"></i> New Message</button>' })}
       <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
         <div class="field"><label for="waTo">To</label>${selectHtml("waTo", recipients)}</div>
+        <div class="field"><label for="waClass">Or one student</label>
+          <div class="btn-group">
+            <select id="waClass"><option value="">Class</option>${d.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("")}</select>
+            <select id="waStudent"><option value="">Student</option></select>
+          </div></div>
         <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
         <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
         <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
@@ -792,8 +792,16 @@
         modal(m.subject, `<p class="muted small">From <b>${esc(m.from_name)}</b> to <b>${esc(m.to_name)}</b> · ${fmtDateTime(m.date)}</p><p class="pre">${esc(m.body)}</p>`);
       })
     );
+    view.querySelector("#waClass").addEventListener("change", async (e) => {
+      const box = view.querySelector("#waStudent");
+      box.innerHTML = `<option value="">Student</option>`;
+      if (!e.target.value) return;
+      const roster = await MPS.get(`/teacher/students?class_id=${encodeURIComponent(e.target.value)}`);
+      box.innerHTML += roster.students.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+    });
     view.querySelector("#waSend").addEventListener("click", () => {
-      const to = view.querySelector("#waTo").value;
+      const studentId = view.querySelector("#waStudent").value;
+      const to = studentId ? `student|${studentId}` : view.querySelector("#waTo").value;
       const subject = view.querySelector("#waSubject").value.trim();
       const body = view.querySelector("#waBody").value.trim();
       if (!to || !subject || !body) {
@@ -809,10 +817,13 @@
       });
     });
     const compose = async (preset) => {
-      openForm({
+      const toOptions = [...recipients];
+      if (preset && preset.to && !toOptions.some((o) => o.value === preset.to)) toOptions.unshift({ value: preset.to, label: preset.toLabel || "Student" });
+      const formModal = openForm({
         title: "New Message",
         fields: [
-          { name: "to", label: "To", type: "select", required: true, options: recipients, value: preset && preset.to },
+          { name: "class_pick", label: "Class, to choose one student", type: "select", options: [{ value: "", label: "Whole classes are in To" }, ...d.classes.map((c) => ({ value: c.id, label: c.label }))] },
+          { name: "to", label: "To", type: "select", required: true, options: toOptions, value: preset && preset.to },
           { name: "subject", label: "Subject", required: true, maxlength: 200, value: preset && preset.subject },
           { name: "body", label: "Message", type: "textarea", required: true },
         ],
@@ -824,12 +835,24 @@
           return r;
         },
       });
+      const form = formModal.body.querySelector("form");
+      form.class_pick.addEventListener("change", async () => {
+        [...form.to.options].forEach((o) => { if (o.value.startsWith("student|")) o.remove(); });
+        if (!form.class_pick.value) return;
+        const roster = await MPS.get(`/teacher/students?class_id=${encodeURIComponent(form.class_pick.value)}`);
+        roster.students.forEach((s) => {
+          const option = document.createElement("option");
+          option.value = `student|${s.id}`;
+          option.textContent = s.name;
+          form.to.appendChild(option);
+        });
+      });
     };
     view.querySelector("#composeBtn").addEventListener("click", () => compose());
     view.querySelectorAll("[data-reply]").forEach((b) =>
       b.addEventListener("click", () => {
-        const m = items.find((x) => x.id === b.dataset.reply);
-        compose({ to: `student|${m.from_id}`, subject: m.subject.startsWith("Re:") ? m.subject : `Re: ${m.subject}` });
+        const message = items.find((x) => x.id === b.dataset.reply);
+        compose({ to: `student|${message.from_id}`, toLabel: message.from_name, subject: message.subject.startsWith("Re:") ? message.subject : `Re: ${message.subject}` });
       })
     );
   }

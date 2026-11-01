@@ -75,7 +75,7 @@
         ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked` })}
         ${stat("Teachers Present", d.teachers_recorded ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : d.teachers_recorded ? "warn" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : (d.teachers_recorded ? `${d.teachers_total - d.teachers_recorded} not marked · <a href="#teacher-attendance">Open</a>` : '<a href="#teacher-attendance">Mark now</a>') })}
         ${stat("Fee Collected (month)", money(d.fees.collected_month), { icon: "fa-inr", tone: "info", sub: `Today ${money(d.fees.collected_today)}` })}
-        ${stat("Fee Dues", money(d.fees.total_due), { icon: "fa-exclamation-circle", tone: "danger", sub: `${d.fees.defaulters} students 2+ months` })}
+        ${stat("Fee Dues", "By class", { icon: "fa-exclamation-circle", tone: "info", sub: "Opened with the class in Collect Fee" })}
         ${stat("Pending Approvals", pendingTotal, { icon: "fa-check-circle", tone: pendingTotal ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
       </div>
       <div class="grid grid-side">
@@ -188,15 +188,71 @@
   };
 
   async function students(view, ctx, state = {}) {
+    if (!state.classId && !state.q) return studentTiles(view, ctx, state);
+    return studentList(view, ctx, state);
+  }
+
+  async function studentTiles(view, ctx) {
+    const d = await MPS.get("/principal/students");
+    view.innerHTML = `<div class="toolbar"><div class="filters">
+        <input id="q" placeholder="Search name / admission / father / mobile" style="min-width:240px"></div>
+        <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
+      <div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
+    view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => students(view, ctx, { classId: b.dataset.class })));
+    let timer;
+    view.querySelector("#q").addEventListener("input", (e) => {
+      clearTimeout(timer);
+      const value = e.target.value.trim();
+      timer = setTimeout(() => {
+        if (value.length >= 2) students(view, ctx, { q: value });
+      }, 400);
+    });
+    view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, {}, d, null));
+  }
+
+  async function openAdmission(view, ctx, state, d, student) {
+    const meta = await MPS.get("/principal/students?admissions=1");
+    const formD = { ...d, ...meta };
+    const s = student || { class_id: state.classId };
+    const m = openForm({
+      title: student ? `Edit ${student.name}` : "New Admission",
+      loginPreview: student ? null : {
+        letter: "S", password: "s@123", withYear: true, suggest: true,
+        nextNumber: meta.next_admission_number || "0012026",
+        nextByYear: meta.next_admission_by_year || null,
+        code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
+      },
+      admissionCheck: { usedNumbers: meta.used_admission_numbers || [], who: "student", allow: student ? { number: UI.shared.admissionSuffix(student) } : null },
+      fields: student
+        ? [...STUDENT_FORM(student, formD), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Left school (inactive)" }], value: String(student.active !== false) }]
+        : STUDENT_FORM(s, formD),
+      submitLabel: student ? "Save" : "Add Student",
+      onSubmit: async (v) => {
+        const r = student ? await MPS.post(`/principal/students/${student.id}`, v) : await MPS.post("/principal/students", v);
+        students(view, ctx, state);
+        return r;
+      },
+    });
+    if (!student) return;
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "btn btn-light btn-sm";
+    reset.textContent = "Reset password";
+    reset.addEventListener("click", () => confirm("Reset password to s@123?") && run(() => MPS.post(`/principal/users/student/${student.id}/reset-password`)));
+    m.body.querySelector(".modal-actions").prepend(reset);
+  }
+
+  async function studentList(view, ctx, state = {}) {
     const q = new URLSearchParams();
     if (state.classId) q.set("class_id", state.classId);
     if (state.q) q.set("q", state.q);
     const d = await MPS.get(`/principal/students?${q}`);
+    const title = state.q ? `Search · ${d.students.length}` : `${(d.classes.find((c) => c.id === state.classId) || {}).label || "Class"} · ${d.students.length}`;
     view.innerHTML = `<div class="toolbar"><div class="filters">
-        <select id="cls"><option value="">All classes</option>${d.classes.map((c) => `<option value="${c.id}" ${c.id === state.classId ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
+        <button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
         <input id="q" placeholder="Search name / admission / father / mobile" value="${esc(state.q || "")}" style="min-width:240px"></div>
         <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
-      ${card(`Students (${d.students.length})`, table(
+      ${card(title, table(
         [
           { label: "Class", key: "class_label" },
           { label: "Roll", key: "roll_no" },
@@ -206,48 +262,16 @@
         ],
         d.students
       ), { icon: "fa-users", flush: true })}`;
-    view.querySelector("#cls").addEventListener("change", (e) => students(view, ctx, { ...state, classId: e.target.value }));
+    view.querySelector("#back").addEventListener("click", () => students(view, ctx, {}));
     let timer;
     view.querySelector("#q").addEventListener("input", (e) => {
       clearTimeout(timer);
-      timer = setTimeout(() => students(view, ctx, { ...state, q: e.target.value }), 400);
+      timer = setTimeout(() => students(view, ctx, { ...state, q: e.target.value.trim() }), 400);
     });
-    view.querySelector("#add").addEventListener("click", () =>
-      openForm({
-        title: "New Admission",
-        loginPreview: {
-          letter: "S", password: "s@123", withYear: true, suggest: true,
-          nextNumber: d.next_admission_number || "0012026",
-          nextByYear: d.next_admission_by_year || null,
-          code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
-        },
-        admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "student" },
-        fields: STUDENT_FORM({ class_id: state.classId }, d), submitLabel: "Add Student",
-        onSubmit: async (v) => {
-          const r = await MPS.post("/principal/students", v);
-          students(view, ctx, state);
-          return r;
-        },
-      })
-    );
+    view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, state, d, null));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const s = d.students.find((x) => x.id === b.dataset.edit);
-      const m = openForm({
-        title: `Edit ${s.name}`,
-        admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "student", allow: { number: UI.shared.admissionSuffix(s) } },
-        fields: [...STUDENT_FORM(s, d), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Left school (inactive)" }], value: String(s.active !== false) }],
-        onSubmit: async (v) => {
-          const r = await MPS.post(`/principal/students/${s.id}`, v);
-          students(view, ctx, state);
-          return r;
-        },
-      });
-      const reset = document.createElement("button");
-      reset.type = "button";
-      reset.className = "btn btn-light btn-sm";
-      reset.textContent = "Reset password";
-      reset.addEventListener("click", () => confirm("Reset password to s@123?") && run(() => MPS.post(`/principal/users/student/${s.id}/reset-password`)));
-      m.body.querySelector(".modal-actions").prepend(reset);
+      openAdmission(view, ctx, state, d, s);
     }));
     view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
       if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;
@@ -883,6 +907,11 @@
       <div style="margin-top:16px">${card("WhatsApp Message", `<p class="small muted">Same as the email above: who it is for, the subject and the message. This one is previewed, then sent on WhatsApp.</p>
         <div class="field"><label for="waTo">To</label>${selectHtml("waTo", waRecipients)}
           <p class="small muted" id="waGroupHint" hidden></p></div>
+        <div class="field"><label for="waClass">Or one student</label>
+          <div class="btn-group">
+            <select id="waClass"><option value="">Class</option>${d.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.label)}</option>`).join("")}</select>
+            <select id="waStudent"><option value="">Student</option></select>
+          </div></div>
         <div class="field"><label for="waSubject">Subject</label><input id="waSubject" maxlength="200"></div>
         <div class="field"><label for="waBody">Message</label><textarea id="waBody"></textarea></div>
         <button class="btn" id="waSend" type="button"><i class="fa fa-whatsapp"></i> View &amp; Send</button>`, { icon: "fa-whatsapp" })}</div></div>
@@ -908,8 +937,16 @@
     };
     view.querySelector("#waTo").addEventListener("change", showGroupHint);
     showGroupHint();
+    view.querySelector("#waClass").addEventListener("change", async (e) => {
+      const box = view.querySelector("#waStudent");
+      box.innerHTML = `<option value="">Student</option>`;
+      if (!e.target.value) return;
+      const r = await MPS.get(`/principal/students?class_id=${encodeURIComponent(e.target.value)}`);
+      box.innerHTML += r.students.filter((s) => s.active !== false).map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+    });
     view.querySelector("#waSend").addEventListener("click", () => {
-      const to = view.querySelector("#waTo").value;
+      const studentId = view.querySelector("#waStudent").value;
+      const to = studentId ? `student|${studentId}` : view.querySelector("#waTo").value;
       const subject = view.querySelector("#waSubject").value.trim();
       const body = view.querySelector("#waBody").value.trim();
       if (!to || !subject || !body) {
@@ -925,10 +962,13 @@
       });
     });
     const compose = async (preset) => {
-      openForm({
+      const toOptions = [...recipients];
+      if (preset && preset.to && !toOptions.some((o) => o.value === preset.to)) toOptions.unshift({ value: preset.to, label: preset.toLabel || "Student" });
+      const m = openForm({
         title: "New Message",
         fields: [
-          { name: "to", label: "To", type: "select", required: true, options: recipients, value: preset && preset.to },
+          { name: "class_pick", label: "Class, to choose one student", type: "select", options: [{ value: "", label: "Teachers and whole classes are in To" }, ...d.classes.map((c) => ({ value: c.id, label: c.label }))] },
+          { name: "to", label: "To", type: "select", required: true, options: toOptions, value: preset && preset.to },
           { name: "subject", label: "Subject", required: true, maxlength: 200, value: preset && preset.subject },
           { name: "body", label: "Message", type: "textarea", required: true },
         ],
@@ -940,12 +980,24 @@
           return r;
         },
       });
+      const form = m.body.querySelector("form");
+      form.class_pick.addEventListener("change", async () => {
+        [...form.to.options].forEach((o) => { if (o.value.startsWith("student|")) o.remove(); });
+        if (!form.class_pick.value) return;
+        const r = await MPS.get(`/principal/students?class_id=${encodeURIComponent(form.class_pick.value)}`);
+        r.students.filter((s) => s.active !== false).forEach((s) => {
+          const option = document.createElement("option");
+          option.value = `student|${s.id}`;
+          option.textContent = s.name;
+          form.to.appendChild(option);
+        });
+      });
     };
     view.querySelector("#composeBtn").addEventListener("click", () => compose());
     view.querySelectorAll("[data-reply]").forEach((b) =>
       b.addEventListener("click", () => {
         const m = items.find((x) => x.id === b.dataset.reply);
-        compose({ to: `${m.from_type}|${m.from_id}`, subject: m.subject.startsWith("Re:") ? m.subject : `Re: ${m.subject}` });
+        compose({ to: `${m.from_type}|${m.from_id}`, toLabel: m.from_name, subject: m.subject.startsWith("Re:") ? m.subject : `Re: ${m.subject}` });
       })
     );
   }
