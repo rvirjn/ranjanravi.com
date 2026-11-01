@@ -1,5 +1,5 @@
 (() => {
-  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc, run, eventSpan } = UI;
+  const { esc, fmtDate, fmtTime, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, progress, dateChip, tabs, onTabs, openForm, modal, printDoc, run, eventSpan, avatar } = UI;
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -184,9 +184,33 @@
     }
   }
 
+  const PEOPLE_STUDENT_FORM = (s, d) => {
+    const suggested = s.id ? "" : ((d && d.next_admission_number) || "001");
+    return [
+      { name: "photo", label: "Photo", type: "photo", value: s.photo },
+      { name: "name", label: "Student name", required: true, value: s.name, person: true, title: "Name cannot contain a number" },
+      { name: "designation", label: "Designation", value: s.designation || "Student" },
+      { name: "admission_number", label: "Admission No.", required: true, value: UI.shared.admissionSuffix(s) || suggested, hint: "The number and the year, such as 0012026", pattern: "[0-9]{1,12}", inputmode: "numeric", maxlength: 12, title: "Admission No. must be a number such as 0012026" },
+      { name: "admission_date", label: "Date of Admission", type: "date", required: true, min: UI.admissionDate.min, max: UI.admissionDate.max, value: s.admission_date || (s.id ? "" : UI.todayIso()) },
+      { name: "class_id", label: "Class", type: "select", required: true, options: d.classes.map((c) => ({ value: c.id, label: c.label })), value: s.class_id, hint: s.id ? "Changing class updates unpaid tuition to that class fee. A sibling in a different class is charged their own class fee, and both show the same due." : "" },
+      { name: "fee_rebate", label: "Monthly fee rebate (Rs)", type: "number", min: 0, value: s.fee_rebate || 0, hint: "Taken off this student's class fee. Leave 0 to charge the full class fee. A father with 3 or more children gets Rs 100 on each child when this is left at 0. Siblings in the same class share one fee, and each child's own rebate is taken off that fee." },
+      { name: "roll_no", label: "Roll No.", type: "number", value: s.roll_no },
+      { name: "gender", label: "Gender", type: "select", options: ["", "Male", "Female"], value: s.gender },
+      { name: "dob", label: "Date of birth", type: "date", value: s.dob },
+      { name: "father_name", label: "Father's name", required: true, value: s.father_name, person: true, title: "Name cannot contain a number" },
+      { name: "father_phone", label: "Father's mobile (WhatsApp)", type: "mobile", required: true, value: s.father_phone },
+      { name: "mother_name", label: "Mother's name", value: s.mother_name, person: true, title: "Name cannot contain a number" },
+      { name: "mother_phone", label: "Mother's mobile (WhatsApp)", type: "mobile", value: s.mother_phone },
+      { name: "phone", label: "Parent / guardian mobile", type: "mobile", value: s.phone },
+      { name: "address", label: "Address", type: "textarea", value: s.address },
+      { name: "transport_route_id", label: "Transport", type: "select", options: [{ value: "", label: "Own transport" }, ...(d.routes || []).map((r) => ({ value: r.id, label: r.label }))], value: s.transport_route_id || "" },
+      { name: "blood_group", label: "Blood group", value: s.blood_group },
+    ];
+  };
+
   async function peopleStudents(view, ctx, state = {}) {
     if (typeof state === "string") state = state ? { classId: state } : {};
-    if (!state.classId) return peopleStudentTiles(view, ctx);
+    if (!state.classId && !state.q) return peopleStudentTiles(view, ctx);
     return peopleStudentList(view, ctx, state);
   }
 
@@ -196,27 +220,158 @@
       view.innerHTML = card("Students", empty("You are not a class teacher.", "fa-users"));
       return;
     }
-    view.innerHTML = `<div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
+    view.innerHTML = `<div class="toolbar"><div class="filters">
+        <input id="q" placeholder="Search name / admission / father / mobile" style="min-width:240px"></div>
+        <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
+      <div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
     view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => {
       UI.runScreen(view, () => peopleStudents(view, ctx, { classId: b.dataset.class }));
     }));
+    let timer;
+    view.querySelector("#q").addEventListener("input", (e) => {
+      clearTimeout(timer);
+      const value = e.target.value.trim();
+      timer = setTimeout(() => {
+        if (value.length >= 2) peopleStudents(view, ctx, { q: value });
+      }, 400);
+    });
+    view.querySelector("#add").addEventListener("click", () => peopleAdmission(view, ctx, {}, d, null));
   }
 
-  async function peopleStudentList(view, ctx, state) {
-    const d = await MPS.get(`/teacher/class-students?class_id=${encodeURIComponent(state.classId)}`);
-    view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button></div>
-      ${card(`${esc(d.class_label)} · Students`, table(
+  async function peopleAdmission(view, ctx, state, d, student) {
+    const meta = await MPS.get("/teacher/class-students?admissions=1");
+    const formD = { ...d, ...meta };
+    const s = student || { class_id: state.classId || (d.classes[0] && d.classes[0].id) };
+    const m = openForm({
+      title: student ? `Edit ${student.name}` : "New Admission",
+      loginPreview: student ? null : {
+        letter: "S", password: "s@123", withYear: true, suggest: true,
+        nextNumber: meta.next_admission_number || "0012026",
+        nextByYear: meta.next_admission_by_year || null,
+        code: (ctx.school && (ctx.school.code || ctx.school.short_name)) || "",
+      },
+      admissionCheck: { usedNumbers: meta.used_admission_numbers || [], who: "student", allow: student ? { number: UI.shared.admissionSuffix(student) } : null },
+      fields: student
+        ? [...PEOPLE_STUDENT_FORM(student, formD), { name: "active", label: "Status", type: "select", options: [{ value: "true", label: "Active" }, { value: "false", label: "Left school (inactive)" }], value: String(student.active !== false) }]
+        : PEOPLE_STUDENT_FORM(s, formD),
+      submitLabel: student ? "Save" : "Add Student",
+      onSubmit: async (v) => {
+        const r = student ? await MPS.post(`/teacher/class-students/${student.id}`, v) : await MPS.post("/teacher/class-students", v);
+        peopleStudents(view, ctx, state);
+        return r;
+      },
+    });
+    if (!student) return;
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "btn btn-light btn-sm";
+    reset.textContent = "Reset password";
+    reset.addEventListener("click", () => confirm("Reset password to s@123?") && run(() => MPS.post(`/teacher/class-students/${student.id}/reset-password`)));
+    m.body.querySelector(".modal-actions").prepend(reset);
+  }
+
+  async function peopleStudentList(view, ctx, state = {}) {
+    const q = new URLSearchParams();
+    if (state.classId) q.set("class_id", state.classId);
+    if (state.q) q.set("q", state.q);
+    const d = await MPS.get(`/teacher/class-students?${q}`);
+    let sortKey = "";
+    let sortDir = "asc";
+    const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+    const rollValue = (s) => {
+      if (s.roll_no === null || s.roll_no === undefined || s.roll_no === "") return null;
+      const n = Number(s.roll_no);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "roll") {
+        list.sort((a, b) => {
+          const ar = rollValue(a);
+          const br = rollValue(b);
+          if (ar === null && br === null) return byName(a, b);
+          if (ar === null) return 1;
+          if (br === null) return -1;
+          return dir * (ar - br) || byName(a, b);
+        });
+      } else if (sortKey === "name") {
+        list.sort((a, b) => dir * byName(a, b) || ((rollValue(a) ?? 0) - (rollValue(b) ?? 0)));
+      }
+      return list;
+    }
+
+    function paint() {
+      const title = state.q ? `Search · ${d.students.length}` : `${(d.classes.find((c) => c.id === state.classId) || {}).label || "Class"} · ${d.students.length}`;
+      view.innerHTML = `<div class="toolbar"><div class="filters">
+        <button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
+        <input id="q" placeholder="Search name / admission / father / mobile" value="${esc(state.q || "")}" style="min-width:240px"></div>
+        <div class="btn-group"><button class="btn" id="add"><i class="fa fa-user-plus"></i> New Admission</button></div></div>
+      ${card(title, table(
         [
-          { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)}</div>` },
-          { label: "Father / Mobile", render: (s) => `${esc(s.father_name || "")}<div class="small muted">${esc(s.father_phone || s.phone || "")}</div>` },
-          { label: "", className: "right", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button>` },
+          { label: "Class", key: "class_label" },
+          { label: "Roll", sort: "roll", key: "roll_no" },
+          { label: "Student", sort: "name", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
+          { label: "Father / Mobile", render: (s) => `${esc(s.father_name)}<div class="small muted">${esc(s.father_phone || "")}${s.mother_phone ? ` &middot; M: ${esc(s.mother_phone)}` : ""}</div>` },
+          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${s.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
         ],
-        d.students,
-        { empty: "No students yet.", emptyIcon: "fa-users" }
+        sortedStudents(),
+        { sort: { key: sortKey, dir: sortDir } }
       ), { icon: "fa-users", flush: true })}`;
-    view.querySelector("#back").addEventListener("click", () => peopleStudents(view, ctx, {}));
-    view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
+      view.querySelector("#back").addEventListener("click", () => peopleStudents(view, ctx, {}));
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
+      }));
+      let timer;
+      view.querySelector("#q").addEventListener("input", (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => peopleStudents(view, ctx, { ...state, q: e.target.value.trim() }), 400);
+      });
+      view.querySelector("#add").addEventListener("click", () => peopleAdmission(view, ctx, state, d, null));
+      view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+        const s = d.students.find((x) => x.id === b.dataset.edit);
+        peopleAdmission(view, ctx, state, d, s);
+      }));
+      view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;
+        if (await run(() => MPS.post(`/teacher/class-students/${b.dataset.left}`, { active: "false" }))) peopleStudents(view, ctx, state);
+      }));
+      view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
+        if (await run(() => MPS.del(`/teacher/class-students/${b.dataset.del}`))) peopleStudents(view, ctx, state);
+      }));
+      view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => peopleStudentDetail(b.dataset.view)));
+    }
+
+    paint();
+  }
+
+  async function peopleStudentDetail(id) {
+    const m = modal("Student", UI.loading(), { wide: true });
+    try {
+      const d = await MPS.get(`/teacher/students/${id}`);
+      const s = d.student;
+      const fees = d.fees || { due: d.fees_due || 0, pending_months: [] };
+      m.body.innerHTML = `<div class="grid grid-4" style="margin-bottom:14px">
+        ${stat("Attendance", `${d.attendance.percentage}%`, { icon: "fa-calendar-check-o" })}
+        ${stat("Fee due", money(fees.due), { icon: "fa-inr", tone: fees.due ? "warn" : "ok" })}
+        ${stat("Last result", d.results.length ? `${d.results[d.results.length - 1].percentage}%` : "-", { icon: "fa-trophy", tone: "info" })}
+        ${stat("Pending months", (fees.pending_months || []).length, { icon: "fa-exclamation-circle", tone: (fees.pending_months || []).length >= 2 ? "danger" : "ok" })}</div>
+      ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Monthly rebate", money(s.fee_rebate || 0)], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
+        ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address]])}
+      ${(s.history || []).length ? `<h4>Previous sessions</h4><ul>${s.history.map((h) => `<li>${esc(h.session)} · ${esc(h.class_label || "")}${h.roll_no ? `, roll ${esc(h.roll_no)}` : ""} · ${esc(h.status || "")}</li>`).join("")}</ul>` : ""}
+      <div class="modal-actions"><button class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button></div>`;
+      m.body.querySelector("#hpc").addEventListener("click", () => UI.showProgressCard(`/teacher/students/${id}/progress-card`));
+    } catch (e) {
+      m.body.innerHTML = UI.errorBox(e.message);
+    }
   }
 
   async function classes(view, ctx, selected) {
