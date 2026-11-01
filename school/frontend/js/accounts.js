@@ -63,7 +63,7 @@ const Accounts = (() => {
     const d = await MPS.get("/accounts/dashboard");
     view.innerHTML = `<div class="toolbar"><span class="small muted">Collecting <b>${esc(d.rules.billable_month_label)}</b> fee &middot; ${esc(d.rules.collection_window)}</span>
         <div class="filters"><input id="search" placeholder="Search student / admission no." style="min-width:240px"></div></div>
-      <div class="class-tiles">${d.classes
+      <div class="class-tiles">${[{ id: "all", label: "All", student_count: d.classes.reduce((t, c) => t + Number(c.student_count || 0), 0) }, ...d.classes]
         .map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span><span class="tile-status pending">Open</span></button>`)
         .join("")}</div><div id="results"></div>`;
     view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => collect(view, ctx, { classId: b.dataset.class })));
@@ -110,17 +110,19 @@ const Accounts = (() => {
     }
 
     function paint() {
-      view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
-        ${badge(`Class dues ${money(d.due_total != null ? d.due_total : d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
-      ${card(`${d.class_label} · Students`, table(
-        [
-          { label: "Roll", key: "roll_no" },
+      const columns = [{ label: "Roll", key: "roll_no" }];
+      if (state.classId === "all") columns.push({ label: "Class", key: "class_label" });
+      columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Pending months", render: (s) => (s.pending_months.length ? `${s.pending_months.length >= 2 ? badge(`${s.pending_months.length} months`, "danger") : ""} <span class="small">${esc(s.pending_months.join(", "))}</span>` : '<span class="muted">-</span>') },
           { label: "Last paid", render: (s) => fmtDate(s.last_payment), className: "nowrap" },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
-        ],
+      );
+      view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
+        ${badge(`${state.classId === "all" ? "Dues" : "Class dues"} ${money(d.due_total != null ? d.due_total : d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
+      ${card(`${d.class_label} · Students`, table(
+        columns,
         sortedStudents(),
         { sort: { key: sortKey, dir: sortDir } }
       ), { icon: "fa-users", flush: true })}`;
@@ -146,7 +148,7 @@ const Accounts = (() => {
     const due = d.charges.filter((c) => c.due > 0);
     const pendingInt = d.intimations.filter((i) => i.status === "Pending");
     view.innerHTML = `
-      <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${esc(d.class_label)} students</button>
+      <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
         <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.summary.sibling_names || []).length ? ` <span class="small muted">Combined with ${esc(d.summary.sibling_names.join(", "))}. Same due on each sibling.</span>` : ""}</span></div>
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
@@ -222,7 +224,7 @@ const Accounts = (() => {
     view.querySelector("#addItem").addEventListener("click", addItem);
     recalc();
     bindReceipts(view);
-    view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: s.class_id }));
+    view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
     view.querySelector("#submit").addEventListener("click", async (e) => {
       const form = view.querySelector("#payForm");
       if (!form.reportValidity()) return;
@@ -277,11 +279,11 @@ const Accounts = (() => {
       }));
       return;
     }
-    const minMonths = state.minMonths;
+    const minMonths = Number(state.minMonths) || 0;
     const minDue = Math.max(0, Math.floor(Number(state.minDue) || 0));
     const query = new URLSearchParams({ class_id: state.classId });
-    if (minMonths) query.set("min_months", String(minMonths));
     if (minDue) query.set("min_due", String(minDue));
+    else if (minMonths) query.set("min_months", String(minMonths));
     const d = await MPS.get(`/accounts/defaulters?${query}`);
     let sortKey = "";
     let sortDir = "asc";
@@ -296,8 +298,10 @@ const Accounts = (() => {
     }
 
     function paint() {
+      const dueActive = Number(d.min_due) > 0;
+      const shownMonths = dueActive ? 0 : (minMonths || d.min_months);
       view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button><div class="filters"><label style="margin:0">Pending for</label>
-        <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select>
+        <select id="min">${dueActive ? '<option value="0" selected>Any</option>' : ""}${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === shownMonths ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select>
         <label style="margin:0">Due at least</label>
         <input id="minDue" type="number" min="0" step="1" inputmode="numeric" placeholder="Any amount" value="${d.min_due ? esc(String(d.min_due)) : ""}"></div>
         <div class="btn-group">${badge(`${d.students.length} students · ${money(d.total_due)}`, "danger")}
@@ -318,14 +322,15 @@ const Accounts = (() => {
       });
       const dueFilter = () => Math.max(0, Math.floor(Number(view.querySelector("#minDue").value) || 0));
       view.querySelector("#min").addEventListener("change", (e) => {
-        const amount = dueFilter();
         const months = Number(e.target.value);
-        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: months, minDue: amount }));
+        if (!months) return;
+        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: months, minDue: 0 }));
       });
       view.querySelector("#minDue").addEventListener("change", () => {
         const amount = dueFilter();
         if (amount === (Number(d.min_due) || 0)) return;
-        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: d.min_months, minDue: amount }));
+        const months = Number(view.querySelector("#min").value) || minMonths || d.min_months;
+        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: months, minDue: amount }));
       });
       view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
         const key = btn.dataset.sort;

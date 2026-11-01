@@ -184,6 +184,41 @@
     }
   }
 
+  async function peopleStudents(view, ctx, state = {}) {
+    if (typeof state === "string") state = state ? { classId: state } : {};
+    if (!state.classId) return peopleStudentTiles(view, ctx);
+    return peopleStudentList(view, ctx, state);
+  }
+
+  async function peopleStudentTiles(view, ctx) {
+    const d = await MPS.get("/teacher/class-students");
+    if (!d.classes.length) {
+      view.innerHTML = card("Students", empty("You are not a class teacher.", "fa-users"));
+      return;
+    }
+    view.innerHTML = `<div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
+    view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => {
+      UI.runScreen(view, () => peopleStudents(view, ctx, { classId: b.dataset.class }));
+    }));
+  }
+
+  async function peopleStudentList(view, ctx, state) {
+    const d = await MPS.get(`/teacher/class-students?class_id=${encodeURIComponent(state.classId)}`);
+    view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button></div>
+      ${card(`${esc(d.class_label)} · Students`, table(
+        [
+          { label: "Roll", key: "roll_no" },
+          { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)}</div>` },
+          { label: "Father / Mobile", render: (s) => `${esc(s.father_name || "")}<div class="small muted">${esc(s.father_phone || s.phone || "")}</div>` },
+          { label: "", className: "right", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button>` },
+        ],
+        d.students,
+        { empty: "No students yet.", emptyIcon: "fa-users" }
+      ), { icon: "fa-users", flush: true })}`;
+    view.querySelector("#back").addEventListener("click", () => peopleStudents(view, ctx, {}));
+    view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
+  }
+
   async function classes(view, ctx, selected) {
     const { classes: list } = await MPS.get("/teacher/classes");
     if (!list.length) {
@@ -926,6 +961,7 @@
       { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
       { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },
+      { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c, extra) => peopleStudents(v, c, extra) },
       { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
       { id: "co-scholastic", label: "Grades Entry", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
