@@ -26,7 +26,7 @@
     "HW/CW Reports": "गृह कार्य / कक्षा कार्य रिपोर्ट", "Classwork": "कक्षा कार्य", "Homework": "गृह कार्य", "Posted by": "किसने भेजा", "Time": "समय",
     "Results": "परिणाम", "Student Results": "विद्यार्थी परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
     "Exams & Admit Cards": "परीक्षा और प्रवेश पत्र", "WhatsApp": "व्हाट्सएप", "Fee Overview": "फीस सारांश", "Collect Fee": "फीस जमा करें",
-    "Dues Reminders": "बकाया रिमाइंडर", "Receipts": "रसीदें", "Download Receipts": "रसीद डाउनलोड करें", "Parent Payments": "अभिभावक भुगतान", "Auto Fee Reminders": "स्वतः फीस रिमाइंडर",
+    "Dues Reminders": "बकाया रिमाइंडर", "Pending for": "बाकी अवधि", "Due at least": "कम से कम बकाया", "Any amount": "कोई भी राशि", "Receipts": "रसीदें", "Download Receipts": "रसीद डाउनलोड करें", "Parent Payments": "अभिभावक भुगतान", "Auto Fee Reminders": "स्वतः फीस रिमाइंडर",
     "Classes & Fees": "कक्षाएं और फीस", "Fee Report": "फीस रिपोर्ट", "Monthly Fees": "मासिक फीस", "Monthly Tuition Fee": "मासिक ट्यूशन फीस",
     "Student Portal": "विद्यार्थी पोर्टल", "Teacher Portal": "शिक्षक पोर्टल", "Principal Portal": "प्रधानाचार्य पोर्टल", "Accounts Portal": "लेखा पोर्टल",
     // buttons & common words
@@ -95,7 +95,7 @@
     "Fee Receipts": "फीस रसीदें", "Fee Defaulters": "फीस डिफ़ॉल्टर", "Search": "खोजें",
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
-    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ERP)", "RV Smart School (ERP)": "आरवी स्मार्ट स्कूल (ERP)", "RV Smart ERP": "आरवी स्मार्ट ERP", "Staff Login": "स्टाफ लॉग इन",
+    "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ईआरपी)", "RV Smart ERP": "आरवी स्मार्ट ईआरपी", "Staff Login": "स्टाफ लॉग इन",
     "About & Features": "परिचय और सुविधाएँ", "Privacy Policy": "गोपनीयता नीति", "Download Android app": "एंड्रॉइड ऐप डाउनलोड करें",
     "Send Temporary Password": "अस्थायी पासवर्ड भेजें",
     "Enter your User ID. If an email is registered, a temporary password will be sent to it.": "अपनी यूज़र आईडी लिखें। यदि ईमेल दर्ज है, तो उस पर अस्थायी पासवर्ड भेजा जाएगा।",
@@ -175,9 +175,9 @@
     "Monday": "सोमवार", "Tuesday": "मंगलवार", "Wednesday": "बुधवार", "Thursday": "गुरुवार", "Friday": "शुक्रवार", "Saturday": "शनिवार", "Sunday": "रविवार",
   };
   const TITLES = {
-    "Login | RV Smart ERP": "लॉग इन | आरवी स्मार्ट ERP",
-    "About & Features | School Management Portal (ERP)": "परिचय और सुविधाएँ | विद्यालय प्रबंधन पोर्टल (ERP)",
-    "Privacy Policy | School Management Portal (ERP)": "गोपनीयता नीति | विद्यालय प्रबंधन पोर्टल (ERP)",
+    "Login | RV Smart ERP": "लॉग इन | आरवी स्मार्ट ईआरपी",
+    "About & Features | School Management Portal (ERP)": "परिचय और सुविधाएँ | विद्यालय प्रबंधन पोर्टल (ईआरपी)",
+    "Privacy Policy | School Management Portal (ERP)": "गोपनीयता नीति | विद्यालय प्रबंधन पोर्टल (ईआरपी)",
   };
   const PATTERNS = [
     [/^(\d+) students$/, "$1 विद्यार्थी"],

@@ -815,7 +815,7 @@ const UI = (() => {
       } else if (!s.name && !s.short_name) {
         logo.textContent = "";
         logo.classList.add("has-icon");
-        logo.innerHTML = '<img src="image/campus-badge.png" alt="RV Smart School">';
+        logo.innerHTML = '<img src="image/campus-badge.png" alt="RV Smart ERP">';
         document.getElementById("schoolName").textContent = MPS_CONFIG.PRODUCT_NAME;
       } else {
         logo.classList.remove("has-icon");

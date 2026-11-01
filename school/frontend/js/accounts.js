@@ -272,46 +272,91 @@ const Accounts = (() => {
       const d = await MPS.get("/accounts/defaulters");
       view.innerHTML = `<p class="small muted">Pick a class. Dues for that class are calculated when it opens.</p>
         <div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span></button>`).join("")}</div>`;
-      view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => defaulters(view, ctx, { classId: b.dataset.class })));
+      view.querySelectorAll("[data-class]").forEach((b) => b.addEventListener("click", () => {
+        UI.runScreen(view, () => defaulters(view, ctx, { classId: b.dataset.class }));
+      }));
       return;
     }
     const minMonths = state.minMonths;
-    const d = await MPS.get(`/accounts/defaulters?class_id=${encodeURIComponent(state.classId)}${minMonths ? `&min_months=${minMonths}` : ""}`);
-    view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button><div class="filters"><label style="margin:0">Pending for</label>
-        <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select></div>
+    const minDue = Math.max(0, Math.floor(Number(state.minDue) || 0));
+    const query = new URLSearchParams({ class_id: state.classId });
+    if (minMonths) query.set("min_months", String(minMonths));
+    if (minDue) query.set("min_due", String(minDue));
+    const d = await MPS.get(`/accounts/defaulters?${query}`);
+    let sortKey = "";
+    let sortDir = "asc";
+    const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "name") list.sort((a, b) => dir * byName(a, b) || ((Number(a.due) || 0) - (Number(b.due) || 0)));
+      else if (sortKey === "due") list.sort((a, b) => dir * ((Number(a.due) || 0) - (Number(b.due) || 0)) || byName(a, b));
+      return list;
+    }
+
+    function paint() {
+      view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button><div class="filters"><label style="margin:0">Pending for</label>
+        <select id="min">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${n === d.min_months ? "selected" : ""}>${n}+ month(s)</option>`).join("")}</select>
+        <label style="margin:0">Due at least</label>
+        <input id="minDue" type="number" min="0" step="1" inputmode="numeric" placeholder="Any amount" value="${d.min_due ? esc(String(d.min_due)) : ""}"></div>
         <div class="btn-group">${badge(`${d.students.length} students · ${money(d.total_due)}`, "danger")}
         ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send reminder to all</button>' : ""}</div></div>
       ${card("Dues Reminders", table(
         [
           { label: "Class", key: "class_label" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
+          { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Pending months", render: (s) => `${badge(`${s.pending_months.length}`, "danger")} <span class="small">${esc(s.pending_months.join(", "))}</span>` },
-          { label: "Dues", render: (s) => `<b>${money(s.due)}</b>`, className: "right" },
+          { label: "Dues", sort: "due", render: (s) => `<b>${money(s.due)}</b>`, className: "right" },
           { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` },
         ],
-        d.students,
-        { empty: "No defaulters. Great!", emptyIcon: "fa-smile-o" }
+        sortedStudents(),
+        { sort: { key: sortKey, dir: sortDir }, empty: "No defaulters. Great!", emptyIcon: "fa-smile-o" }
       ), { icon: "fa-exclamation-triangle", flush: true })}`;
-    view.querySelector("#back").addEventListener("click", () => defaulters(view, ctx, {}));
-    view.querySelector("#min").addEventListener("change", (e) => defaulters(view, ctx, { classId: state.classId, minMonths: Number(e.target.value) }));
-    const remind = view.querySelector("#remind");
-    if (remind)
-      remind.addEventListener("click", () => UI.whatsappPreview({
-        title: "View & Send reminder to all",
-        fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind: "overdue", student_ids: d.students.map((s) => s.id) }),
-        send: (payload) => MPS.post("/accounts/reminders", { kind: "overdue", ...payload }),
+      view.querySelector("#back").addEventListener("click", () => {
+        UI.runScreen(view, () => defaulters(view, ctx, {}));
+      });
+      const dueFilter = () => Math.max(0, Math.floor(Number(view.querySelector("#minDue").value) || 0));
+      view.querySelector("#min").addEventListener("change", (e) => {
+        const amount = dueFilter();
+        const months = Number(e.target.value);
+        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: months, minDue: amount }));
+      });
+      view.querySelector("#minDue").addEventListener("change", () => {
+        const amount = dueFilter();
+        if (amount === (Number(d.min_due) || 0)) return;
+        UI.runScreen(view, () => defaulters(view, ctx, { classId: state.classId, minMonths: d.min_months, minDue: amount }));
+      });
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
       }));
-    view.querySelectorAll("[data-student]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const student = d.students.find((s) => s.id === b.dataset.student);
-        const kind = student && student.pending_months.length >= 2 ? "overdue" : "reminder";
-        UI.whatsappPreview({
-          title: "View & Send reminder",
-          fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind, student_ids: [b.dataset.student] }),
-          send: (payload) => MPS.post("/accounts/reminders", { kind, ...payload }),
-        });
-      })
-    );
+      const remind = view.querySelector("#remind");
+      if (remind)
+        remind.addEventListener("click", () => UI.whatsappPreview({
+          title: "View & Send reminder to all",
+          fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind: "overdue", student_ids: d.students.map((s) => s.id) }),
+          send: (payload) => MPS.post("/accounts/reminders", { kind: "overdue", ...payload }),
+        }));
+      view.querySelectorAll("[data-student]").forEach((b) =>
+        b.addEventListener("click", () => {
+          const student = d.students.find((s) => s.id === b.dataset.student);
+          const kind = student && student.pending_months.length >= 2 ? "overdue" : "reminder";
+          UI.whatsappPreview({
+            title: "View & Send reminder",
+            fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind, student_ids: [b.dataset.student] }),
+            send: (payload) => MPS.post("/accounts/reminders", { kind, ...payload }),
+          });
+        })
+      );
+    }
+
+    paint();
   }
 
   // ---------- Parent payment intimations ----------
