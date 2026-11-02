@@ -420,6 +420,12 @@ button.th-sort:hover .fa, button.th-sort.active .fa { opacity: 1; }
 .admit-card { border: 2px solid #333; border-radius: 10px; padding: 14px; margin-bottom: 18px; page-break-inside: avoid; }
 .fee-check { width: 18px; height: 18px; }
 .amount-input { width: 110px; }
+.fee-items { display: flex; flex-direction: column; gap: 12px; padding: 12px 18px 0; }
+.fee-item { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 12px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.fee-item label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+.fee-item input, .fee-item select { width: 100%; max-width: 100%; box-sizing: border-box; }
+.fee-item .amount-input { width: 100%; }
+.fee-item [data-remove] { grid-column: 1 / -1; justify-self: start; }
 .lang-btn { font-weight: 700; }
 .login-lang { display: flex; justify-content: center; margin-top: 14px; }
 .login-lang .lang-btn { background: #fff; color: var(--green-800); border-color: transparent; }

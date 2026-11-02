@@ -161,15 +161,25 @@ const Accounts = (() => {
       label: family.length > 1 || (row.names || []).length > 1
         ? `Tuition Fee — ${row.class_label} (${(row.names || []).join(", ")})`
         : "Tuition Fee",
-      rate: Number(row.monthly_tuition) || 0,
+      rate: (Number(row.class_fee) || 0) * Math.max((row.names || []).length, 1),
       holderId: row.fee_holder_id,
       due: d.charges
         .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === row.fee_holder_id)
         .reduce((t, c) => t + c.due, 0),
     }));
-    const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": Number(d.tuition_rate) || tuitionChoices[0].rate };
-    const familyNote = family.some((row) => (row.names || []).length > 1 || family.length > 1)
-      ? `<p class="small" style="padding:12px 18px 0">Sibling fee is collected on this screen, one monthly rate for each class after rebate. ${family.map((row) => `<b>${esc((row.names || []).join(", "))}</b> (${esc(row.class_label)}) ${money(row.monthly_tuition)} a month${row.rebate ? ` after ${money(row.rebate)} rebate` : ""}`).join(". ")}.</p>`
+    const familyRebate = family.reduce((total, row) => total + (Number(row.rebate) || 0), 0);
+    const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": tuitionChoices[0].rate };
+    const classFeeByHolder = {};
+    family.forEach((row) => { classFeeByHolder[row.fee_holder_id] = Number(row.class_fee) || 0; });
+    const monthDues = (d.dues || []).map((row) => {
+      const tuition = (d.charges || []).filter((c) => c.head === "Tuition Fee" && c.month === row.key && c.due > 0);
+      if (!tuition.length) return row;
+      const fee = tuition.reduce((total, charge) => total + (classFeeByHolder[charge.student_id] || Number(charge.amount) || 0), 0);
+      return { ...row, amount: fee };
+    });
+    const familyPeople = family.flatMap((row) => (row.names || []).map((name) => ({ name, classLabel: row.class_label })));
+    const familyNote = familyPeople.length > 1
+      ? `<p class="small" style="padding:12px 18px 0">${familyPeople.map((person) => `<b>${esc(person.name)}</b> (${esc(person.classLabel)})`).join(", ")}</p>`
       : "";
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
@@ -177,14 +187,13 @@ const Accounts = (() => {
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
         <div class="stack">
-          ${card(s.name, `${familyNote}<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Description</th><th class="right">Rate</th><th class="right">PAID</th><th class="right">Dues</th><th></th></tr></thead>
-            <tbody id="items"></tbody></table></div><div style="padding:10px 18px"><button class="btn btn-light btn-sm" id="addItem"><i class="fa fa-plus"></i> Add item</button></div>`, { icon: "fa-shopping-bag", flush: true })}
+          ${card(s.name, `${familyNote}<div id="items" class="fee-items"></div><div style="padding:10px 18px"><button class="btn btn-light btn-sm" id="addItem"><i class="fa fa-plus"></i> Add item</button></div>`, { icon: "fa-shopping-bag", flush: true })}
           ${card("Payment details", `<form id="payForm" class="grid grid-2" style="gap:0 16px">
             ${UI.fieldHtml({ name: "paid_on", label: "Date given by parent", type: "date", value: todayIso(), max: todayIso(), required: true })}
             ${UI.fieldHtml({ name: "paid_by", label: "Paid by", value: s.father_name, required: true })}
             ${UI.fieldHtml({ name: "method", label: "Mode", type: "select", options: d.payment_methods, value: pendingInt[0] ? pendingInt[0].method : "Cash" })}
             ${UI.fieldHtml({ name: "reference", label: "UPI / cheque reference", value: pendingInt[0] ? pendingInt[0].reference : "" })}
-            ${UI.fieldHtml({ name: "received_by", label: "Given to (received by)", value: d.received_by })}
+            ${UI.fieldHtml({ name: "received_by", label: "Given to (received by)", type: "select", options: d.received_by_options && d.received_by_options.length ? d.received_by_options : [d.received_by], value: d.received_by })}
             ${UI.fieldHtml({ name: "note", label: "Note" })}
             <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent.</p>
           </form>
@@ -192,7 +201,7 @@ const Accounts = (() => {
         </div>
         <div class="stack">
           ${card(s.name, kv([["Admission No.", s.admission_no], ["Class", `${d.class_label} (Roll ${s.roll_no})`], ["Father", s.father_name], ["Mobile", s.father_phone || s.phone]]), { icon: "fa-user" })}
-          ${card("Dues (month-wise)", d.dues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Due", render: (g) => money(g.amount), className: "right" }], d.dues) : empty("No dues", "fa-check"), { icon: "fa-inr", flush: true })}
+          ${card("Dues (month-wise)", monthDues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Due", render: (g) => money(g.amount), className: "right" }], monthDues) : empty("No dues", "fa-check"), { icon: "fa-inr", flush: true })}
           ${card("Previous Receipts", receiptTable(d.payments.map((p) => ({ ...p, student_name: s.name }))), { icon: "fa-file-text-o", flush: true })}
         </div>
       </div>`;
@@ -201,7 +210,7 @@ const Accounts = (() => {
     const titleNode = itemsBox.closest(".card").querySelector(".card-head h3").lastChild;
     const duesWord = document.documentElement.lang === "hi" ? "बकाया" : "Dues";
     const readRows = () =>
-      [...itemsBox.querySelectorAll("tr")].map((tr) => ({
+      [...itemsBox.querySelectorAll("[data-fee-item]")].map((tr) => ({
         tr,
         head: tr.querySelector("[data-head]").value,
         description: tr.querySelector("[data-desc]").value.trim(),
@@ -246,26 +255,41 @@ const Accounts = (() => {
       view.querySelector("#total").textContent = money(rows.reduce((t, row) => t + row.paid, 0));
     };
     const addItem = () => {
-      const tr = document.createElement("tr");
+      const tr = document.createElement("div");
+      tr.className = "fee-item";
+      tr.setAttribute("data-fee-item", "");
       const itemOptions = [
         ...tuitionChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
         ...d.other_heads.filter((h) => h !== "Tuition Fee").map((h) => `<option value="${esc(h)}">${esc(h)}</option>`),
       ];
-      tr.innerHTML = `<td><select data-head>${itemOptions.join("")}</select></td>
-        <td><input data-desc placeholder="e.g. 2 sets, size 28"></td>
-        <td class="right"><input type="number" class="amount-input" data-rate min="0" placeholder="0"></td>
-        <td class="right"><input type="number" class="amount-input" data-paid min="0" placeholder="0"></td>
-        <td class="right" data-row-due>${money(0)}</td>
-        <td><button type="button" class="btn btn-light btn-sm" data-remove><i class="fa fa-times"></i></button></td>`;
+      tr.innerHTML = `<label>Item</label><select data-head>${itemOptions.join("")}</select>
+        <label>Description</label><input data-desc placeholder="e.g. 2 sets, size 28">
+        <label>Rate</label><input type="text" inputmode="numeric" class="amount-input" data-rate placeholder="0" autocomplete="off">
+        <label>Rebate</label><input type="text" inputmode="numeric" class="amount-input" data-rebate placeholder="0" autocomplete="off">
+        <label>PAID</label><input type="text" inputmode="numeric" class="amount-input" data-paid placeholder="0" autocomplete="off">
+        <label>Dues</label><b class="fee-item-due" data-row-due>${money(0)}</b>
+        <button type="button" class="btn btn-light btn-sm" data-remove><i class="fa fa-times"></i> Remove</button>`;
       itemsBox.appendChild(tr);
       const head = tr.querySelector("[data-head]");
       const rate = tr.querySelector("[data-rate]");
+      const rebate = tr.querySelector("[data-rebate]");
       const paid = tr.querySelector("[data-paid]");
+      [rate, paid].forEach((input) => input.addEventListener("input", () => {
+        const next = input.value.replace(/\D/g, "");
+        if (input.value !== next) input.value = next;
+      }));
       const fillRate = () => {
         const choice = tuitionChoice(head.value);
-        if (choice) rate.value = choice.rate || "";
-        else if (feeRates[head.value] != null) rate.value = feeRates[head.value];
-        else rate.value = "";
+        if (choice) {
+          rate.value = choice.rate || "";
+          rebate.value = familyRebate || "";
+        } else if (feeRates[head.value] != null) {
+          rate.value = feeRates[head.value];
+          rebate.value = "";
+        } else {
+          rate.value = "";
+          rebate.value = "";
+        }
       };
       head.addEventListener("change", () => {
         fillRate();
@@ -287,6 +311,7 @@ const Accounts = (() => {
       recalc();
     };
     view.querySelector("#addItem").addEventListener("click", addItem);
+    addItem();
     titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(d.summary.due)})`;
     bindReceipts(view);
     view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
