@@ -184,6 +184,19 @@
     }
   }
 
+  function siblingField(s, d) {
+    const options = [{ value: "", label: "Unknown" }, { value: "yes", label: "Yes" }];
+    (d.sibling_options || []).forEach((row) => {
+      if (!s || row.id !== s.id) options.push({ value: row.id, label: row.label });
+    });
+    if (s && s.sibling_of && !options.some((row) => row.value === s.sibling_of)) options.push({ value: s.sibling_of, label: "Sibling" });
+    const value = s && s.sibling_of ? s.sibling_of : s && s.has_siblings ? "yes" : "";
+    return {
+      name: "sibling_of", label: "Sibling of", type: "select", options, value,
+      hint: "Leave Unknown to match the same father and address. A match is saved as Yes.",
+    };
+  }
+
   const PEOPLE_STUDENT_FORM = (s, d) => {
     const suggested = s.id ? "" : ((d && d.next_admission_number) || "001");
     return [
@@ -199,6 +212,7 @@
       { name: "dob", label: "Date of birth", type: "date", value: s.dob },
       { name: "father_name", label: "Father's name", required: true, value: s.father_name, person: true, title: "Name cannot contain a number" },
       { name: "father_phone", label: "Father's mobile (WhatsApp)", type: "mobile", required: true, value: s.father_phone },
+      siblingField(s, d),
       { name: "mother_name", label: "Mother's name", value: s.mother_name, person: true, title: "Name cannot contain a number" },
       { name: "mother_phone", label: "Mother's mobile (WhatsApp)", type: "mobile", value: s.mother_phone },
       { name: "phone", label: "Parent / guardian mobile", type: "mobile", value: s.phone },
@@ -353,22 +367,26 @@
     paint();
   }
 
-  async function peopleStudentDetail(id) {
-    const m = modal("Student", UI.loading(), { wide: true });
+  async function peopleStudentDetail(id, existing) {
+    const m = existing || modal("Student", UI.loading(), { wide: true });
+    if (existing) m.body.innerHTML = UI.loading();
     try {
       const d = await MPS.get(`/teacher/students/${id}`);
       const s = d.student;
       const fees = d.fees || { due: d.fees_due || 0, pending_months: [] };
+      const siblings = d.siblings || [];
+      const siblingHtml = siblings.map((sib) => `<button type="button" class="btn" data-sibling="${esc(sib.id)}"><i class="fa fa-users"></i> Sibling <span>${esc(sib.name)}</span></button>`).join(" ");
       m.body.innerHTML = `<div class="grid grid-4" style="margin-bottom:14px">
         ${stat("Attendance", `${d.attendance.percentage}%`, { icon: "fa-calendar-check-o" })}
         ${stat("Fee due", money(fees.due), { icon: "fa-inr", tone: fees.due ? "warn" : "ok" })}
         ${stat("Last result", d.results.length ? `${d.results[d.results.length - 1].percentage}%` : "-", { icon: "fa-trophy", tone: "info" })}
         ${stat("Pending months", (fees.pending_months || []).length, { icon: "fa-exclamation-circle", tone: (fees.pending_months || []).length >= 2 ? "danger" : "ok" })}</div>
       ${kv([["Name", s.name], ["User ID", s.admission_no], ["Admission No.", UI.shared.admissionSuffix(s)], ["Date of Admission", fmtDate(s.admission_date)], ["Class", d.class_label], ["Monthly rebate", money(s.fee_rebate || 0)], ["Roll", s.roll_no], ["DOB", fmtDate(s.dob)], ["Father", s.father_name],
-        ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address]])}
+        ["Father mobile", s.father_phone], ["Mother", s.mother_name], ["Mother mobile", s.mother_phone], ["Address", s.address], ["Sibling", s.sibling_of || s.has_siblings ? "Yes" : "Unknown"]])}
       ${(s.history || []).length ? `<h4>Previous sessions</h4><ul>${s.history.map((h) => `<li>${esc(h.session)} · ${esc(h.class_label || "")}${h.roll_no ? `, roll ${esc(h.roll_no)}` : ""} · ${esc(h.status || "")}</li>`).join("")}</ul>` : ""}
-      <div class="modal-actions"><button class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button></div>`;
+      <div class="modal-actions"><button type="button" class="btn" id="hpc"><i class="fa fa-id-badge"></i> Progress Card</button>${siblingHtml}</div>`;
       m.body.querySelector("#hpc").addEventListener("click", () => UI.showProgressCard(`/teacher/students/${id}/progress-card`));
+      m.body.querySelectorAll("[data-sibling]").forEach((b) => b.addEventListener("click", () => peopleStudentDetail(b.dataset.sibling, m)));
     } catch (e) {
       m.body.innerHTML = UI.errorBox(e.message);
     }
