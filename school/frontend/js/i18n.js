@@ -45,7 +45,7 @@
     "Student": "विद्यार्थी", "Subject": "विषय", "Roll": "रोल", "Status": "स्थिति", "Amount": "राशि", "Total": "कुल", "Due": "बकाया", "Paid": "भुगतान किया",
     "Overdue": "समय सीमा पार", "Pending": "लंबित", "Approved": "स्वीकृत", "Rejected": "अस्वीकृत", "Completed": "पूर्ण", "Upcoming": "आगामी",
     "Classwork (CW)": "कक्षा कार्य (CW)", "Homework (HW)": "गृह कार्य (HW)", "WhatsApp Preview": "व्हाट्सएप पूर्वावलोकन", "The WhatsApp message appears here.": "व्हाट्सएप संदेश यहाँ दिखेगा।",
-    "Sibling of": "किसका भाई-बहन", "Unknown": "अज्ञात", "Yes": "हाँ", "Sibling": "भाई-बहन",
+    "Sibling of": "किसका भाई-बहन", "Unknown": "अज्ञात", "Yes": "हाँ", "Sibling": "भाई-बहन", "Siblings": "भाई-बहन", "1 month": "1 महीना",
     "Leave Unknown to match the same father and address. A match is saved as Yes.": "अज्ञात छोड़ने पर एक ही पिता और पता मिलाया जाता है। मिलान होने पर हाँ सेव होता है।",
     "A student cannot be a sibling of themselves": "विद्यार्थी अपना भाई-बहन नहीं हो सकता",
     "Choose a student from the sibling list": "भाई-बहन की सूची से विद्यार्थी चुनें",
@@ -185,6 +185,7 @@
   };
   const PATTERNS = [
     [/^(\d+) students$/, "$1 विद्यार्थी"],
+    [/^(\d+) months$/, "$1 महीने"],
     [/^Good (morning|afternoon|evening), (.+)$/, (m, part, name) => `${{ morning: "सुप्रभात", afternoon: "नमस्कार", evening: "शुभ संध्या" }[part]}, ${name}`],
     [/^Today's (Classes|Schedule) \((\w+)\)$/, (m, what, day) => `आज ${what === "Classes" ? "की कक्षाएं" : "का कार्यक्रम"} (${HI[day] || day})`],
     [/^(\d+) present$/, "$1 उपस्थित"],

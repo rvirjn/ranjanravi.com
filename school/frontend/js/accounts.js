@@ -114,7 +114,13 @@ const Accounts = (() => {
       if (state.classId === "all") columns.push({ label: "Class", key: "class_label" });
       columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
-          { label: "Pending months", render: (s) => (s.pending_months.length ? `${s.pending_months.length >= 2 ? badge(`${s.pending_months.length} months`, "danger") : ""} <span class="small">${esc(s.pending_months.join(", "))}</span>` : '<span class="muted">-</span>') },
+          { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
+          { label: "Pending months", render: (s) => {
+            const count = (s.pending_months || []).length;
+            if (!count) return '<span class="muted">-</span>';
+            const label = count === 1 ? "1 month" : `${count} months`;
+            return count >= 2 ? badge(label, "danger") : esc(label);
+          } },
           { label: "Last paid", render: (s) => fmtDate(s.last_payment), className: "nowrap" },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },

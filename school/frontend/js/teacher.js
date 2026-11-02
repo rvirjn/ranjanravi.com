@@ -327,6 +327,7 @@
           { label: "Class", key: "class_label" },
           { label: "Roll", sort: "roll", key: "roll_no" },
           { label: "Student", sort: "name", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b>${s.active === false ? ` ${badge("Inactive", "neutral")}` : ""}<div class="small muted">${esc(s.admission_no)}</div></div></div>` },
+          { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
           { label: "Father / Mobile", render: (s) => `${esc(s.father_name)}<div class="small muted">${esc(s.father_phone || "")}${s.mother_phone ? ` &middot; M: ${esc(s.mother_phone)}` : ""}</div>` },
           { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${s.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
         ],
