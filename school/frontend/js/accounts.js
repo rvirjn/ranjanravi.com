@@ -151,22 +151,35 @@ const Accounts = (() => {
   async function studentFee(view, ctx, state) {
     const d = await MPS.get(`/accounts/student/${state.studentId}`);
     const s = d.student;
-    const due = d.charges.filter((c) => c.due > 0);
     const pendingInt = d.intimations.filter((i) => i.status === "Pending");
+    const family = d.family_fees || [];
+    const tuitionChoices = (family.length ? family : [{
+      class_id: s.class_id, class_label: d.class_label, names: [s.name], monthly_tuition: d.tuition_rate || 0,
+      rebate: 0, fee_holder_id: s.id, current: true,
+    }]).map((row) => ({
+      value: row.current ? "Tuition Fee" : `Tuition Fee|${row.class_id}`,
+      label: family.length > 1 || (row.names || []).length > 1
+        ? `Tuition Fee — ${row.class_label} (${(row.names || []).join(", ")})`
+        : "Tuition Fee",
+      rate: Number(row.monthly_tuition) || 0,
+      holderId: row.fee_holder_id,
+      due: d.charges
+        .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === row.fee_holder_id)
+        .reduce((t, c) => t + c.due, 0),
+    }));
+    const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": Number(d.tuition_rate) || tuitionChoices[0].rate };
+    const familyNote = family.some((row) => (row.names || []).length > 1 || family.length > 1)
+      ? `<p class="small" style="padding:12px 18px 0">Sibling fee is collected on this screen, one monthly rate for each class after rebate. ${family.map((row) => `<b>${esc((row.names || []).join(", "))}</b> (${esc(row.class_label)}) ${money(row.monthly_tuition)} a month${row.rebate ? ` after ${money(row.rebate)} rebate` : ""}`).join(". ")}.</p>`
+      : "";
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
         <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.summary.sibling_names || []).length ? ` <span class="small muted">Combined with ${esc(d.summary.sibling_names.join(", "))}. Same due on each sibling.</span>` : ""}</span></div>
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
         <div class="stack">
-          ${card("1. Select dues being paid", due.length ? `<div class="table-wrap"><table class="table"><thead><tr><th></th><th>Particulars</th><th>Due date</th><th class="right">Due</th><th class="right">Paying now</th></tr></thead><tbody>
-            ${due.map((c) => `<tr><td><input type="checkbox" class="fee-check" data-charge="${c.id}" checked></td><td><b>${esc(c.description)}</b>${c.status === "Overdue" ? ` ${badge("Overdue")}` : ""}</td>
-              <td class="nowrap">${fmtDate(c.due_date)}</td><td class="right">${money(c.due)}</td>
-              <td class="right"><input type="number" class="amount-input" data-amount="${c.id}" value="${c.due}" min="0" max="${c.due}"></td></tr>`).join("")}</tbody></table></div>`
-            : empty("No dues. You can still add items below.", "fa-check-circle"), { icon: "fa-list", flush: true })}
-          ${card("2. Other items (dress, book, copy, tie, belt, exam, development, event...)", `<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Description</th><th class="right">Charge</th><th class="right">Paid now</th><th></th></tr></thead>
+          ${card(s.name, `${familyNote}<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Description</th><th class="right">Rate</th><th class="right">PAID</th><th class="right">Dues</th><th></th></tr></thead>
             <tbody id="items"></tbody></table></div><div style="padding:10px 18px"><button class="btn btn-light btn-sm" id="addItem"><i class="fa fa-plus"></i> Add item</button></div>`, { icon: "fa-shopping-bag", flush: true })}
-          ${card("3. Payment details", `<form id="payForm" class="grid grid-2" style="gap:0 16px">
+          ${card("Payment details", `<form id="payForm" class="grid grid-2" style="gap:0 16px">
             ${UI.fieldHtml({ name: "paid_on", label: "Date given by parent", type: "date", value: todayIso(), max: todayIso(), required: true })}
             ${UI.fieldHtml({ name: "paid_by", label: "Paid by", value: s.father_name, required: true })}
             ${UI.fieldHtml({ name: "method", label: "Mode", type: "select", options: d.payment_methods, value: pendingInt[0] ? pendingInt[0].method : "Cash" })}
@@ -185,59 +198,126 @@ const Accounts = (() => {
       </div>`;
 
     const itemsBox = view.querySelector("#items");
+    const titleNode = itemsBox.closest(".card").querySelector(".card-head h3").lastChild;
+    const duesWord = document.documentElement.lang === "hi" ? "बकाया" : "Dues";
+    const readRows = () =>
+      [...itemsBox.querySelectorAll("tr")].map((tr) => ({
+        tr,
+        head: tr.querySelector("[data-head]").value,
+        description: tr.querySelector("[data-desc]").value.trim(),
+        rate: Number(tr.querySelector("[data-rate]").value || 0),
+        paid: Number(tr.querySelector("[data-paid]").value || 0),
+      }));
+    const tuitionChoice = (head) => tuitionChoices.find((choice) => choice.value === head);
+    const tuitionChargesFor = (choice) => d.charges
+      .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === choice.holderId)
+      .sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
+    const allocateTuition = (rows) => {
+      const lines = [];
+      let overflow = "";
+      tuitionChoices.forEach((choice) => {
+        let left = rows.filter((row) => row.head === choice.value).reduce((t, row) => t + row.paid, 0);
+        tuitionChargesFor(choice).forEach((c) => {
+          if (left <= 0) return;
+          const amount = Math.min(left, c.due);
+          lines.push({ charge_id: c.id, amount });
+          left -= amount;
+        });
+        if (left > 0) overflow = `${choice.label} PAID is more than the due of ${money(choice.due)}`;
+      });
+      return { lines, overflow };
+    };
+    const recalc = () => {
+      const rows = readRows();
+      rows.forEach((row) => {
+        const choice = tuitionChoice(row.head);
+        const rowDue = choice ? Math.max(0, choice.due - row.paid) : Math.max(0, row.rate - row.paid);
+        row.tr.querySelector("[data-row-due]").textContent = money(rowDue);
+      });
+      const tuitionPaid = tuitionChoices.reduce((t, choice) => {
+        const paid = rows.filter((row) => row.head === choice.value).reduce((sum, row) => sum + row.paid, 0);
+        return t + Math.min(paid, choice.due);
+      }, 0);
+      const addedDue = rows
+        .filter((row) => !tuitionChoice(row.head))
+        .reduce((t, row) => t + Math.max(0, (row.rate || row.paid) - row.paid), 0);
+      const remaining = Math.max(0, d.summary.due - tuitionPaid) + addedDue;
+      titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(remaining)})`;
+      view.querySelector("#total").textContent = money(rows.reduce((t, row) => t + row.paid, 0));
+    };
     const addItem = () => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td><select data-head>${d.other_heads.map((h) => `<option>${esc(h)}</option>`).join("")}</select></td>
+      const itemOptions = [
+        ...tuitionChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
+        ...d.other_heads.filter((h) => h !== "Tuition Fee").map((h) => `<option value="${esc(h)}">${esc(h)}</option>`),
+      ];
+      tr.innerHTML = `<td><select data-head>${itemOptions.join("")}</select></td>
         <td><input data-desc placeholder="e.g. 2 sets, size 28"></td>
-        <td class="right"><input type="number" class="amount-input" data-charge-amt min="0" placeholder="0"></td>
-        <td class="right"><input type="number" class="amount-input" data-paid-amt min="0" placeholder="0"></td>
+        <td class="right"><input type="number" class="amount-input" data-rate min="0" placeholder="0"></td>
+        <td class="right"><input type="number" class="amount-input" data-paid min="0" placeholder="0"></td>
+        <td class="right" data-row-due>${money(0)}</td>
         <td><button type="button" class="btn btn-light btn-sm" data-remove><i class="fa fa-times"></i></button></td>`;
       itemsBox.appendChild(tr);
+      const head = tr.querySelector("[data-head]");
+      const rate = tr.querySelector("[data-rate]");
+      const paid = tr.querySelector("[data-paid]");
+      const fillRate = () => {
+        const choice = tuitionChoice(head.value);
+        if (choice) rate.value = choice.rate || "";
+        else if (feeRates[head.value] != null) rate.value = feeRates[head.value];
+        else rate.value = "";
+      };
+      head.addEventListener("change", () => {
+        fillRate();
+        recalc();
+      });
+      rate.addEventListener("input", () => {
+        if (!tuitionChoice(head.value) && !paid.dataset.touched) paid.value = rate.value;
+        recalc();
+      });
+      paid.addEventListener("input", (e) => {
+        e.target.dataset.touched = "1";
+        recalc();
+      });
       tr.querySelector("[data-remove]").addEventListener("click", () => {
         tr.remove();
         recalc();
       });
-      tr.querySelector("[data-charge-amt]").addEventListener("input", (e) => {
-        const paid = tr.querySelector("[data-paid-amt]");
-        if (!paid.dataset.touched) paid.value = e.target.value;
-        recalc();
-      });
-      tr.querySelector("[data-paid-amt]").addEventListener("input", (e) => {
-        e.target.dataset.touched = "1";
-        recalc();
-      });
+      fillRate();
+      recalc();
     };
-    const lines = () =>
-      [...view.querySelectorAll("[data-charge]")]
-        .filter((c) => c.checked)
-        .map((c) => ({ charge_id: c.dataset.charge, amount: Number(view.querySelector(`[data-amount="${c.dataset.charge}"]`).value || 0) }))
-        .filter((l) => l.amount > 0);
-    const items = () =>
-      [...itemsBox.querySelectorAll("tr")]
-        .map((tr) => ({
-          head: tr.querySelector("[data-head]").value,
-          description: tr.querySelector("[data-desc]").value,
-          amount: Number(tr.querySelector("[data-charge-amt]").value || 0),
-          paid: Number(tr.querySelector("[data-paid-amt]").value || 0),
-        }))
-        .filter((i) => i.amount > 0);
-    const recalc = () => {
-      const total = lines().reduce((t, l) => t + l.amount, 0) + items().reduce((t, i) => t + i.paid, 0);
-      view.querySelector("#total").textContent = money(total);
-    };
-    view.querySelectorAll("[data-charge], [data-amount]").forEach((el) => el.addEventListener("input", recalc));
-    view.querySelectorAll("[data-charge]").forEach((el) => el.addEventListener("change", recalc));
     view.querySelector("#addItem").addEventListener("click", addItem);
-    recalc();
+    titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(d.summary.due)})`;
     bindReceipts(view);
     view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
     view.querySelector("#submit").addEventListener("click", async (e) => {
       const form = view.querySelector("#payForm");
       if (!form.reportValidity()) return;
       const values = Object.fromEntries(new FormData(form).entries());
-      const payload = { ...values, lines: lines(), items: items(), intimation_id: pendingInt[0] ? pendingInt[0].id : null };
+      const rows = readRows().filter((row) => row.rate > 0 || row.paid > 0);
+      const allocated = allocateTuition(rows);
+      if (allocated.overflow) {
+        UI.toast(allocated.overflow, "error");
+        return;
+      }
+      const itemRows = rows.filter((row) => !tuitionChoice(row.head));
+      if (itemRows.some((row) => row.paid > (row.rate || row.paid))) {
+        UI.toast("PAID cannot be more than Rate", "error");
+        return;
+      }
+      const payload = {
+        ...values,
+        lines: allocated.lines,
+        items: itemRows.map((row) => ({
+          head: row.head,
+          description: row.description,
+          amount: row.rate > 0 ? row.rate : row.paid,
+          paid: row.paid,
+        })),
+        intimation_id: pendingInt[0] ? pendingInt[0].id : null,
+      };
       if (!payload.lines.length && !payload.items.length) {
-        UI.toast("Select a due or add an item", "error");
+        UI.toast("Add an item and a PAID amount", "error");
         return;
       }
       e.target.disabled = true;
@@ -469,7 +549,14 @@ const Accounts = (() => {
         { label: "Monthly fee (Rs)", render: (r) => `<input type="number" class="amount-input" data-route-fee="${r.id}" value="${r.monthly_fee || 0}" min="0">` },
         { label: "", render: (r) => `<button class="btn btn-sm" data-route="${r.id}">Save</button>` },
       ], d.routes), { icon: "fa-bus", flush: true })}
-      <p class="small muted">Add or edit a bus route under People. Fee changes apply to months billed from now on. Already billed months are not changed.</p>`;
+      ${card("Other Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Rate (Rs)</th><th>Classes</th><th>Frequency</th><th></th></tr></thead><tbody>
+        ${(d.other_fees || []).map((r) => `<tr><td><b>${esc(r.head)}</b></td>
+          <td><input type="number" class="amount-input" data-fee-amount="${esc(r.id)}" value="${Number(r.amount) || 0}" min="0"></td>
+          <td><input data-fee-classes="${esc(r.id)}" value="${esc(r.classes && r.classes !== "All classes" ? r.classes : "All classes")}"></td>
+          <td><input data-fee-period="${esc(r.id)}" value="${esc(r.period || "")}"></td>
+          <td><button class="btn btn-sm" data-fee-save="${esc(r.id)}">Save</button></td></tr>`).join("")}
+        </tbody></table></div>`, { icon: "fa-shopping-bag", flush: true })}
+      <p class="small muted">Add or edit a bus route under People. Tuition and transport changes apply to months billed from now on. Already billed months are not changed. Other fee rates fill in when that item is selected on Collect Fee.</p>`;
     view.querySelectorAll("[data-save]").forEach((b) =>
       b.addEventListener("click", () => {
         const row = view.querySelector(`[data-cls="${b.dataset.save}"]`);
@@ -480,6 +567,13 @@ const Accounts = (() => {
     );
     view.querySelectorAll("[data-route]").forEach((b) =>
       b.addEventListener("click", () => run(() => MPS.post(`/principal/routes/${b.dataset.route}`, { monthly_fee: view.querySelector(`[data-route-fee="${b.dataset.route}"]`).value })))
+    );
+    view.querySelectorAll("[data-fee-save]").forEach((b) =>
+      b.addEventListener("click", () => run(() => MPS.post(`/principal/other-fees/${b.dataset.feeSave}`, {
+        amount: view.querySelector(`[data-fee-amount="${b.dataset.feeSave}"]`).value,
+        classes: view.querySelector(`[data-fee-classes="${b.dataset.feeSave}"]`).value,
+        period: view.querySelector(`[data-fee-period="${b.dataset.feeSave}"]`).value,
+      })))
     );
   }
 
