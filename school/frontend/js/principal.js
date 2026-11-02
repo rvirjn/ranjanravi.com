@@ -665,15 +665,53 @@
       const hint = document.createElement("div");
       hint.className = "field-hint";
       hint.hidden = true;
-      form.querySelector('[name="whatsapp"]').closest(".field").appendChild(hint);
+      const whatsappField = form.querySelector('[name="whatsapp"]').closest(".field");
+      whatsappField.appendChild(hint);
+      const previewField = document.createElement("div");
+      previewField.className = "field";
+      previewField.hidden = true;
+      const previewLabel = document.createElement("label");
+      previewLabel.textContent = "WhatsApp Preview";
+      const preview = document.createElement("div");
+      preview.className = "preview-box";
+      previewField.append(previewLabel, preview);
+      whatsappField.after(previewField);
+      let previewTimer = 0;
+      const showPreview = () => {
+        window.clearTimeout(previewTimer);
+        if (form.whatsapp.value !== "1") {
+          previewField.hidden = true;
+          preview.textContent = "";
+          return;
+        }
+        previewField.hidden = false;
+        const title = form.title.value.trim();
+        const text = form.body.value.trim();
+        if (!title && !text) {
+          preview.textContent = "The WhatsApp message appears here.";
+          return;
+        }
+        previewTimer = window.setTimeout(async () => {
+          try {
+            const seen = await MPS.post("/principal/notices/preview", { title, body: text });
+            if (form.whatsapp.value !== "1" || form.title.value.trim() !== title || form.body.value.trim() !== text) return;
+            preview.textContent = seen.message || "";
+          } catch (err) {
+            if (form.whatsapp.value !== "1") return;
+            preview.textContent = err.message;
+          }
+        }, 250);
+      };
       const showGroups = () => {
         if (form.whatsapp.value !== "1") {
           hint.hidden = true;
           hint.replaceChildren();
+          showPreview();
           return;
         }
         hint.hidden = false;
         hint.replaceChildren();
+        showPreview();
         const addGroup = (group, classLabel) => {
           const line = document.createElement("div");
           if (classLabel) line.append(document.createTextNode(`${classLabel} — `));
@@ -701,6 +739,7 @@
         });
       };
       ["whatsapp", "class_id", "audience"].forEach((name) => form[name].addEventListener("change", showGroups));
+      ["title", "body"].forEach((name) => form[name].addEventListener("input", showPreview));
     });
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => confirm("Delete this notice?") && (await run(() => MPS.del(`/principal/notices/${b.dataset.del}`))) && notices(view, ctx)));
   }

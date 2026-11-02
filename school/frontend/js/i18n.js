@@ -44,7 +44,7 @@
     "Check-in is not allowed after this time. A missed check-out is saved 2 hours later.": "इस समय के बाद चेक-इन नहीं हो सकता। छूटा हुआ चेक-आउट 2 घंटे बाद अपने आप दर्ज होता है।",
     "Student": "विद्यार्थी", "Subject": "विषय", "Roll": "रोल", "Status": "स्थिति", "Amount": "राशि", "Total": "कुल", "Due": "बकाया", "Paid": "भुगतान किया",
     "Overdue": "समय सीमा पार", "Pending": "लंबित", "Approved": "स्वीकृत", "Rejected": "अस्वीकृत", "Completed": "पूर्ण", "Upcoming": "आगामी",
-    "Classwork (CW)": "कक्षा कार्य (CW)", "Homework (HW)": "गृह कार्य (HW)", "WhatsApp Preview": "व्हाट्सएप पूर्वावलोकन",
+    "Classwork (CW)": "कक्षा कार्य (CW)", "Homework (HW)": "गृह कार्य (HW)", "WhatsApp Preview": "व्हाट्सएप पूर्वावलोकन", "The WhatsApp message appears here.": "व्हाट्सएप संदेश यहाँ दिखेगा।",
     "Total Fees": "कुल फीस", "Balance Due": "शेष बकाया", "Total due": "कुल बकाया", "Tuition fee due": "ट्यूशन फीस बकाया", "Other fee due": "अन्य फीस बकाया", "Pay Online": "ऑनलाइन भुगतान", "Scan and pay": "स्कैन करके भुगतान करें",
     "Dues (month-wise)": "बकाया (महीने के अनुसार)", "Pay by Scanner": "स्कैनर से भुगतान करें",
     "Scan with PhonePe, Google Pay or Paytm, then enter the transaction ID.": "PhonePe, Google Pay या Paytm से स्कैन करें, फिर ट्रांजैक्शन आईडी लिखें।",
