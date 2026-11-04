@@ -208,19 +208,28 @@
     const s = r.student;
     const cell = (v) => (v ? money(v) : "");
     const totalDue = r.dues.reduce((sum, g) => sum + g.amount, 0);
-    return `<div class="receipt">
-      <h3 style="text-align:center;margin:0 0 10px">FEE RECEIPT</h3>
-      <table class="table receipt-head"><tbody>
-        <tr><td><b>Receipt No.</b> ${esc(p.receipt_no)}</td><td><b>Date:</b> ${fmtDate(p.date)}</td></tr>
-        <tr><td><b>Student:</b> ${esc(s.name)}</td><td><b>Class:</b> ${esc(r.class_label)} &nbsp; <b>Roll:</b> ${esc(s.roll_no)}</td></tr>
-        <tr><td><b>Admission No.:</b> ${esc(s.admission_no)}</td><td><b>Father:</b> ${esc(s.father_name)}</td></tr>
-        <tr><td><b>Paid by:</b> ${esc(p.paid_by)}</td><td><b>Given to:</b> ${esc(p.received_by)}</td></tr>
-        <tr><td><b>Date paid by parent:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method)}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
-      </tbody></table>
-      <h4>Fee received</h4>
-      ${table([{ label: "Particulars", render: (l) => esc(l.description) }, { label: "Amount", render: (l) => money(l.amount), className: "right" }], p.lines,
-        { footer: `<td>Total received</td><td class="right">${money(p.total)}</td>` })}
-      <h4>Other items</h4>
+    const siblings = (r.siblings || []).filter((person) => person.name);
+    const familyLine = siblings.length > 1 || r.mobile
+      ? `<tr><td>${siblings.length > 1 ? `<b>Siblings:</b> ${siblings.map((person) => `${esc(person.name)} (${esc(person.class_label)})`).join(", ")}` : ""}</td><td>${r.mobile ? `<b>Mobile:</b> ${esc(r.mobile)}` : ""}</td></tr>`
+      : "";
+    const entries = p.entries || [];
+    const received = entries.length
+      ? table(
+        [
+          { label: "Item", render: (row) => `${esc(row.item)}${row.description ? `<div class="small muted">${esc(row.description)}</div>` : ""}` },
+          { label: "Rate", render: (row) => money(row.rate), className: "right" },
+          { label: "Rebate", render: (row) => (row.rebate ? money(row.rebate) : ""), className: "right" },
+          { label: "PAID", render: (row) => money(row.paid), className: "right" },
+          { label: "Dues", render: (row) => money(row.due), className: "right" },
+        ],
+        entries,
+        { footer: `<td colspan="3">Total received</td><td class="right">${money(p.total)}</td><td></td>` }
+      )
+      : table([{ label: "Particulars", render: (l) => esc(l.description) }, { label: "Amount", render: (l) => money(l.amount), className: "right" }], p.lines,
+        { footer: `<td>Total received</td><td class="right">${money(p.total)}</td>` });
+    const otherItems = entries.length
+      ? ""
+      : `<h4>Other items</h4>
       ${table(
         [
           { label: "Item", key: "head" },
@@ -230,7 +239,20 @@
           { label: "Due", render: (i) => cell(i.due), className: "right" },
         ],
         r.item_rows
-      )}
+      )}`;
+    return `<div class="receipt">
+      <h3 style="text-align:center;margin:0 0 10px">FEE RECEIPT</h3>
+      <table class="table receipt-head"><tbody>
+        <tr><td><b>Receipt No.</b> ${esc(p.receipt_no)}</td><td><b>Date:</b> ${fmtDate(p.date)}</td></tr>
+        <tr><td><b>Student:</b> ${esc(s.name)}</td><td><b>Class:</b> ${esc(r.class_label)} &nbsp; <b>Roll:</b> ${esc(s.roll_no)}</td></tr>
+        <tr><td><b>Admission No.:</b> ${esc(s.admission_no)}</td><td><b>Father:</b> ${esc(s.father_name)}</td></tr>
+        <tr><td><b>Paid by:</b> ${esc(p.paid_by)}</td><td><b>Given to:</b> ${esc(p.received_by)}</td></tr>
+        <tr><td><b>Date paid by parent:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method)}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
+        ${familyLine}
+      </tbody></table>
+      <h4>Fee received</h4>
+      ${received}
+      ${otherItems}
       <h4>Dues (month-wise)</h4>
       ${r.dues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Details", render: (g) => esc(g.heads.join(", ")) }, { label: "Due", render: (g) => money(g.amount), className: "right" }], r.dues,
         { footer: `<td>Total dues</td><td></td><td class="right">${money(totalDue)}</td>` }) : '<p class="muted">No dues. All fees paid.</p>'}

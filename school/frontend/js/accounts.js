@@ -197,7 +197,7 @@ const Accounts = (() => {
             ${UI.fieldHtml({ name: "note", label: "Note" })}
             <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent.</p>
           </form>
-          <div class="sticky-bar static"><span>Total: <b id="total" style="font-size:20px">Rs 0</b></span><button class="btn" id="submit"><i class="fa fa-check"></i> Submit &amp; Generate Receipt</button></div>`, { icon: "fa-credit-card", flush: false })}
+          <div class="sticky-bar static"><span>Total: <b id="total" style="font-size:20px">Rs 0</b></span><button class="btn" id="submit"><i class="fa fa-eye"></i> Preview</button></div>`, { icon: "fa-credit-card", flush: false })}
         </div>
         <div class="stack">
           ${card(s.name, kv([["Admission No.", s.admission_no], ["Class", `${d.class_label} (Roll ${s.roll_no})`], ["Father", s.father_name], ["Mobile", s.father_phone || s.phone]]), { icon: "fa-user" })}
@@ -213,8 +213,10 @@ const Accounts = (() => {
       [...itemsBox.querySelectorAll("[data-fee-item]")].map((tr) => ({
         tr,
         head: tr.querySelector("[data-head]").value,
+        item: tr.querySelector("[data-head]").selectedOptions[0].textContent.trim(),
         description: tr.querySelector("[data-desc]").value.trim(),
         rate: Number(tr.querySelector("[data-rate]").value || 0),
+        rebate: Number(tr.querySelector("[data-rebate]").value || 0),
         paid: Number(tr.querySelector("[data-paid]").value || 0),
       }));
     const tuitionChoice = (head) => tuitionChoices.find((choice) => choice.value === head);
@@ -330,9 +332,25 @@ const Accounts = (() => {
         UI.toast("PAID cannot be more than Rate", "error");
         return;
       }
+      const entries = rows.map((row) => {
+        const choice = tuitionChoice(row.head);
+        const tuitionRow = family.find((person) => (person.current ? "Tuition Fee" : `Tuition Fee|${person.class_id}`) === row.head);
+        const item = choice
+          ? (family.length > 1 && tuitionRow ? `Tuition Fee — ${tuitionRow.class_label}` : "Tuition Fee")
+          : row.item;
+        return {
+          item,
+          description: row.description,
+          rate: row.rate,
+          rebate: row.rebate,
+          paid: row.paid,
+          due: choice ? Math.max(0, choice.due - row.paid) : Math.max(0, (row.rate || row.paid) - row.paid),
+        };
+      });
       const payload = {
         ...values,
         lines: allocated.lines,
+        entries,
         items: itemRows.map((row) => ({
           head: row.head,
           description: row.description,
@@ -345,16 +363,83 @@ const Accounts = (() => {
         UI.toast("Add an item and a PAID amount", "error");
         return;
       }
-      e.target.disabled = true;
-      try {
-        const r = await MPS.post(`/accounts/student/${s.id}/collect`, payload);
-        UI.toast(r.message);
-        if (r.receipt) UI.showReceipt(r.receipt);
-        studentFee(view, ctx, state);
-      } catch (err) {
-        UI.toast(err.message, "error");
-        e.target.disabled = false;
-      }
+      const lines = payload.lines.map((line) => {
+        const charge = d.charges.find((c) => c.id === line.charge_id);
+        return { description: charge ? charge.description : "Tuition Fee", head: charge ? charge.head : "Tuition Fee", amount: line.amount, charge_id: line.charge_id };
+      });
+      payload.items.forEach((item) => {
+        if (item.paid > 0) lines.push({ description: item.description || item.head, head: item.head, amount: item.paid });
+      });
+      const total = lines.reduce((sum, line) => sum + line.amount, 0);
+      const left = d.charges.map((c) => ({ ...c }));
+      lines.forEach((line) => {
+        if (!line.charge_id) return;
+        const charge = left.find((c) => c.id === line.charge_id);
+        if (charge) charge.due = Math.max(0, charge.due - line.amount);
+      });
+      payload.items.forEach((item) => {
+        const unpaid = Math.max(0, (item.amount || 0) - (item.paid || 0));
+        if (unpaid > 0) left.push({ head: item.head, due: unpaid, month: "", month_label: "", description: item.description || item.head });
+      });
+      const groups = {};
+      left.forEach((c) => {
+        if (c.due <= 0) return;
+        const monthly = c.month && ["Tuition Fee", "Transport Fee", "Late Fee"].includes(c.head);
+        const key = monthly ? c.month : c.head;
+        const group = groups[key] || { key, label: monthly ? (c.month_label || c.month) : c.head, amount: 0, heads: [] };
+        group.amount += c.due;
+        group.heads.push(`${c.head} Rs ${c.due}`);
+        groups[key] = group;
+      });
+      const dues = Object.values(groups).sort((a, b) => String(a.key).localeCompare(String(b.key)));
+      const heads = [...new Set(lines.map((line) => line.head).concat((d.charges || []).map((c) => c.head)))]
+        .filter((head) => !["Tuition Fee", "Transport Fee", "Late Fee"].includes(head));
+      const preview = {
+        class_label: d.class_label,
+        student: s,
+        payment: {
+          receipt_no: "Preview",
+          date: todayIso(),
+          paid_on: values.paid_on,
+          paid_by: values.paid_by,
+          received_by: values.received_by,
+          method: values.method,
+          reference: values.reference,
+          note: values.note,
+          lines,
+          entries,
+          total,
+        },
+        mobile: s.father_phone || s.phone || "",
+        siblings: familyPeople.length > 1 ? familyPeople.map((person) => ({ name: person.name, class_label: person.classLabel })) : [],
+        dues,
+        item_rows: heads.map((head) => ({
+          head,
+          charged: left.filter((c) => c.head === head).reduce((sum, c) => sum + Number(c.amount || c.due || 0), 0),
+          paid_now: lines.filter((line) => line.head === head).reduce((sum, line) => sum + line.amount, 0),
+          paid_total: d.charges.filter((c) => c.head === head).reduce((sum, c) => sum + Number(c.paid || 0), 0)
+            + lines.filter((line) => line.head === head).reduce((sum, line) => sum + line.amount, 0),
+          due: left.filter((c) => c.head === head).reduce((sum, c) => sum + Number(c.due || 0), 0),
+        })),
+        summary: {
+          paid: Number(d.summary.paid || 0) + total,
+          due: dues.reduce((sum, group) => sum + group.amount, 0),
+        },
+      };
+      const box = UI.modal("Receipt preview", `${UI.receiptHtml(preview)}<div class="modal-actions"><button type="button" class="btn btn-light" data-close>Back</button><button type="button" class="btn" id="confirmReceipt"><i class="fa fa-check"></i> Submit &amp; Generate Receipt</button></div>`, { wide: true });
+      box.body.querySelector("#confirmReceipt").addEventListener("click", async (ev) => {
+        ev.target.disabled = true;
+        try {
+          const r = await MPS.post(`/accounts/student/${s.id}/collect`, payload);
+          box.close();
+          UI.toast(r.message);
+          if (r.receipt) UI.showReceipt(r.receipt);
+          studentFee(view, ctx, state);
+        } catch (err) {
+          UI.toast(err.message, "error");
+          ev.target.disabled = false;
+        }
+      });
     });
   }
 

@@ -162,7 +162,7 @@
     "A selected message is empty.": "एक चुना हुआ संदेश खाली है।",
     "Nobody with dues matches this message.": "इस संदेश के लिए बकाया वाला कोई नहीं है।",
     "Uncheck anyone you do not want to message. Edit a message to change it for that family only.": "जिसे संदेश नहीं भेजना हो, उसका निशान हटा दें। किसी परिवार का संदेश बदलने के लिए उसे संपादित करें।",
-    "Optional. Added before the school signature.": "वैकल्पिक। विद्यालय के हस्ताक्षर से पहले जोड़ा जाएगा।", "Posted for this date": "इस तारीख को भेजा गया", "Submit & Generate Receipt": "जमा करें और रसीद बनाएं",
+    "Optional. Added before the school signature.": "वैकल्पिक। विद्यालय के हस्ताक्षर से पहले जोड़ा जाएगा।", "Posted for this date": "इस तारीख को भेजा गया", "Preview": "पूर्वावलोकन", "Receipt preview": "रसीद पूर्वावलोकन", "Submit & Generate Receipt": "जमा करें और रसीद बनाएं",
     "1. Select dues being paid": "1. जमा हो रहा बकाया चुनें", "3. Payment details": "3. भुगतान विवरण", "Payment details": "भुगतान विवरण", "Add item": "मद जोड़ें",
     "Item": "मद", "Description": "विवरण", "Rate": "दर", "Rebate": "छूट", "PAID": "भुगतान", "Other Fee": "अन्य फीस", "Rate (Rs)": "दर (रु.)",
     "All classes": "सभी कक्षाएं", "When": "कब", "Frequency": "आवृत्ति", "Quarterly": "तिमाही", "Diary": "डायरी",
