@@ -100,7 +100,7 @@
     "Student / Parent Login": "विद्यार्थी / अभिभावक लॉग इन", "Teacher Login": "शिक्षक लॉग इन", "Principal Login": "प्रधानाचार्य लॉग इन",
     "Accountant Login": "लेखाकार लॉग इन", "Password": "पासवर्ड", "Admission Number": "प्रवेश संख्या", "Employee ID": "कर्मचारी आईडी",
     "Forgot password?": "पासवर्ड भूल गए?", "School Portal": "विद्यालय पोर्टल", "School Management Portal (ERP)": "विद्यालय प्रबंधन पोर्टल (ईआरपी)", "RV Smart ERP": "आरवी स्मार्ट ईआरपी", "Staff Login": "स्टाफ लॉग इन",
-    "About & Features": "परिचय और सुविधाएँ", "Privacy Policy": "गोपनीयता नीति", "Download Android app": "एंड्रॉइड ऐप डाउनलोड करें",
+    "About & Features": "परिचय और सुविधाएँ", "Privacy Policy": "गोपनीयता नीति", "Contact Us": "संपर्क करें", "Download Android app": "एंड्रॉइड ऐप डाउनलोड करें",
     "Send Temporary Password": "अस्थायी पासवर्ड भेजें",
     "Enter your User ID. If an email is registered, a temporary password will be sent to it.": "अपनी यूज़र आईडी लिखें। यदि ईमेल दर्ज है, तो उस पर अस्थायी पासवर्ड भेजा जाएगा।",
     "Your session has ended. Please log in again.": "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉग इन करें।",
@@ -184,6 +184,7 @@
     "Login | RV Smart ERP": "लॉग इन | आरवी स्मार्ट ईआरपी",
     "About & Features | School Management Portal (ERP)": "परिचय और सुविधाएँ | विद्यालय प्रबंधन पोर्टल (ईआरपी)",
     "Privacy Policy | School Management Portal (ERP)": "गोपनीयता नीति | विद्यालय प्रबंधन पोर्टल (ईआरपी)",
+    "Contact Us | School Management Portal (ERP)": "संपर्क करें | विद्यालय प्रबंधन पोर्टल (ईआरपी)",
   };
   const PATTERNS = [
     [/^(\d+) students$/, "$1 विद्यार्थी"],
