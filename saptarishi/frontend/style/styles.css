@@ -4935,6 +4935,10 @@ body.user-notes-open {
   margin-top: 0.6rem;
 }
 
+.whatsapp-inline-form[hidden] {
+  display: none !important;
+}
+
 .whatsapp-inline-form .form-field input,
 .whatsapp-inline-form .form-field textarea {
   width: 100%;
