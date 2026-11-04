@@ -308,6 +308,7 @@
     }));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const t = d.teachers.find((x) => x.id === b.dataset.edit);
+      UI.buttonBusy(b, () => {
       const m = openForm({
         title: `Edit ${t.name}`,
         admissionCheck: { usedNumbers: d.used_admission_numbers || [], who: "teacher", allow: { number: UI.shared.admissionSuffix(t) } },
@@ -324,6 +325,7 @@
       reset.textContent = "Reset password";
       reset.addEventListener("click", () => confirm("Reset password to t@123?") && run(() => MPS.post(`/principal/users/teacher/${t.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
+      });
     }));
     view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
       if (!confirm("Mark this teacher as left school?")) return;
@@ -620,10 +622,10 @@
     }));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const c = d.classes.find((x) => x.id === b.dataset.edit);
-      openForm({
+      UI.buttonBusy(b, () => openForm({
         title: `Edit ${c.name}`, fields: FORM(c),
         onSubmit: async (v) => { const r = await MPS.post(`/principal/classes/${c.id}`, v); classes(view, ctx); return r; },
-      });
+      }));
     }));
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
       const c = d.classes.find((x) => x.id === b.dataset.del);
@@ -712,7 +714,7 @@
     view.querySelector("#add").addEventListener("click", () => periodForm(d, { teacher_id: teacherId }, reload));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const p = d.periods.find((x) => x.id === b.dataset.edit);
-      if (p) periodForm(d, p, reload);
+      if (p) UI.buttonBusy(b, () => periodForm(d, p, reload));
     }));
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
       const p = d.periods.find((x) => x.id === b.dataset.del);

@@ -55,10 +55,10 @@
     }));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const s = rows.find((x) => x.id === b.dataset.edit);
-      openForm({
+      UI.buttonBusy(b, () => openForm({
         title: `Edit ${s.name} (${s.code})`, fields: SCHOOL_FORM(s, false),
         onSubmit: async (v) => { const r = await MPS.post(`/admin/schools/${s.id}`, v); schools(view); return r; },
-      });
+      }));
     }));
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
       const s = rows.find((x) => x.id === b.dataset.del);

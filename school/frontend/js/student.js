@@ -211,8 +211,8 @@
         UI.toast(e.message, "error");
       }
     });
-    view.querySelector("#editBtn").addEventListener("click", () =>
-      openForm({
+    view.querySelector("#editBtn").addEventListener("click", (e) =>
+      UI.buttonBusy(e.currentTarget, () => openForm({
         title: "Request Contact Update",
         intro: "The school office will verify and update your record. Absent alerts and fee messages are sent to these WhatsApp numbers.",
         fields: [
@@ -228,7 +228,7 @@
           ctx.refresh();
           return r;
         },
-      })
+      }))
     );
   }
 

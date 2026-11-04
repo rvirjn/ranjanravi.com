@@ -352,7 +352,7 @@
       view.querySelector("#add").addEventListener("click", () => peopleAdmission(view, ctx, state, d, null));
       view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
         const s = d.students.find((x) => x.id === b.dataset.edit);
-        peopleAdmission(view, ctx, state, d, s);
+        UI.buttonBusy(b, () => peopleAdmission(view, ctx, state, d, s));
       }));
       view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
         if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;

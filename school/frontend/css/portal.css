@@ -63,6 +63,11 @@ p { margin: 0 0 8px; }
   flex-shrink: 0;
 }
 .btn.is-busy .fa { display: none; }
+.btn-light.is-busy::before {
+  border-color: rgba(26, 46, 34, .18);
+  border-top-color: var(--green-700);
+}
+.btn-sm.is-busy::before { width: 14px; height: 14px; }
 .btn-light { background: #fff; color: var(--ink); border-color: var(--line); }
 .btn-light:hover { background: var(--green-50); }
 .btn-danger { background: var(--danger); }

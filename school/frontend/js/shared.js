@@ -574,6 +574,7 @@
       onSubmit: async (v) => { const r = await opts.create(v); opts.reload(); return r; },
     }));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      UI.buttonBusy(b, () => {
       const s = opts.rows.find((x) => String(x.key || x.id) === b.dataset.edit);
       const m = openForm({
         title: `Edit ${s.name}`,
@@ -602,6 +603,7 @@
       });
       actions.prepend(reset);
       actions.prepend(remove);
+      });
     }));
     if (opts.rowActions) {
       const who = String(opts.noun || "person").toLowerCase();
@@ -660,8 +662,8 @@
         UI.toast(e.message, "error");
       }
     });
-    view.querySelector("#editBtn").addEventListener("click", () =>
-      openForm({
+    view.querySelector("#editBtn").addEventListener("click", (e) =>
+      UI.buttonBusy(e.currentTarget, () => openForm({
         title: "Request Contact Update",
         intro: "The school office will verify and update your record.",
         fields: [
@@ -675,7 +677,7 @@
           ctx.refresh();
           return r;
         },
-      })
+      }))
     );
   }
 
@@ -868,7 +870,7 @@
       view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, state, d, null));
       view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
         const s = d.students.find((x) => x.id === b.dataset.edit);
-        openAdmission(view, ctx, state, d, s);
+        UI.buttonBusy(b, () => openAdmission(view, ctx, state, d, s));
       }));
       view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {
         if (!confirm("Mark this student as left school? A sibling who stays keeps the family fee.")) return;

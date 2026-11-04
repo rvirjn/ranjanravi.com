@@ -476,6 +476,29 @@ const UI = (() => {
     paint();
   }
 
+  function buttonBusy(button, work) {
+    if (!button || button.disabled || button.classList.contains("is-busy")) return;
+    button.classList.add("is-busy");
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    const done = () => {
+      if (!button.isConnected) return;
+      button.classList.remove("is-busy");
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    };
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()))
+      .then(() => work())
+      .then((value) => {
+        done();
+        return value;
+      })
+      .catch((err) => {
+        done();
+        toast((err && err.message) || "Could not open the form.", "error");
+      });
+  }
+
   function openForm({ title, intro, fields, submitLabel = "Save", onSubmit, loginPreview, admissionCheck }) {
     const previewHtml = loginPreview
       ? `<div class="login-preview"><div><b>User ID:</b> <span data-login-id></span></div><div><b>password:</b> ${esc(loginPreview.password)}</div></div>`
@@ -1043,6 +1066,7 @@ const UI = (() => {
     onTabs,
     toast,
     run,
+    buttonBusy,
     modal,
     whatsappPreview,
     fieldHtml,

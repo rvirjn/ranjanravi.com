@@ -140,11 +140,11 @@
     }));
     view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
       const route = d.routes.find((x) => x.id === b.dataset.edit);
-      routeForm(route, async (v) => {
+      UI.buttonBusy(b, () => routeForm(route, async (v) => {
         const r = await MPS.post(`/accounts/routes/${route.id}`, v);
         routes(view);
         return r;
-      });
+      }));
     }));
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
       const route = d.routes.find((x) => x.id === b.dataset.del);
