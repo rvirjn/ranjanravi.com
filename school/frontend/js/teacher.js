@@ -252,7 +252,7 @@
     view.querySelector("#add").addEventListener("click", () => peopleAdmission(view, ctx, {}, d, null));
   }
 
-  async function peopleAdmission(view, ctx, state, d, student) {
+  async function peopleAdmission(view, ctx, state, d, student, reload) {
     const meta = await MPS.get("/teacher/class-students?admissions=1");
     const formD = { ...d, ...meta };
     const s = student || { class_id: state.classId || (d.classes[0] && d.classes[0].id) };
@@ -271,7 +271,8 @@
       submitLabel: student ? "Save" : "Add Student",
       onSubmit: async (v) => {
         const r = student ? await MPS.post(`/teacher/class-students/${student.id}`, v) : await MPS.post("/teacher/class-students", v);
-        peopleStudents(view, ctx, state);
+        if (reload) reload();
+        else peopleStudents(view, ctx, state);
         return r;
       },
     });
@@ -365,6 +366,57 @@
       view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => peopleStudentDetail(b.dataset.view)));
     }
 
+    paint();
+  }
+
+  async function leftStudents(view) {
+    const d = await MPS.get("/teacher/class-students?left=1");
+    if (!d.classes.length) {
+      view.innerHTML = card("Students Left", empty("You are not a class teacher.", "fa-sign-out"));
+      return;
+    }
+    let sortKey = "";
+    let sortDir = "asc";
+    const byText = (a, b, key) => (a[key] || "").localeCompare(b[key] || "", undefined, { sensitivity: "base", numeric: true });
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "name") list.sort((a, b) => dir * byText(a, b, "name") || byText(a, b, "father_name"));
+      else if (sortKey === "father") list.sort((a, b) => dir * byText(a, b, "father_name") || byText(a, b, "name"));
+      return list;
+    }
+    function paint() {
+      view.innerHTML = card(`Students Left (${d.students.length})`, table(
+        [
+          { label: "Class", render: (s) => esc(s.class_label || "-") },
+          { label: "Student", sort: "name", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no || "")}</div></div></div>` },
+          { label: "Father", sort: "father", render: (s) => `${esc(s.father_name || "-")}${s.father_phone ? `<div class="small muted">${esc(s.father_phone)}</div>` : ""}` },
+          { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
+          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
+        ],
+        sortedStudents(),
+        { empty: "No students have left.", sort: { key: sortKey, dir: sortDir } }
+      ), { icon: "fa-sign-out", flush: true });
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
+      }));
+      const again = () => leftStudents(view);
+      view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+        const s = d.students.find((x) => x.id === b.dataset.edit);
+        UI.buttonBusy(b, () => peopleAdmission(view, {}, {}, d, s, again));
+      }));
+      view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
+        if (await run(() => MPS.del(`/teacher/class-students/${b.dataset.del}`))) again();
+      }));
+      view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => peopleStudentDetail(b.dataset.view)));
+    }
     paint();
   }
 
@@ -1136,6 +1188,7 @@
       { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
       { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c, extra) => peopleStudents(v, c, extra) },
+      { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v) => leftStudents(v) },
       { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
       { id: "co-scholastic", label: "Grades Entry", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
       { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },

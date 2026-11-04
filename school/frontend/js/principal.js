@@ -919,6 +919,7 @@
       { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => teacherAttendance(v, c) },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
+      { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v, c) => UI.shared.leftStudents(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
       { id: "classes", label: "Classes", icon: "fa-th-large", group: "People", render: (v, c) => classes(v, c) },
       { id: "promote", label: "Promote", icon: "fa-level-up", group: "People", render: (v) => promote(v) },

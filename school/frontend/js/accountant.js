@@ -224,6 +224,7 @@
       { id: "collect", label: "Collect Fee", icon: "fa-inr", group: "Fees", render: (v, c) => Accounts.collect(v, c) },
       { id: "receipts", label: "Download Receipts", icon: "fa-file-text-o", group: "Fees", render: (v, c) => Accounts.receipts(v, c) },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => UI.shared.peopleStudents(v, c) },
+      { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v, c) => UI.shared.leftStudents(v, c) },
       { id: "principals", label: "Principal", icon: "fa-university", group: "People", render: principals },
       { id: "routes", label: "Bus Routes", icon: "fa-bus", group: "People", render: routes },
       { id: "settings", label: "Monthly Fees", icon: "fa-sliders", group: "People", render: Accounts.settings },

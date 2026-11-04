@@ -770,7 +770,7 @@
     view.querySelector("#add").addEventListener("click", () => openAdmission(view, ctx, {}, d, null));
   }
 
-  async function openAdmission(view, ctx, state, d, student) {
+  async function openAdmission(view, ctx, state, d, student, reload) {
     const meta = await MPS.get("/principal/students?admissions=1");
     const formD = { ...d, ...meta };
     const s = student || { class_id: state.classId };
@@ -789,7 +789,8 @@
       submitLabel: student ? "Save" : "Add Student",
       onSubmit: async (v) => {
         const r = student ? await MPS.post(`/principal/students/${student.id}`, v) : await MPS.post("/principal/students", v);
-        peopleStudents(view, ctx, state);
+        if (reload) reload();
+        else peopleStudents(view, ctx, state);
         return r;
       },
     });
@@ -886,6 +887,53 @@
     paint();
   }
 
+  async function leftStudents(view, ctx) {
+    const d = await MPS.get("/principal/students?left=1");
+    let sortKey = "";
+    let sortDir = "asc";
+    const byText = (a, b, key) => (a[key] || "").localeCompare(b[key] || "", undefined, { sensitivity: "base", numeric: true });
+    function sortedStudents() {
+      const list = d.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "name") list.sort((a, b) => dir * byText(a, b, "name") || byText(a, b, "father_name"));
+      else if (sortKey === "father") list.sort((a, b) => dir * byText(a, b, "father_name") || byText(a, b, "name"));
+      return list;
+    }
+    function paint() {
+      view.innerHTML = card(`Students Left (${d.students.length})`, table(
+        [
+          { label: "Class", render: (s) => esc(s.class_label || "-") },
+          { label: "Student", sort: "name", render: (s) => `<div class="who"><div class="avatar">${avatar(s.name, s.photo)}</div><div><b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no || "")}</div></div></div>` },
+          { label: "Father", sort: "father", render: (s) => `${esc(s.father_name || "-")}${s.father_phone ? `<div class="small muted">${esc(s.father_phone)}</div>` : ""}` },
+          { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
+          { label: "", className: "right nowrap", render: (s) => `<button class="btn btn-light btn-sm" data-view="${s.id}">View</button> <button class="btn btn-light btn-sm" data-edit="${s.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-del="${s.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
+        ],
+        sortedStudents(),
+        { empty: "No students have left.", sort: { key: sortKey, dir: sortDir } }
+      ), { icon: "fa-sign-out", flush: true });
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "asc";
+        }
+        paint();
+      }));
+      const again = () => leftStudents(view, ctx);
+      view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+        const s = d.students.find((x) => x.id === b.dataset.edit);
+        UI.buttonBusy(b, () => openAdmission(view, ctx, {}, d, s, again));
+      }));
+      view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm("Delete this student? A sibling who stays keeps the family fee. Everything else for this student is deleted.")) return;
+        if (await run(() => MPS.del(`/principal/students/${b.dataset.del}`))) again();
+      }));
+      view.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.view)));
+    }
+    paint();
+  }
+
   async function studentDetail(id, existing) {
     const m = existing || modal("Student", UI.loading(), { wide: true });
     if (existing) m.body.innerHTML = UI.loading();
@@ -904,6 +952,6 @@
     m.body.querySelectorAll("[data-sibling]").forEach((b) => b.addEventListener("click", () => studentDetail(b.dataset.sibling, m)));
   }
 
-  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile, admissionSuffix, complaints, peopleStudents });
+  Object.assign(UI.shared, { classAttendance, diary, gallery, whatsapp: whatsappPage, attendanceReport, staffAccounts, myProfile, admissionSuffix, complaints, peopleStudents, leftStudents });
   Object.assign(UI, { receiptHtml, showReceipt, progressCardHtml, showProgressCard, admitCardHtml, CODE_LABEL });
 })();
