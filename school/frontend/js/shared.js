@@ -207,12 +207,14 @@
     const p = r.payment;
     const s = r.student;
     const cell = (v) => (v ? money(v) : "");
-    const totalDue = r.dues.reduce((sum, g) => sum + g.amount, 0);
     const siblings = (r.siblings || []).filter((person) => person.name);
     const familyLine = siblings.length > 1 || r.mobile
       ? `<tr><td>${siblings.length > 1 ? `<b>Siblings:</b> ${siblings.map((person) => `${esc(person.name)} (${esc(person.class_label)})`).join(", ")}` : ""}</td><td>${r.mobile ? `<b>Mobile:</b> ${esc(r.mobile)}` : ""}</td></tr>`
       : "";
     const entries = p.entries || [];
+    const rebateTotal = entries.reduce((sum, row) => sum + Number(row.rebate || 0), 0);
+    const paidTotal = entries.reduce((sum, row) => sum + Number(row.paid || 0), 0);
+    const duesTotal = entries.reduce((sum, row) => sum + Number(row.due || 0), 0);
     const received = entries.length
       ? table(
         [
@@ -223,10 +225,10 @@
           { label: "Dues", render: (row) => money(row.due), className: "right" },
         ],
         entries,
-        { footer: `<td colspan="3">Total received</td><td class="right">${money(p.total)}</td><td></td>` }
+        { footer: `<td colspan="2">Total</td><td class="right"><b>${money(rebateTotal)}</b></td><td class="right"><b>${money(paidTotal)}</b></td><td class="right"><b>${money(duesTotal)}</b></td>` }
       )
       : table([{ label: "Particulars", render: (l) => esc(l.description) }, { label: "Amount", render: (l) => money(l.amount), className: "right" }], p.lines,
-        { footer: `<td>Total received</td><td class="right">${money(p.total)}</td>` });
+        { footer: `<td>Total</td><td class="right">${money(p.total)}</td>` });
     const otherItems = entries.length
       ? ""
       : `<h4>Other items</h4>
@@ -245,7 +247,7 @@
       <table class="table receipt-head"><tbody>
         <tr><td><b>Receipt No.</b> ${esc(p.receipt_no)}</td><td><b>Date:</b> ${fmtDate(p.date)}</td></tr>
         <tr><td><b>Student:</b> ${esc(s.name)}</td><td><b>Class:</b> ${esc(r.class_label)} &nbsp; <b>Roll:</b> ${esc(s.roll_no)}</td></tr>
-        <tr><td><b>Admission No.:</b> ${esc(s.admission_no)}</td><td><b>Father:</b> ${esc(s.father_name)}</td></tr>
+        <tr><td colspan="2"><b>Father:</b> ${esc(s.father_name)}</td></tr>
         <tr><td><b>Paid by:</b> ${esc(p.paid_by)}</td><td><b>Given to:</b> ${esc(p.received_by)}</td></tr>
         <tr><td><b>Date paid by parent:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method)}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
         ${familyLine}
@@ -253,14 +255,6 @@
       <h4>Fee received</h4>
       ${received}
       ${otherItems}
-      <h4>Dues (month-wise)</h4>
-      ${r.dues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Details", render: (g) => esc(g.heads.join(", ")) }, { label: "Due", render: (g) => money(g.amount), className: "right" }], r.dues,
-        { footer: `<td>Total dues</td><td></td><td class="right">${money(totalDue)}</td>` }) : '<p class="muted">No dues. All fees paid.</p>'}
-      <table class="table receipt-totals"><tbody>
-        <tr><td>This receipt</td><td class="right"><b>${money(p.total)}</b></td></tr>
-        <tr><td>Total paid (session)</td><td class="right">${money(r.summary.paid)}</td></tr>
-        <tr><td>Balance dues</td><td class="right"><b>${money(r.summary.due)}</b></td></tr>
-      </tbody></table>
       ${p.note ? `<p class="small"><b>Note:</b> ${esc(p.note)}</p>` : ""}
       <div class="print-sign"><span>Parent's signature</span><span>Received by: ${esc(p.received_by)}</span></div></div>`;
   }
