@@ -110,6 +110,7 @@ const SAPTARISHI_CONSTANTS = {
   API_DB_BIRTH_VIEWS_PATH: "/api/db/birth-views",
   API_DB_WALLET_PATH: "/api/db/wallet",
   API_DB_SEND_COUPON_PATH: "/api/db/send-coupon",
+  API_DB_WHATSAPP_PATH: "/api/db/whatsapp",
   USER_TYPE_ENDUSER: "enduser",
   USER_TYPE_ADMIN: "admin",
 

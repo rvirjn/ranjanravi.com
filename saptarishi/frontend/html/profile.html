@@ -8,7 +8,7 @@
   <script>(function(){var p=location.pathname,m="/frontend/html/",i=p.indexOf(m),pre=i>=0?p.slice(0,i):"";if(i<0&&!/^\/(kundali|auspicious|future|remedy|profile|login|privacy)?\/?$/.test(p))return;globalThis.SAPTARISHI_DEPLOY_PREFIX=pre;if(document.querySelector("base"))return;var b=document.createElement("base");b.href=pre+m;document.head.appendChild(b);})();</script>
   <script src="../utils/base.js"></script>
   <title>Profile — Saptarishi</title>
-  <link rel="stylesheet" href="../style/styles.css?v=454">
+  <link rel="stylesheet" href="../style/styles.css?v=458">
 </head>
 <body class="saptarishi-page">
   <div id="saptarishi" class="container main-shell">
@@ -30,6 +30,7 @@
             <button type="button" id="profile-buy-unlimited-btn" class="btn-secondary" data-i18n="profile.buyUnlimited">Buy Unlimited plan</button>
             <button type="button" id="profile-send-coupon-btn" class="btn-secondary" hidden>Send coupon to users</button>
             <button type="button" id="profile-user-notes-btn" class="btn-secondary" hidden>See user notes</button>
+            <button type="button" id="profile-whatsapp-btn" class="btn-secondary" hidden>WhatsApp connection</button>
           </div>
         </div>
       </div>
@@ -169,13 +170,61 @@
     </div>
   </div>
 
-  <script src="../utils/constant.js?v=90"></script>
+  <div id="whatsapp-overlay" class="send-coupon-overlay whatsapp-overlay" hidden>
+    <div class="send-coupon-modal whatsapp-modal" role="dialog" aria-modal="true" aria-labelledby="whatsapp-title">
+      <button type="button" class="send-coupon-modal__close" id="whatsapp-close" aria-label="Close">&times;</button>
+      <h2 id="whatsapp-title" class="send-coupon-modal__title">WhatsApp connection</h2>
+      <p class="send-coupon-modal__lead">New users get a welcome message in English and Hindi from this number.</p>
+      <section class="user-notes-block whatsapp-block">
+        <div id="whatsapp-connection"></div>
+        <div class="whatsapp-actions">
+          <button type="button" id="whatsapp-refresh" class="btn-secondary">Refresh</button>
+          <button type="button" id="whatsapp-pair" class="btn-secondary" hidden>Link with phone number instead</button>
+          <button type="button" id="whatsapp-unlink" class="btn-secondary" hidden>Unlink</button>
+        </div>
+        <form id="whatsapp-pair-form" class="auth-form send-coupon-form whatsapp-inline-form" hidden>
+          <div class="form-field">
+            <label for="whatsapp-pair-number">WhatsApp number to link</label>
+            <input type="tel" id="whatsapp-pair-number" inputmode="numeric" required />
+          </div>
+          <div class="form-field form-field--submit">
+            <button type="submit">Get pairing code</button>
+          </div>
+          <p id="whatsapp-pair-code" class="whatsapp-pair-code" hidden></p>
+        </form>
+      </section>
+      <section class="user-notes-block whatsapp-block">
+        <h3 class="user-notes-block__title">Send test message</h3>
+        <form id="whatsapp-test-form" class="auth-form send-coupon-form whatsapp-inline-form">
+          <div class="form-field">
+            <label for="whatsapp-test-number">Mobile number</label>
+            <input type="tel" id="whatsapp-test-number" inputmode="numeric" required />
+          </div>
+          <div class="form-field">
+            <label for="whatsapp-test-text">Message</label>
+            <textarea id="whatsapp-test-text" rows="2" maxlength="1000"></textarea>
+          </div>
+          <div class="form-field form-field--submit">
+            <button type="submit">Send</button>
+          </div>
+        </form>
+      </section>
+      <section class="user-notes-block whatsapp-block">
+        <h3 class="user-notes-block__title">Message log</h3>
+        <p id="whatsapp-counts" class="whatsapp-counts"></p>
+        <div id="whatsapp-log" class="whatsapp-log"></div>
+      </section>
+      <p id="whatsapp-status" class="status" role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
+
+  <script src="../utils/constant.js?v=91"></script>
   <script src="../js/auth.js?v=56"></script>
   <script src="../utils/loading.js?v=2"></script>
   <script src="../js/auth-modal.js?v=34"></script>
   <script src="../js/premium-modal.js?v=14"></script>
   <script src="../js/wallet-modal.js?v=30"></script>
-  <script src="../js/profile.js?v=40"></script>
+  <script src="../js/profile.js?v=41"></script>
   <script src="../utils/i18n.js?v=28"></script>
   <script src="../utils/common.js?v=125"></script>
   <script src="../js/ask-ai.js?v=20"></script>

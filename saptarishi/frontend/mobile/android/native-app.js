@@ -1727,6 +1727,12 @@
       document.body.classList.remove("user-notes-open");
       return true;
     }
+    const whatsapp = document.getElementById("whatsapp-overlay");
+    if (visible(whatsapp)) {
+      const close = document.getElementById("whatsapp-close");
+      if (close) close.click();
+      return true;
+    }
     const sheet = document.getElementById("app-sheet-mask");
     if (visible(sheet)) {
       closeProfiles();

@@ -31,6 +31,7 @@
   const buyUnlimitedBtn = document.getElementById("profile-buy-unlimited-btn");
   const sendCouponBtn = document.getElementById("profile-send-coupon-btn");
   const userNotesBtn = document.getElementById("profile-user-notes-btn");
+  const whatsappBtn = document.getElementById("profile-whatsapp-btn");
   let lastProfileSummary = null;
 
   function pt(key) {
@@ -58,6 +59,22 @@
   const notesDetail = document.getElementById("user-notes-detail");
   const notesLifeEvents = document.getElementById("user-notes-life-events");
   const notesQuestions = document.getElementById("user-notes-questions");
+  const waOverlay = document.getElementById("whatsapp-overlay");
+  const waClose = document.getElementById("whatsapp-close");
+  const waStatus = document.getElementById("whatsapp-status");
+  const waConnection = document.getElementById("whatsapp-connection");
+  const waRefreshBtn = document.getElementById("whatsapp-refresh");
+  const waPairBtn = document.getElementById("whatsapp-pair");
+  const waUnlinkBtn = document.getElementById("whatsapp-unlink");
+  const waPairForm = document.getElementById("whatsapp-pair-form");
+  const waPairNumber = document.getElementById("whatsapp-pair-number");
+  const waPairCode = document.getElementById("whatsapp-pair-code");
+  const waTestForm = document.getElementById("whatsapp-test-form");
+  const waTestNumber = document.getElementById("whatsapp-test-number");
+  const waTestText = document.getElementById("whatsapp-test-text");
+  const waCounts = document.getElementById("whatsapp-counts");
+  const waLog = document.getElementById("whatsapp-log");
+  let waPollTimer = null;
 
   let couponUsers = [];
   let notesUsers = [];
@@ -278,6 +295,9 @@
     }
     if (userNotesBtn) {
       userNotesBtn.hidden = !AUTH.isAdmin(profile || usage);
+    }
+    if (whatsappBtn) {
+      whatsappBtn.hidden = !AUTH.isAdmin(profile || usage);
     }
   }
 
@@ -546,6 +566,173 @@
     showNotesStatus("");
   }
 
+  function whatsappPath(sub = "") {
+    return `${C?.API_DB_WHATSAPP_PATH || "/api/db/whatsapp"}${sub}`;
+  }
+
+  function showWaStatus(message, isError) {
+    if (!waStatus) return;
+    waStatus.textContent = message || "";
+    waStatus.hidden = !message;
+    waStatus.classList.toggle("error", Boolean(isError));
+  }
+
+  function waBadge(text, tone) {
+    const el = document.createElement("span");
+    el.className = `whatsapp-badge whatsapp-badge--${tone}`;
+    el.textContent = text;
+    return el;
+  }
+
+  function waParagraph(...parts) {
+    const p = document.createElement("p");
+    p.className = "whatsapp-line";
+    p.append(...parts);
+    return p;
+  }
+
+  function renderWaConnection(payload) {
+    const s = payload.status || {};
+    const linkNumber = String(payload.link_number || "");
+    waConnection.replaceChildren();
+    if (s.connected) {
+      waConnection.append(
+        waParagraph(waBadge(s.state_label, "ok"), ` Linked to +${s.number}${s.name ? ` (${s.name})` : ""}`)
+      );
+    } else if (s.state === "offline") {
+      waConnection.append(
+        waParagraph(waBadge(s.state_label, "bad"), " The WhatsApp service is not running."),
+        waParagraph(s.error || "")
+      );
+    } else {
+      waConnection.append(
+        waParagraph(waBadge(s.state_label, "warn"), ` Link the WhatsApp number ${linkNumber}:`),
+        waParagraph(
+          "Open WhatsApp on that phone > Settings > Linked devices > Link a device, then scan this QR code (it refreshes every ~20 seconds)."
+        )
+      );
+      if (s.qr) {
+        const img = document.createElement("img");
+        img.className = "whatsapp-qr";
+        img.src = s.qr;
+        img.alt = "WhatsApp QR code";
+        waConnection.append(img);
+      } else {
+        waConnection.append(waParagraph("QR code is loading… click Refresh."));
+      }
+    }
+    waPairBtn.hidden = Boolean(s.connected) || s.state === "offline";
+    waUnlinkBtn.hidden = !s.connected;
+    if (s.connected) {
+      waPairForm.hidden = true;
+      waPairCode.hidden = true;
+    }
+    if (!waPairNumber.value) waPairNumber.value = linkNumber;
+    if (!waTestNumber.value) waTestNumber.value = linkNumber;
+    if (!waTestText.value) waTestText.value = payload.test_text || "";
+  }
+
+  function renderWaLog(payload) {
+    const counts = Object.entries(payload.counts || {}).map(([k, v]) => `${k} ${v}`);
+    waCounts.textContent = `Messages: ${counts.join(" · ") || "none yet"}`;
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    waLog.replaceChildren();
+    if (!messages.length) {
+      const empty = document.createElement("p");
+      empty.className = "user-notes-empty";
+      empty.textContent = "No WhatsApp messages yet.";
+      waLog.appendChild(empty);
+      return;
+    }
+    messages.forEach((m) => {
+      const row = document.createElement("div");
+      row.className = "whatsapp-log__row";
+      const tone = m.status === "sent" ? "ok" : m.status === "failed" ? "bad" : "warn";
+      const head = document.createElement("div");
+      head.className = "whatsapp-log__head";
+      head.append(
+        waBadge(m.status, tone),
+        waBadge(m.purpose, "neutral"),
+        ` ${m.to_label || ""} +${m.to} · ${formatDateTime(m.created_at)}`
+      );
+      const text = document.createElement("pre");
+      text.className = "whatsapp-log__text";
+      text.textContent = m.text || "";
+      row.append(head, text);
+      if (m.error) {
+        const err = document.createElement("p");
+        err.className = "whatsapp-log__error";
+        err.textContent = m.error;
+        row.appendChild(err);
+      }
+      if (m.status === "failed") {
+        const retryBtn = document.createElement("button");
+        retryBtn.type = "button";
+        retryBtn.className = "btn-secondary whatsapp-log__retry";
+        retryBtn.dataset.retry = m.id;
+        retryBtn.textContent = "Retry";
+        row.appendChild(retryBtn);
+      }
+      waLog.appendChild(row);
+    });
+  }
+
+  async function loadWhatsapp() {
+    clearTimeout(waPollTimer);
+    if (!waOverlay || waOverlay.hidden) return;
+    try {
+      const payload = await AUTH.apiFetch(whatsappPath());
+      if (waOverlay.hidden) return;
+      renderWaConnection(payload);
+      renderWaLog(payload);
+      if (waStatus && waStatus.dataset.loading) {
+        delete waStatus.dataset.loading;
+        showWaStatus("");
+      }
+      const s = payload.status || {};
+      const queued = (payload.messages || []).some((m) => m.status === "queued");
+      if (queued || (!s.connected && s.state !== "offline")) {
+        waPollTimer = setTimeout(loadWhatsapp, queued ? 3000 : 10000);
+      }
+    } catch (err) {
+      showWaStatus(err.message || "Could not load WhatsApp status", true);
+    }
+  }
+
+  async function waAction(sub, body, busyMessage) {
+    showWaStatus(busyMessage, false);
+    try {
+      const result = await AUTH.apiFetch(whatsappPath(sub), {
+        method: "POST",
+        body: JSON.stringify(body || {})
+      });
+      showWaStatus(result.message || "", false);
+      return result;
+    } catch (err) {
+      showWaStatus(err.message || "WhatsApp request failed", true);
+      return null;
+    } finally {
+      loadWhatsapp();
+    }
+  }
+
+  function openWhatsappModal() {
+    if (!waOverlay) return;
+    waOverlay.hidden = false;
+    document.body.classList.add("send-coupon-open");
+    if (waStatus) waStatus.dataset.loading = "1";
+    showWaStatus("Loading WhatsApp status…", false);
+    loadWhatsapp();
+  }
+
+  function closeWhatsappModal() {
+    if (!waOverlay) return;
+    clearTimeout(waPollTimer);
+    waOverlay.hidden = true;
+    document.body.classList.remove("send-coupon-open");
+    showWaStatus("");
+  }
+
   async function initializeProfilePage() {
     const authed = await ensureLoggedIn();
     if (!authed) {
@@ -730,6 +917,42 @@
   if (notesOverlay) {
     notesOverlay.addEventListener("click", (event) => {
       if (event.target === notesOverlay) closeUserNotesModal();
+    });
+  }
+  if (whatsappBtn) {
+    whatsappBtn.addEventListener("click", () => openWhatsappModal());
+  }
+  if (waOverlay) {
+    waOverlay.addEventListener("click", (event) => {
+      if (event.target === waOverlay) closeWhatsappModal();
+    });
+    waClose.addEventListener("click", () => closeWhatsappModal());
+    waRefreshBtn.addEventListener("click", () => loadWhatsapp());
+    waPairBtn.addEventListener("click", () => {
+      waPairForm.hidden = false;
+      waPairNumber.focus();
+    });
+    waUnlinkBtn.addEventListener("click", () => {
+      if (global.confirm("Unlink WhatsApp from Saptarishi?")) {
+        waAction("/logout", {}, "Unlinking…");
+      }
+    });
+    waPairForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const result = await waAction("/pair", { number: waPairNumber.value }, "Getting pairing code…");
+      if (result && result.code) {
+        waPairCode.textContent = `On that phone: WhatsApp > Settings > Linked devices > Link a device > Link with phone number instead, then enter ${result.code}`;
+        waPairCode.hidden = false;
+        showWaStatus("");
+      }
+    });
+    waTestForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      waAction("/test", { number: waTestNumber.value, text: waTestText.value }, "Sending…");
+    });
+    waLog.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-retry]");
+      if (btn) waAction("/retry", { id: btn.dataset.retry }, "Queuing again…");
     });
   }
 
