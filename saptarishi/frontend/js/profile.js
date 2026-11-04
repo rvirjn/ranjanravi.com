@@ -236,7 +236,11 @@
 
     if (planEl) {
       if (isAdvance) {
-        setCurrentPlanLine(planEl, pt("profile.advance"));
+        const expires = formatDate(profile.premium_expires_at || usage?.premium_expires_at);
+        setCurrentPlanLine(
+          planEl,
+          expires ? ptf("profile.advanceUntil", { date: expires }) : pt("profile.advance")
+        );
       } else if (freeLeft > 0) {
         setCurrentPlanLine(
           planEl,
