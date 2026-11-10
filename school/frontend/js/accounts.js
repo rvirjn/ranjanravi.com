@@ -28,7 +28,7 @@ const Accounts = (() => {
     table(
       [
         { label: "Receipt", render: (p) => `<b>${esc(p.receipt_no)}</b><div class="small muted">${fmtDate(p.date)}</div>` },
-        { label: "Student", render: (p) => `${esc(p.student_name)}${p.class_label ? `<div class="small muted">${esc(p.class_label)}</div>` : ""}` },
+        { label: "Student", render: (p) => `${esc(p.student_name)}${p.class_label ? `<div class="small muted">${esc(p.class_label)}</div>` : ""}${(p.sibling_names || []).length ? `<div class="small muted">Siblings: ${esc(p.sibling_names.join(", "))}</div>` : ""}` },
         { label: "Paid by", key: "paid_by" },
         { label: "Mode", key: "method" },
         { label: "Amount", render: (p) => `<b>${money(p.total)}</b>`, className: "right" },
@@ -202,7 +202,7 @@ const Accounts = (() => {
         <div class="stack">
           ${card(s.name, kv([["Admission No.", s.admission_no], ["Class", `${d.class_label} (Roll ${s.roll_no})`], ["Father", s.father_name], ["Mobile", s.father_phone || s.phone]]), { icon: "fa-user" })}
           ${card("Dues (month-wise)", monthDues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Due", render: (g) => money(g.amount), className: "right" }], monthDues) : empty("No dues", "fa-check"), { icon: "fa-inr", flush: true })}
-          ${card("Previous Receipts", receiptTable(d.payments.map((p) => ({ ...p, student_name: s.name }))), { icon: "fa-file-text-o", flush: true })}
+          ${card("Previous Receipts", receiptTable(d.payments.map((p) => ({ ...p, student_name: p.student_name || s.name }))), { icon: "fa-file-text-o", flush: true })}
         </div>
       </div>`;
 

@@ -521,7 +521,7 @@
         [
           { label: "Receipt", render: (p) => `<b>${esc(p.receipt_no)}</b>` },
           { label: "Date", render: (p) => fmtDate(p.date), className: "nowrap" },
-          { label: "For", render: (p) => `<span class="small">${esc(p.lines.map((l) => l.description).join(", "))}</span>` },
+          { label: "For", render: (p) => `<span class="small">${esc(p.lines.map((l) => l.description).join(", "))}</span>${p.recorded_on_sibling ? `<div class="small muted">${esc(p.student_name)}</div>` : ""}` },
           { label: "Amount", render: (p) => `<b>${money(p.total)}</b>`, className: "right" },
           { label: "", className: "right", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${p.id}"><i class="fa fa-print"></i> View</button>` },
         ],
