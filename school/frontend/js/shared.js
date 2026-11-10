@@ -227,7 +227,7 @@
         entries,
         { footer: `<td colspan="2">Total</td><td class="right"><b>${money(rebateTotal)}</b></td><td class="right"><b>${money(paidTotal)}</b></td><td class="right"><b>${money(duesTotal)}</b></td>` }
       )
-      : table([{ label: "Particulars", render: (l) => esc(l.description) }, { label: "Amount", render: (l) => money(l.amount), className: "right" }], p.lines,
+      : table([{ label: "Particulars", render: (l) => esc(l.description) }, { label: "Amount", render: (l) => money(l.amount), className: "right" }], r.particulars || p.lines,
         { footer: `<td>Total</td><td class="right">${money(p.total)}</td>` });
     const otherItems = entries.length
       ? ""

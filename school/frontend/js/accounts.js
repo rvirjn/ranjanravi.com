@@ -203,7 +203,7 @@ const Accounts = (() => {
             [
               { label: "Date", render: (p) => fmtDate(p.paid_on || p.date), className: "nowrap" },
               { label: "Receipt", render: (p) => `<b>${esc(p.receipt_no)}</b>${p.recorded_on_sibling ? `<div class="small muted">${esc(p.student_name)}</div>` : ""}` },
-              { label: "For", render: (p) => `<span class="small">${esc((p.lines || []).map((l) => `${l.description} ${money(l.amount)}`).join(", "))}</span>` },
+              { label: "For", render: (p) => `<span class="small">${esc((p.particulars || p.lines || []).map((l) => `${l.description} ${money(l.amount)}`).join(", "))}</span>` },
               { label: "Mode", render: (p) => `${esc(p.method || "")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
               { label: "Paid by", key: "paid_by" },
               { label: "Received by", key: "received_by" },
@@ -508,7 +508,8 @@ const Accounts = (() => {
     function sortedStudents() {
       const list = d.students.slice();
       const dir = sortDir === "desc" ? -1 : 1;
-      if (sortKey === "name") list.sort((a, b) => dir * byName(a, b) || ((Number(a.due) || 0) - (Number(b.due) || 0)));
+      if (sortKey === "class") list.sort((a, b) => dir * ((Number(a.order) || 0) - (Number(b.order) || 0)) || ((Number(a.roll_no) || 0) - (Number(b.roll_no) || 0)) || byName(a, b));
+      else if (sortKey === "name") list.sort((a, b) => dir * byName(a, b) || ((Number(a.due) || 0) - (Number(b.due) || 0)));
       else if (sortKey === "due") list.sort((a, b) => dir * ((Number(a.due) || 0) - (Number(b.due) || 0)) || byName(a, b));
       return list;
     }
@@ -524,7 +525,7 @@ const Accounts = (() => {
         ${d.students.length ? '<button class="btn btn-sm" id="remind"><i class="fa fa-whatsapp"></i> View &amp; Send reminder to all</button>' : ""}</div></div>
       ${card("Dues Reminders", table(
         [
-          { label: "Class", key: "class_label" },
+          { label: "Class", key: "class_label", sort: "class" },
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Pending months", render: (s) => `${badge(`${s.pending_months.length}`, "danger")} <span class="small">${esc(s.pending_months.join(", "))}</span>` },
           { label: "Dues", sort: "due", render: (s) => `<b>${money(s.due)}</b>`, className: "right" },
