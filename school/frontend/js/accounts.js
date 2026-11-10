@@ -121,7 +121,8 @@ const Accounts = (() => {
             const label = count === 1 ? "1 month" : `${count} months`;
             return count >= 2 ? badge(label, "danger") : esc(label);
           } },
-          { label: "Last paid", render: (s) => fmtDate(s.last_payment), className: "nowrap" },
+          { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
+          { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
       );
@@ -183,7 +184,7 @@ const Accounts = (() => {
       : "";
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
-        <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.summary.sibling_names || []).length ? ` <span class="small muted">Combined with ${esc(d.summary.sibling_names.join(", "))}. Same due on each sibling.</span>` : ""}</span></div>
+        <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
         <div class="stack">
@@ -198,6 +199,20 @@ const Accounts = (() => {
             <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent.</p>
           </form>
           <div class="sticky-bar static"><span>Total: <b id="total" style="font-size:20px">Rs 0</b></span><button class="btn" id="submit"><i class="fa fa-eye"></i> Preview</button></div>`, { icon: "fa-credit-card", flush: false })}
+          ${card("Payment History", table(
+            [
+              { label: "Date", render: (p) => fmtDate(p.paid_on || p.date), className: "nowrap" },
+              { label: "Receipt", render: (p) => `<b>${esc(p.receipt_no)}</b>${p.recorded_on_sibling ? `<div class="small muted">${esc(p.student_name)}</div>` : ""}` },
+              { label: "For", render: (p) => `<span class="small">${esc((p.lines || []).map((l) => `${l.description} ${money(l.amount)}`).join(", "))}</span>` },
+              { label: "Mode", render: (p) => `${esc(p.method || "")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
+              { label: "Paid by", key: "paid_by" },
+              { label: "Received by", key: "received_by" },
+              { label: "Amount", render: (p) => `<b>${money(p.total)}</b>`, className: "right nowrap" },
+              { label: "", className: "right", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${p.id}"><i class="fa fa-print"></i> View</button>` },
+            ],
+            d.payments,
+            { empty: "No payments yet.", emptyIcon: "fa-history" }
+          ), { icon: "fa-history", flush: true })}
         </div>
         <div class="stack">
           ${card(s.name, kv([["Admission No.", s.admission_no], ["Class", `${d.class_label} (Roll ${s.roll_no})`], ["Father", s.father_name], ["Mobile", s.father_phone || s.phone]]), { icon: "fa-user" })}
@@ -317,6 +332,11 @@ const Accounts = (() => {
     titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(d.summary.due)})`;
     bindReceipts(view);
     view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
+    view.querySelectorAll("[data-sibling]").forEach((a) => a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const classId = state.classId === "all" ? "all" : a.dataset.siblingClass || state.classId;
+      collect(view, ctx, { classId, studentId: a.dataset.sibling });
+    }));
     view.querySelector("#submit").addEventListener("click", async (e) => {
       const form = view.querySelector("#payForm");
       if (!form.reportValidity()) return;
