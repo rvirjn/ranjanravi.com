@@ -156,8 +156,9 @@
     view.innerHTML = `<div class="toolbar"><div class="filters"><select id="month"><option value="">Whole session</option>${d.months.map((m) => `<option value="${m}" ${m === month ? "selected" : ""}>${fmtMonth(m)}</option>`).join("")}</select></div></div>
       ${card("Teacher Attendance Report", table([
         { label: "Teacher", render: (t) => `<b>${esc(t.name)}</b>` }, { label: "Days", key: "working_days", className: "right" },
-        { label: "Present", key: "present", className: "right" }, { label: "Absent", key: "absent", className: "right" }, { label: "Late", key: "late", className: "right" },
-        { label: "Leave", key: "leave", className: "right" }, { label: "%", render: (t) => `<div style="min-width:110px"><b>${t.percentage}%</b>${UI.progress(t.percentage)}</div>` },
+        { label: "Present on Time", key: "present", className: "right" }, { label: "Late", key: "late", className: "right" }, { label: "Absent", key: "absent", className: "right" },
+        { label: "Leave", key: "leave", className: "right" }, { label: "Not marked", render: (t) => (t.not_marked ? `<b style="color:var(--danger)">${t.not_marked}</b>` : "0"), className: "right" },
+        { label: "%", render: (t) => `<div style="min-width:110px"><b>${t.percentage}%</b>${UI.progress(t.percentage)}</div>` },
       ], d.teachers), { icon: "fa-bar-chart", flush: true })}`;
     view.querySelector("#month").addEventListener("change", (e) => teacherAttendanceReport(view, ctx, e.target.value));
   }
