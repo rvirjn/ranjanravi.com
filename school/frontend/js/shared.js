@@ -118,12 +118,13 @@
     const d = await MPS.get(`/diary/overview?date=${day}`);
     view.innerHTML = `
       <div class="toolbar"><div class="filters"><label style="margin:0">Date</label><input type="date" id="day" value="${day}" max="${todayIso()}"></div>
-        <span class="small muted">Select a class to send Classwork (CW) and Homework (HW) to its WhatsApp group</span></div>
+        <span class="small muted">Select a class to add Classwork (CW) and Homework (HW). Each class WhatsApp group gets one message with all subjects after school closes (${esc(d.send_time)}).</span></div>
       <div class="class-tiles">${d.classes
         .map(
           (c) => `<button type="button" class="class-tile ${c.posts ? "done" : ""}" data-class="${c.id}">
             <b>${esc(c.label)}</b><span><i class="fa fa-whatsapp"></i> WhatsApp group name: ${c.whatsapp_group ? `<b>${esc(c.whatsapp_group)}</b>` : "No WhatsApp group set"}</span>
-            ${c.posts ? `<span class="tile-status ok"><i class="fa fa-check"></i> ${esc(c.subjects.join(", "))}</span>` : '<span class="tile-status pending">Not posted</span>'}</button>`
+            ${c.posts ? `<span class="tile-status ok"><i class="fa fa-${c.queued ? "clock-o" : "check"}"></i> ${esc(c.subjects.join(", "))}</span>` : '<span class="tile-status pending">Not posted</span>'}
+            ${c.queued ? `<span class="small muted">Queued, sends after ${esc(d.send_time)}</span>` : ""}</button>`
         )
         .join("")}</div>`;
     view.querySelector("#day").addEventListener("change", (e) => diary(view, ctx, { date: e.target.value }));
@@ -139,12 +140,19 @@
           <td><input name="hw" placeholder="HW - one or two lines" maxlength="300"></td></tr>`
       )
       .join("");
+    const waBadge = (p) =>
+      ({
+        queued: badge("Queued", "warn"),
+        sent: badge(p.wa_sent_on ? `Sent ${fmtTime(p.wa_sent_on)}` : "Sent", "success"),
+        no_group: badge("No WhatsApp group", "danger"),
+        off: badge("Not sent", "neutral"),
+      })[p.wa_status] || "";
     const posts = d.posts.length
       ? d.posts
           .map(
             (p) => `<div class="item-card"><div class="row"><div><b>${esc(p.teacher_name)}</b> <span class="small muted">${fmtTime(p.posted_on)}</span></div>
-              <div class="btn-group">${badge(`Seen by ${p.seen_count}/${p.class_size}`, "neutral")}
-              <button class="btn btn-light btn-sm" data-resend="${p.id}"><i class="fa fa-whatsapp"></i> Resend</button>
+              <div class="btn-group">${waBadge(p)} ${badge(`Seen by ${p.seen_count}/${p.class_size}`, "neutral")}
+              ${p.wa_status === "queued" ? "" : `<button class="btn btn-light btn-sm" data-resend="${p.id}"><i class="fa fa-whatsapp"></i> Resend</button>`}
               <button class="btn btn-light btn-sm" data-del="${p.id}"><i class="fa fa-trash"></i></button></div></div>
               <div class="pre small" style="margin-top:6px">${p.entries.map((e) => [e.cw ? `${esc(e.subject)} : CW - ${esc(e.cw)}` : "", e.hw ? `${esc(e.subject)} : HW - ${esc(e.hw)}` : ""].filter(Boolean).join("\n")).join("\n")}</div></div>`
           )
@@ -157,10 +165,11 @@
       <div class="grid grid-side">
         ${card(`${d.class_label} · ${weekday(d.date)}, ${fmtDate(d.date)}`, `<div class="table-wrap"><table class="table diary-table"><thead><tr><th>Subject</th><th>Classwork (CW)</th><th>Homework (HW)</th></tr></thead>
           <tbody>${rows}<tr data-row="extra"><td><input name="subject" placeholder="Other subject"></td><td><input name="cw" placeholder="CW"></td><td><input name="hw" placeholder="HW"></td></tr></tbody></table></div>
-          <div class="sticky-bar static"><span class="small muted">Leave a box empty to skip it</span><button class="btn" id="send"><i class="fa fa-whatsapp"></i> Update &amp; Send</button></div>`,
+          <div class="sticky-bar static"><span class="small muted">Leave a box empty to skip it</span><button class="btn" id="send"><i class="fa fa-clock-o"></i> Save to Queue</button></div>`,
           { icon: "fa-pencil-square-o", flush: true })}
-        ${card("WhatsApp Preview", '<div class="preview-box" id="preview"></div>', { icon: "fa-whatsapp" })}
+        ${card("Your Entry", `<div class="preview-box" id="preview"></div><p class="small muted" style="margin-top:8px">${esc(d.send_note)}</p>`, { icon: "fa-pencil" })}
       </div>
+      ${d.queued_message ? card("Queued WhatsApp Message", `<div class="preview-box">${esc(d.queued_message)}</div>`, { icon: "fa-whatsapp" }) : ""}
       ${card("Posted for this date", posts, { icon: "fa-history", flush: true })}`;
 
     const collect = () =>
@@ -172,10 +181,8 @@
         }))
         .filter((e) => e.subject && (e.cw || e.hw));
     const preview = () => {
-      const lines = collect().flatMap((e) => [e.cw ? `${e.subject} : CW - ${e.cw}` : "", e.hw ? `${e.subject} : HW - ${e.hw}` : ""].filter(Boolean));
-      view.querySelector("#preview").textContent = lines.length
-        ? `*${d.class_label} - Classwork & Homework*\nDate: ${fmtDate(d.date)} (${weekday(d.date)})\n\n${lines.join("\n")}\n\nPosted by ${ctx.user.name}`
-        : "Type CW / HW to see the message here.";
+      const blocks = collect().map((e) => [`*${e.subject}* (${ctx.user.name})`, e.cw ? `CW - ${e.cw}` : "", e.hw ? `HW - ${e.hw}` : ""].filter(Boolean).join("\n"));
+      view.querySelector("#preview").textContent = blocks.length ? blocks.join("\n\n") : "Type CW / HW to see your part of the message here.";
     };
     preview();
     view.querySelectorAll(".diary-table input").forEach((i) => i.addEventListener("input", preview));

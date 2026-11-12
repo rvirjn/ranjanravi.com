@@ -660,6 +660,16 @@
           { label: "Homework", render: (r) => (r.hw ? esc(r.hw) : dash) },
           { label: "Posted by", render: (r) => (r.teacher_name ? esc(r.teacher_name) : dash) },
           { label: "Time", render: (r) => (r.posted_on ? fmtTime(r.posted_on) : dash) },
+          {
+            label: "WhatsApp",
+            render: (r) =>
+              ({
+                queued: badge("Queued", "warn"),
+                sent: badge(r.wa_sent_on ? `Sent ${fmtTime(r.wa_sent_on)}` : "Sent", "success"),
+                no_group: badge("No WhatsApp group", "danger"),
+                off: badge("Not sent", "neutral"),
+              })[r.wa_status] || dash,
+          },
         ],
         d.rows,
         { empty: d.month || state.teacherId ? "No HW/CW posted for this selection." : "No classes to show." }
