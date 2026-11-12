@@ -1,6 +1,6 @@
 /** Fee office screens, shared by the accountant and principal portals. */
 const Accounts = (() => {
-  const { esc, fmtDate, fmtDateTime, money, badge, card, stat, empty, table, kv, openForm, run, todayIso, printDoc } = UI;
+  const { esc, fmtDate, fmtDateTime, fmtMonth, money, badge, card, stat, empty, table, kv, openForm, run, todayIso, printDoc } = UI;
 
   // ---------- Dashboard ----------
   async function dashboard(view) {
@@ -667,9 +667,151 @@ const Accounts = (() => {
     view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>${body}`));
   }
 
+  // ---------- Teacher salary ----------
+  function salarySlipHtml(p, t) {
+    const rows = [
+      { head: `Salary (${fmtMonth(p.month)})`, earn: p.basic, ded: "" },
+      ...Object.entries(p.allowances || {}).map(([head, amount]) => ({ head, earn: amount, ded: "" })),
+      ...Object.entries(p.deductions || {}).map(([head, amount]) => ({ head, earn: "", ded: amount })),
+    ];
+    return `<div class="receipt">
+      <h3 style="text-align:center;margin:0 0 10px">SALARY SLIP</h3>
+      <table class="table receipt-head"><tbody>
+        <tr><td><b>Slip No.</b> ${esc(p.slip_no || "-")}</td><td><b>Date:</b> ${fmtDate(p.date || p.paid_on)}</td></tr>
+        <tr><td><b>Teacher:</b> ${esc(t.name)}</td><td><b>Employee ID:</b> ${esc(t.employee_id)}</td></tr>
+        <tr><td><b>Designation:</b> ${esc(t.designation)}</td><td><b>Salary month:</b> ${esc(fmtMonth(p.month))}</td></tr>
+        <tr><td><b>Paid on:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method || "-")}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
+        ${p.monthly ? `<tr><td><b>Monthly salary:</b> ${money(p.monthly)}</td><td>${p.total_due_after != null ? `<b>Salary still due:</b> ${money(p.total_due_after)}` : ""}</td></tr>` : ""}
+      </tbody></table>
+      ${table(
+        [
+          { label: "Head", key: "head" },
+          { label: "Earnings", render: (r) => (r.earn === "" ? "" : money(r.earn)), className: "right" },
+          { label: "Deductions", render: (r) => (r.ded === "" ? "" : money(r.ded)), className: "right" },
+        ],
+        rows,
+        { footer: `<td>Total</td><td class="right">${money(p.gross)}</td><td class="right">${money(p.gross - p.net)}</td></tr><tr><td><b>Net Pay</b></td><td class="right" colspan="2"><b>${money(p.net)}</b></td>` }
+      )}
+      ${p.note ? `<p class="small"><b>Note:</b> ${esc(p.note)}</p>` : ""}
+      <div class="print-sign"><span>Teacher's signature</span><span>Paid by: ${esc(p.paid_by || "")}</span></div></div>`;
+  }
+
+  function showSalarySlip(slip, teacher) {
+    const m = UI.modal(`Salary Slip ${slip.slip_no || ""}`, `${salarySlipHtml(slip, teacher)}<div class="modal-actions"><button class="btn" id="printSlip"><i class="fa fa-print"></i> Print</button></div>`, { wide: true });
+    m.body.querySelector("#printSlip").addEventListener("click", () => printDoc("Salary Slip", salarySlipHtml(slip, teacher)));
+  }
+
+  async function salarySlips(teacherId) {
+    let d;
+    try {
+      d = await MPS.get(`/accounts/salaries/${teacherId}/slips`);
+    } catch (e) {
+      UI.toast(e.message, "error");
+      return;
+    }
+    const m = UI.modal(`Salary slips · ${d.teacher.name}`, table(
+      [
+        { label: "Month", render: (p) => `<b>${esc(fmtMonth(p.month))}</b><div class="small muted">${esc(p.slip_no || "")}</div>` },
+        { label: "Paid on", render: (p) => fmtDate(p.paid_on), className: "nowrap" },
+        { label: "Mode", render: (p) => `${esc(p.method || "-")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
+        { label: "Net Pay", render: (p) => `<b>${money(p.net)}</b>`, className: "right nowrap" },
+        { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-slip="${esc(p.id)}"><i class="fa fa-print"></i> View</button>` },
+      ],
+      d.slips,
+      { empty: "No salary slips yet.", emptyIcon: "fa-money" }
+    ), { wide: true });
+    m.body.querySelectorAll("[data-slip]").forEach((b) => b.addEventListener("click", () => showSalarySlip(d.slips.find((p) => p.id === b.dataset.slip), d.teacher)));
+  }
+
+  function paySalary(t, methods, done) {
+    const months = t.pay_months || [];
+    const m = UI.modal(`Pay ${t.name}`, `<form id="salaryForm" class="grid grid-2" style="gap:0 16px">
+        ${UI.fieldHtml({ name: "month", label: "Salary month", type: "select", options: months.map((x) => ({ value: x.month, label: `${x.label} (due ${money(x.due)})` })), required: true })}
+        ${UI.fieldHtml({ name: "salary", label: "Salary (Rs)", type: "number", min: 0, value: months[0] ? months[0].due : 0 })}
+        ${UI.fieldHtml({ name: "other", label: "Other amount (Rs)", type: "number", min: 0, placeholder: "0" })}
+        ${UI.fieldHtml({ name: "other_label", label: "Other for", placeholder: "e.g. Bonus, allowance" })}
+        ${UI.fieldHtml({ name: "deduction", label: "Deduction (Rs)", type: "number", min: 0, placeholder: "0" })}
+        ${UI.fieldHtml({ name: "deduction_label", label: "Deduction for", placeholder: "e.g. Advance, leave" })}
+        ${UI.fieldHtml({ name: "paid_on", label: "Paid on", type: "date", value: todayIso(), max: todayIso(), required: true })}
+        ${UI.fieldHtml({ name: "method", label: "Mode", type: "select", options: methods, value: methods[0] })}
+        ${UI.fieldHtml({ name: "reference", label: "UPI / cheque reference" })}
+        ${UI.fieldHtml({ name: "note", label: "Note" })}
+        <div class="form-error" hidden style="grid-column:1/-1"></div>
+      </form>
+      <div class="modal-actions"><span style="margin-right:auto">Net pay: <b id="netPay" style="font-size:18px">${money(0)}</b></span>
+        <button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="paySalary"><i class="fa fa-check"></i> Pay &amp; Generate Slip</button></div>`, { wide: true });
+    const form = m.body.querySelector("#salaryForm");
+    const errorEl = form.querySelector(".form-error");
+    const num = (name) => Number(form[name].value || 0);
+    const paint = () => { m.body.querySelector("#netPay").textContent = money(Math.max(0, num("salary") + num("other") - num("deduction"))); };
+    form.month.addEventListener("change", () => {
+      const pick = months.find((x) => x.month === form.month.value);
+      form.salary.value = pick ? pick.due : 0;
+      paint();
+    });
+    form.addEventListener("input", paint);
+    paint();
+    const submit = m.body.querySelector("#paySalary");
+    submit.addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+      submit.disabled = true;
+      errorEl.hidden = true;
+      try {
+        const r = await MPS.post(`/accounts/salaries/${t.id}/pay`, Object.fromEntries(new FormData(form).entries()));
+        m.close();
+        UI.toast(r.message);
+        showSalarySlip(r.slip, r.teacher);
+        done();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+        submit.disabled = false;
+      }
+    });
+  }
+
+  function salaryTable(pay) {
+    return table([
+      { label: "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation)}</div>` },
+      { label: "Monthly Amount", render: (t) => `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input type="number" class="amount-input" data-salary-amount="${esc(t.id)}" value="${t.monthly_salary || ""}" placeholder="0" min="0">
+          <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Dues from <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
+          <button class="btn btn-sm" data-salary-save="${esc(t.id)}">Save</button></div>` },
+      { label: "Last Amount paid", className: "nowrap", render: (t) => (t.last_paid_on
+        ? `<b>${money(t.last_paid_amount)}</b><div class="small muted">${fmtDate(t.last_paid_on)} &middot; ${esc(t.last_paid_month_label)}</div>`
+        : '<span class="muted">-</span>') },
+      { label: "Total Dues", className: "nowrap", render: (t) => {
+        if (!t.monthly_salary) return '<span class="muted">Set monthly amount</span>';
+        if (!t.due) return badge("Paid", "success");
+        return `<b style="color:var(--danger)">${money(t.due)}</b><div class="small muted">${esc(t.due_months.map((x) => x.label).join(", "))}</div>`;
+      } },
+      { label: "Other", className: "nowrap", render: (t) => (t.other_paid || t.deducted
+        ? `${t.other_paid ? money(t.other_paid) : ""}${t.deducted ? `<div class="small muted">Deducted ${money(t.deducted)}</div>` : ""}`
+        : '<span class="muted">-</span>') },
+      { label: "", className: "right nowrap", render: (t) => `<button class="btn btn-sm" data-salary-pay="${esc(t.id)}" ${t.monthly_salary ? "" : 'disabled title="Set the monthly amount first"'}><i class="fa fa-inr"></i> Pay</button>
+          <button class="btn btn-light btn-sm" data-salary-slips="${esc(t.id)}"><i class="fa fa-file-text-o"></i> Slips${t.slip_count ? ` (${t.slip_count})` : ""}</button>` },
+    ], pay.teachers, { empty: "No active teachers.", emptyIcon: "fa-users" });
+  }
+
+  function bindSalaries(view, pay) {
+    view.querySelectorAll("[data-salary-save]").forEach((b) => b.addEventListener("click", async () => {
+      const id = b.dataset.salarySave;
+      const result = await run(() => MPS.post(`/accounts/salaries/${id}`, {
+        monthly_salary: view.querySelector(`[data-salary-amount="${id}"]`).value,
+        salary_from: view.querySelector(`[data-salary-from="${id}"]`).value,
+      }));
+      if (result) settings(view);
+    }));
+    view.querySelectorAll("[data-salary-pay]").forEach((b) => b.addEventListener("click", () => {
+      paySalary(pay.teachers.find((t) => t.id === b.dataset.salaryPay), pay.payment_methods, () => settings(view));
+    }));
+    view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips)));
+  }
+
   // ---------- Fee structure ----------
   async function settings(view) {
-    const d = await MPS.get("/principal/classes");
+    const [d, pay] = await Promise.all([MPS.get("/principal/classes"), MPS.get("/accounts/salaries")]);
     view.innerHTML = `${card("Monthly Tuition Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th><th></th></tr></thead><tbody>
         ${d.classes.map((c) => `<tr data-cls="${c.id}"><td><b>${esc(c.name)}</b></td><td>${c.student_count}</td>
           <td><input type="number" class="amount-input" data-f="monthly_fee" value="${c.monthly_fee}" min="0"></td>
@@ -680,6 +822,7 @@ const Accounts = (() => {
         { label: "Monthly fee (Rs)", render: (r) => `<input type="number" class="amount-input" data-route-fee="${r.id}" value="${r.monthly_fee || 0}" min="0">` },
         { label: "", render: (r) => `<button class="btn btn-sm" data-route="${r.id}">Save</button>` },
       ], d.routes), { icon: "fa-bus", flush: true })}
+      ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
       ${card("Other Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Rate (Rs)</th><th>Classes</th><th>Frequency</th><th></th></tr></thead><tbody>
         ${(d.other_fees || []).map((r) => `<tr><td><b>${esc(r.head)}</b></td>
           <td><input type="number" class="amount-input" data-fee-amount="${esc(r.id)}" value="${Number(r.amount) || 0}" min="0"></td>
@@ -706,6 +849,7 @@ const Accounts = (() => {
         period: view.querySelector(`[data-fee-period="${b.dataset.feeSave}"]`).value,
       })))
     );
+    bindSalaries(view, pay);
   }
 
   return { dashboard, collect, receipts, defaulters, intimations, reminders, report, settings };
