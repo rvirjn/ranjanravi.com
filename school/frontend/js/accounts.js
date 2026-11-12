@@ -119,6 +119,7 @@ const Accounts = (() => {
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
           { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
+          { label: "Total Rebate", className: "right nowrap", render: (s) => (s.rebate_total ? money(s.rebate_total) : '<span class="muted">-</span>') },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "Pending months", render: (s) => {
             const count = (s.pending_months || []).length;
