@@ -118,15 +118,15 @@ const Accounts = (() => {
       columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
+          { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
+          { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "Pending months", render: (s) => {
             const count = (s.pending_months || []).length;
             if (!count) return '<span class="muted">-</span>';
             const label = count === 1 ? "1 month" : `${count} months`;
             return count >= 2 ? badge(label, "danger") : esc(label);
           } },
-          { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
           { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
-          { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
       );
       view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
@@ -199,7 +199,7 @@ const Accounts = (() => {
             ${UI.fieldHtml({ name: "reference", label: "UPI / cheque reference", value: pendingInt[0] ? pendingInt[0].reference : "" })}
             ${UI.fieldHtml({ name: "received_by", label: "Given to (received by)", type: "select", options: d.received_by_options && d.received_by_options.length ? d.received_by_options : [d.received_by], value: d.received_by })}
             ${UI.fieldHtml({ name: "note", label: "Note" })}
-            <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent.</p>
+            <p class="small" style="grid-column:1/-1;margin:8px 0 0"><i class="fa fa-whatsapp"></i> WhatsApp receipt will be sent to the parent and the fee collection group.</p>
           </form>
           <div class="sticky-bar static"><span>Total: <b id="total" style="font-size:20px">Rs 0</b></span><button class="btn" id="submit"><i class="fa fa-eye"></i> Preview</button></div>`, { icon: "fa-credit-card", flush: false })}
           ${card("Payment History", table(
@@ -679,7 +679,9 @@ const Accounts = (() => {
         <div>${table([{ label: "Mode", key: "method" }, { label: "Amount", render: (m) => money(m.amount), className: "right" }], d.methods, { empty: "-" })}</div>
       </div>
       <h4 style="margin:16px 0 6px">Day-wise</h4>
-      ${table([{ label: "Date", render: (x) => fmtDate(x.date) }, { label: "Receipts", key: "receipts", className: "right" }, { label: "Amount", render: (x) => money(x.amount), className: "right" }], d.days,
+      ${table([{ label: "Date", render: (x) => fmtDate(x.date) },
+        { label: "Receipts", className: "right", render: (x) => `<a href="#" data-day="${esc(x.date)}" title="Show receipts">${x.receipts}</a>` },
+        { label: "Amount", render: (x) => money(x.amount), className: "right" }], d.days,
         { empty: "No collections.", footer: `<td>Total</td><td class="right">${d.receipts}</td><td class="right">${money(d.total)}</td>` })}`;
 
     const duesSummaryHtml = `<p class="small muted">Dues as of ${fmtDate(du.as_of)}. Siblings share one combined due, so each family is counted once in the totals.</p>
@@ -800,6 +802,13 @@ const Accounts = (() => {
     ["#from", "#to", "#class", "#head", "#method", "#duesClass", "#duesHead", "#status", "#minMonths", "#minDue", "#q"].forEach((sel) =>
       view.querySelector(sel).addEventListener("change", () => reload(read())));
     view.querySelector("#clear").addEventListener("click", () => reload(collectionFilters()));
+    view.querySelectorAll("[data-day]").forEach((a) => a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const day = d.days.find((x) => x.date === a.dataset.day);
+      if (!day) return;
+      const box = UI.modal(`Receipts on ${fmtDate(day.date)} · ${day.receipts} receipt(s) · ${money(day.amount)}`, receiptTable(day.items), { wide: true });
+      bindReceipts(box.body);
+    }));
     view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>
       <h4 style="margin:12px 0 6px">Collections</h4>${printFilters(collectionFilterText)}${collectionsHtml}
       <h4 style="margin:16px 0 6px">Dues Summary</h4>${printFilters(duesFilterText)}${duesSummaryHtml}

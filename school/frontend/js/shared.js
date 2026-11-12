@@ -424,8 +424,15 @@
           <p class="small muted">Messages: ${Object.entries(s.counts).map(([k, v]) => `${esc(k)} ${v}`).join(" &middot; ") || "none yet"}</p>
           <button class="btn btn-sm" id="testMsg"><i class="fa fa-paper-plane"></i> Send test message</button>`, { icon: "fa-sliders" })}
       </div>
-      ${card("Class WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">Homework goes to the class group. A notice for everyone uses WhatsApp group name: <b>${esc(s.whatsapp_group_all || "No WhatsApp group set")}</b>. A notice for teachers uses WhatsApp group name: <b>${esc(s.whatsapp_group_teachers || "No WhatsApp group set")}</b>. The school number must be a member of each group.</p>
+      ${card("Class WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">Homework goes to the class group. The school number must be a member of each group.</p>
         ${table([{ label: "Class", key: "label" }, { label: "WhatsApp group name", render: (c) => (c.group ? `<b>${esc(c.group)}</b>` : badge("Not set", "danger")) }], s.class_groups)}`,
+        { icon: "fa-users", flush: true })}
+      ${card("Other WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">School-wide groups. The school number must be a member of each group. Group names are set in the admin portal under the school's details.</p>
+        ${table([
+          { label: "Group", key: "label" },
+          { label: "WhatsApp group name", render: (g) => (g.group ? `<b>${esc(g.group)}</b>` : badge("Not set", "danger")) },
+          { label: "Used for", key: "used_for" },
+        ], s.other_groups || [])}`,
         { icon: "fa-users", flush: true })}
       ${card("Message Log", `<div style="padding:12px 18px 0" class="filters"><select id="purpose"><option value="">All messages</option>
         ${["student_absent", "diary", "fee_notice", "fee_reminder", "fee_overdue", "fee_receipt", "notice", "test"].map((p) => `<option ${p === filter ? "selected" : ""}>${p}</option>`).join("")}</select></div>

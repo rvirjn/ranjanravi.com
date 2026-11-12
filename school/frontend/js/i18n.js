@@ -164,6 +164,8 @@
     "Also send on WhatsApp?": "व्हाट्सएप पर भी भेजें?",
     "WhatsApp group name for everyone": "सबके लिए व्हाट्सएप ग्रुप का नाम",
     "WhatsApp group name for teachers": "शिक्षकों के लिए व्हाट्सएप ग्रुप का नाम",
+    "WhatsApp group name for fee receipts": "फीस रसीद के लिए व्हाट्सएप ग्रुप का नाम",
+    "Class WhatsApp Groups": "कक्षा व्हाट्सएप ग्रुप", "Other WhatsApp Groups": "अन्य व्हाट्सएप ग्रुप", "Used for": "किसके लिए",
     "Select at least one person.": "कम से कम एक व्यक्ति चुनें।",
     "A selected message is empty.": "एक चुना हुआ संदेश खाली है।",
     "Nobody with dues matches this message.": "इस संदेश के लिए बकाया वाला कोई नहीं है।",

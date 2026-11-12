@@ -25,6 +25,7 @@
     { name: "whatsapp_number", label: "School WhatsApp number", type: "mobile", value: s.whatsapp_number },
     { name: "whatsapp_group_all", label: "WhatsApp group name for everyone", value: s.whatsapp_group_all, placeholder: "SAV All student & Teachers" },
     { name: "whatsapp_group_teachers", label: "WhatsApp group name for teachers", value: s.whatsapp_group_teachers, placeholder: "SAV All Teachers" },
+    { name: "whatsapp_group_fees", label: "WhatsApp group name for fee receipts", value: s.whatsapp_group_fees, placeholder: "MPS Fee Collection", hint: "Every fee receipt is also sent to this group." },
     { name: "whatsapp_signature", label: "WhatsApp message signature", type: "textarea", value: s.whatsapp_signature, placeholder: "- School name, Town\nPh: ..." },
     { name: "facebook", label: "Facebook page", value: s.facebook },
     { name: "youtube", label: "YouTube channel", value: s.youtube },
