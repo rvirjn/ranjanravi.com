@@ -718,7 +718,7 @@ const Accounts = (() => {
         { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")) },
         { label: "Last paid", sort: "last", className: "nowrap", render: (s) => (s.last_payment ? `${money(s.last_paid_amount)}<div class="small muted">${fmtDate(s.last_payment)}</div>` : none) },
       ];
-      if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => `<button class="btn btn-sm" data-record="${esc(s.id)}" data-cls="${esc(s.class_id)}"><i class="fa fa-inr"></i> Record Fee</button>` });
+      if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => (s.due ? `<button class="btn btn-sm" data-remind="${esc(s.id)}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` : "") });
       return table(withActions ? columns : columns.map((c) => ({ ...c, sort: "" })), sortedStudents(), {
         sort: withActions ? { key: sortKey, dir: sortDir } : {},
         empty: "No students match these filters.",
@@ -742,9 +742,14 @@ const Accounts = (() => {
         }
         paintStudents();
       }));
-      box.querySelectorAll("[data-record]").forEach((b) => b.addEventListener("click", () => {
-        sessionStorage.setItem("school_collect_student", JSON.stringify({ classId: b.dataset.cls, studentId: b.dataset.record }));
-        location.hash = "collect";
+      box.querySelectorAll("[data-remind]").forEach((b) => b.addEventListener("click", () => {
+        const student = du.students.find((s) => s.id === b.dataset.remind);
+        const kind = student && student.pending_months.length >= 2 ? "overdue" : "reminder";
+        UI.whatsappPreview({
+          title: "View & Send reminder",
+          fetchPreview: () => MPS.post("/accounts/reminders/preview", { kind, student_ids: [b.dataset.remind] }),
+          send: (payload) => MPS.post("/accounts/reminders", { kind, ...payload }),
+        });
       }));
     }
 
