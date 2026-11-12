@@ -27,7 +27,11 @@
     "Results": "परिणाम", "Student Results": "विद्यार्थी परिणाम", "Students & Admissions": "विद्यार्थी और प्रवेश", "Teachers": "शिक्षक", "Approvals": "स्वीकृतियां",
     "Exams & Admit Cards": "परीक्षा और प्रवेश पत्र", "WhatsApp": "व्हाट्सएप", "Fee Overview": "फीस सारांश", "Collect Fee": "फीस जमा करें",
     "Dues Reminders": "बकाया रिमाइंडर", "Pending for": "बाकी अवधि", "Due at least": "कम से कम बकाया", "Any": "कोई भी", "Any amount": "कोई भी राशि", "Receipts": "रसीदें", "Download Receipts": "रसीद डाउनलोड करें", "Parent Payments": "अभिभावक भुगतान", "Auto Fee Reminders": "स्वतः फीस रिमाइंडर",
-    "Classes & Fees": "कक्षाएं और फीस", "Fee Report": "फीस रिपोर्ट", "Monthly Fees": "मासिक फीस", "Monthly Tuition Fee": "मासिक ट्यूशन फीस",
+    "Classes & Fees": "कक्षाएं और फीस", "Fee Report": "फीस रिपोर्ट", "Student-wise Dues": "विद्यार्थीवार बकाया", "Dues Summary": "बकाया सारांश",
+    "Collections": "वसूली", "Collected": "वसूल", "Fee head": "फीस मद", "All heads": "सभी मद", "All modes": "सभी माध्यम", "Show": "दिखाएं",
+    "With dues": "बकाया वाले", "Fully paid": "पूरा भुगतान", "Clear filters": "फ़िल्टर हटाएं", "Charged": "लगाई गई फीस", "Families": "परिवार",
+    "Dues detail": "बकाया विवरण", "Students with dues": "बकाया वाले विद्यार्थी", "Paid against charges": "फीस के विरुद्ध भुगतान", "Day-wise": "दिनवार",
+    "Name, admission no, father, phone": "नाम, प्रवेश संख्या, पिता, फोन", "No students match these filters.": "इन फ़िल्टर से कोई विद्यार्थी नहीं मिला।", "Monthly Fees": "मासिक फीस", "Monthly Tuition Fee": "मासिक ट्यूशन फीस",
     "Student Portal": "विद्यार्थी पोर्टल", "Teacher Portal": "शिक्षक पोर्टल", "Principal Portal": "प्रधानाचार्य पोर्टल", "Accounts Portal": "लेखा पोर्टल",
     // buttons & common words
     "Logout": "लॉग आउट", "Website": "वेबसाइट", "Login": "लॉग इन", "Logging in...": "लॉग इन हो रहा है...", "Sending...": "भेजा जा रहा है...", "Submit": "जमा करें", "Save": "सहेजें", "Cancel": "रद्द करें", "Send": "भेजें",

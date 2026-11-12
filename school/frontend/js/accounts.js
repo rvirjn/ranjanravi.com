@@ -97,11 +97,14 @@ const Accounts = (() => {
     let sortKey = "";
     let sortDir = "asc";
     const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+    const byRoll = (a, b) => String(a.roll_no ?? "").localeCompare(String(b.roll_no ?? ""), undefined, { numeric: true });
 
     function sortedStudents() {
       const list = d.students.slice();
       const dir = sortDir === "desc" ? -1 : 1;
-      if (sortKey === "name") {
+      if (sortKey === "roll") {
+        list.sort((a, b) => dir * byRoll(a, b) || String(a.class_label || "").localeCompare(String(b.class_label || ""), undefined, { numeric: true }) || byName(a, b));
+      } else if (sortKey === "name") {
         list.sort((a, b) => dir * byName(a, b) || String(a.roll_no ?? "").localeCompare(String(b.roll_no ?? ""), undefined, { numeric: true }));
       } else if (sortKey === "due") {
         list.sort((a, b) => dir * ((Number(a.due) || 0) - (Number(b.due) || 0)) || byName(a, b));
@@ -110,7 +113,7 @@ const Accounts = (() => {
     }
 
     function paint() {
-      const columns = [{ label: "Roll", key: "roll_no" }];
+      const columns = [{ label: "Roll", key: "roll_no", sort: "roll" }];
       if (state.classId === "all") columns.push({ label: "Class", key: "class_label" });
       columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
@@ -646,25 +649,161 @@ const Accounts = (() => {
     view.querySelector("#runJobs").addEventListener("click", async () => (await run(() => MPS.post("/accounts/jobs/run"))) && reminders(view, ctx));
   }
 
-  // ---------- Collection report ----------
+  // ---------- Fee report: collections and student-wise dues ----------
   async function report(view, ctx, state = {}) {
-    const q = new URLSearchParams(state);
+    const q = new URLSearchParams(Object.entries(state).filter(([, v]) => v !== "" && v != null && v !== 0 && v !== "0"));
     const d = await MPS.get(`/accounts/report?${q}`);
-    const body = `<p>From <b>${fmtDate(d.from)}</b> to <b>${fmtDate(d.to)}</b> &middot; Total collected: <b>${money(d.total)}</b></p>
+    const f = d.filters;
+    const du = d.dues;
+    const none = '<span class="muted">-</span>';
+    const option = (value, label, current) => `<option value="${esc(value)}" ${String(value) === String(current) ? "selected" : ""}>${esc(label)}</option>`;
+    const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+    let sortKey = "";
+    let sortDir = "asc";
+
+    const className = (id) => id !== "all" && (d.classes.find((c) => c.id === id) || {}).label;
+    const joinFilters = (parts) => parts.filter(Boolean).map(esc).join(" &middot; ");
+    const collectionFilterText = joinFilters([className(f.class_id), f.head, f.method]);
+    const duesFilterText = joinFilters([
+      className(f.dues_class_id), f.dues_head,
+      (d.dues_statuses.find((s) => s.id === f.status) || {}).label,
+      f.min_months && `${f.min_months}+ month(s) pending`,
+      f.min_due && `Due at least ${money(f.min_due)}`,
+      f.q && `"${f.q}"`,
+    ]);
+    const printFilters = (text) => (text ? `<p class="small">${text}</p>` : "");
+
+    const collectionsHtml = `<p>From <b>${fmtDate(d.from)}</b> to <b>${fmtDate(d.to)}</b> &middot; Total collected: <b>${money(d.total)}</b> in ${d.receipts} receipt(s)</p>
       <div class="grid grid-2">
         <div>${table([{ label: "Fee head", key: "head" }, { label: "Amount", render: (h) => money(h.amount), className: "right" }], d.heads, { empty: "No collections." })}</div>
         <div>${table([{ label: "Mode", key: "method" }, { label: "Amount", render: (m) => money(m.amount), className: "right" }], d.methods, { empty: "-" })}</div>
       </div>
       <h4 style="margin:16px 0 6px">Day-wise</h4>
       ${table([{ label: "Date", render: (x) => fmtDate(x.date) }, { label: "Receipts", key: "receipts", className: "right" }, { label: "Amount", render: (x) => money(x.amount), className: "right" }], d.days,
-        { empty: "No collections.", footer: `<td>Total</td><td></td><td class="right">${money(d.total)}</td>` })}`;
-    view.innerHTML = `<div class="toolbar"><div class="filters"><label style="margin:0">From</label><input type="date" id="from" value="${d.from}">
-        <label style="margin:0">To</label><input type="date" id="to" value="${d.to}"></div><button class="btn" id="print"><i class="fa fa-print"></i> Print</button></div>
-      ${card("Fee Report", body, { icon: "fa-bar-chart" })}`;
-    const reload = () => report(view, ctx, { from: view.querySelector("#from").value, to: view.querySelector("#to").value });
-    view.querySelector("#from").addEventListener("change", reload);
-    view.querySelector("#to").addEventListener("change", reload);
-    view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>${body}`));
+        { empty: "No collections.", footer: `<td>Total</td><td class="right">${d.receipts}</td><td class="right">${money(d.total)}</td>` })}`;
+
+    const duesSummaryHtml = `<p class="small muted">Dues as of ${fmtDate(du.as_of)}. Siblings share one combined due, so each family is counted once in the totals.</p>
+      <div class="grid grid-3">
+        <div>${table([{ label: "Class", key: "label" }, { label: "Students", key: "students", className: "right" }, { label: "With dues", key: "with_dues", className: "right" },
+          { label: "Dues", render: (r) => money(r.due), className: "right" }], du.by_class, { empty: "No students." })}</div>
+        <div>${table([{ label: "Fee head", key: "head" }, { label: "Dues", render: (r) => money(r.due), className: "right" }], du.by_head, { empty: "No dues." })}</div>
+        <div>${table([{ label: "Month", key: "label" }, { label: "Families", key: "families", className: "right" }, { label: "Dues", render: (r) => money(r.due), className: "right" }],
+          du.by_month, { empty: "No dues." })}</div>
+      </div>`;
+
+    function sortedStudents() {
+      const list = du.students.slice();
+      const dir = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "class") list.sort((a, b) => dir * ((a.order - b.order) || ((Number(a.roll_no) || 0) - (Number(b.roll_no) || 0))) || byName(a, b));
+      else if (sortKey === "name") list.sort((a, b) => dir * byName(a, b));
+      else if (sortKey === "months") list.sort((a, b) => dir * (a.pending_months.length - b.pending_months.length) || byName(a, b));
+      else if (sortKey === "due") list.sort((a, b) => dir * (a.due - b.due) || byName(a, b));
+      else if (sortKey === "last") list.sort((a, b) => dir * String(a.last_payment || "").localeCompare(String(b.last_payment || "")) || byName(a, b));
+      return list;
+    }
+
+    const studentTable = (withActions) => {
+      const columns = [
+        { label: "Class", sort: "class", className: "nowrap", render: (s) => `${esc(s.class_label)}${s.roll_no != null ? `<div class="small muted">Roll ${esc(s.roll_no)}</div>` : ""}` },
+        { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone)}</div>`
+          + (s.sibling_names.length ? `<div class="small muted">Siblings: ${esc(s.sibling_names.join(", "))}</div>` : "") },
+        { label: "Pending months", sort: "months", render: (s) => (s.pending_months.length
+          ? `${badge(String(s.pending_months.length), s.pending_months.length >= 2 ? "danger" : "warn")} <span class="small">${esc(s.pending_months.join(", "))}</span>`
+          : none) },
+        { label: "Dues detail", render: (s) => (s.dues_by_month.length
+          ? `<span class="small">${s.dues_by_month.map((g) => `${esc(g.label)}: ${money(g.amount)}`).join("<br>")}</span>`
+          : none) },
+        { label: "Charged", render: (s) => money(s.charged), className: "right nowrap" },
+        { label: "Paid", render: (s) => money(s.paid), className: "right nowrap" },
+        { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")) },
+        { label: "Last paid", sort: "last", className: "nowrap", render: (s) => (s.last_payment ? `${money(s.last_paid_amount)}<div class="small muted">${fmtDate(s.last_payment)}</div>` : none) },
+      ];
+      if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => `<button class="btn btn-sm" data-record="${esc(s.id)}" data-cls="${esc(s.class_id)}"><i class="fa fa-inr"></i> Record Fee</button>` });
+      return table(withActions ? columns : columns.map((c) => ({ ...c, sort: "" })), sortedStudents(), {
+        sort: withActions ? { key: sortKey, dir: sortDir } : {},
+        empty: "No students match these filters.",
+        emptyIcon: "fa-smile-o",
+        footer: du.students.length ? `<td colspan="4">Total (each family once)</td><td class="right">${money(du.total_charged)}</td><td class="right">${money(du.total_paid)}</td><td class="right"><b>${money(du.total_due)}</b></td><td colspan="${withActions ? 2 : 1}"></td>` : "",
+      });
+    };
+
+    function paintStudents() {
+      const box = view.querySelector("#duesStudents");
+      box.innerHTML = card("Student-wise Dues", studentTable(true), {
+        icon: "fa-users", flush: true,
+        actions: badge(`${du.student_count} students · ${money(du.total_due)}`, du.total_due ? "danger" : "success"),
+      });
+      box.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = key === "due" || key === "months" ? "desc" : "asc";
+        }
+        paintStudents();
+      }));
+      box.querySelectorAll("[data-record]").forEach((b) => b.addEventListener("click", () => {
+        sessionStorage.setItem("school_collect_student", JSON.stringify({ classId: b.dataset.cls, studentId: b.dataset.record }));
+        location.hash = "collect";
+      }));
+    }
+
+    view.innerHTML = `<div class="toolbar"><div class="filters">
+        <label style="margin:0">From</label><input type="date" id="from" value="${esc(d.from)}">
+        <label style="margin:0">To</label><input type="date" id="to" value="${esc(d.to)}">
+        <select id="class">${d.classes.map((c) => option(c.id, c.label, f.class_id)).join("")}</select>
+        <select id="head">${option("", "All heads", f.head)}${d.fee_heads.map((h) => option(h, h, f.head)).join("")}</select>
+        <select id="method">${option("", "All modes", f.method)}${d.payment_methods.map((m) => option(m, m, f.method)).join("")}</select>
+      </div><button class="btn" id="print"><i class="fa fa-print"></i> Print</button></div>
+      ${card("Collections", collectionsHtml, { icon: "fa-bar-chart" })}
+      <div class="toolbar"><div class="filters">
+        <select id="duesClass">${d.classes.map((c) => option(c.id, c.label, f.dues_class_id)).join("")}</select>
+        <select id="duesHead">${option("", "All heads", f.dues_head)}${d.fee_heads.map((h) => option(h, h, f.dues_head)).join("")}</select>
+        <label style="margin:0">Show</label><select id="status">${d.dues_statuses.map((s) => option(s.id, s.label, f.status)).join("")}</select>
+        <label style="margin:0">Pending for</label><select id="minMonths">${option(0, "Any", f.min_months)}${[1, 2, 3, 4, 6].map((n) => option(n, `${n}+ month(s)`, f.min_months)).join("")}</select>
+        <label style="margin:0">Due at least</label><input id="minDue" type="number" min="0" step="1" inputmode="numeric" placeholder="Any amount" value="${f.min_due ? esc(String(f.min_due)) : ""}" style="width:130px">
+        <input id="q" placeholder="Name, admission no, father, phone" value="${esc(f.q)}" style="min-width:240px">
+        <button class="btn btn-light btn-sm" id="clear">Clear filters</button>
+      </div></div>
+      <div class="grid grid-3">
+        ${stat("Total Dues", money(du.total_due), { icon: "fa-exclamation-circle", tone: du.total_due ? "danger" : "ok", sub: `Overdue ${money(du.total_overdue)}` })}
+        ${stat("Students with dues", du.with_dues, { icon: "fa-users", tone: du.with_dues ? "warn" : "ok", sub: `${du.families} families · ${du.student_count} shown` })}
+        ${stat("Paid against charges", money(du.total_paid), { icon: "fa-check-circle", tone: "info", sub: `Charged ${money(du.total_charged)}` })}
+      </div>
+      ${card("Dues Summary", duesSummaryHtml, { icon: "fa-pie-chart" })}
+      <div id="duesStudents"></div>`;
+    paintStudents();
+
+    const collectionFilters = () => ({
+      from: view.querySelector("#from").value,
+      to: view.querySelector("#to").value,
+      class_id: view.querySelector("#class").value,
+      head: view.querySelector("#head").value,
+      method: view.querySelector("#method").value,
+    });
+    const read = () => ({
+      ...collectionFilters(),
+      dues_class_id: view.querySelector("#duesClass").value,
+      dues_head: view.querySelector("#duesHead").value,
+      status: view.querySelector("#status").value,
+      min_months: view.querySelector("#minMonths").value,
+      min_due: String(Math.max(0, Math.floor(Number(view.querySelector("#minDue").value) || 0))),
+      q: view.querySelector("#q").value.trim(),
+    });
+    const reload = (next) => {
+      if (next.from && next.to && next.from > next.to) {
+        UI.toast("From date cannot be after To date", "error");
+        return;
+      }
+      UI.runScreen(view, () => report(view, ctx, next));
+    };
+    ["#from", "#to", "#class", "#head", "#method", "#duesClass", "#duesHead", "#status", "#minMonths", "#minDue", "#q"].forEach((sel) =>
+      view.querySelector(sel).addEventListener("change", () => reload(read())));
+    view.querySelector("#clear").addEventListener("click", () => reload(collectionFilters()));
+    view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>
+      <h4 style="margin:12px 0 6px">Collections</h4>${printFilters(collectionFilterText)}${collectionsHtml}
+      <h4 style="margin:16px 0 6px">Dues Summary</h4>${printFilters(duesFilterText)}${duesSummaryHtml}
+      <h4 style="margin:16px 0 6px">Student-wise Dues (${du.student_count} students &middot; ${money(du.total_due)})</h4>${studentTable(false)}`));
   }
 
   // ---------- Teacher salary ----------
