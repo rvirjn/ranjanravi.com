@@ -121,12 +121,9 @@ const Accounts = (() => {
           { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
           { label: "Total Rebate", className: "right nowrap", render: (s) => (s.rebate_total ? money(s.rebate_total) : '<span class="muted">-</span>') },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
-          { label: "Pending months", render: (s) => {
-            const count = (s.pending_months || []).length;
-            if (!count) return '<span class="muted">-</span>';
-            const label = count === 1 ? "1 month" : `${count} months`;
-            return count >= 2 ? badge(label, "danger") : esc(label);
-          } },
+          { label: "Transport", className: "right nowrap", render: (s) => (s.transport_total
+            ? `${money(s.transport_total)}${s.transport_due ? `<div class="small" style="color:var(--danger)">Due ${money(s.transport_due)}</div>` : ""}`
+            : '<span class="muted">-</span>') },
           { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
       );
