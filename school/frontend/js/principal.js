@@ -637,17 +637,23 @@
 
   async function diaryReport(view, ctx, state = {}) {
     const day = state.date || todayIso();
-    const q = new URLSearchParams({ date: day });
+    const q = new URLSearchParams(state.month ? { month: state.month } : { date: day });
     if (state.classId) q.set("class_id", state.classId);
+    if (state.teacherId) q.set("teacher_id", state.teacherId);
     const d = await MPS.get(`/principal/diary-report?${q}`);
     const dash = '<span class="muted">-</span>';
+    const tone = state.teacherId ? "neutral" : d.posted_classes === d.total_classes && d.total_classes ? "success" : "warn";
+    const option = (value, label, picked) => `<option value="${value}" ${value === picked ? "selected" : ""}>${esc(label)}</option>`;
     view.innerHTML = `
       <div class="toolbar"><div class="filters">
-        <label style="margin:0">Date</label><input type="date" id="day" value="${day}" max="${todayIso()}">
-        <select id="cls"><option value="">All classes</option>${d.classes.map((c) => `<option value="${c.id}" ${c.id === state.classId ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
-      </div>${badge(d.summary, d.posted_classes === d.total_classes && d.total_classes ? "success" : "warn")}</div>
-      ${card(`HW/CW · ${fmtDate(d.date)}`, table(
+        <select id="month"><option value="">Single day</option>${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
+        ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
+        <select id="cls"><option value="">All classes</option>${d.classes.map((c) => option(c.id, c.label, state.classId)).join("")}</select>
+        <select id="teacher"><option value="">All teachers</option>${d.teachers.map((t) => option(t.id, t.label, state.teacherId)).join("")}</select>
+      </div>${badge(d.summary, tone)}</div>
+      ${card(`HW/CW · ${d.month ? fmtMonth(d.month) : fmtDate(d.date)}`, table(
         [
+          ...(d.month ? [{ label: "Date", render: (r) => `<span class="nowrap">${fmtDate(r.date)}</span>` }] : []),
           { label: "Class", render: (r) => `<b>${esc(r.class_label)}</b>` },
           { label: "Subject", render: (r) => (r.posted ? esc(r.subject) || dash : badge("Not posted", "warn")) },
           { label: "Classwork", render: (r) => (r.cw ? esc(r.cw) : dash) },
@@ -656,10 +662,13 @@
           { label: "Time", render: (r) => (r.posted_on ? fmtTime(r.posted_on) : dash) },
         ],
         d.rows,
-        { empty: "No classes to show." }
+        { empty: d.month || state.teacherId ? "No HW/CW posted for this selection." : "No classes to show." }
       ), { icon: "fa-book", flush: true })}`;
-    view.querySelector("#day").addEventListener("change", (e) => diaryReport(view, ctx, { date: e.target.value, classId: state.classId }));
-    view.querySelector("#cls").addEventListener("change", (e) => diaryReport(view, ctx, { date: day, classId: e.target.value }));
+    const reload = (change) => diaryReport(view, ctx, { ...state, date: day, ...change });
+    view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value }));
+    view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value }));
+    view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
+    view.querySelector("#teacher").addEventListener("change", (e) => reload({ teacherId: e.target.value }));
   }
 
   // ---------- Teachers timetable ----------
