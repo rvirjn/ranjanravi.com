@@ -724,7 +724,7 @@
       <div class="toolbar"><div class="filters">
         <label style="margin:0">Teacher</label>
         <select id="teacher"><option value="">All teachers</option>${d.teachers.map((t) => `<option value="${esc(t.id)}" ${t.id === teacherId ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>
-      </div><span class="small muted">${d.assembly_from && d.assembly_to ? `Assembly ${fmtTime(d.assembly_from)} – ${fmtTime(d.assembly_to)}. Periods start after ${fmtTime(d.assembly_to)}.` : "Set the assembly timing on the school before adding a period."} Students see the periods of their own class.</span></div>
+      </div><span class="small muted">${d.assembly_from && d.assembly_to ? `Assembly ${fmtTime(d.assembly_from)} – ${fmtTime(d.assembly_to)}. Periods start at ${fmtTime(d.assembly_to)} or later.` : "Set the assembly timing on the school before adding a period."} Students see the periods of their own class.</span></div>
       ${card(teacher ? teacher.name : `All teachers (${mine.length})`, teacherId ? grid : list, {
         icon: "fa-clock-o", flush: true,
         actions: '<button class="btn btn-sm" id="add"><i class="fa fa-plus"></i> Add Period</button>',
@@ -760,7 +760,7 @@
     const known = d.periods.find((p) => p.period === Number(period.period || 1) && p.id !== period.id);
     const start = String(period.start || (known && known.start) || "").slice(0, 5);
     const end = String(period.end || (known && known.end) || "").slice(0, 5);
-    const afterAssembly = d.assembly_to ? `Must start after assembly ends (${fmtTime(d.assembly_to)}).` : "Set the assembly timing on the school first.";
+    const afterAssembly = d.assembly_to ? `Must start when assembly ends (${fmtTime(d.assembly_to)}) or later.` : "Set the assembly timing on the school first.";
     const subjectsOf = (id) => {
       const cls = d.classes.find((c) => c.id === id);
       return (cls && cls.subjects) || [];
