@@ -122,6 +122,7 @@ const Accounts = (() => {
       columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
+          { label: "Total Charged", className: "right nowrap", render: (s) => (s.charged ? money(s.charged) : '<span class="muted">-</span>') },
           { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
           { label: "Total Rebate", className: "right nowrap", render: (s) => (s.rebate_total ? money(s.rebate_total) : '<span class="muted">-</span>') },
           { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
@@ -175,18 +176,30 @@ const Accounts = (() => {
     }));
     const familyRebate = family.reduce((total, row) => total + (Number(row.rebate) || 0), 0);
     const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": tuitionChoices[0].rate };
-    const classFeeByHolder = {};
-    family.forEach((row) => { classFeeByHolder[row.fee_holder_id] = Number(row.class_fee) || 0; });
-    const monthDues = (d.dues || []).map((row) => {
-      const tuition = (d.charges || []).filter((c) => c.head === "Tuition Fee" && c.month === row.key && c.due > 0);
-      if (!tuition.length) return row;
-      const fee = tuition.reduce((total, charge) => total + (classFeeByHolder[charge.student_id] || Number(charge.amount) || 0), 0);
-      return { ...row, amount: fee };
-    });
     const familyPeople = family.flatMap((row) => (row.names || []).map((name) => ({ name, classLabel: row.class_label })));
     const familyNote = familyPeople.length > 1
       ? `<p class="small" style="padding:12px 18px 0">${familyPeople.map((person) => `<b>${esc(person.name)}</b> (${esc(person.classLabel)})`).join(", ")}</p>`
       : "";
+    const chargeRows = d.charges || [];
+    const chargedBreakdown = chargeRows.length
+      ? `${table(
+          [
+            {
+              label: "Month / Item",
+              render: (c) => {
+                const item = c.description || c.head || "";
+                return c.month_label
+                  ? `<b>${esc(c.month_label)}</b><div class="small muted">${esc(item)}</div>`
+                  : `<b>${esc(item)}</b>`;
+              },
+            },
+            { label: "Charged", render: (c) => money(c.amount), className: "right nowrap" },
+            { label: "Paid", render: (c) => money(c.paid), className: "right nowrap" },
+            { label: "Due", render: (c) => (c.due ? `<b style="color:var(--danger)">${money(c.due)}</b>` : money(0)), className: "right nowrap" },
+          ],
+          chargeRows
+        )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Total charged <b>${money(d.summary.total)}</b> · Paid ${money(d.summary.paid)} · Due <b style="color:var(--danger)">${money(d.summary.due)}</b></p>`
+      : empty("No charges yet.", "fa-inr");
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
         <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
@@ -221,7 +234,7 @@ const Accounts = (() => {
         </div>
         <div class="stack">
           ${card(s.name, kv([["Admission No.", s.admission_no], ["Class", `${d.class_label} (Roll ${s.roll_no})`], ["Father", s.father_name], ["Mobile", s.father_phone || s.phone]]), { icon: "fa-user" })}
-          ${card("Dues (month-wise)", monthDues.length ? table([{ label: "Month / Item", key: "label" }, { label: "Due", render: (g) => money(g.amount), className: "right" }], monthDues) : empty("No dues", "fa-check"), { icon: "fa-inr", flush: true })}
+          ${card("Total Charged", chargedBreakdown, { icon: "fa-inr", flush: true })}
           ${card("Previous Receipts", receiptTable(d.payments.map((p) => ({ ...p, student_name: p.student_name || s.name }))), { icon: "fa-file-text-o", flush: true })}
         </div>
       </div>`;

@@ -54,7 +54,7 @@
     "A student cannot be a sibling of themselves": "विद्यार्थी अपना भाई-बहन नहीं हो सकता",
     "Choose a student from the sibling list": "भाई-बहन की सूची से विद्यार्थी चुनें",
     "Total Fees": "कुल फीस", "Balance Due": "शेष बकाया", "Total due": "कुल बकाया", "Tuition fee due": "ट्यूशन फीस बकाया", "Other fee due": "अन्य फीस बकाया", "Pay Online": "ऑनलाइन भुगतान", "Scan and pay": "स्कैन करके भुगतान करें",
-    "Dues (month-wise)": "बकाया (महीने के अनुसार)", "Pay by Scanner": "स्कैनर से भुगतान करें",
+    "Dues (month-wise)": "बकाया (महीने के अनुसार)", "Total Charged": "कुल लगाई गई फीस", "No charges yet.": "अभी कोई फीस नहीं लगाई गई।", "Pay by Scanner": "स्कैनर से भुगतान करें",
     "Scan with PhonePe, Google Pay or Paytm, then enter the transaction ID.": "PhonePe, Google Pay या Paytm से स्कैन करें, फिर ट्रांजैक्शन आईडी लिखें।",
     "Scanner is not set for this school.": "इस स्कूल का स्कैनर सेट नहीं है।",
     "I have paid": "मैंने भुगतान कर दिया", "All Fee Items": "सभी फीस मदें", "Payment Done": "भुगतान हो गया", "Send to Accountant": "लेखाकार को भेजें",
