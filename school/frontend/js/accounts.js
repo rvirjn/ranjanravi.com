@@ -5,18 +5,22 @@ const Accounts = (() => {
   // ---------- Dashboard ----------
   async function dashboard(view) {
     const d = await MPS.get("/accounts/dashboard");
+    const pending = (d.pending_approvals || 0) + (d.pending_intimations || 0) + (d.pending_complaints || 0);
     view.innerHTML = `
       <div class="grid grid-4">
-        ${stat("Collected Today", money(d.collected_today), { icon: "fa-inr", sub: `${d.receipts_today} receipt(s)` })}
-        ${stat("This Month", money(d.collected_month), { icon: "fa-calendar", tone: "info" })}
-        ${stat("Dues", "By class", { icon: "fa-exclamation-circle", tone: "info", sub: `<a href="#collect">Open a class</a>` })}
-        ${stat("Pending Approvals", (d.pending_approvals || 0) + (d.pending_intimations || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_approvals || d.pending_intimations || d.pending_complaints) ? "warn" : "ok", sub: `<a href="#approvals">Open</a>` })}
+        ${stat("Collected Today", money(d.collected_today), { icon: "fa-inr", sub: `${d.receipts_today} receipt(s)`, href: "#report" })}
+        ${stat("This Month", money(d.collected_month), { icon: "fa-calendar", tone: "info", href: "#report" })}
+        ${stat("Total Dues", money(d.dues_total), { icon: "fa-exclamation-circle", tone: "info", sub: "All students", href: "#collect", attrs: 'data-collect-all="1"' })}
+        ${stat("Pending Approvals", pending, { icon: "fa-check-circle", tone: pending ? "warn" : "ok", sub: "Open", href: "#approvals" })}
       </div>
       <div class="grid grid-side">
         ${card("Classes", `<div class="class-tiles">${d.classes.map((c) => `<button type="button" class="class-tile" data-class="${c.id}"><b>${esc(c.label)}</b><span>${c.student_count} students</span><span class="tile-status pending">Open to see dues</span></button>`).join("")}</div>`, { icon: "fa-th-large" })}
         ${card("Fee Rules", kv([["Collecting now", `${d.rules.billable_month_label} fee`], ["Collection window", d.rules.collection_window], ["Late fee", d.rules.late_fee_rule], ["WhatsApp reminders", d.rules.reminders]]), { icon: "fa-info-circle" })}
       </div>
       ${card("Recent Receipts", receiptTable(d.recent_receipts), { icon: "fa-file-text-o", flush: true, actions: '<a class="small" href="#receipts">All receipts</a>' })}`;
+    view.querySelectorAll("[data-collect-all]").forEach((el) => {
+      el.addEventListener("click", () => sessionStorage.setItem("school_collect_class", "all"));
+    });
     view.querySelectorAll("[data-class]").forEach((a) => a.addEventListener("click", () => {
       sessionStorage.setItem("school_collect_class", a.dataset.class);
       location.hash = "collect";

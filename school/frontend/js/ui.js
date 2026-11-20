@@ -136,10 +136,13 @@ const UI = (() => {
   }
 
   function stat(label, value, opts = {}) {
-    return `<div class="card stat tone-${opts.tone || "ok"}">
-      <div class="stat-icon"><i class="fa ${opts.icon || "fa-circle"}"></i></div>
-      <div><div class="stat-value">${value}</div><div class="stat-label">${esc(label)}</div>${opts.sub ? `<div class="stat-sub">${opts.sub}</div>` : ""}</div>
-    </div>`;
+    const body = `<div class="stat-icon"><i class="fa ${opts.icon || "fa-circle"}"></i></div>
+      <div><div class="stat-value">${value}</div><div class="stat-label">${esc(label)}</div>${opts.sub ? `<div class="stat-sub">${opts.sub}</div>` : ""}</div>`;
+    const extra = opts.attrs || "";
+    if (opts.href) {
+      return `<a class="card stat tone-${opts.tone || "ok"}" href="${esc(opts.href)}" ${extra}>${body}</a>`;
+    }
+    return `<div class="card stat tone-${opts.tone || "ok"}" ${extra}>${body}</div>`;
   }
 
   const empty = (text, icon = "fa-inbox") => `<div class="empty"><i class="fa ${icon}"></i>${esc(text)}</div>`;

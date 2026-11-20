@@ -220,7 +220,7 @@
     userSub: (u) => `${u.employee_id} · ${u.designation || "Accountant"}`,
     modules: [
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: Accounts.dashboard },
-      { id: "school", label: "School Dashboard", icon: "fa-university", group: "Overview", render: (v) => UI.principal.dashboard(v) },
+      { id: "school", label: "School Dashboard", icon: "fa-university", group: "Overview", render: (v, c) => UI.principal.dashboard(v, c) },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: approvals },
       { id: "school-approvals", label: "School Approvals", icon: "fa-check-square-o", group: "Overview", render: (v, c) => UI.principal.approvals(v, c) },
       { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: (v) => UI.principal.checkIn(v) },

@@ -109,11 +109,11 @@
       ${punchHtml(d.checkin)}
       <div class="grid grid-4">
         ${stat("Attendance Today", `${d.classes_marked_today} / ${d.classes_total}`, { icon: "fa-check-square-o", tone: d.is_holiday ? "info" : d.classes_marked_today < d.classes_total ? "warn" : "ok",
-          sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked" })}
+          sub: d.is_holiday ? "Holiday" : myClass ? `${esc(d.class_teacher_of)}: ${myClass}` : "classes marked", href: "#attendance" })}
         ${stat("Homework to Review", d.homework_to_review, { icon: "fa-pencil-square-o", tone: d.homework_to_review ? "warn" : "ok",
-          sub: `<span>Ungraded submissions</span> · <a href="${(d.homework_review_ids || []).length === 1 ? `#diary/${esc(d.homework_review_ids[0])}` : "#diary/review"}">Open</a>` })}
-        ${stat("Pending Approvals", (d.pending_student_leaves || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_student_leaves || d.pending_complaints) ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
-        ${stat("HW/CW Today", d.class_teacher_of ? (d.diary_posted_today ? "Posted" : "Not posted") : "-", { icon: "fa-whatsapp", tone: d.class_teacher_of && !d.diary_posted_today ? "warn" : "ok", sub: d.class_teacher_of || "" })}
+          sub: "Ungraded submissions", href: (d.homework_review_ids || []).length === 1 ? `#diary/${esc(d.homework_review_ids[0])}` : "#diary/review" })}
+        ${stat("Pending Approvals", (d.pending_student_leaves || 0) + (d.pending_complaints || 0), { icon: "fa-check-circle", tone: (d.pending_student_leaves || d.pending_complaints) ? "warn" : "ok", sub: "Open", href: "#approvals" })}
+        ${stat("HW/CW Today", d.class_teacher_of ? (d.diary_posted_today ? "Posted" : "Not posted") : "-", { icon: "fa-whatsapp", tone: d.class_teacher_of && !d.diary_posted_today ? "warn" : "ok", sub: d.class_teacher_of || "", href: "#diary" })}
       </div>
       <div class="grid grid-2">
         ${card(`Today's Schedule (${d.weekday})`, list(d.schedule, (p) => `<li><div class="period-chip"><b>Period ${p.period}</b>${fmtTime(p.start)} - ${fmtTime(p.end)}</div>

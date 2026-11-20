@@ -495,16 +495,28 @@
   // =====================================================================
   async function attendanceReport(view, ctx, state = {}) {
     const { classes } = await MPS.get("/classes");
-    const classId = state.classId || (ctx.user.class_teacher_of || classes[0].id);
-    const d = await MPS.get(`/attendance/report?class_id=${classId}${state.month ? `&month=${state.month}` : ""}`);
-    const low = d.students.filter((s) => s.working_days && s.percentage < 75).length;
-    view.innerHTML = `
-      <div class="toolbar"><div class="filters">
-        <select id="cls">${classes.map((c) => `<option value="${c.id}" ${c.id === classId ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
-        <select id="month"><option value="">Whole session</option>${d.months.map((m) => `<option value="${m}" ${m === state.month ? "selected" : ""}>${fmtMonth(m)}</option>`).join("")}</select>
-      </div>${low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success")}</div>
-      ${card(`${d.class_label} · ${state.month ? fmtMonth(state.month) : "Session to date"}`, table(
-        [
+    const office = ctx.role === "principal" || ctx.role === "accountant";
+    const day = state.date || todayIso();
+    const classId = state.classId != null
+      ? state.classId
+      : (office ? "" : (ctx.user.class_teacher_of || (classes[0] && classes[0].id) || ""));
+    const q = new URLSearchParams(state.month ? { month: state.month } : { date: day });
+    if (classId) q.set("class_id", classId);
+    const d = await MPS.get(`/attendance/report?${q}`);
+    const allClasses = !classId;
+    const option = (value, label, picked) => `<option value="${value}" ${value === picked ? "selected" : ""}>${esc(label)}</option>`;
+    const statusTone = (s) => ({ P: "success", LT: "warn", HD: "warn", A: "danger", L: "neutral" }[s] || "warn");
+    const title = `${d.class_label} · ${state.month ? fmtMonth(state.month) : fmtDate(d.date)}`;
+    let hint;
+    if (state.month) {
+      const low = d.students.filter((s) => s.working_days && s.percentage < 75).length;
+      hint = low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success");
+    } else {
+      hint = d.summary ? badge(d.summary, "neutral") : "";
+    }
+    const columns = state.month
+      ? [
+          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
           { label: "Roll", key: "roll_no" },
           { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
           { label: "Days", key: "working_days", className: "right" },
@@ -515,15 +527,24 @@
           { label: "Leave", key: "leave", className: "right" },
           { label: "Not marked", render: (s) => (s.not_marked ? `<b style="color:var(--danger)">${s.not_marked}</b>` : "0"), className: "right" },
           { label: "Attendance", render: (s) => `<div style="min-width:120px"><b>${s.percentage}%</b>${UI.progress(s.percentage)}</div>` },
-        ],
-        d.students
-      ), { icon: "fa-bar-chart", flush: true })}`;
-    view.querySelector("#cls").addEventListener("change", (e) => {
-      UI.runScreen(view, () => attendanceReport(view, ctx, { classId: e.target.value, month: state.month }));
-    });
-    view.querySelector("#month").addEventListener("change", (e) => {
-      UI.runScreen(view, () => attendanceReport(view, ctx, { classId, month: e.target.value }));
-    });
+        ]
+      : [
+          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
+          { label: "Roll", key: "roll_no" },
+          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
+          { label: "Status", render: (s) => (s.status ? badge(CODE_LABEL[s.status] || s.status, statusTone(s.status)) : badge("Not marked", "warn")) },
+        ];
+    view.innerHTML = `
+      <div class="toolbar"><div class="filters">
+        <select id="month"><option value="">Single day</option>${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
+        ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
+        <select id="cls"><option value="">All classes</option>${classes.map((c) => option(c.id, c.label, classId)).join("")}</select>
+      </div>${hint}</div>
+      ${card(title, table(columns, d.students, { empty: "No students to show." }), { icon: "fa-bar-chart", flush: true })}`;
+    const reload = (change) => UI.runScreen(view, () => attendanceReport(view, ctx, { ...state, date: day, classId, ...change }));
+    view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
+    view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
+    view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
   }
 
   // ---------- Office staff accounts (admin -> accountants, accountant -> principals) ----------

@@ -61,22 +61,26 @@
   }
 
   // ---------- Dashboard ----------
-  async function dashboard(view) {
+  async function dashboard(view, ctx) {
     const d = await MPS.get("/principal/dashboard");
     const p = d.pending;
     const pendingTotal = Object.values(p).reduce((a, b) => a + b, 0);
+    const office = ctx && ctx.role === "accountant";
+    const approvalsHash = office ? "#school-approvals" : "#approvals";
+    const feeReport = office ? "#report" : "";
+    const feeCollect = office ? "#collect" : "";
     view.innerHTML = `
       <div class="welcome"><div><h2>Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, Principal</h2>
         <p>${esc(d.weekday)}, ${fmtDate(d.today)}${d.is_holiday ? " &middot; Holiday" : ""}</p></div>
         <div class="btn-group"><a class="btn btn-light" href="#teacher-attendance"><i class="fa fa-user-circle"></i> Teacher Attendance</a>
-        <a class="btn btn-light" href="#approvals"><i class="fa fa-check-circle"></i> Approvals${pendingTotal ? ` (${pendingTotal})` : ""}</a></div></div>
+        <a class="btn btn-light" href="${approvalsHash}"><i class="fa fa-check-circle"></i> Approvals${pendingTotal ? ` (${pendingTotal})` : ""}</a></div></div>
       ${punchHtml(d.checkin)}
       <div class="grid grid-4">
-        ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked` })}
-        ${stat("Teachers Present", d.teachers_recorded ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : d.teachers_recorded ? "warn" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : (d.teachers_recorded ? `${d.teachers_total - d.teachers_recorded} not marked · <a href="#teacher-attendance">Open</a>` : '<a href="#teacher-attendance">Mark now</a>') })}
-        ${stat("Fee Collected (month)", money(d.fees.collected_month), { icon: "fa-inr", tone: "info", sub: `Today ${money(d.fees.collected_today)}` })}
-        ${stat("Fee Dues", "By class", { icon: "fa-exclamation-circle", tone: "info", sub: "Opened with the class in Collect Fee" })}
-        ${stat("Pending Approvals", pendingTotal, { icon: "fa-check-circle", tone: pendingTotal ? "warn" : "ok", sub: '<a href="#approvals">Open</a>' })}
+        ${stat("Students Present", `${d.present} / ${d.students_total}`, { icon: "fa-users", tone: d.classes_marked < d.classes.length ? "warn" : "ok", sub: `${d.absent} absent &middot; ${d.classes_marked}/${d.classes.length} classes marked`, href: "#attendance-report" })}
+        ${stat("Teachers Present", d.teachers_recorded ? `${d.teachers_present} / ${d.teachers_total}` : "Not marked", { icon: "fa-user-circle", tone: d.teachers_marked ? "ok" : d.teachers_recorded ? "warn" : "danger", sub: d.teachers_marked ? `${d.teachers_absent} absent` : (d.teachers_recorded ? `${d.teachers_total - d.teachers_recorded} not marked` : "Mark now"), href: d.teachers_recorded ? "#teacher-report" : "#teacher-attendance" })}
+        ${stat("Fee Collected (month)", money(d.fees.collected_month), { icon: "fa-inr", tone: "info", sub: `Today ${money(d.fees.collected_today)}`, href: feeReport || undefined })}
+        ${stat("Total Dues", d.fees.dues_total != null ? money(d.fees.dues_total) : "By class", { icon: "fa-exclamation-circle", tone: "info", sub: feeCollect ? "All students" : "Opened with the class in Collect Fee", href: feeCollect || undefined, attrs: feeCollect ? 'data-collect-all="1"' : "" })}
+        ${stat("Pending Approvals", pendingTotal, { icon: "fa-check-circle", tone: pendingTotal ? "warn" : "ok", sub: "Open", href: approvalsHash })}
       </div>
       <div class="grid grid-side">
         ${card("Today's Classes", table(
@@ -96,7 +100,10 @@
           ${card("Upcoming", d.events.length ? `<ul class="list">${d.events.map((e) => `<li>${dateChip(e.date)}<div class="grow"><div class="title">${esc(e.title)}</div><div class="meta">${esc(eventSpan(e))} · ${e.type}</div></div></li>`).join("")}</ul>` : empty("Nothing upcoming"), { icon: "fa-calendar", flush: true })}
         </div>
       </div>`;
-    bindPunch(view, () => dashboard(view));
+    view.querySelectorAll("[data-collect-all]").forEach((el) => {
+      el.addEventListener("click", () => sessionStorage.setItem("school_collect_class", "all"));
+    });
+    bindPunch(view, () => dashboard(view, ctx));
   }
 
   // ---------- Teacher attendance ----------
@@ -151,16 +158,37 @@
     });
   }
 
-  async function teacherAttendanceReport(view, ctx, month) {
-    const d = await MPS.get(`/principal/staff-attendance/report${month ? `?month=${month}` : ""}`);
-    view.innerHTML = `<div class="toolbar"><div class="filters"><select id="month"><option value="">Whole session</option>${d.months.map((m) => `<option value="${m}" ${m === month ? "selected" : ""}>${fmtMonth(m)}</option>`).join("")}</select></div></div>
-      ${card("Teacher Attendance Report", table([
-        { label: "Teacher", render: (t) => `<b>${esc(t.name)}</b>` }, { label: "Days", key: "working_days", className: "right" },
-        { label: "Present on Time", key: "present", className: "right" }, { label: "Late", key: "late", className: "right" }, { label: "Absent", key: "absent", className: "right" },
-        { label: "Leave", key: "leave", className: "right" }, { label: "Not marked", render: (t) => (t.not_marked ? `<b style="color:var(--danger)">${t.not_marked}</b>` : "0"), className: "right" },
-        { label: "%", render: (t) => `<div style="min-width:110px"><b>${t.percentage}%</b>${UI.progress(t.percentage)}</div>` },
-      ], d.teachers), { icon: "fa-bar-chart", flush: true })}`;
-    view.querySelector("#month").addEventListener("change", (e) => teacherAttendanceReport(view, ctx, e.target.value));
+  async function teacherAttendanceReport(view, ctx, state = {}) {
+    const day = state.date || todayIso();
+    const q = new URLSearchParams(state.month ? { month: state.month } : { date: day });
+    const d = await MPS.get(`/principal/staff-attendance/report?${q}`);
+    const option = (value, label, picked) => `<option value="${value}" ${value === picked ? "selected" : ""}>${esc(label)}</option>`;
+    const statusTone = (s) => ({ P: "success", LT: "warn", HD: "warn", A: "danger", L: "neutral" }[s] || "warn");
+    const columns = state.month
+      ? [
+          { label: "Teacher", render: (t) => `<b>${esc(t.name)}</b>` },
+          { label: "Days", key: "working_days", className: "right" },
+          { label: "Present on Time", key: "present", className: "right" },
+          { label: "Late", key: "late", className: "right" },
+          { label: "Absent", key: "absent", className: "right" },
+          { label: "Leave", key: "leave", className: "right" },
+          { label: "Not marked", render: (t) => (t.not_marked ? `<b style="color:var(--danger)">${t.not_marked}</b>` : "0"), className: "right" },
+          { label: "%", render: (t) => `<div style="min-width:110px"><b>${t.percentage}%</b>${UI.progress(t.percentage)}</div>` },
+        ]
+      : [
+          { label: "Teacher", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id || "")}${t.designation ? ` · ${esc(t.designation)}` : ""}</div>` },
+          { label: "Status", render: (t) => (t.status ? badge(UI.CODE_LABEL[t.status] || t.status, statusTone(t.status)) : badge("Not marked", "warn")) },
+          { label: "In / Out", render: (t) => (t.check_in ? `${esc(t.checkin_label || "Check-In")}${t.check_out ? ` · Out ${fmtTime(t.check_out)}${t.auto_checkout ? " (auto)" : ""}` : " · Not checked out"}` : '<span class="muted">-</span>') },
+        ];
+    view.innerHTML = `
+      <div class="toolbar"><div class="filters">
+        <select id="month"><option value="">Single day</option>${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
+        ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
+      </div>${d.summary ? badge(d.summary, "neutral") : ""}</div>
+      ${card(`Teacher Attendance · ${state.month ? fmtMonth(state.month) : fmtDate(d.date)}`, table(columns, d.teachers, { empty: "No teachers to show." }), { icon: "fa-bar-chart", flush: true })}`;
+    const reload = (change) => teacherAttendanceReport(view, ctx, { ...state, date: day, ...change });
+    view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
+    view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
   }
 
   function students(view, ctx, state = {}) {
