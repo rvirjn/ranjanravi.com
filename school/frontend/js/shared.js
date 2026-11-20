@@ -406,7 +406,7 @@
   async function whatsappPage(view, ctx, filter = "") {
     const [s, o] = await Promise.all([MPS.get("/whatsapp/status"), MPS.get(`/whatsapp/outbox${filter ? `?purpose=${filter}` : ""}`)]);
     const linked = s.connected;
-    const principal = ctx.role === "principal";
+    const principal = ctx.role === "principal" || ctx.role === "accountant";
     const statusBody = linked
       ? `<p>${badge("Connected", "success")} Linked to <b>+${esc(s.number)}</b> ${s.name ? `(${esc(s.name)})` : ""}</p>
          ${principal ? '<button class="btn btn-light btn-sm" id="unlink"><i class="fa fa-chain-broken"></i> Unlink</button> <button class="btn btn-light btn-sm" id="groups"><i class="fa fa-users"></i> Check groups</button>' : ""}`

@@ -11,7 +11,7 @@
     "Overview": "सारांश", "Academics": "पढ़ाई", "Finance": "वित्त", "School": "विद्यालय", "Other": "अन्य", "Requests": "अनुरोध", "Account": "खाता",
     "Daily": "दैनिक", "Classroom": "कक्षा", "Exams": "परीक्षा", "Communication": "संचार", "Staff": "स्टाफ", "Reports": "रिपोर्ट",
     "People": "लोग", "Fees": "फीस", "Settings": "सेटिंग्स",
-    "Dashboard": "डैशबोर्ड", "My Profile": "मेरी प्रोफ़ाइल", "Attendance": "उपस्थिति", "Classwork & Homework": "कक्षा कार्य और गृह कार्य",
+    "Dashboard": "डैशबोर्ड", "School Dashboard": "स्कूल डैशबोर्ड", "School Approvals": "स्कूल स्वीकृतियां", "Check In / Out": "चेक इन / आउट", "Promote": "प्रमोट", "My Profile": "मेरी प्रोफ़ाइल", "Attendance": "उपस्थिति", "Classwork & Homework": "कक्षा कार्य और गृह कार्य",
     "Timetable": "समय सारणी", "My Timetable": "मेरी समय सारणी", "Homework Submission": "गृह कार्य जमा करें", "Quizzes & Tests": "क्विज़ और टेस्ट",
     "Study Material": "अध्ययन सामग्री", "Online Classes": "ऑनलाइन कक्षाएं", "Exams Dates": "परीक्षा तिथियाँ",
     "Results & Report Card": "परिणाम और रिपोर्ट कार्ड", "Remarks & Achievements": "टिप्पणियां और उपलब्धियां", "Fees & Payments": "फीस और भुगतान",

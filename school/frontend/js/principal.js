@@ -929,6 +929,27 @@
     );
   }
 
+  UI.principal = {
+    dashboard,
+    approvals,
+    checkIn,
+    teacherAttendance,
+    teachers,
+    classes,
+    promote,
+    teacherTimetable,
+    exams,
+    teacherAttendanceReport,
+    diaryReport,
+    results,
+    notices,
+    messages,
+    events,
+  };
+
+  const page = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (page === "accountant.html" || page === "accountant") return;
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
