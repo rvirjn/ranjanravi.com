@@ -989,7 +989,8 @@ const Accounts = (() => {
       if (result) reload();
     }));
     view.querySelectorAll("[data-salary-pay]").forEach((b) => b.addEventListener("click", () => {
-      paySalary(pay.teachers.find((t) => t.id === b.dataset.salaryPay), pay.payment_methods, reload);
+      const person = [...(pay.teachers || []), ...(pay.other_staff || [])].find((t) => t.id === b.dataset.salaryPay);
+      if (person) paySalary(person, pay.payment_methods, reload);
     }));
     view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips)));
   }
