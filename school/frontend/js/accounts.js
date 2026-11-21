@@ -122,13 +122,21 @@ const Accounts = (() => {
       columns.push(
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
-          { label: "Total Charged", className: "right nowrap", render: (s) => (s.charged ? money(s.charged) : '<span class="muted">-</span>') },
-          { label: "Last paid", render: (s) => (s.last_paid_amount ? money(s.last_paid_amount) : '<span class="muted">-</span>'), className: "right nowrap" },
-          { label: "Total Rebate", className: "right nowrap", render: (s) => (s.rebate_total ? money(s.rebate_total) : '<span class="muted">-</span>') },
-          { label: "Dues", sort: "due", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")), className: "right" },
-          { label: "Transport", className: "right nowrap", render: (s) => (s.transport_total
-            ? `${money(s.transport_total)}${s.transport_due ? `<div class="small" style="color:var(--danger)">Due ${money(s.transport_due)}</div>` : ""}`
-            : '<span class="muted">-</span>') },
+          { label: "Total Charged", className: "right nowrap", render: (s) => {
+            const p = s.charged_parts || {};
+            const tip = p.months
+              ? `${p.months} × (Transport ${money(p.transport_fee || 0)} + Monthly ${money(p.monthly_fee || 0)}) + Other ${money(p.other || 0)} − Rebate ${money(p.rebate || 0)}`
+              : "";
+            return `<span title="${esc(tip)}">${money(Number(s.charged) || 0)}</span>`;
+          } },
+          { label: "Last paid", render: (s) => money(Number(s.last_paid_amount) || 0), className: "right nowrap" },
+          { label: "Total Rebate", className: "right nowrap", render: (s) => money(Number(s.rebate_total) || 0) },
+          { label: "Dues", sort: "due", render: (s) => (Number(s.due)
+            ? `<b style="color:var(--danger)">${money(Number(s.due) || 0)}</b>`
+            : money(0)), className: "right" },
+          { label: "Transport", className: "right nowrap", render: (s) => (
+            `${money(Number(s.transport_total) || 0)}${Number(s.transport_due) ? `<div class="small" style="color:var(--danger)">Due ${money(Number(s.transport_due) || 0)}</div>` : ""}`
+          ) },
           { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
       );
@@ -180,26 +188,27 @@ const Accounts = (() => {
     const familyNote = familyPeople.length > 1
       ? `<p class="small" style="padding:12px 18px 0">${familyPeople.map((person) => `<b>${esc(person.name)}</b> (${esc(person.classLabel)})`).join(", ")}</p>`
       : "";
-    const chargeRows = d.charges || [];
-    const chargedBreakdown = chargeRows.length
-      ? `${table(
-          [
-            {
-              label: "Month / Item",
-              render: (c) => {
-                const item = c.description || c.head || "";
-                return c.month_label
-                  ? `<b>${esc(c.month_label)}</b><div class="small muted">${esc(item)}</div>`
-                  : `<b>${esc(item)}</b>`;
-              },
-            },
-            { label: "Charged", render: (c) => money(c.amount), className: "right nowrap" },
-            { label: "Paid", render: (c) => money(c.paid), className: "right nowrap" },
-            { label: "Due", render: (c) => (c.due ? `<b style="color:var(--danger)">${money(c.due)}</b>` : money(0)), className: "right nowrap" },
-          ],
-          chargeRows
-        )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Total charged <b>${money(d.summary.total)}</b> · Paid ${money(d.summary.paid)} · Due <b style="color:var(--danger)">${money(d.summary.due)}</b></p>`
-      : empty("No charges yet.", "fa-inr");
+    const parts = (d.summary && d.summary.charged_parts) || {};
+    const months = Number(parts.months) || 0;
+    const monthlyFee = Number(parts.monthly_fee) || 0;
+    const transportFee = Number(parts.transport_fee) || 0;
+    const otherFee = Number(parts.other) || 0;
+    const rebateFee = Number(parts.rebate) || 0;
+    const monthBlock = (Number(parts.tuition_amount) || 0) + (Number(parts.transport_amount) || 0);
+    const chargedTotal = Number(parts.charged != null ? parts.charged : d.summary.total) || 0;
+    const chargedBreakdown = `${table(
+      [
+        { label: "Part", render: (r) => r.label },
+        { label: "Amount", render: (r) => (r.neg ? `− ${money(r.amount)}` : money(r.amount)), className: "right nowrap" },
+      ],
+      [
+        { label: `${months} months × (Transport ${money(transportFee)} + Monthly ${money(monthlyFee)})`, amount: monthBlock },
+        { label: "Other", amount: otherFee },
+        { label: "Total Rebate", amount: rebateFee, neg: true },
+        { label: "Total Charged", amount: chargedTotal },
+      ]
+    )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Paid ${money(Number(d.summary.paid) || 0)} · Due <b style="color:var(--danger)">${money(Number(d.summary.due) || 0)}</b></p>
+      <p class="small muted" style="padding:0 18px 14px;margin:0">${months} × (Transport ${money(transportFee)} + Monthly ${money(monthlyFee)}) + Other ${money(otherFee)} − Rebate ${money(rebateFee)} = <b>${money(chargedTotal)}</b></p>`;
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
         <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
@@ -730,10 +739,10 @@ const Accounts = (() => {
         { label: "Dues detail", render: (s) => (s.dues_by_month.length
           ? `<span class="small">${s.dues_by_month.map((g) => `${esc(g.label)}: ${money(g.amount)}`).join("<br>")}</span>`
           : none) },
-        { label: "Charged", render: (s) => money(s.charged), className: "right nowrap" },
-        { label: "Paid", render: (s) => money(s.paid), className: "right nowrap" },
-        { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (s.due ? `<b style="color:var(--danger)">${money(s.due)}</b>` : badge("Paid", "success")) },
-        { label: "Last paid", sort: "last", className: "nowrap", render: (s) => (s.last_payment ? `${money(s.last_paid_amount)}<div class="small muted">${fmtDate(s.last_payment)}</div>` : none) },
+        { label: "Charged", render: (s) => money(Number(s.charged) || 0), className: "right nowrap" },
+        { label: "Paid", render: (s) => money(Number(s.paid) || 0), className: "right nowrap" },
+        { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (Number(s.due) ? `<b style="color:var(--danger)">${money(Number(s.due) || 0)}</b>` : money(0)) },
+        { label: "Last paid", sort: "last", className: "nowrap", render: (s) => (s.last_payment ? `${money(Number(s.last_paid_amount) || 0)}<div class="small muted">${fmtDate(s.last_payment)}</div>` : money(0)) },
       ];
       if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => (s.due ? `<button class="btn btn-sm" data-remind="${esc(s.id)}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` : "") });
       return table(withActions ? columns : columns.map((c) => ({ ...c, sort: "" })), sortedStudents(), {
