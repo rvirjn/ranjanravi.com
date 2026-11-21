@@ -123,11 +123,18 @@ const Accounts = (() => {
           { label: "Student", sort: "name", render: (s) => `<b>${esc(s.name)}</b><div class="small muted">${esc(s.admission_no)} &middot; ${esc(s.father_name)} &middot; ${esc(s.phone || "")}</div>` },
           { label: "Siblings", render: (s) => ((s.sibling_names || []).length ? esc(s.sibling_names.join(", ")) : '<span class="muted">-</span>') },
           { label: "Total Charged", className: "right nowrap", render: (s) => {
+            const charged = Number(s.charged) || 0;
+            const paid = Number(s.paid) || 0;
+            const due = Number(s.due) || 0;
+            const mismatch = charged !== paid + due;
             const p = s.charged_parts || {};
-            const tip = p.months
-              ? `${p.months} × (Transport ${money(p.transport_fee || 0)} + Monthly ${money(p.monthly_fee || 0)}) + Other ${money(p.other || 0)} − Rebate ${money(p.rebate || 0)}`
-              : "";
-            return `<span title="${esc(tip)}">${money(Number(s.charged) || 0)}</span>`;
+            const tip = [
+              p.months
+                ? `${p.months} × (Transport ${money(p.transport_fee || 0)} + Monthly ${money(p.monthly_fee || 0)}) + Other ${money(p.other || 0)} − Rebate ${money(p.rebate || 0)}`
+                : "",
+              mismatch ? `Charged ${money(charged)} ≠ Paid ${money(paid)} + Dues ${money(due)}` : "",
+            ].filter(Boolean).join(" · ");
+            return `<span title="${esc(tip)}"${mismatch ? ' style="color:var(--danger);font-weight:600"' : ""}>${money(charged)}</span>`;
           } },
           { label: "Last paid", render: (s) => money(Number(s.last_paid_amount) || 0), className: "right nowrap" },
           { label: "Total Rebate", className: "right nowrap", render: (s) => money(Number(s.rebate_total) || 0) },
