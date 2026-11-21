@@ -1143,7 +1143,7 @@ const Accounts = (() => {
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other people expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other people expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
       <div class="grid grid-4">
         ${stat("Total dues", money((pay.due_total || 0) + (pay.other_due_total || 0)), { icon: "fa-exclamation-circle", tone: (pay.due_total || pay.other_due_total) ? "warn" : "ok", sub: `Teachers ${money(pay.due_total || 0)} · Other staff ${money(pay.other_due_total || 0)}` })}
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}

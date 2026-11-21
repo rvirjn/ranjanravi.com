@@ -403,6 +403,10 @@
     live: "Live: messages go to parents and class groups.",
   };
 
+  function linkedGroupNames() {
+    return MPS.get("/whatsapp/groups").then((d) => (d.groups || []).map((g) => (g.subject || "").trim()).filter(Boolean)).catch(() => []);
+  }
+
   async function whatsappPage(view, ctx, filter = "") {
     const [s, o] = await Promise.all([MPS.get("/whatsapp/status"), MPS.get(`/whatsapp/outbox${filter ? `?purpose=${filter}` : ""}`)]);
     const linked = s.connected;
@@ -425,17 +429,26 @@
           <button class="btn btn-sm" id="testMsg"><i class="fa fa-paper-plane"></i> Send test message</button>`, { icon: "fa-sliders" })}
       </div>
       ${card("Class WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">Homework goes to the class group. The school number must be a member of each group.</p>
-        ${table([{ label: "Class", key: "label" }, { label: "WhatsApp group name", render: (c) => (c.group ? `<b>${esc(c.group)}</b>` : badge("Not set", "danger")) }], s.class_groups)}`,
+        ${table([
+          { label: "Class", key: "label" },
+          { label: "WhatsApp group name", render: (c) => (c.group ? `<b>${esc(c.group)}</b>` : badge("Not set", "danger")) },
+          { label: "", className: "right nowrap", render: (c) => (c.group
+            ? `<button class="btn btn-light btn-sm" data-class-group="${esc(c.id)}"><i class="fa fa-pencil"></i></button>`
+            : `<button class="btn btn-sm" data-class-group="${esc(c.id)}"><i class="fa fa-plus"></i> Add</button>`) },
+        ], s.class_groups)}`,
         { icon: "fa-users", flush: true })}
-      ${card("Other WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">School-wide groups. The school number must be a member of each group. Group names are set in the admin portal under the school's details.</p>
+      ${card("Other WhatsApp Groups", `<p class="small muted" style="padding:12px 18px 0">School-wide groups. The school number must be a member of each group.</p>
         ${table([
           { label: "Group", key: "label" },
           { label: "WhatsApp group name", render: (g) => (g.group ? `<b>${esc(g.group)}</b>` : badge("Not set", "danger")) },
           { label: "Used for", key: "used_for" },
+          { label: "", className: "right nowrap", render: (g) => `${g.group
+            ? `<button class="btn btn-light btn-sm" data-other-group="${esc(g.id)}" title="Edit"><i class="fa fa-pencil"></i></button>`
+            : `<button class="btn btn-sm" data-other-group="${esc(g.id)}"><i class="fa fa-plus"></i> Add</button>`}${g.fixed ? "" : ` <button class="btn btn-light btn-sm" data-other-del="${esc(g.id)}" title="Remove"><i class="fa fa-trash"></i></button>`}` },
         ], s.other_groups || [])}`,
-        { icon: "fa-users", flush: true })}
+        { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherGroup"><i class="fa fa-plus"></i> Add</button>` })}
       ${card("Message Log", `<div style="padding:12px 18px 0" class="filters"><select id="purpose"><option value="">All messages</option>
-        ${["student_absent", "diary", "fee_notice", "fee_reminder", "fee_overdue", "fee_receipt", "notice", "test"].map((p) => `<option ${p === filter ? "selected" : ""}>${p}</option>`).join("")}</select></div>
+        ${["student_absent", "diary", "fee_notice", "fee_reminder", "fee_overdue", "fee_receipt", "expense", "notice", "test"].map((p) => `<option ${p === filter ? "selected" : ""}>${p}</option>`).join("")}</select></div>
         ${table([
           { label: "Time", render: (m) => fmtDateTime(m.created_on), className: "nowrap" },
           { label: "To", render: (m) => `${m.kind === "group" ? '<i class="fa fa-users"></i> ' : ""}<b>${esc(m.to_label || "")}</b><div class="small muted">${esc(m.kind === "group" ? "group" : "+" + m.to)}</div>` },
@@ -481,6 +494,71 @@
         },
       })
     );
+    const groupNames = linkedGroupNames();
+    const groupField = (value, required) => `<div class="field"><label for="f_group">WhatsApp group name</label>
+      <input id="f_group" name="group" maxlength="100" placeholder="exact group name" value="${esc(value || "")}" list="waGroupNames" ${required ? "required" : ""}>
+      <datalist id="waGroupNames"></datalist>
+      <div class="field-hint">Exact name in WhatsApp. The school number must be a member of the group.</div></div>`;
+    const textField = (name, label, value, required) => `<div class="field"><label for="f_${name}">${esc(label)}</label>
+      <input id="f_${name}" name="${name}" maxlength="160" value="${esc(value || "")}" ${required ? "required" : ""}></div>`;
+    const openGroupForm = (title, bodyHtml, onSubmit) => {
+      const m = modal(title, `<form>${bodyHtml}<div class="form-error" hidden></div>
+        <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="submit" class="btn">Save</button></div></form>`);
+      const form = m.body.querySelector("form");
+      const errorEl = form.querySelector(".form-error");
+      groupNames.then((names) => {
+        const list = form.querySelector("#waGroupNames");
+        if (list) list.innerHTML = names.map((n) => `<option value="${esc(n)}"></option>`).join("");
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!form.reportValidity()) return;
+        const submit = form.querySelector('[type="submit"]');
+        submit.disabled = true;
+        errorEl.hidden = true;
+        try {
+          const result = await onSubmit(form);
+          m.close();
+          if (result && result.message) UI.toast(result.message);
+          reload();
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.hidden = false;
+          submit.disabled = false;
+        }
+      });
+      const first = form.querySelector("input");
+      if (first) first.focus();
+    };
+    view.querySelectorAll("[data-class-group]").forEach((b) => b.addEventListener("click", () => {
+      const row = (s.class_groups || []).find((c) => c.id === b.dataset.classGroup);
+      if (!row) return;
+      openGroupForm(row.group ? "Edit class WhatsApp group" : "Add class WhatsApp group",
+        `<p class="small" style="margin-top:0"><span>Class</span>: <b>${esc(row.label)}</b></p>${groupField(row.group, !row.group)}`,
+        (form) => MPS.post(`/whatsapp/class-groups/${row.id}`, { group: form.group.value.trim() }));
+    }));
+    on("#addOtherGroup", () => openGroupForm("Add WhatsApp group",
+      `${textField("label", "Name", "", true)}${groupField("", true)}${textField("used_for", "Used for", "", false)}`,
+      (form) => MPS.post("/whatsapp/other-groups", { label: form.label.value.trim(), group: form.group.value.trim(), used_for: form.used_for.value.trim() })));
+    view.querySelectorAll("[data-other-group]").forEach((b) => b.addEventListener("click", () => {
+      const row = (s.other_groups || []).find((g) => g.id === b.dataset.otherGroup);
+      if (!row) return;
+      const fields = row.fixed
+        ? `<p class="small" style="margin-top:0"><b>${esc(row.label)}</b>${row.used_for ? ` · ${esc(row.used_for)}` : ""}</p>${groupField(row.group, !row.group)}`
+        : `${textField("label", "Name", row.label, true)}${groupField(row.group, !row.group)}${textField("used_for", "Used for", row.used_for, false)}`;
+      openGroupForm(row.group ? "Edit WhatsApp group" : "Add WhatsApp group", fields,
+        (form) => MPS.post("/whatsapp/other-groups", {
+          id: row.id,
+          label: form.label ? form.label.value.trim() : row.label,
+          group: form.group.value.trim(),
+          used_for: form.used_for ? form.used_for.value.trim() : row.used_for,
+        }));
+    }));
+    view.querySelectorAll("[data-other-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Remove this WhatsApp group?")) return;
+      if (await run(() => MPS.del(`/whatsapp/other-groups/${b.dataset.otherDel}`))) reload();
+    }));
     view.querySelector("#purpose").addEventListener("change", (e) => whatsappPage(view, ctx, e.target.value));
     view.querySelectorAll("[data-retry]").forEach((b) => b.addEventListener("click", async () => (await run(() => MPS.post(`/whatsapp/retry/${b.dataset.retry}`))) && reload()));
     const waiting = (o.messages || []).some((m) => m.status === "queued");
