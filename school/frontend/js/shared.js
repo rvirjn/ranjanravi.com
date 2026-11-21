@@ -154,7 +154,7 @@
               <div class="btn-group">${waBadge(p)} ${badge(`Seen by ${p.seen_count}/${p.class_size}`, "neutral")}
               ${p.wa_status === "queued" ? "" : `<button class="btn btn-light btn-sm" data-resend="${p.id}"><i class="fa fa-whatsapp"></i> Resend</button>`}
               <button class="btn btn-light btn-sm" data-del="${p.id}"><i class="fa fa-trash"></i></button></div></div>
-              <div class="pre small" style="margin-top:6px">${p.entries.map((e) => [e.cw ? `${esc(e.subject)} : CW - ${esc(e.cw)}` : "", e.hw ? `${esc(e.subject)} : HW - ${esc(e.hw)}` : ""].filter(Boolean).join("\n")).join("\n")}</div></div>`
+              <div class="pre small" style="margin-top:6px">${p.entries.map((e) => `*${esc(e.subject)}* (${esc(p.teacher_name)})\nCW - ${e.cw ? esc(e.cw) : "<b>NO CW</b>"}\nHW - ${e.hw ? esc(e.hw) : "<b>NO HW</b>"}`).join("\n\n")}</div></div>`
           )
           .join("")
       : empty("Nothing posted for this date yet.", "fa-book");
@@ -165,7 +165,7 @@
       <div class="grid grid-side">
         ${card(`${d.class_label} · ${weekday(d.date)}, ${fmtDate(d.date)}`, `<div class="table-wrap"><table class="table diary-table"><thead><tr><th>Subject</th><th>Classwork (CW)</th><th>Homework (HW)</th></tr></thead>
           <tbody>${rows}<tr data-row="extra"><td><input name="subject" placeholder="Other subject"></td><td><input name="cw" placeholder="CW"></td><td><input name="hw" placeholder="HW"></td></tr></tbody></table></div>
-          <div class="sticky-bar static"><span class="small muted">Leave a box empty to skip it</span><button class="btn" id="send"><i class="fa fa-clock-o"></i> Save to Queue</button></div>`,
+          <div class="sticky-bar static"><span class="small muted">Leave CW or HW empty to send NO CW or NO HW in bold</span><button class="btn" id="send"><i class="fa fa-clock-o"></i> Save to Queue</button></div>`,
           { icon: "fa-pencil-square-o", flush: true })}
         ${card("Your Entry", `<div class="preview-box" id="preview"></div><p class="small muted" style="margin-top:8px">${esc(d.send_note)}</p>`, { icon: "fa-pencil" })}
       </div>
@@ -181,8 +181,8 @@
         }))
         .filter((e) => e.subject && (e.cw || e.hw));
     const preview = () => {
-      const blocks = collect().map((e) => [`*${e.subject}* (${ctx.user.name})`, e.cw ? `CW - ${e.cw}` : "", e.hw ? `HW - ${e.hw}` : ""].filter(Boolean).join("\n"));
-      view.querySelector("#preview").textContent = blocks.length ? blocks.join("\n\n") : "Type CW / HW to see your part of the message here.";
+      const blocks = collect().map((e) => [`*${e.subject}* (${ctx.user.name})`, `CW - ${e.cw || "*NO CW*"}`, `HW - ${e.hw || "*NO HW*"}`].join("\n"));
+      view.querySelector("#preview").textContent = blocks.length ? blocks.join("\n\n") : "Type CW or HW to see your part. An empty box is sent as *NO CW* or *NO HW*.";
     };
     preview();
     view.querySelectorAll(".diary-table input").forEach((i) => i.addEventListener("input", preview));

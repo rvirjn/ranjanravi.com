@@ -8,7 +8,7 @@
 
   const diaryLines = (p) =>
     `<div class="pre" style="margin-top:4px">${p.entries
-      .flatMap((e) => [e.cw ? `<b>${esc(e.subject)}</b> : CW - ${esc(e.cw)}` : "", e.hw ? `<b>${esc(e.subject)}</b> : HW - ${esc(e.hw)}` : ""].filter(Boolean))
+      .flatMap((e) => [`<b>${esc(e.subject)}</b>${p.teacher_name ? ` (${esc(p.teacher_name)})` : ""}`, `CW - ${e.cw ? esc(e.cw) : "<b>NO CW</b>"}`, `HW - ${e.hw ? esc(e.hw) : "<b>NO HW</b>"}`])
       .join("\n")}</div>`;
 
   function siblingBar(siblings) {

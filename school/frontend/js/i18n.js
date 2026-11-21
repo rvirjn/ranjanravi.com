@@ -142,6 +142,8 @@
     "Update & Send": "अपडेट करें और भेजें", "Save to Queue": "कतार में सहेजें", "Queued": "कतार में", "Your Entry": "आपकी प्रविष्टि",
     "Queued WhatsApp Message": "कतार में व्हाट्सएप संदेश", "No WhatsApp group": "कोई व्हाट्सएप समूह नहीं", "Not sent": "नहीं भेजा",
     "Type CW / HW to see your part of the message here.": "संदेश में अपना भाग देखने के लिए CW / HW लिखें।",
+    "Type CW or HW to see your part. An empty box is sent as *NO CW* or *NO HW*.": "CW या HW लिखें। खाली बॉक्स *NO CW* या *NO HW* के रूप में भेजा जाता है।",
+    "Leave CW or HW empty to send NO CW or NO HW in bold": "CW या HW खाली छोड़ें तो मोटे अक्षरों में NO CW या NO HW जाएगा",
     "View & Send": "देखें और भेजें",
     "Post": "पोस्ट करें",
     "View & Send now": "देखें और अभी भेजें",
