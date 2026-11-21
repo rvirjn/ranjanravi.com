@@ -862,7 +862,7 @@ const Accounts = (() => {
       <h3 style="text-align:center;margin:0 0 10px">SALARY SLIP</h3>
       <table class="table receipt-head"><tbody>
         <tr><td><b>Slip No.</b> ${esc(p.slip_no || "-")}</td><td><b>Date:</b> ${fmtDate(p.date || p.paid_on)}</td></tr>
-        <tr><td><b>Teacher:</b> ${esc(t.name)}</td><td><b>Employee ID:</b> ${esc(t.employee_id)}</td></tr>
+        <tr><td><b>Name:</b> ${esc(t.name)}</td><td><b>Employee ID:</b> ${esc(t.employee_id || "-")}</td></tr>
         <tr><td><b>Designation:</b> ${esc(t.designation)}</td><td><b>Salary month:</b> ${esc(fmtMonth(p.month))}</td></tr>
         <tr><td><b>Paid on:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method || "-")}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
         ${p.monthly ? `<tr><td><b>Monthly salary:</b> ${money(p.monthly)}</td><td>${p.total_due_after != null ? `<b>Salary still due:</b> ${money(p.total_due_after)}` : ""}</td></tr>` : ""}
@@ -955,9 +955,10 @@ const Accounts = (() => {
     });
   }
 
-  function salaryTable(pay) {
+  function salaryTable(pay, rows, nameLabel) {
+    const people = rows || pay.teachers;
     return table([
-      { label: "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${esc(t.employee_id)} &middot; ${esc(t.designation)}</div>` },
+      { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>` },
       { label: "Monthly Amount", render: (t) => `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <input type="number" class="amount-input" data-salary-amount="${esc(t.id)}" value="${t.monthly_salary || ""}" placeholder="0" min="0">
           <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Dues from <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
@@ -975,7 +976,7 @@ const Accounts = (() => {
         : '<span class="muted">-</span>') },
       { label: "", className: "right nowrap", render: (t) => `<button class="btn btn-sm" data-salary-pay="${esc(t.id)}" ${t.monthly_salary ? "" : 'disabled title="Set the monthly amount first"'}><i class="fa fa-inr"></i> Pay</button>
           <button class="btn btn-light btn-sm" data-salary-slips="${esc(t.id)}"><i class="fa fa-file-text-o"></i> Slips${t.slip_count ? ` (${t.slip_count})` : ""}</button>` },
-    ], pay.teachers, { empty: "No active teachers.", emptyIcon: "fa-users" });
+    ], people, { empty: rows ? "No other staff." : "No active teachers.", emptyIcon: "fa-users" });
   }
 
   function bindSalaries(view, pay, reload) {
@@ -1115,15 +1116,17 @@ const Accounts = (() => {
     });
   }
 
-  function salaryPrintTable(pay) {
+  function salaryPrintTable(pay, rows, dueTotal) {
+    const people = rows || pay.teachers;
+    const due = dueTotal == null ? pay.due_total : dueTotal;
     return table([
-      { label: "Teachers Names", render: (t) => `<b>${esc(t.name)}</b>` },
+      { label: "Name", render: (t) => `<b>${esc(t.name)}</b>${t.designation ? `<div class="small">${esc(t.designation)}</div>` : ""}` },
       { label: "Monthly Amount", className: "right nowrap", render: (t) => (t.monthly_salary ? money(t.monthly_salary) : "-") },
       { label: "Last Amount paid", className: "nowrap", render: (t) => (t.last_paid_on ? `${money(t.last_paid_amount)}<div class="small">${fmtDate(t.last_paid_on)}</div>` : "-") },
       { label: "Total Dues", className: "right nowrap", render: (t) => money(t.due || 0) },
-    ], pay.teachers, {
-      empty: "No active teachers.",
-      footer: pay.teachers.length ? `<td colspan="3">Total</td><td class="right"><b>${money(pay.due_total)}</b></td>` : "",
+    ], people, {
+      empty: "None.",
+      footer: people.length ? `<td colspan="3">Total</td><td class="right"><b>${money(due)}</b></td>` : "",
     });
   }
 
@@ -1139,9 +1142,10 @@ const Accounts = (() => {
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, and event costs. Those totals follow the month above.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, and event costs. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above.</p>
       <div class="grid grid-4">
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
+        ${stat("People Expense", money(d.people_paid || 0), { icon: "fa-users", sub: monthLabel })}
         ${stat("Total expenses", money(d.totals.all || 0), { icon: "fa-inr", tone: "info", sub: monthLabel })}
       </div>
       ${d.categories.map((c) => {
@@ -1152,14 +1156,17 @@ const Accounts = (() => {
           actions: `<button class="btn btn-sm" data-add="${esc(c.id)}"><i class="fa fa-plus"></i> Add</button>`,
         });
       }).join("")}
-      ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}`;
+      ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
+      ${card("Other expenses", salaryTable(pay, pay.other_staff || [], "Name"), { icon: "fa-users", flush: true, actions: badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success") })}`;
 
     const reload = (next) => UI.runScreen(view, () => expenses(view, ctx, { month: next }));
     view.querySelector("#expenseMonth").addEventListener("change", (e) => reload(e.target.value));
     view.querySelector("#printExpenses").addEventListener("click", () => printDoc("Expenses Report", `<h3 style="text-align:center">Expenses Report</h3>
-      <p style="text-align:center">${esc(monthLabel)} &middot; ${money(d.totals.all || 0)}</p>
+      <p style="text-align:center">${esc(monthLabel)} &middot; Expenses ${money(d.totals.all || 0)} &middot; People Expense ${money(d.people_paid || 0)}</p>
       ${d.categories.map((c) => `<h4 style="margin:16px 0 6px">${esc(c.label)} &middot; ${money(d.totals[c.id] || 0)}</h4>${expenseTable(c, rowsOf(c.id), d.totals[c.id] || 0, true)}`).join("")}
-      <h4 style="margin:16px 0 6px">Teacher Salary (monthly) &middot; Dues ${money(pay.due_total)}</h4>${salaryPrintTable(pay)}`));
+      <h4 style="margin:16px 0 6px">People Expense &middot; ${money(d.people_paid || 0)}</h4>
+      <h4 style="margin:16px 0 6px">Teacher Salary (monthly) &middot; Dues ${money(pay.due_total)}</h4>${salaryPrintTable(pay)}
+      <h4 style="margin:16px 0 6px">Other expenses &middot; Dues ${money(pay.other_due_total || 0)}</h4>${salaryPrintTable(pay, pay.other_staff || [], pay.other_due_total || 0)}`));
     const openForm = (category, item) => expenseForm(category, item || {}, d, async (payload) => {
       const path = item && item.id ? `/accounts/expenses/${item.id}` : "/accounts/expenses";
       const result = await MPS.post(path, payload);
