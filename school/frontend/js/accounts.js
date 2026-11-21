@@ -1037,7 +1037,7 @@ const Accounts = (() => {
   }
 
   // ---------- Expenses: bus, infrastructure, events, then teacher salary ----------
-  const EXPENSE_ICONS = { bus: "fa-bus", infrastructure: "fa-building", event: "fa-calendar" };
+  const EXPENSE_ICONS = { bus: "fa-bus", infrastructure: "fa-building", event: "fa-calendar", other: "fa-ellipsis-h" };
 
   function expenseForm(category, item, meta, onSubmit) {
     const editing = !!item.id;
@@ -1143,8 +1143,9 @@ const Accounts = (() => {
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, and event costs. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other people expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above.</p>
       <div class="grid grid-4">
+        ${stat("Total dues", money((pay.due_total || 0) + (pay.other_due_total || 0)), { icon: "fa-exclamation-circle", tone: (pay.due_total || pay.other_due_total) ? "warn" : "ok", sub: `Teachers ${money(pay.due_total || 0)} · Other staff ${money(pay.other_due_total || 0)}` })}
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
         ${stat("People Expense", money(d.people_paid || 0), { icon: "fa-users", sub: monthLabel })}
         ${stat("Total expenses", money(d.totals.all || 0), { icon: "fa-inr", tone: "info", sub: monthLabel })}
@@ -1158,16 +1159,16 @@ const Accounts = (() => {
         });
       }).join("")}
       ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
-      ${card("Other expenses", salaryTable(pay, pay.other_staff || [], "Name"), { icon: "fa-users", flush: true, actions: badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success") })}`;
+      ${card("Other staff", salaryTable(pay, pay.other_staff || [], "Name"), { icon: "fa-users", flush: true, actions: badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success") })}`;
 
     const reload = (next) => UI.runScreen(view, () => expenses(view, ctx, { month: next }));
     view.querySelector("#expenseMonth").addEventListener("change", (e) => reload(e.target.value));
     view.querySelector("#printExpenses").addEventListener("click", () => printDoc("Expenses Report", `<h3 style="text-align:center">Expenses Report</h3>
-      <p style="text-align:center">${esc(monthLabel)} &middot; Expenses ${money(d.totals.all || 0)} &middot; People Expense ${money(d.people_paid || 0)}</p>
+      <p style="text-align:center">${esc(monthLabel)} &middot; Total dues ${money((pay.due_total || 0) + (pay.other_due_total || 0))} &middot; Expenses ${money(d.totals.all || 0)} &middot; People Expense ${money(d.people_paid || 0)}</p>
       ${d.categories.map((c) => `<h4 style="margin:16px 0 6px">${esc(c.label)} &middot; ${money(d.totals[c.id] || 0)}</h4>${expenseTable(c, rowsOf(c.id), d.totals[c.id] || 0, true)}`).join("")}
       <h4 style="margin:16px 0 6px">People Expense &middot; ${money(d.people_paid || 0)}</h4>
       <h4 style="margin:16px 0 6px">Teacher Salary (monthly) &middot; Dues ${money(pay.due_total)}</h4>${salaryPrintTable(pay)}
-      <h4 style="margin:16px 0 6px">Other expenses &middot; Dues ${money(pay.other_due_total || 0)}</h4>${salaryPrintTable(pay, pay.other_staff || [], pay.other_due_total || 0)}`));
+      <h4 style="margin:16px 0 6px">Other staff &middot; Dues ${money(pay.other_due_total || 0)}</h4>${salaryPrintTable(pay, pay.other_staff || [], pay.other_due_total || 0)}`));
     const openForm = (category, item) => expenseForm(category, item || {}, d, async (payload) => {
       const path = item && item.id ? `/accounts/expenses/${item.id}` : "/accounts/expenses";
       const result = await MPS.post(path, payload);
