@@ -978,24 +978,24 @@ const Accounts = (() => {
     ], pay.teachers, { empty: "No active teachers.", emptyIcon: "fa-users" });
   }
 
-  function bindSalaries(view, pay) {
+  function bindSalaries(view, pay, reload) {
     view.querySelectorAll("[data-salary-save]").forEach((b) => b.addEventListener("click", async () => {
       const id = b.dataset.salarySave;
       const result = await run(() => MPS.post(`/accounts/salaries/${id}`, {
         monthly_salary: view.querySelector(`[data-salary-amount="${id}"]`).value,
         salary_from: view.querySelector(`[data-salary-from="${id}"]`).value,
       }));
-      if (result) settings(view);
+      if (result) reload();
     }));
     view.querySelectorAll("[data-salary-pay]").forEach((b) => b.addEventListener("click", () => {
-      paySalary(pay.teachers.find((t) => t.id === b.dataset.salaryPay), pay.payment_methods, () => settings(view));
+      paySalary(pay.teachers.find((t) => t.id === b.dataset.salaryPay), pay.payment_methods, reload);
     }));
     view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips)));
   }
 
   // ---------- Fee structure ----------
   async function settings(view) {
-    const [d, pay] = await Promise.all([MPS.get("/principal/classes"), MPS.get("/accounts/salaries")]);
+    const d = await MPS.get("/principal/classes");
     view.innerHTML = `${card("Monthly Tuition Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Class</th><th>Students</th><th>Monthly fee (Rs)</th><th>WhatsApp group name</th><th></th></tr></thead><tbody>
         ${d.classes.map((c) => `<tr data-cls="${c.id}"><td><b>${esc(c.name)}</b></td><td>${c.student_count}</td>
           <td><input type="number" class="amount-input" data-f="monthly_fee" value="${c.monthly_fee}" min="0"></td>
@@ -1006,7 +1006,6 @@ const Accounts = (() => {
         { label: "Monthly fee (Rs)", render: (r) => `<input type="number" class="amount-input" data-route-fee="${r.id}" value="${r.monthly_fee || 0}" min="0">` },
         { label: "", render: (r) => `<button class="btn btn-sm" data-route="${r.id}">Save</button>` },
       ], d.routes), { icon: "fa-bus", flush: true })}
-      ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
       ${card("Other Fee", `<div class="table-wrap"><table class="table"><thead><tr><th>Item</th><th>Rate (Rs)</th><th>Classes</th><th>Frequency</th><th></th></tr></thead><tbody>
         ${(d.other_fees || []).map((r) => `<tr><td><b>${esc(r.head)}</b></td>
           <td><input type="number" class="amount-input" data-fee-amount="${esc(r.id)}" value="${Number(r.amount) || 0}" min="0"></td>
@@ -1033,8 +1032,155 @@ const Accounts = (() => {
         period: view.querySelector(`[data-fee-period="${b.dataset.feeSave}"]`).value,
       })))
     );
-    bindSalaries(view, pay);
   }
 
-  return { dashboard, collect, receipts, defaulters, intimations, reminders, report, settings };
+  // ---------- Expenses: bus, infrastructure, events, then teacher salary ----------
+  const EXPENSE_ICONS = { bus: "fa-bus", infrastructure: "fa-building", event: "fa-calendar" };
+
+  function expenseForm(category, item, meta, onSubmit) {
+    const editing = !!item.id;
+    const bus = category.id === "bus";
+    const m = UI.modal(editing ? "Edit expense" : "Add expense", `<form id="expenseForm" class="grid grid-2" style="gap:0 16px">
+        ${UI.fieldHtml({ name: "date", label: "Date", type: "date", value: item.date || todayIso(), max: todayIso(), required: true })}
+        ${bus ? UI.fieldHtml({
+          name: "route_id", label: "Bus", type: "select", placeholder: "Not for one bus", value: item.route_id || "",
+          options: meta.routes.map((r) => ({ value: r.id, label: r.bus_no ? `${r.route_name} (${r.bus_no})` : r.route_name })),
+        }) : ""}
+        <div class="field"><label for="f_particular">${esc(category.field)}</label>
+          <input id="f_particular" name="particular" required maxlength="120" placeholder="${esc(category.placeholder || "")}" value="${esc(item.particular || "")}" ${bus ? 'list="busExpenseList"' : ""}>
+          ${bus ? `<datalist id="busExpenseList">${(category.suggestions || []).map((s) => `<option value="${esc(s)}"></option>`).join("")}</datalist>` : ""}
+        </div>
+        ${UI.fieldHtml({ name: "amount", label: "Amount (Rs)", type: "number", min: 1, step: 1, required: true, value: item.amount || "" })}
+        ${UI.fieldHtml({ name: "method", label: "Mode", type: "select", options: meta.payment_methods, value: item.method || meta.payment_methods[0] })}
+        ${UI.fieldHtml({ name: "note", label: "Note", maxlength: 300, value: item.note || "" })}
+        <div class="form-error" hidden style="grid-column:1/-1"></div>
+      </form>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="saveExpense">${editing ? "Save" : "Add"}</button></div>`, { wide: true });
+    const form = m.body.querySelector("#expenseForm");
+    const errorEl = form.querySelector(".form-error");
+    const submit = m.body.querySelector("#saveExpense");
+    submit.addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+      submit.disabled = true;
+      errorEl.hidden = true;
+      const payload = {
+        category: category.id,
+        date: form.date.value,
+        particular: form.particular.value.trim(),
+        amount: form.amount.value,
+        method: form.method.value,
+        note: form.note.value.trim(),
+        route_id: bus && form.route_id ? form.route_id.value : "",
+      };
+      try {
+        const result = await onSubmit(payload);
+        m.close();
+        if (result && result.message) UI.toast(result.message);
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+        submit.disabled = false;
+      }
+    });
+  }
+
+  function expenseColumns(category, forPrint) {
+    const columns = [{ label: "Date", className: "nowrap", render: (r) => fmtDate(r.date) }];
+    if (category.id === "bus") {
+      columns.push({ label: "Bus", render: (r) => (r.bus_no || r.route_name
+        ? `<b>${esc(r.route_name || r.bus_no)}</b>${r.bus_no && r.route_name ? `<div class="small muted">${esc(r.bus_no)}</div>` : ""}`
+        : '<span class="muted">Not for one bus</span>') });
+    }
+    columns.push(
+      { label: category.field, render: (r) => `<b>${esc(r.particular)}</b>` },
+      { label: "Amount", className: "right nowrap", render: (r) => money(r.amount) },
+      { label: "Mode", render: (r) => esc(r.method || "-") },
+      { label: "Note", render: (r) => (r.note ? `<span class="small">${esc(r.note)}</span>` : '<span class="muted">-</span>') },
+    );
+    if (!forPrint) {
+      columns.push({ label: "", className: "right nowrap", render: (r) => `<button class="btn btn-light btn-sm" data-edit="${esc(r.id)}" data-cat="${esc(category.id)}"><i class="fa fa-pencil"></i></button>
+        <button class="btn btn-light btn-sm" data-del="${esc(r.id)}" title="Remove"><i class="fa fa-trash"></i></button>` });
+    }
+    return columns;
+  }
+
+  function expenseTable(category, rows, total, forPrint) {
+    const span = category.id === "bus" ? 3 : 2;
+    const tail = forPrint ? 2 : 3;
+    return table(expenseColumns(category, forPrint), rows, {
+      empty: forPrint ? "None." : "",
+      emptyIcon: EXPENSE_ICONS[category.id] || "fa-inr",
+      footer: rows.length ? `<td colspan="${span}">Total</td><td class="right"><b>${money(total)}</b></td><td colspan="${tail}"></td>` : "",
+    });
+  }
+
+  function salaryPrintTable(pay) {
+    return table([
+      { label: "Teachers Names", render: (t) => `<b>${esc(t.name)}</b>` },
+      { label: "Monthly Amount", className: "right nowrap", render: (t) => (t.monthly_salary ? money(t.monthly_salary) : "-") },
+      { label: "Last Amount paid", className: "nowrap", render: (t) => (t.last_paid_on ? `${money(t.last_paid_amount)}<div class="small">${fmtDate(t.last_paid_on)}</div>` : "-") },
+      { label: "Total Dues", className: "right nowrap", render: (t) => money(t.due || 0) },
+    ], pay.teachers, {
+      empty: "No active teachers.",
+      footer: pay.teachers.length ? `<td colspan="3">Total</td><td class="right"><b>${money(pay.due_total)}</b></td>` : "",
+    });
+  }
+
+  async function expenses(view, ctx, state = {}) {
+    const month = state.month || "";
+    const q = month ? `?month=${encodeURIComponent(month)}` : "";
+    const [d, pay] = await Promise.all([MPS.get(`/accounts/expenses${q}`), MPS.get("/accounts/salaries")]);
+    const rowsOf = (id) => d.items.filter((row) => row.category === id);
+    const monthLabel = d.month === "all" ? "All months" : fmtMonth(d.month);
+    const option = (value, label, current) => `<option value="${esc(value)}" ${String(value) === String(current) ? "selected" : ""}>${esc(label)}</option>`;
+    const icons = EXPENSE_ICONS;
+    view.innerHTML = `<div class="toolbar"><div class="filters">
+        <label style="margin:0">Month</label>
+        <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
+      </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, and event costs. Those totals follow the month above.</p>
+      <div class="grid grid-4">
+        ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
+        ${stat("Total expenses", money(d.totals.all || 0), { icon: "fa-inr", tone: "info", sub: monthLabel })}
+      </div>
+      ${d.categories.map((c) => {
+        const rows = rowsOf(c.id);
+        const blank = d.month === "all" ? c.empty_all : c.empty_month;
+        return card(c.label, rows.length ? expenseTable(c, rows, d.totals[c.id] || 0, false) : empty(blank, icons[c.id]), {
+          icon: icons[c.id] || "fa-inr", flush: !!rows.length,
+          actions: `<button class="btn btn-sm" data-add="${esc(c.id)}"><i class="fa fa-plus"></i> Add</button>`,
+        });
+      }).join("")}
+      ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}`;
+
+    const reload = (next) => UI.runScreen(view, () => expenses(view, ctx, { month: next }));
+    view.querySelector("#expenseMonth").addEventListener("change", (e) => reload(e.target.value));
+    view.querySelector("#printExpenses").addEventListener("click", () => printDoc("Expenses Report", `<h3 style="text-align:center">Expenses Report</h3>
+      <p style="text-align:center">${esc(monthLabel)} &middot; ${money(d.totals.all || 0)}</p>
+      ${d.categories.map((c) => `<h4 style="margin:16px 0 6px">${esc(c.label)} &middot; ${money(d.totals[c.id] || 0)}</h4>${expenseTable(c, rowsOf(c.id), d.totals[c.id] || 0, true)}`).join("")}
+      <h4 style="margin:16px 0 6px">Teacher Salary (monthly) &middot; Dues ${money(pay.due_total)}</h4>${salaryPrintTable(pay)}`));
+    const openForm = (category, item) => expenseForm(category, item || {}, d, async (payload) => {
+      const path = item && item.id ? `/accounts/expenses/${item.id}` : "/accounts/expenses";
+      const result = await MPS.post(path, payload);
+      reload(d.month);
+      return result;
+    });
+    view.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => {
+      const category = d.categories.find((c) => c.id === b.dataset.add);
+      if (category) openForm(category);
+    }));
+    view.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
+      const category = d.categories.find((c) => c.id === b.dataset.cat);
+      const item = d.items.find((row) => row.id === b.dataset.edit);
+      if (category && item) openForm(category, item);
+    }));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Delete this expense?")) return;
+      if (await run(() => MPS.del(`/accounts/expenses/${b.dataset.del}`))) reload(d.month);
+    }));
+    bindSalaries(view, pay, () => reload(d.month));
+  }
+
+  return { dashboard, collect, receipts, defaulters, intimations, reminders, report, settings, expenses };
 })();

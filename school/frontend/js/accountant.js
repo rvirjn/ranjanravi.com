@@ -242,6 +242,7 @@
       { id: "diary-report", label: "HW/CW Reports", icon: "fa-book", group: "Reports", render: (v, c) => UI.principal.diaryReport(v, c) },
       { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => UI.principal.results(v, c) },
       { id: "report", label: "Fee Report", icon: "fa-bar-chart", group: "Reports", render: (v, c) => Accounts.report(v, c) },
+      { id: "expenses", label: "Expenses Report", icon: "fa-calculator", group: "Reports", render: (v, c) => Accounts.expenses(v, c) },
       { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: (v, c) => UI.principal.notices(v, c) },
       { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => UI.principal.messages(v, c) },
       { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
