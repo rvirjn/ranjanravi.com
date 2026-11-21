@@ -659,7 +659,7 @@ const Accounts = (() => {
   async function reminders(view, ctx) {
     const d = await MPS.get("/accounts/jobs");
     const kinds = [
-      { kind: "notice", title: "Monthly fee notice", text: "Send with View & Send now. Fee for last month plus old dues.", icon: "fa-bullhorn" },
+      { kind: "notice", title: "Monthly fee notice", text: "Send with View & Send now. Fee for the month being collected plus old dues.", icon: "fa-bullhorn" },
       { kind: "reminder", title: "Last-date reminder", text: "Send with View & Send now to everyone who still has dues.", icon: "fa-bell" },
       { kind: "overdue", title: "Overdue reminder", text: "Send with View & Send now to students with 2 or more months pending.", icon: "fa-exclamation-triangle" },
     ];
