@@ -191,7 +191,7 @@
     "Particular is required": "मद आवश्यक है", "Amount must be more than 0": "राशि 0 से अधिक होनी चाहिए", "Date is required": "तारीख आवश्यक है",
     "Date cannot be in the future": "तारीख भविष्य की नहीं हो सकती", "Bus route not found": "बस रूट नहीं मिला", "Expense not found": "खर्च नहीं मिला",
     "None.": "कोई नहीं।",
-    "Pay": "भुगतान करें", "Slips": "पर्चियां", "Dues from": "बकाया कब से", "Set monthly amount": "मासिक राशि लिखें",
+    "Pay": "भुगतान करें", "Slips": "पर्चियां", "Joined on": "शामिल हुए", "Joined on cannot be after this month": "शामिल होने का महीना इस महीने के बाद नहीं हो सकता", "Set monthly amount": "मासिक राशि लिखें",
     "Salary month": "वेतन का महीना", "Salary (Rs)": "वेतन (रु.)", "Other amount (Rs)": "अन्य राशि (रु.)", "Other for": "अन्य किस लिए",
     "Deduction (Rs)": "कटौती (रु.)", "Deduction for": "कटौती किस लिए", "Paid on": "भुगतान तिथि", "Net pay:": "कुल देय:", "Net Pay": "कुल देय",
     "Pay & Generate Slip": "भुगतान करें और पर्ची बनाएं", "No salary slips yet.": "अभी कोई वेतन पर्ची नहीं।", "No active teachers.": "कोई सक्रिय शिक्षक नहीं।",

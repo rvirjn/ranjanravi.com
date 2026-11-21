@@ -961,7 +961,7 @@ const Accounts = (() => {
       { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>` },
       { label: "Monthly Amount", render: (t) => `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <input type="number" class="amount-input" data-salary-amount="${esc(t.id)}" value="${t.monthly_salary || ""}" placeholder="0" min="0">
-          <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Dues from <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
+          <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Joined on <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
           <button class="btn btn-sm" data-salary-save="${esc(t.id)}">Save</button></div>` },
       { label: "Last Amount paid", className: "nowrap", render: (t) => (t.last_paid_on
         ? `<b>${money(t.last_paid_amount)}</b><div class="small muted">${fmtDate(t.last_paid_on)} &middot; ${esc(t.last_paid_month_label)}</div>`
@@ -1131,8 +1131,8 @@ const Accounts = (() => {
   }
 
   async function expenses(view, ctx, state = {}) {
-    const month = state.month || "";
-    const q = month ? `?month=${encodeURIComponent(month)}` : "";
+    const month = state.month || "all";
+    const q = `?month=${encodeURIComponent(month)}`;
     const [d, pay] = await Promise.all([MPS.get(`/accounts/expenses${q}`), MPS.get("/accounts/salaries")]);
     const rowsOf = (id) => d.items.filter((row) => row.category === id);
     const monthLabel = d.month === "all" ? "All months" : fmtMonth(d.month);
