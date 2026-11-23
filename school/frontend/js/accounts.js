@@ -955,7 +955,7 @@ const Accounts = (() => {
     });
   }
 
-  function salaryTable(pay, rows, nameLabel) {
+  function salaryTable(pay, rows, nameLabel, manage) {
     const people = rows || pay.teachers;
     return table([
       { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>` },
@@ -974,7 +974,8 @@ const Accounts = (() => {
       { label: "Other", className: "nowrap", render: (t) => (t.other_paid || t.deducted
         ? `${t.other_paid ? money(t.other_paid) : ""}${t.deducted ? `<div class="small muted">Deducted ${money(t.deducted)}</div>` : ""}`
         : '<span class="muted">-</span>') },
-      { label: "", className: "right nowrap", render: (t) => `<button class="btn btn-sm" data-salary-pay="${esc(t.id)}" ${t.monthly_salary ? "" : 'disabled title="Set the monthly amount first"'}><i class="fa fa-inr"></i> Pay</button>
+      { label: "", className: "right nowrap", render: (t) => `${manage ? `<button class="btn btn-light btn-sm" data-staff-edit="${esc(t.id)}" title="Edit"><i class="fa fa-pencil"></i></button>
+          <button class="btn btn-light btn-sm" data-staff-del="${esc(t.id)}" title="Delete"><i class="fa fa-trash"></i></button> ` : ""}<button class="btn btn-sm" data-salary-pay="${esc(t.id)}" ${t.monthly_salary ? "" : 'disabled title="Set the monthly amount first"'}><i class="fa fa-inr"></i> Pay</button>
           <button class="btn btn-light btn-sm" data-salary-slips="${esc(t.id)}"><i class="fa fa-file-text-o"></i> Slips${t.slip_count ? ` (${t.slip_count})` : ""}</button>` },
     ], people, { empty: rows ? "No other staff." : "No active teachers.", emptyIcon: "fa-users" });
   }
@@ -993,6 +994,50 @@ const Accounts = (() => {
       if (person) paySalary(person, pay.payment_methods, reload);
     }));
     view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips)));
+    view.querySelectorAll("[data-staff-edit]").forEach((b) => b.addEventListener("click", () => {
+      const person = (pay.other_staff || []).find((t) => t.id === b.dataset.staffEdit);
+      if (person) staffForm(person, reload);
+    }));
+    view.querySelectorAll("[data-staff-del]").forEach((b) => b.addEventListener("click", async () => {
+      const person = (pay.other_staff || []).find((t) => t.id === b.dataset.staffDel);
+      if (!person || !confirm(`Delete ${person.name}?`)) return;
+      if (await run(() => MPS.del(`/accounts/other-staff/${person.id}`))) reload();
+    }));
+  }
+
+  function staffForm(person, done) {
+    const editing = !!(person && person.id);
+    const m = UI.modal(editing ? "Edit staff" : "Add staff", `<form id="staffForm" class="grid" style="gap:0">
+        ${UI.fieldHtml({ name: "name", label: "Name", required: true, maxlength: 80, value: (person && person.name) || "" })}
+        <div class="field"><label for="f_designation">Designation</label>
+          <input id="f_designation" name="designation" required maxlength="40" list="staffRoles" value="${esc((person && person.designation) || "")}" placeholder="Driver, Guard, Sweeper">
+          <datalist id="staffRoles"><option value="Driver"></option><option value="Guard"></option><option value="Sweeper"></option></datalist>
+        </div>
+        ${UI.fieldHtml({ name: "phone", label: "Phone", maxlength: 10, value: (person && person.phone) || "" })}
+        <div class="form-error" hidden></div>
+      </form>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="saveStaff">${editing ? "Save" : "Add"}</button></div>`);
+    const form = m.body.querySelector("#staffForm");
+    const errorEl = form.querySelector(".form-error");
+    const submit = m.body.querySelector("#saveStaff");
+    submit.addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+      submit.disabled = true;
+      errorEl.hidden = true;
+      const payload = { name: form.name.value.trim(), designation: form.designation.value.trim(), phone: form.phone.value.trim() };
+      const path = editing ? `/accounts/other-staff/${person.id}` : "/accounts/other-staff";
+      try {
+        const result = await MPS.post(path, payload);
+        m.close();
+        UI.toast(result.message);
+        done();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+        submit.disabled = false;
+      }
+    });
   }
 
   // ---------- Fee structure ----------
@@ -1045,7 +1090,7 @@ const Accounts = (() => {
     const m = UI.modal(editing ? "Edit expense" : "Add expense", `<form id="expenseForm" class="grid grid-2" style="gap:0 16px">
         ${UI.fieldHtml({ name: "date", label: "Date", type: "date", value: item.date || todayIso(), max: todayIso(), required: true })}
         ${bus ? UI.fieldHtml({
-          name: "route_id", label: "Bus", type: "select", placeholder: "Not for one bus", value: item.route_id || "",
+          name: "route_id", label: "Bus", type: "select", placeholder: "Other", value: item.route_id || "",
           options: meta.routes.map((r) => ({ value: r.id, label: r.bus_no ? `${r.route_name} (${r.bus_no})` : r.route_name })),
         }) : ""}
         <div class="field"><label for="f_particular">${esc(category.field)}</label>
@@ -1092,7 +1137,7 @@ const Accounts = (() => {
     if (category.id === "bus") {
       columns.push({ label: "Bus", render: (r) => (r.bus_no || r.route_name
         ? `<b>${esc(r.route_name || r.bus_no)}</b>${r.bus_no && r.route_name ? `<div class="small muted">${esc(r.bus_no)}</div>` : ""}`
-        : '<span class="muted">Not for one bus</span>') });
+        : '<span class="muted">Other</span>') });
     }
     columns.push(
       { label: category.field, render: (r) => `<b>${esc(r.particular)}</b>` },
@@ -1143,7 +1188,7 @@ const Accounts = (() => {
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other people expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
       <div class="grid grid-4">
         ${stat("Total dues", money((pay.due_total || 0) + (pay.other_due_total || 0)), { icon: "fa-exclamation-circle", tone: (pay.due_total || pay.other_due_total) ? "warn" : "ok", sub: `Teachers ${money(pay.due_total || 0)} · Other staff ${money(pay.other_due_total || 0)}` })}
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
@@ -1159,7 +1204,7 @@ const Accounts = (() => {
         });
       }).join("")}
       ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
-      ${card("Other staff", salaryTable(pay, pay.other_staff || [], "Name"), { icon: "fa-users", flush: true, actions: badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success") })}`;
+      ${card("Other staff", salaryTable(pay, pay.other_staff || [], "Name", true), { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherStaff"><i class="fa fa-plus"></i> Add</button> ${badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success")}` })}`;
 
     const reload = (next) => UI.runScreen(view, () => expenses(view, ctx, { month: next }));
     view.querySelector("#expenseMonth").addEventListener("change", (e) => reload(e.target.value));
@@ -1189,6 +1234,8 @@ const Accounts = (() => {
       if (await run(() => MPS.del(`/accounts/expenses/${b.dataset.del}`))) reload(d.month);
     }));
     bindSalaries(view, pay, () => reload(d.month));
+    const addStaff = view.querySelector("#addOtherStaff");
+    if (addStaff) addStaff.addEventListener("click", () => staffForm(null, () => reload(d.month)));
   }
 
   return { dashboard, collect, receipts, defaulters, intimations, reminders, report, settings, expenses };

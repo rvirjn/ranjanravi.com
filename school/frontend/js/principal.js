@@ -978,11 +978,39 @@
   const page = (location.pathname.split("/").pop() || "").toLowerCase();
   if (page === "accountant.html" || page === "accountant") return;
 
+  function teacherMenus() {
+    const skip = new Set(["dashboard", "approvals", "checkin", "students", "students-left", "notices", "messages", "complaints", "events", "profile", "password"]);
+    const alias = {
+      classes: { id: "student-reports" },
+      timetable: { id: "my-timetable" },
+      results: { id: "class-results", label: "Class Results" },
+    };
+    return (UI.teacherModules || []).filter((item) => !skip.has(item.id)).map((item) => ({ ...item, ...(alias[item.id] || {}) }));
+  }
+
+  function withTeacherMenus(modules) {
+    const out = modules.slice();
+    for (const item of teacherMenus()) {
+      if (item.group === "Account") {
+        const password = out.findIndex((m) => m.id === "password");
+        out.splice(password === -1 ? out.length : password, 0, item);
+        continue;
+      }
+      let index = -1;
+      for (let i = 0; i < out.length; i += 1) if (out[i].group === item.group) index = i;
+      if (index === -1) {
+        const account = out.findIndex((m) => m.group === "Account");
+        out.splice(account === -1 ? out.length : account, 0, item);
+      } else out.splice(index + 1, 0, item);
+    }
+    return out;
+  }
+
   UI.startApp({
     role: "principal",
     portalName: "Principal Portal",
     userSub: (u) => `${u.employee_id} · Principal`,
-    modules: [
+    modules: withTeacherMenus([
       { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => approvals(v, c) },
       { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
@@ -1005,6 +1033,6 @@
       { id: "gallery", label: "Photo Gallery", icon: "fa-picture-o", group: "Communication", render: (v, c) => UI.shared.gallery(v, c, { manage: true }) },
       { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: (v, c) => UI.shared.myProfile(v, c) },
       { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
-    ],
+    ]),
   });
 })();

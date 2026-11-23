@@ -1176,39 +1176,44 @@
     if (focus === "review") view.querySelector("#hwAssignments").scrollIntoView();
   }
 
-  UI.startApp({
-    role: "teacher",
-    portalName: "Teacher Portal",
-    userSub: (u) => `${u.employee_id} · ${(u.subjects || []).join(", ")}`,
-    modules: [
-      { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
-      { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
-      { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
-      { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
-      { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
-      { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },
-      { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c, extra) => peopleStudents(v, c, extra) },
-      { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v) => leftStudents(v) },
-      { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
-      { id: "co-scholastic", label: "Grades Entry", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
-      { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
-      { id: "classes", label: "Students Reports", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
-      { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
-      { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: UI.shared.notices },
-      { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
-      { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
-      { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
-      { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
-      { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },
-      { id: "lesson-plans", label: "Lesson Plans", icon: "fa-tasks", group: "Other", render: lessonPlans },
-      { id: "library", label: "Library", icon: "fa-book", group: "Other", render: (v) => UI.shared.library(v, "/teacher/library") },
-      { id: "duties", label: "Duties & Substitutions", icon: "fa-briefcase", group: "Other", render: duties },
-      { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
-      { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Account", render: (v) => UI.shared.timetable(v, "/teacher/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>`) },
-      { id: "my-attendance", label: "My Attendance", icon: "fa-calendar-check-o", group: "Account", render: myAttendance },
-      { id: "my-leaves", label: "My Leave", icon: "fa-calendar-o", group: "Account", render: myLeaves },
-      { id: "payslips", label: "My Salary Slips", icon: "fa-money", group: "Account", render: payslips },
-      { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
-    ],
-  });
+  const teacherModules = [
+    { id: "dashboard", label: "Dashboard", icon: "fa-tachometer", group: "Overview", render: dashboard },
+    { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => studentLeaves(v, c) },
+    { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
+    { id: "attendance", label: "Student Attendance", icon: "fa-check-square-o", group: "Daily", render: (v, c) => UI.shared.classAttendance(v, c) },
+    { id: "diary", label: "HW/CW Update", icon: "fa-whatsapp", group: "Daily", render: (v, c) => hwCw(v, c) },
+    { id: "online-classes", label: "Online Classes", icon: "fa-video-camera", group: "Daily", render: onlineClasses },
+    { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c, extra) => peopleStudents(v, c, extra) },
+    { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v) => leftStudents(v) },
+    { id: "marks", label: "Marks Entry", icon: "fa-table", group: "Academics", render: (v, c) => marks(v, c) },
+    { id: "co-scholastic", label: "Grades Entry", icon: "fa-paint-brush", group: "Academics", render: (v, c) => coScholastic(v, c) },
+    { id: "remarks", label: "Student Remarks", icon: "fa-comment-o", group: "Academics", render: remarks },
+    { id: "classes", label: "Students Reports", icon: "fa-users", group: "Reports", render: (v, c) => classes(v, c) },
+    { id: "results", label: "Student Results", icon: "fa-trophy", group: "Reports", render: (v, c) => results(v, c) },
+    { id: "notices", label: "Notices", icon: "fa-bullhorn", group: "Communication", render: UI.shared.notices },
+    { id: "messages", label: "Messages", icon: "fa-envelope-o", group: "Communication", render: (v, c) => messages(v, c) },
+    { id: "complaints", label: "Complains", icon: "fa-comments-o", group: "Communication", render: (v) => UI.shared.complaints(v) },
+    { id: "events", label: "Events & Holidays", icon: "fa-calendar", group: "Communication", render: UI.shared.events },
+    { id: "quizzes", label: "Quizzes & Tests", icon: "fa-question-circle", group: "Other", render: quizzes },
+    { id: "materials", label: "Study Material", icon: "fa-folder-open-o", group: "Other", render: materials },
+    { id: "lesson-plans", label: "Lesson Plans", icon: "fa-tasks", group: "Other", render: lessonPlans },
+    { id: "library", label: "Library", icon: "fa-book", group: "Other", render: (v) => UI.shared.library(v, "/teacher/library") },
+    { id: "duties", label: "Duties & Substitutions", icon: "fa-briefcase", group: "Other", render: duties },
+    { id: "profile", label: "My Profile", icon: "fa-user", group: "Account", render: profile },
+    { id: "timetable", label: "My Timetable", icon: "fa-clock-o", group: "Account", render: (v) => UI.shared.timetable(v, "/teacher/timetable", (p) => `<b>${esc(p.subject)}</b><span>${esc(p.class_label)}</span>`) },
+    { id: "my-attendance", label: "My Attendance", icon: "fa-calendar-check-o", group: "Account", render: myAttendance },
+    { id: "my-leaves", label: "My Leave", icon: "fa-calendar-o", group: "Account", render: myLeaves },
+    { id: "payslips", label: "My Salary Slips", icon: "fa-money", group: "Account", render: payslips },
+    { id: "password", label: "Change Password", icon: "fa-key", group: "Account", render: UI.shared.password },
+  ];
+  UI.teacherModules = teacherModules;
+  const page = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (page === "teacher.html" || page === "teacher") {
+    UI.startApp({
+      role: "teacher",
+      portalName: "Teacher Portal",
+      userSub: (u) => `${u.employee_id} · ${(u.subjects || []).join(", ")}`,
+      modules: teacherModules,
+    });
+  }
 })();
