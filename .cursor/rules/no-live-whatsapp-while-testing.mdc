@@ -1,0 +1,14 @@
+---
+description: Do not send live WhatsApp messages while testing school code
+alwaysApply: true
+---
+
+# No live WhatsApp while testing
+
+While testing or verifying this school portal, do not deliver a WhatsApp message to any real number or group.
+
+- Leave `WHATSAPP_MODE` as `live` in committed code so the school keeps sending after deploy.
+- Do not change that mode to send a test, and do not turn it off in the committed file.
+- Exercise new send paths with a patched sender or dry-run inside a one-off process. Do not POST check-in, fee, expense, diary, meeting, notice, or online-class actions against the running API when that action would queue a live message.
+- Do not retry WhatsApp outbox rows, start the WhatsApp sender, or link a device in order to watch a test message go out.
+- Confirm the message text and the chosen group or numbers from the patched call, then say that no live WhatsApp was sent.

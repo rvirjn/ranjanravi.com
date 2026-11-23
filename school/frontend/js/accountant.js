@@ -225,6 +225,7 @@
       { id: "school-approvals", label: "School Approvals", icon: "fa-check-square-o", group: "Overview", render: (v, c) => UI.principal.approvals(v, c) },
       { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: (v) => UI.principal.checkIn(v) },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => UI.principal.teacherAttendance(v, c) },
+      { id: "meetings", label: "Scheduled Meeting", icon: "fa-calendar", group: "Daily", render: (v) => UI.principal.meetings(v) },
       { id: "collect", label: "Collect Fee", icon: "fa-inr", group: "Fees", render: (v, c) => Accounts.collect(v, c) },
       { id: "receipts", label: "Download Receipts", icon: "fa-file-text-o", group: "Fees", render: (v, c) => Accounts.receipts(v, c) },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => UI.shared.peopleStudents(v, c) },

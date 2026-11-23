@@ -957,6 +957,115 @@
     );
   }
 
+  async function meetings(view) {
+    const d = await MPS.get("/principal/meetings");
+    const rows = d.meetings || [];
+    view.innerHTML = `${card("Scheduled Meeting", table([
+      { label: "When", className: "nowrap", render: (m) => `<b>${fmtDate(m.start)}</b><div class="small muted">${fmtTime(m.start)} · ${m.duration_min} min</div>` },
+      { label: "Meeting", render: (m) => `<b>${esc(m.title)}</b><div class="small muted">${esc(m.who)}</div>${m.note ? `<div class="small">${esc(m.note)}</div>` : ""}` },
+      { label: "Link", render: (m) => (m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener">Open</a>` : '<span class="muted">-</span>') },
+      { label: "", className: "right nowrap", render: (m) => `<button class="btn btn-light btn-sm" data-del="${esc(m.id)}">Remove</button>` },
+    ], rows, { empty: "No meetings scheduled.", emptyIcon: "fa-calendar" }), {
+      icon: "fa-calendar",
+      flush: !!rows.length,
+      actions: `<button class="btn btn-sm" id="scheduleMeeting"><i class="fa fa-plus"></i> Schedule</button>`,
+    })}
+    <p class="small muted">All teachers go to the teachers WhatsApp group. All students go to each class WhatsApp group. A selected teacher or student gets the message on their own WhatsApp number.</p>`;
+    view.querySelector("#scheduleMeeting").addEventListener("click", () => meetingForm(d, () => meetings(view)));
+    view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Remove this meeting?")) return;
+      if (await run(() => MPS.del(`/principal/meetings/${b.dataset.del}`))) meetings(view);
+    }));
+  }
+
+  function meetingForm(data, done) {
+    const people = {
+      teachers: data.teachers || [],
+      students: data.students || [],
+    };
+    const m = modal("Schedule meeting", `<form id="meetingForm" class="grid" style="gap:0">
+        ${UI.fieldHtml({ name: "title", label: "Title", required: true, maxlength: 200 })}
+        ${UI.fieldHtml({ name: "start", label: "Date & time", type: "datetime-local", required: true })}
+        ${UI.fieldHtml({ name: "duration_min", label: "Duration (minutes)", type: "number", value: 30, min: 10, max: 240 })}
+        ${UI.fieldHtml({ name: "link", label: "Meeting link", type: "url", maxlength: 500, placeholder: "https://meet.google.com/..." })}
+        ${UI.fieldHtml({ name: "note", label: "Note", maxlength: 500 })}
+        <div class="field"><label for="meetingWho">Who</label>
+          <select id="meetingWho" name="who" required>
+            <option value="teachers-all">All teachers</option>
+            <option value="students-all">All students</option>
+            <option value="teachers-selected">Selected teachers</option>
+            <option value="students-selected">Selected students</option>
+          </select>
+        </div>
+        <div id="meetingPeople" hidden>
+          <div class="field"><label for="meetingFind">Find</label><input id="meetingFind" placeholder="Type a name"></div>
+          <div id="meetingChoices" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px"></div>
+        </div>
+        <div class="form-error" hidden></div>
+      </form>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="saveMeeting">Schedule</button></div>`);
+    const form = m.body.querySelector("#meetingForm");
+    const errorEl = form.querySelector(".form-error");
+    const who = form.querySelector("#meetingWho");
+    const box = m.body.querySelector("#meetingPeople");
+    const choices = m.body.querySelector("#meetingChoices");
+    const find = m.body.querySelector("#meetingFind");
+    const picked = new Set();
+    const paint = () => {
+      const selected = who.value.endsWith("selected");
+      box.hidden = !selected;
+      if (!selected) {
+        choices.innerHTML = "";
+        return;
+      }
+      const kind = who.value.startsWith("teachers") ? "teachers" : "students";
+      const query = find.value.trim().toLowerCase();
+      const rows = people[kind].filter((person) => !query || `${person.name} ${person.class_label || ""}`.toLowerCase().includes(query));
+      choices.innerHTML = rows.length ? rows.map((person) => `<label class="small" style="display:flex;gap:8px;align-items:center;margin:0 0 6px">
+          <input type="checkbox" value="${esc(person.id)}" ${picked.has(person.id) ? "checked" : ""} style="width:auto"> ${esc(person.name)}${person.class_label ? ` <span class="muted">${esc(person.class_label)}</span>` : ""}</label>`).join("")
+        : `<p class="small muted" style="margin:0">No one matches.</p>`;
+    };
+    who.addEventListener("change", () => { picked.clear(); find.value = ""; paint(); });
+    find.addEventListener("input", paint);
+    choices.addEventListener("change", (event) => {
+      const input = event.target;
+      if (!input || input.type !== "checkbox") return;
+      if (input.checked) picked.add(input.value);
+      else picked.delete(input.value);
+    });
+    paint();
+    m.body.querySelector("#saveMeeting").addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+      const [audience, scope] = who.value.split("-");
+      const personIds = scope === "selected" ? [...picked] : [];
+      if (scope === "selected" && !personIds.length) {
+        errorEl.textContent = "Choose at least one person";
+        errorEl.hidden = false;
+        return;
+      }
+      errorEl.hidden = true;
+      try {
+        const result = await MPS.post("/principal/meetings", {
+          title: form.title.value.trim(),
+          start: form.start.value,
+          duration_min: form.duration_min.value,
+          link: form.link.value.trim(),
+          note: form.note.value.trim(),
+          audience,
+          scope,
+          person_ids: personIds,
+        });
+        m.close();
+        UI.toast(result.message);
+        done();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+      }
+    });
+  }
+
   UI.principal = {
     dashboard,
     approvals,
@@ -973,6 +1082,7 @@
     notices,
     messages,
     events,
+    meetings,
   };
 
   const page = (location.pathname.split("/").pop() || "").toLowerCase();
@@ -1015,6 +1125,7 @@
       { id: "approvals", label: "Approvals", icon: "fa-check-circle", group: "Overview", render: (v, c) => approvals(v, c) },
       { id: "checkin", label: "Check In / Out", icon: "fa-sign-in", group: "Daily", render: checkIn },
       { id: "teacher-attendance", label: "Teacher Attendance", icon: "fa-user-circle", group: "Daily", render: (v, c) => teacherAttendance(v, c) },
+      { id: "meetings", label: "Scheduled Meeting", icon: "fa-calendar", group: "Daily", render: meetings },
       { id: "students", label: "Students", icon: "fa-users", group: "People", render: (v, c) => students(v, c) },
       { id: "students-left", label: "Students Left", icon: "fa-sign-out", group: "People", render: (v, c) => UI.shared.leftStudents(v, c) },
       { id: "teachers", label: "Teachers", icon: "fa-user-circle", group: "People", render: teachers },
