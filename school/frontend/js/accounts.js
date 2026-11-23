@@ -955,10 +955,18 @@ const Accounts = (() => {
     });
   }
 
+  function staffStartPassword(designation) {
+    const kind = (designation || "").trim().toLowerCase();
+    if (kind === "driver") return "d@123";
+    if (kind === "guard") return "g@123";
+    if (kind === "sweeper") return "sw@123";
+    return "o@123";
+  }
+
   function salaryTable(pay, rows, nameLabel, manage) {
     const people = rows || pay.teachers;
     return table([
-      { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>` },
+      { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>${t.phone ? `<div class="small muted">${esc(t.phone)}</div>` : ""}${t.address ? `<div class="small muted">${esc(t.address)}</div>` : ""}` },
       { label: "Monthly Amount", render: (t) => `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <input type="number" class="amount-input" data-salary-amount="${esc(t.id)}" value="${t.monthly_salary || ""}" placeholder="0" min="0">
           <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Joined on <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
@@ -975,6 +983,7 @@ const Accounts = (() => {
         ? `${t.other_paid ? money(t.other_paid) : ""}${t.deducted ? `<div class="small muted">Deducted ${money(t.deducted)}</div>` : ""}`
         : '<span class="muted">-</span>') },
       { label: "", className: "right nowrap", render: (t) => `${manage ? `<button class="btn btn-light btn-sm" data-staff-edit="${esc(t.id)}" title="Edit"><i class="fa fa-pencil"></i></button>
+          <button class="btn btn-light btn-sm" data-staff-reset="${esc(t.id)}" title="Reset password"><i class="fa fa-key"></i></button>
           <button class="btn btn-light btn-sm" data-staff-del="${esc(t.id)}" title="Delete"><i class="fa fa-trash"></i></button> ` : ""}<button class="btn btn-sm" data-salary-pay="${esc(t.id)}" ${t.monthly_salary ? "" : 'disabled title="Set the monthly amount first"'}><i class="fa fa-inr"></i> Pay</button>
           <button class="btn btn-light btn-sm" data-salary-slips="${esc(t.id)}"><i class="fa fa-file-text-o"></i> Slips${t.slip_count ? ` (${t.slip_count})` : ""}</button>` },
     ], people, { empty: rows ? "No other staff." : "No active teachers.", emptyIcon: "fa-users" });
@@ -1003,6 +1012,12 @@ const Accounts = (() => {
       if (!person || !confirm(`Delete ${person.name}?`)) return;
       if (await run(() => MPS.del(`/accounts/other-staff/${person.id}`))) reload();
     }));
+    view.querySelectorAll("[data-staff-reset]").forEach((b) => b.addEventListener("click", async () => {
+      const person = (pay.other_staff || []).find((t) => t.id === b.dataset.staffReset);
+      if (!person || !confirm(`Reset the password for ${person.name} to ${staffStartPassword(person.designation)}?`)) return;
+      const result = await run(() => MPS.post(`/accounts/other-staff/${person.id}/reset-password`, {}));
+      if (result) UI.toast(result.message);
+    }));
   }
 
   function staffForm(person, done) {
@@ -1010,10 +1025,11 @@ const Accounts = (() => {
     const m = UI.modal(editing ? "Edit staff" : "Add staff", `<form id="staffForm" class="grid" style="gap:0">
         ${UI.fieldHtml({ name: "name", label: "Name", required: true, maxlength: 80, value: (person && person.name) || "" })}
         <div class="field"><label for="f_designation">Designation</label>
-          <input id="f_designation" name="designation" required maxlength="40" list="staffRoles" value="${esc((person && person.designation) || "")}" placeholder="Driver, Guard, Sweeper">
-          <datalist id="staffRoles"><option value="Driver"></option><option value="Guard"></option><option value="Sweeper"></option></datalist>
+          <input id="f_designation" name="designation" required maxlength="40" list="staffRoles" value="${esc((person && person.designation) || "")}" placeholder="Driver, Guard, Sweeper, Other">
+          <datalist id="staffRoles"><option value="Driver"></option><option value="Guard"></option><option value="Sweeper"></option><option value="Other"></option></datalist>
         </div>
-        ${UI.fieldHtml({ name: "phone", label: "Phone", maxlength: 10, value: (person && person.phone) || "" })}
+        ${UI.fieldHtml({ name: "phone", label: "Phone", required: true, maxlength: 10, value: (person && person.phone) || "" })}
+        ${UI.fieldHtml({ name: "address", label: "Address", required: true, maxlength: 160, value: (person && person.address) || "" })}
         <div class="form-error" hidden></div>
       </form>
       <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
@@ -1025,7 +1041,7 @@ const Accounts = (() => {
       if (!form.reportValidity()) return;
       submit.disabled = true;
       errorEl.hidden = true;
-      const payload = { name: form.name.value.trim(), designation: form.designation.value.trim(), phone: form.phone.value.trim() };
+      const payload = { name: form.name.value.trim(), designation: form.designation.value.trim(), phone: form.phone.value.trim(), address: form.address.value.trim() };
       const path = editing ? `/accounts/other-staff/${person.id}` : "/accounts/other-staff";
       try {
         const result = await MPS.post(path, payload);
@@ -1204,7 +1220,7 @@ const Accounts = (() => {
         });
       }).join("")}
       ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
-      ${card("Other staff", salaryTable(pay, pay.other_staff || [], "Name", true), { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherStaff"><i class="fa fa-plus"></i> Add</button> ${badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success")}` })}`;
+      ${card("Other staff", `<p class="small muted" style="margin:0 0 8px">Driver, guard, sweeper and other staff log in with the User ID shown here. Starting passwords are d@123 for a driver, g@123 for a guard, sw@123 for a sweeper and o@123 for other staff, until they change it. Their check-in and check-out go to the teachers WhatsApp group.</p>${salaryTable(pay, pay.other_staff || [], "Name", true)}`, { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherStaff"><i class="fa fa-plus"></i> Add</button> ${badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success")}` })}`;
 
     const reload = (next) => UI.runScreen(view, () => expenses(view, ctx, { month: next }));
     view.querySelector("#expenseMonth").addEventListener("change", (e) => reload(e.target.value));
