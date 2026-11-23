@@ -961,7 +961,7 @@
     const d = await MPS.get("/principal/meetings");
     const rows = d.meetings || [];
     view.innerHTML = `${card("Scheduled Meeting", table([
-      { label: "When", className: "nowrap", render: (m) => `<b>${fmtDate(m.start)}</b><div class="small muted">${fmtTime(m.start)} · ${m.duration_min} min</div>` },
+      { label: "When", className: "nowrap", render: (m) => `<b>${fmtDate(m.next_start || m.start)}</b><div class="small muted">${fmtTime(m.next_start || m.start)} · ${m.duration_min} min</div>${m.repeat && m.repeat !== "none" ? `<div class="small">${esc(m.repeat_label)}</div>` : ""}` },
       { label: "Meeting", render: (m) => `<b>${esc(m.title)}</b><div class="small muted">${esc(m.who)}</div>${m.note ? `<div class="small">${esc(m.note)}</div>` : ""}` },
       { label: "Link", render: (m) => (m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener">Open</a>` : '<span class="muted">-</span>') },
       { label: "", className: "right nowrap", render: (m) => `<button class="btn btn-light btn-sm" data-del="${esc(m.id)}">Remove</button>` },
@@ -987,6 +987,11 @@
         ${UI.fieldHtml({ name: "title", label: "Title", required: true, maxlength: 200 })}
         ${UI.fieldHtml({ name: "start", label: "Date & time", type: "datetime-local", required: true })}
         ${UI.fieldHtml({ name: "duration_min", label: "Duration (minutes)", type: "number", value: 30, min: 10, max: 240 })}
+        <div class="field"><label for="meetingRepeat">Repeats</label>
+          <select id="meetingRepeat" name="repeat" required>
+            ${(data.repeats || [{ id: "none", label: "Does not repeat" }, { id: "daily", label: "Every day" }, { id: "weekly", label: "Weekly" }, { id: "biweekly", label: "Every 2 weeks" }, { id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]).map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`).join("")}
+          </select>
+        </div>
         ${UI.fieldHtml({ name: "link", label: "Meeting link", type: "url", maxlength: 500, placeholder: "https://meet.google.com/..." })}
         ${UI.fieldHtml({ name: "note", label: "Note", maxlength: 500 })}
         <div class="field"><label for="meetingWho">Who</label>
@@ -1050,6 +1055,7 @@
           title: form.title.value.trim(),
           start: form.start.value,
           duration_min: form.duration_min.value,
+          repeat: form.repeat.value,
           link: form.link.value.trim(),
           note: form.note.value.trim(),
           audience,

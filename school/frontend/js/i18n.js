@@ -17,6 +17,7 @@
     "All teachers": "सभी शिक्षक", "All students": "सभी विद्यार्थी", "Selected teachers": "चुने हुए शिक्षक", "Selected students": "चुने हुए विद्यार्थी",
     "No meetings scheduled.": "कोई बैठक निर्धारित नहीं।", "Meeting time cannot be in the past": "बैठक का समय बीत चुका है",
     "Choose at least one person": "कम से कम एक व्यक्ति चुनें", "Duration (minutes)": "अवधि (मिनट)", "Meeting link": "मीटिंग लिंक", "Who": "कौन", "Find": "खोजें", "Type a name": "नाम लिखें",
+    "Repeats": "दोहराव", "Does not repeat": "दोहराव नहीं", "Every day": "हर दिन", "Weekly": "साप्ताहिक", "Every 2 weeks": "हर 2 सप्ताह", "Monthly": "मासिक", "Yearly": "वार्षिक",
     "All teachers go to the teachers WhatsApp group. All students go to each class WhatsApp group. A selected teacher or student gets the message on their own WhatsApp number.": "सभी शिक्षकों का संदेश शिक्षकों के व्हाट्सएप ग्रुप पर जाता है। सभी विद्यार्थियों का संदेश हर कक्षा के व्हाट्सएप ग्रुप पर जाता है। चुने हुए शिक्षक या विद्यार्थी को संदेश उनके अपने व्हाट्सएप नंबर पर जाता है।",
     "Exams Dates": "परीक्षा तिथियाँ",
     "Results & Report Card": "परिणाम और रिपोर्ट कार्ड", "Remarks & Achievements": "टिप्पणियां और उपलब्धियां", "Fees & Payments": "फीस और भुगतान",
