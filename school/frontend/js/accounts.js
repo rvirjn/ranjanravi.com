@@ -1192,22 +1192,93 @@ const Accounts = (() => {
     });
   }
 
+  function monthlyExpenseForm(meta, item, onSubmit) {
+    const editing = !!item.id;
+    const monthNow = meta.current_month || todayIso().slice(0, 7);
+    const m = UI.modal(editing ? "Edit monthly expense" : "Add monthly expense", `<form id="monthlyExpenseForm" class="grid grid-2" style="gap:0 16px">
+        <div class="field"><label for="f_particular">${esc(meta.field || "Particular")}</label>
+          <input id="f_particular" name="particular" required maxlength="120" placeholder="${esc(meta.placeholder || "")}" value="${esc(item.particular || "")}" list="monthlyExpenseList">
+          <datalist id="monthlyExpenseList">${(meta.suggestions || []).map((s) => `<option value="${esc(s)}"></option>`).join("")}</datalist>
+        </div>
+        ${UI.fieldHtml({ name: "amount", label: "Amount (Rs)", type: "number", min: 1, step: 1, required: true, value: item.amount || "" })}
+        ${UI.fieldHtml({ name: "method", label: "Mode", type: "select", options: meta.payment_methods, value: item.method || meta.payment_methods[0] })}
+        ${UI.fieldHtml({ name: "start_month", label: "From month", type: "month", required: true, max: monthNow, value: item.start_month || monthNow, hint: "Counted every month from this month." })}
+        ${UI.fieldHtml({ name: "note", label: "Note", maxlength: 300, value: item.note || "" })}
+        <div class="form-error" hidden style="grid-column:1/-1"></div>
+      </form>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close>Cancel</button>
+        <button type="button" class="btn" id="saveMonthly">${editing ? "Save" : "Add"}</button></div>`, { wide: true });
+    const form = m.body.querySelector("#monthlyExpenseForm");
+    const errorEl = form.querySelector(".form-error");
+    const submit = m.body.querySelector("#saveMonthly");
+    submit.addEventListener("click", async () => {
+      if (!form.reportValidity()) return;
+      submit.disabled = true;
+      errorEl.hidden = true;
+      const payload = {
+        particular: form.particular.value.trim(),
+        amount: form.amount.value,
+        method: form.method.value,
+        start_month: form.start_month.value,
+        note: form.note.value.trim(),
+      };
+      try {
+        const result = await onSubmit(payload);
+        m.close();
+        if (result && result.message) UI.toast(result.message);
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+        submit.disabled = false;
+      }
+    });
+  }
+
+  function monthlyColumns(forPrint) {
+    const columns = [
+      { label: "Particular", render: (r) => `<b>${esc(r.particular)}</b>` },
+      { label: "Amount", className: "right nowrap", render: (r) => money(r.amount) },
+      { label: "Mode", render: (r) => esc(r.method || "-") },
+      { label: "From month", className: "nowrap", render: (r) => fmtMonth(r.start_month) },
+      { label: "Note", render: (r) => (r.note ? `<span class="small">${esc(r.note)}</span>` : '<span class="muted">-</span>') },
+    ];
+    if (!forPrint) {
+      columns.push({ label: "", className: "right nowrap", render: (r) => `<button class="btn btn-light btn-sm" data-monthly-edit="${esc(r.id)}"><i class="fa fa-pencil"></i></button>
+        <button class="btn btn-light btn-sm" data-monthly-del="${esc(r.id)}" title="Remove"><i class="fa fa-trash"></i></button>` });
+    }
+    return columns;
+  }
+
+  function monthlyTable(rows, standing, forPrint) {
+    const tail = forPrint ? 3 : 4;
+    return table(monthlyColumns(forPrint), rows, {
+      empty: forPrint ? "None." : "",
+      emptyIcon: "fa-refresh",
+      footer: rows.length ? `<td>Per month</td><td class="right"><b>${money(standing)}</b></td><td colspan="${tail}"></td>` : "",
+    });
+  }
+
   async function expenses(view, ctx, state = {}) {
     const month = state.month || "all";
     const q = `?month=${encodeURIComponent(month)}`;
     const [d, pay] = await Promise.all([MPS.get(`/accounts/expenses${q}`), MPS.get("/accounts/salaries")]);
+    const monthly = d.monthly || { items: [], standing: 0, counted: 0, suggestions: [], payment_methods: d.payment_methods };
+    const monthlyRows = d.month === "all" ? monthly.items : monthly.items.filter((row) => row.applies);
+    const monthlyStanding = monthlyRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const rowsOf = (id) => d.items.filter((row) => row.category === id);
     const monthLabel = d.month === "all" ? "All months" : fmtMonth(d.month);
     const option = (value, label, current) => `<option value="${esc(value)}" ${String(value) === String(current) ? "selected" : ""}>${esc(label)}</option>`;
     const icons = EXPENSE_ICONS;
+    const monthlyBlank = d.month === "all" ? monthly.empty_all : monthly.empty_month;
     view.innerHTML = `<div class="toolbar"><div class="filters">
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other expenses. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other expenses. Other expenses (monthly) are fixed bills such as modem, electric bill and bus EMI, counted every month from the start month. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
       <div class="grid grid-4">
         ${stat("Total dues", money((pay.due_total || 0) + (pay.other_due_total || 0)), { icon: "fa-exclamation-circle", tone: (pay.due_total || pay.other_due_total) ? "warn" : "ok", sub: `Teachers ${money(pay.due_total || 0)} · Other staff ${money(pay.other_due_total || 0)}` })}
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
+        ${stat("Other expenses (monthly)", money(monthly.counted || 0), { icon: "fa-refresh", sub: d.month === "all" ? `Per month ${money(monthly.standing || 0)}` : monthLabel })}
         ${stat("People Expense", money(d.people_paid || 0), { icon: "fa-users", sub: monthLabel })}
         ${stat("Total expenses", money(d.totals.all || 0), { icon: "fa-inr", tone: "info", sub: monthLabel })}
       </div>
@@ -1219,6 +1290,7 @@ const Accounts = (() => {
           actions: `<button class="btn btn-sm" data-add="${esc(c.id)}"><i class="fa fa-plus"></i> Add</button>`,
         });
       }).join("")}
+      ${card("Other expenses (monthly)", `<p class="small muted" style="margin:0;${monthlyRows.length ? "padding:12px 18px 8px" : "margin-bottom:8px"}">Fixed bills such as modem, electric bill and bus EMI. Each amount is counted every month from its start month. Adding one sends it to the expenses WhatsApp group.</p>${monthlyRows.length ? monthlyTable(monthlyRows, monthlyStanding, false) : empty(monthlyBlank || "No monthly expenses yet.", "fa-refresh")}`, { icon: "fa-refresh", flush: !!monthlyRows.length, actions: `<button class="btn btn-sm" id="addMonthly"><i class="fa fa-plus"></i> Add</button>` })}
       ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
       ${card("Other staff", `<p class="small muted" style="margin:0 0 8px">Driver, guard, sweeper and other staff log in with the User ID shown here. Starting passwords are d@123 for a driver, g@123 for a guard, sw@123 for a sweeper and o@123 for other staff, until they change it. Their check-in and check-out go to the teachers WhatsApp group.</p>${salaryTable(pay, pay.other_staff || [], "Name", true)}`, { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherStaff"><i class="fa fa-plus"></i> Add</button> ${badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success")}` })}`;
 
@@ -1227,6 +1299,7 @@ const Accounts = (() => {
     view.querySelector("#printExpenses").addEventListener("click", () => printDoc("Expenses Report", `<h3 style="text-align:center">Expenses Report</h3>
       <p style="text-align:center">${esc(monthLabel)} &middot; Total dues ${money((pay.due_total || 0) + (pay.other_due_total || 0))} &middot; Expenses ${money(d.totals.all || 0)} &middot; People Expense ${money(d.people_paid || 0)}</p>
       ${d.categories.map((c) => `<h4 style="margin:16px 0 6px">${esc(c.label)} &middot; ${money(d.totals[c.id] || 0)}</h4>${expenseTable(c, rowsOf(c.id), d.totals[c.id] || 0, true)}`).join("")}
+      <h4 style="margin:16px 0 6px">Other expenses (monthly) &middot; ${money(monthly.counted || 0)}</h4>${monthlyTable(monthlyRows, monthlyStanding, true)}
       <h4 style="margin:16px 0 6px">People Expense &middot; ${money(d.people_paid || 0)}</h4>
       <h4 style="margin:16px 0 6px">Teacher Salary (monthly) &middot; Dues ${money(pay.due_total)}</h4>${salaryPrintTable(pay)}
       <h4 style="margin:16px 0 6px">Other staff &middot; Dues ${money(pay.other_due_total || 0)}</h4>${salaryPrintTable(pay, pay.other_staff || [], pay.other_due_total || 0)}`));
@@ -1248,6 +1321,22 @@ const Accounts = (() => {
     view.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
       if (!confirm("Delete this expense?")) return;
       if (await run(() => MPS.del(`/accounts/expenses/${b.dataset.del}`))) reload(d.month);
+    }));
+    const openMonthly = (item) => monthlyExpenseForm({ ...monthly, payment_methods: d.payment_methods }, item || {}, async (payload) => {
+      const path = item && item.id ? `/accounts/monthly-expenses/${item.id}` : "/accounts/monthly-expenses";
+      const result = await MPS.post(path, payload);
+      reload(d.month);
+      return result;
+    });
+    const addMonthly = view.querySelector("#addMonthly");
+    if (addMonthly) addMonthly.addEventListener("click", () => openMonthly());
+    view.querySelectorAll("[data-monthly-edit]").forEach((b) => b.addEventListener("click", () => {
+      const item = monthly.items.find((row) => row.id === b.dataset.monthlyEdit);
+      if (item) openMonthly(item);
+    }));
+    view.querySelectorAll("[data-monthly-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Delete this monthly expense?")) return;
+      if (await run(() => MPS.del(`/accounts/monthly-expenses/${b.dataset.monthlyDel}`))) reload(d.month);
     }));
     bindSalaries(view, pay, () => reload(d.month));
     const addStaff = view.querySelector("#addOtherStaff");
