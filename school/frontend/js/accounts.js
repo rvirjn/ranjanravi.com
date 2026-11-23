@@ -966,7 +966,7 @@ const Accounts = (() => {
   function salaryTable(pay, rows, nameLabel, manage) {
     const people = rows || pay.teachers;
     return table([
-      { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b><div class="small muted">${[t.employee_id, t.designation].filter(Boolean).map(esc).join(" &middot; ")}</div>${t.phone ? `<div class="small muted">${esc(t.phone)}</div>` : ""}${t.address ? `<div class="small muted">${esc(t.address)}</div>` : ""}` },
+      { label: nameLabel || "Teachers Names", render: (t) => `<b>${esc(t.name)}</b>` },
       { label: "Monthly Amount", render: (t) => `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <input type="number" class="amount-input" data-salary-amount="${esc(t.id)}" value="${t.monthly_salary || ""}" placeholder="0" min="0">
           <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Joined on <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
