@@ -131,44 +131,29 @@
 
   async function diaryForm(view, ctx, state) {
     const d = await MPS.get(`/diary?class_id=${state.classId}&date=${state.date}`);
+    const filled = {};
+    Object.entries(d.filled || {}).forEach(([subject, value]) => {
+      filled[String(subject).toLowerCase()] = value || {};
+    });
+    const box = (name, value, placeholder) =>
+      `<input name="${name}" value="${esc(value || "")}" placeholder="${esc(placeholder)}" maxlength="300">`;
     const rows = d.subjects
-      .map(
-        (s, i) => `<tr data-row="${i}"><td><b>${esc(s)}</b><input type="hidden" name="subject" value="${esc(s)}"></td>
-          <td><input name="cw" placeholder="CW - one or two lines" maxlength="300"></td>
-          <td><input name="hw" placeholder="HW - one or two lines" maxlength="300"></td></tr>`
-      )
+      .map((s, i) => {
+        const value = filled[String(s).toLowerCase()] || {};
+        return `<tr data-row="${i}"><td><b>${esc(s)}</b><input type="hidden" name="subject" value="${esc(s)}"></td>
+          <td>${box("cw", value.cw, "CW - one or two lines")}</td>
+          <td>${box("hw", value.hw, "HW - one or two lines")}</td></tr>`;
+      })
       .join("");
-    const waBadge = (p) =>
-      ({
-        queued: badge("Queued", "warn"),
-        sent: badge(p.wa_sent_on ? `Sent ${fmtTime(p.wa_sent_on)}` : "Sent", "success"),
-        no_group: badge("No WhatsApp group", "danger"),
-        off: badge("Not sent", "neutral"),
-      })[p.wa_status] || "";
-    const posts = d.posts.length
-      ? d.posts
-          .map(
-            (p) => `<div class="item-card"><div class="row"><div><b>${esc(p.teacher_name)}</b> <span class="small muted">${fmtTime(p.posted_on)}</span></div>
-              <div class="btn-group">${waBadge(p)} ${badge(`Seen by ${p.seen_count}/${p.class_size}`, "neutral")}
-              ${p.wa_status === "queued" ? "" : `<button class="btn btn-light btn-sm" data-resend="${p.id}"><i class="fa fa-whatsapp"></i> Resend</button>`}
-              <button class="btn btn-light btn-sm" data-del="${p.id}"><i class="fa fa-trash"></i></button></div></div>
-              <div class="pre small" style="margin-top:6px">${p.entries.map((e) => `*${esc(e.subject)}* (${esc(p.teacher_name)})\nCW - ${e.cw ? esc(e.cw) : "<b>NO CW</b>"}\nHW - ${e.hw ? esc(e.hw) : "<b>NO HW</b>"}`).join("\n\n")}</div></div>`
-          )
-          .join("")
-      : empty("Nothing posted for this date yet.", "fa-book");
 
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
         <span class="badge ${d.whatsapp_group ? "success" : "danger"}">WhatsApp group name: ${d.whatsapp_group ? `<b>${esc(d.whatsapp_group)}</b>` : "No WhatsApp group set"}</span></div>
-      <div class="grid grid-side">
-        ${card(`${d.class_label} · ${weekday(d.date)}, ${fmtDate(d.date)}`, `<div class="table-wrap"><table class="table diary-table"><thead><tr><th>Subject</th><th>Classwork (CW)</th><th>Homework (HW)</th></tr></thead>
+      ${card(`${d.class_label} · ${weekday(d.date)}, ${fmtDate(d.date)}`, `<div class="table-wrap"><table class="table diary-table"><thead><tr><th>Subject</th><th>Classwork (CW)</th><th>Homework (HW)</th></tr></thead>
           <tbody>${rows}<tr data-row="extra"><td><input name="subject" placeholder="Other subject"></td><td><input name="cw" placeholder="CW"></td><td><input name="hw" placeholder="HW"></td></tr></tbody></table></div>
-          <div class="sticky-bar static"><span class="small muted">Leave CW or HW empty to send NO CW or NO HW in bold</span><button class="btn" id="send"><i class="fa fa-clock-o"></i> Save to Queue</button></div>`,
+          <div class="sticky-bar static"><span class="small muted">${esc(d.send_note)} Leave CW or HW empty to send NO CW or NO HW in bold.</span><button class="btn" id="send"><i class="fa fa-clock-o"></i> Save to Queue</button></div>`,
           { icon: "fa-pencil-square-o", flush: true })}
-        ${card("Your Entry", `<div class="preview-box" id="preview"></div><p class="small muted" style="margin-top:8px">${esc(d.send_note)}</p>`, { icon: "fa-pencil" })}
-      </div>
-      ${d.queued_message ? card("Queued WhatsApp Message", `<div class="preview-box">${esc(d.queued_message)}</div>`, { icon: "fa-whatsapp" }) : ""}
-      ${card("Posted for this date", posts, { icon: "fa-history", flush: true })}`;
+      ${d.queued_message ? card("Queued WhatsApp Message", `<div class="preview-box" id="queued">${esc(d.queued_message)}</div>`, { icon: "fa-whatsapp" }) : ""}`;
 
     const collect = () =>
       [...view.querySelectorAll("[data-row]")]
@@ -177,17 +162,32 @@
           cw: tr.querySelector('[name="cw"]').value.trim(),
           hw: tr.querySelector('[name="hw"]').value.trim(),
         }))
-        .filter((e) => e.subject && (e.cw || e.hw));
-    const preview = () => {
-      const blocks = collect().map((e) => [`*${e.subject}* (${ctx.user.name})`, `CW - ${e.cw || "*NO CW*"}`, `HW - ${e.hw || "*NO HW*"}`].join("\n"));
-      view.querySelector("#preview").textContent = blocks.length ? blocks.join("\n\n") : "Type CW or HW to see your part. An empty box is sent as *NO CW* or *NO HW*.";
+        .filter((e) => e.subject);
+    const refreshQueued = () => {
+      const preview = view.querySelector("#queued");
+      if (!preview || !d.queued_message) return;
+      let text = d.queued_message;
+      collect().forEach((entry) => {
+        const cw = entry.cw || "*NO CW*";
+        const hw = entry.hw || "*NO HW*";
+        const pattern = new RegExp(`(\\*${entry.subject.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\*[^\n]*\\n)CW - [^\\n]*\\nHW - [^\\n]*`);
+        if (pattern.test(text)) {
+          text = text.replace(pattern, `$1CW - ${cw}\nHW - ${hw}`);
+          return;
+        }
+        if (!entry.cw && !entry.hw) return;
+        const block = `*${entry.subject}*\nCW - ${cw}\nHW - ${hw}`;
+        const splitAt = text.lastIndexOf("\n\n");
+        const tail = splitAt >= 0 ? text.slice(splitAt + 2) : "";
+        text = tail && !tail.startsWith("*") ? `${text.slice(0, splitAt)}\n\n${block}${text.slice(splitAt)}` : `${text}\n\n${block}`;
+      });
+      preview.textContent = text;
     };
-    preview();
-    view.querySelectorAll(".diary-table input").forEach((i) => i.addEventListener("input", preview));
+    view.querySelectorAll(".diary-table input").forEach((i) => i.addEventListener("input", refreshQueued));
     view.querySelector("#back").addEventListener("click", () => diary(view, ctx, { date: state.date }));
     view.querySelector("#send").addEventListener("click", async (e) => {
       const entries = collect();
-      if (!entries.length) {
+      if (!entries.some((entry) => entry.cw || entry.hw) && !(d.posts || []).length) {
         UI.toast("Write CW or HW for at least one subject", "error");
         return;
       }
@@ -196,13 +196,6 @@
       e.target.disabled = false;
       if (result) diaryForm(view, ctx, state);
     });
-    view.querySelectorAll("[data-resend]").forEach((b) => b.addEventListener("click", () => run(() => MPS.post(`/diary/${b.dataset.resend}/resend`))));
-    view.querySelectorAll("[data-del]").forEach((b) =>
-      b.addEventListener("click", async () => {
-        if (!confirm("Delete this HW/CW entry?")) return;
-        if (await run(() => MPS.del(`/diary/${b.dataset.del}`))) diaryForm(view, ctx, state);
-      })
-    );
   }
 
   // =====================================================================
@@ -582,45 +575,68 @@
     const allClasses = !classId;
     const option = (value, label, picked) => `<option value="${value}" ${value === picked ? "selected" : ""}>${esc(label)}</option>`;
     const statusTone = (s) => ({ P: "success", LT: "warn", HD: "warn", A: "danger", L: "neutral" }[s] || "warn");
-    const title = `${d.class_label} · ${state.month ? fmtMonth(state.month) : fmtDate(d.date)}`;
-    let hint;
-    if (state.month) {
-      const low = d.students.filter((s) => s.working_days && s.percentage < 75).length;
-      hint = low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success");
-    } else {
-      hint = d.summary ? badge(d.summary, "neutral") : "";
-    }
-    const columns = state.month
-      ? [
-          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
-          { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
-          { label: "Days", key: "working_days", className: "right" },
-          { label: "Present on Time", key: "present", className: "right" },
-          { label: "Late", key: "late", className: "right" },
-          { label: "Absent", key: "absent", className: "right" },
-          { label: "Half day", key: "half_day", className: "right" },
-          { label: "Leave", key: "leave", className: "right" },
-          { label: "Not marked", render: (s) => (s.not_marked ? `<b style="color:var(--danger)">${s.not_marked}</b>` : "0"), className: "right" },
-          { label: "Attendance", render: (s) => `<div style="min-width:120px"><b>${s.percentage}%</b>${UI.progress(s.percentage)}</div>` },
-        ]
-      : [
-          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
-          { label: "Roll", key: "roll_no" },
-          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
-          { label: "Status", render: (s) => (s.status ? badge(CODE_LABEL[s.status] || s.status, statusTone(s.status)) : badge("Not marked", "warn")) },
-        ];
-    view.innerHTML = `
-      <div class="toolbar"><div class="filters">
-        <select id="month"><option value="">Single day</option>${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
-        ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
-        <select id="cls"><option value="">All classes</option>${classes.map((c) => option(c.id, c.label, classId)).join("")}</select>
-      </div>${hint}</div>
-      ${card(title, table(columns, d.students, { empty: "No students to show." }), { icon: "fa-bar-chart", flush: true })}`;
-    const reload = (change) => UI.runScreen(view, () => attendanceReport(view, ctx, { ...state, date: day, classId, ...change }));
-    view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
-    view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
-    view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
+    const monthLabel = state.month === "all" ? "All months" : state.month ? fmtMonth(state.month) : fmtDate(d.date);
+    const title = `${d.class_label} · ${monthLabel}`;
+    let sortKey = "";
+    let sortDir = "asc";
+    const byName = (a, b) => String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
+    const sortedStudents = () => {
+      const list = [...d.students];
+      if (sortKey !== "percentage") return list;
+      const dir = sortDir === "desc" ? -1 : 1;
+      list.sort((a, b) => dir * ((Number(a.percentage) || 0) - (Number(b.percentage) || 0)) || byName(a, b));
+      return list;
+    };
+    const paint = () => {
+      let hint;
+      if (state.month) {
+        const low = d.students.filter((s) => s.working_days && s.percentage < 75).length;
+        hint = low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success");
+      } else {
+        hint = d.summary ? badge(d.summary, "neutral") : "";
+      }
+      const columns = state.month
+        ? [
+            ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
+            { label: "Roll", key: "roll_no" },
+            { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
+            { label: "Days", key: "working_days", className: "right" },
+            { label: "Present on Time", key: "present", className: "right" },
+            { label: "Late", key: "late", className: "right" },
+            { label: "Absent", key: "absent", className: "right" },
+            { label: "Half day", key: "half_day", className: "right" },
+            { label: "Leave", key: "leave", className: "right" },
+            { label: "Not marked", render: (s) => (s.not_marked ? `<b style="color:var(--danger)">${s.not_marked}</b>` : "0"), className: "right" },
+            { label: "Attendance", sort: "percentage", render: (s) => `<div style="min-width:120px"><b>${s.percentage}%</b>${UI.progress(s.percentage)}</div>` },
+          ]
+        : [
+            ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
+            { label: "Roll", key: "roll_no" },
+            { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
+            { label: "Status", render: (s) => (s.status ? badge(CODE_LABEL[s.status] || s.status, statusTone(s.status)) : badge("Not marked", "warn")) },
+          ];
+      view.innerHTML = `
+        <div class="toolbar"><div class="filters">
+          <select id="month"><option value="">Single day</option>${option("all", "All months", state.month)}${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
+          ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
+          <select id="cls"><option value="">All classes</option>${classes.map((c) => option(c.id, c.label, classId)).join("")}</select>
+        </div>${hint}</div>
+        ${card(title, table(columns, sortedStudents(), { empty: "No students to show.", sort: { key: sortKey, dir: sortDir } }), { icon: "fa-bar-chart", flush: true })}`;
+      const reload = (change) => UI.runScreen(view, () => attendanceReport(view, ctx, { ...state, date: day, classId, ...change }));
+      view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
+      view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
+      view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
+      view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else {
+          sortKey = key;
+          sortDir = "desc";
+        }
+        paint();
+      }));
+    };
+    paint();
   }
 
   // ---------- Office staff accounts (admin -> accountants, accountant -> principals) ----------
