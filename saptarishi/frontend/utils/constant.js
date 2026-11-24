@@ -21,7 +21,7 @@ const SAPTARISHI_CONSTANTS = {
   OPERATOR_NAME: "ranjanravi.com",
   /** Public / app contact. Change these; support and phone aliases follow below. */
   CONTACT_EMAIL: "rv.saptarishi@gmail.com",
-  CONTACT_PHONE: "8184046618",
+  CONTACT_PHONE: "9189336655",
   PRIVACY_LAST_UPDATED: "22 October 2026",
   CHILDREN_PRIVACY_MIN_AGE: 13,
 
