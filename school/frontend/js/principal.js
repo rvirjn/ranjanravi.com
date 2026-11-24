@@ -112,7 +112,8 @@
     const status = Object.fromEntries(d.teachers.map((t) => [t.id, t.status || (t.on_leave ? "L" : null)]));
     view.innerHTML = `
       <div class="toolbar"><div class="filters"><label style="margin:0">Date</label><input type="date" id="day" value="${day}" max="${todayIso()}"></div>
-        <button class="btn" id="allP"><i class="fa fa-check-square-o"></i> Mark All Present</button></div>
+        <button class="btn" id="allP"><i class="fa fa-check-square-o"></i> Mark All Present</button>
+        <span class="small muted">Tap the same button again to leave a teacher unmarked.</span></div>
       ${d.marked ? `<div class="form-ok">Already marked at ${fmtTime(d.marked_on)}. You can change and submit again.</div>` : ""}
       ${d.is_holiday ? '<div class="form-error">This date is a holiday or Sunday.</div>' : ""}
       ${d.school_open_time ? `<p class="small muted">School time ${fmtTime(d.school_open_time)} – ${fmtTime(d.school_close_time)}. In and out times come from teacher check-in.</p>` : ""}
@@ -137,7 +138,7 @@
     summarize();
     view.querySelectorAll(".att-row [data-set]").forEach((b) => b.addEventListener("click", () => {
       const id = b.closest(".att-row").dataset.sid;
-      status[id] = b.dataset.set;
+      status[id] = status[id] === b.dataset.set ? "" : b.dataset.set;
       paint(id);
       summarize();
     }));
@@ -150,10 +151,9 @@
     });
     view.querySelector("#day").addEventListener("change", (e) => teacherAttendance(view, ctx, e.target.value));
     view.querySelector("#submit").addEventListener("click", async () => {
-      if (Object.values(status).some((v) => !v)) {
-        UI.toast("Mark every teacher first", "error");
-        return;
-      }
+      const skipped = d.teachers.filter((t) => !status[t.id]).length;
+      const note = skipped ? `\n\n${skipped} teacher(s) will be left unmarked.` : "";
+      if (!confirm(`Submit teacher attendance?${note}`)) return;
       if (await run(() => MPS.post("/principal/staff-attendance", { date: d.date, records: status }))) teacherAttendance(view, ctx, d.date);
     });
   }

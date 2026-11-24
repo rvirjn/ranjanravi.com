@@ -41,6 +41,7 @@
       <div class="toolbar">
         <button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
         <button class="btn" id="allP"><i class="fa fa-check-square-o"></i> Mark All Present</button>
+        <span class="small muted">Tap the same button again to leave a student unmarked.</span>
       </div>
       ${d.marked ? `<div class="form-ok">Already marked by ${esc(d.marked_by)} at ${fmtTime(d.marked_on)}. You can change and submit again (WhatsApp goes only to newly absent students).</div>` : ""}
       ${d.is_holiday ? '<div class="form-error">This date is a holiday or Sunday.</div>' : ""}
@@ -76,7 +77,7 @@
     view.querySelectorAll(".att-row [data-set]").forEach((b) =>
       b.addEventListener("click", () => {
         const sid = b.closest(".att-row").dataset.sid;
-        status[sid] = b.dataset.set;
+        status[sid] = status[sid] === b.dataset.set ? "" : b.dataset.set;
         paintRow(sid);
         summarize();
       })
@@ -90,14 +91,11 @@
     });
     view.querySelector("#back").addEventListener("click", () => classAttendance(view, ctx, { date: state.date }));
     view.querySelector("#submit").addEventListener("click", async (e) => {
-      const missing = d.students.filter((s) => !status[s.id]);
-      if (missing.length) {
-        UI.toast(`Mark all students first (${missing.length} left). Use "Mark All Present", then tap ABSENT for absentees.`, "error");
-        return;
-      }
+      const skipped = d.students.filter((s) => !status[s.id]);
       const absent = d.students.filter((s) => status[s.id] === "A");
       const note = absent.length && isToday ? `\n\nWhatsApp message will be sent to the parents of ${absent.length} absent student(s):\n${absent.map((s) => "- " + s.name).join("\n")}` : "";
-      if (!confirm(`Submit attendance for ${d.class_label}?${note}`)) return;
+      const skipNote = skipped.length ? `\n\n${skipped.length} student(s) will be left unmarked.` : "";
+      if (!confirm(`Submit attendance for ${d.class_label}?${skipNote}${note}`)) return;
       e.target.disabled = true;
       const result = await run(() => MPS.post("/attendance/class", { class_id: d.class_id, date: d.date, records: status }));
       e.target.disabled = false;
