@@ -852,9 +852,18 @@ const Accounts = (() => {
   }
 
   // ---------- Teacher salary ----------
+  function stillMonth(label) {
+    return label ? `still ${label}` : "";
+  }
+
+  function slipMonthLabel(p) {
+    const label = fmtMonth(p.month);
+    return (p.month_parts || []).length > 1 ? stillMonth(label) : label;
+  }
+
   function salarySlipHtml(p, t) {
     const rows = [
-      { head: `Salary (${fmtMonth(p.month)})`, earn: p.basic, ded: "" },
+      { head: (p.month_parts || []).length > 1 ? `Salary ${slipMonthLabel(p)}` : `Salary (${fmtMonth(p.month)})`, earn: p.basic, ded: "" },
       ...Object.entries(p.allowances || {}).map(([head, amount]) => ({ head, earn: amount, ded: "" })),
       ...Object.entries(p.deductions || {}).map(([head, amount]) => ({ head, earn: "", ded: amount })),
     ];
@@ -863,7 +872,7 @@ const Accounts = (() => {
       <table class="table receipt-head"><tbody>
         <tr><td><b>Slip No.</b> ${esc(p.slip_no || "-")}</td><td><b>Date:</b> ${fmtDate(p.date || p.paid_on)}</td></tr>
         <tr><td><b>Name:</b> ${esc(t.name)}</td><td><b>Employee ID:</b> ${esc(t.employee_id || "-")}</td></tr>
-        <tr><td><b>Designation:</b> ${esc(t.designation)}</td><td><b>Salary month:</b> ${esc(fmtMonth(p.month))}</td></tr>
+        <tr><td><b>Designation:</b> ${esc(t.designation)}</td><td><b>Salary month:</b> ${esc(slipMonthLabel(p))}</td></tr>
         <tr><td><b>Paid on:</b> ${fmtDate(p.paid_on)}</td><td><b>Mode:</b> ${esc(p.method || "-")}${p.reference ? ` (${esc(p.reference)})` : ""}</td></tr>
         ${p.monthly ? `<tr><td><b>Monthly salary:</b> ${money(p.monthly)}</td><td>${p.total_due_after != null ? `<b>Salary still due:</b> ${money(p.total_due_after)}` : ""}</td></tr>` : ""}
       </tbody></table>
@@ -895,7 +904,7 @@ const Accounts = (() => {
     }
     const m = UI.modal(`Salary slips · ${d.teacher.name}`, table(
       [
-        { label: "Month", render: (p) => `<b>${esc(fmtMonth(p.month))}</b><div class="small muted">${esc(p.slip_no || "")}</div>` },
+        { label: "Month", render: (p) => `<b>${esc(slipMonthLabel(p))}</b><div class="small muted">${esc(p.slip_no || "")}</div>` },
         { label: "Paid on", render: (p) => fmtDate(p.paid_on), className: "nowrap" },
         { label: "Mode", render: (p) => `${esc(p.method || "-")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
         { label: "Net Pay", render: (p) => `<b>${money(p.net)}</b>`, className: "right nowrap" },
@@ -907,11 +916,15 @@ const Accounts = (() => {
     m.body.querySelectorAll("[data-slip]").forEach((b) => b.addEventListener("click", () => showSalarySlip(d.slips.find((p) => p.id === b.dataset.slip), d.teacher)));
   }
 
+  function monthOwing(month) {
+    return month && month.due_till != null ? Number(month.due_till) : Number(month && month.due) || 0;
+  }
+
   function paySalary(t, methods, done) {
     const months = t.pay_months || [];
     const m = UI.modal(`Pay ${t.name}`, `<form id="salaryForm" class="grid grid-2" style="gap:0 16px">
-        ${UI.fieldHtml({ name: "month", label: "Salary month", type: "select", options: months.map((x) => ({ value: x.month, label: `${x.label} (due ${money(x.due)})` })), required: true })}
-        ${UI.fieldHtml({ name: "salary", label: "Salary (Rs)", type: "number", min: 0, value: months[0] ? months[0].due : 0 })}
+        ${UI.fieldHtml({ name: "month", label: "Salary month", type: "select", options: months.map((x) => ({ value: x.month, label: `${x.label} (due ${money(monthOwing(x))})` })), required: true })}
+        ${UI.fieldHtml({ name: "salary", label: "Salary (Rs)", type: "number", min: 0, value: months[0] ? monthOwing(months[0]) : 0 })}
         ${UI.fieldHtml({ name: "other", label: "Other amount (Rs)", type: "number", min: 0, placeholder: "0" })}
         ${UI.fieldHtml({ name: "other_label", label: "Other for", placeholder: "e.g. Bonus, allowance" })}
         ${UI.fieldHtml({ name: "deduction", label: "Deduction (Rs)", type: "number", min: 0, placeholder: "0" })}
@@ -931,7 +944,7 @@ const Accounts = (() => {
     const paint = () => { m.body.querySelector("#netPay").textContent = money(Math.max(0, num("salary") + num("other") - num("deduction"))); };
     form.month.addEventListener("change", () => {
       const pick = months.find((x) => x.month === form.month.value);
-      form.salary.value = pick ? pick.due : 0;
+      form.salary.value = monthOwing(pick);
       paint();
     });
     form.addEventListener("input", paint);
@@ -972,12 +985,13 @@ const Accounts = (() => {
           <label class="small muted" style="margin:0;display:flex;gap:4px;align-items:center">Joined on <input type="month" data-salary-from="${esc(t.id)}" value="${esc(t.salary_from)}" max="${esc(pay.current_month)}" style="width:auto"></label>
           <button class="btn btn-sm" data-salary-save="${esc(t.id)}">Save</button></div>` },
       { label: "Last Amount paid", className: "nowrap", render: (t) => (t.last_paid_on
-        ? `<b>${money(t.last_paid_amount)}</b><div class="small muted">${fmtDate(t.last_paid_on)} &middot; ${esc(t.last_paid_month_label)}</div>`
+        ? `<b>${money(t.last_paid_amount)}</b><div class="small muted">${fmtDate(t.last_paid_on)} &middot; ${esc(stillMonth(t.last_paid_month_label))}</div>`
         : '<span class="muted">-</span>') },
       { label: "Total Dues", className: "nowrap", render: (t) => {
         if (!t.monthly_salary) return '<span class="muted">Set monthly amount</span>';
         if (!t.due) return badge("Paid", "success");
-        return `<b style="color:var(--danger)">${money(t.due)}</b><div class="small muted">${esc(t.due_months.map((x) => x.label).join(", "))}</div>`;
+        const last = t.due_months[t.due_months.length - 1];
+        return `<b style="color:var(--danger)">${money(t.due)}</b><div class="small muted">${esc(stillMonth(last && last.label))}</div>`;
       } },
       { label: "Other", className: "nowrap", render: (t) => (t.other_paid || t.deducted
         ? `${t.other_paid ? money(t.other_paid) : ""}${t.deducted ? `<div class="small muted">Deducted ${money(t.deducted)}</div>` : ""}`

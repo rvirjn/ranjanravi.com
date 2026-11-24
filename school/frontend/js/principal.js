@@ -316,7 +316,10 @@
         { label: "Subjects", render: (t) => `<span class="small">${esc((t.subjects || []).join(", "))}</span>` },
         { label: "Classes", render: (t) => `<span class="small">${esc(t.class_labels.join(", "))}</span>${t.class_teacher_label ? `<div>${badge(`CT ${t.class_teacher_label}`, "success")}</div>` : ""}` },
         { label: "Mobile", key: "phone" },
-        { label: "Attendance", render: (t) => `${t.attendance}%` },
+        { label: "Leave", className: "nowrap", render: (t) => {
+          const lines = (t.leave || []).map((b) => `<div class="small">${esc(b.type)} <b>${b.remaining}/${b.allowed}</b></div>`).join("");
+          return `${lines}<button class="btn btn-light btn-sm" data-leave="${esc(t.id)}" style="margin-top:4px">Update</button>`;
+        } },
         { label: "", className: "right nowrap", render: (t) => `<button class="btn btn-light btn-sm" data-edit="${t.id}" title="Edit"><i class="fa fa-pencil"></i></button> <button class="btn btn-light btn-sm" data-left="${t.id}" title="Left school"><i class="fa fa-sign-out"></i></button> <button class="btn btn-light btn-sm" data-del="${t.id}" title="Delete"><i class="fa fa-trash"></i></button>` },
       ],
       d.teachers
@@ -354,6 +357,35 @@
       reset.textContent = "Reset password";
       reset.addEventListener("click", () => confirm("Reset password to t@123?") && run(() => MPS.post(`/principal/users/teacher/${t.id}/reset-password`)));
       m.body.querySelector(".modal-actions").prepend(reset);
+      });
+    }));
+    view.querySelectorAll("[data-leave]").forEach((b) => b.addEventListener("click", () => {
+      const person = d.teachers.find((x) => x.id === b.dataset.leave);
+      if (!person) return;
+      const byType = Object.fromEntries((person.leave || []).map((row) => [row.type, row]));
+      const field = (type) => {
+        const row = byType[type] || { granted: 0, used: 0 };
+        return {
+          name: type,
+          label: `${type} (days)`,
+          type: "number",
+          min: 0,
+          max: 12,
+          required: true,
+          value: row.granted != null ? row.granted : 0,
+          hint: row.used ? `${row.used} day(s) already applied` : "From 0 to 12",
+        };
+      };
+      openForm({
+        title: `Leave · ${person.name}`,
+        intro: "Set casual, sick, and earned leave for this teacher. Each one can be from 0 to 12. Earned leave is shown out of 12.",
+        fields: [field("Casual"), field("Sick"), field("Earned")],
+        submitLabel: "Save",
+        onSubmit: async (v) => {
+          const r = await MPS.post(`/principal/teachers/${person.id}/leave`, { Casual: v.Casual, Sick: v.Sick, Earned: v.Earned });
+          teachers(view, ctx);
+          return r;
+        },
       });
     }));
     view.querySelectorAll("[data-left]").forEach((b) => b.addEventListener("click", async () => {

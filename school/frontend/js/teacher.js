@@ -979,7 +979,7 @@
   async function myLeaves(view, ctx) {
     const d = await MPS.get("/teacher/leaves");
     view.innerHTML = `<div class="grid grid-3">${d.balance
-        .map((b) => stat(`${b.type} Leave`, `${b.remaining} <span class="small muted">/ ${b.allowed}</span>`, { icon: "fa-calendar-o", tone: b.remaining ? "ok" : "danger", sub: `${b.used} used` }))
+        .map((b) => stat(`${b.type} Leave`, `${b.remaining} <span class="small muted">/ ${b.allowed}</span>`, { icon: "fa-calendar-o", tone: b.remaining ? "ok" : (b.used ? "danger" : "info"), sub: `${b.used} used` }))
         .join("")}</div>
       ${card("My Leave Applications", table(
         [
@@ -1126,14 +1126,15 @@
         ...[["Basic Pay", p.basic], ...Object.entries(p.allowances)].map(([k, v]) => ({ head: k, earn: v, ded: "" })),
         ...Object.entries(p.deductions).map(([k, v]) => ({ head: k, earn: "", ded: v })),
       ];
-      return `<h3 style="text-align:center">Salary Slip - ${fmtMonth(p.month)}</h3>
+      const monthText = (p.month_parts || []).length > 1 ? `still ${fmtMonth(p.month)}` : fmtMonth(p.month);
+      return `<h3 style="text-align:center">Salary Slip - ${monthText}</h3>
         ${kv([["Employee", d.teacher.name], ["Employee ID", d.teacher.employee_id], ["Designation", d.teacher.designation], ["Paid On", fmtDate(p.paid_on)]])}
         ${table([{ label: "Head", key: "head" }, { label: "Earnings", render: (r) => (r.earn === "" ? "" : money(r.earn)), className: "right" }, { label: "Deductions", render: (r) => (r.ded === "" ? "" : money(r.ded)), className: "right" }], rows,
           { footer: `<td>Total</td><td class="right">${money(p.gross)}</td><td class="right">${money(p.gross - p.net)}</td></tr><tr><td>Net Pay</td><td class="right" colspan="2">${money(p.net)}</td>` })}`;
     };
     view.innerHTML = card("Salary Slips", table(
       [
-        { label: "Month", render: (p) => `<b>${fmtMonth(p.month)}</b>` },
+        { label: "Month", render: (p) => `<b>${(p.month_parts || []).length > 1 ? `still ${fmtMonth(p.month)}` : fmtMonth(p.month)}</b>` },
         { label: "Gross", render: (p) => money(p.gross), className: "right" },
         { label: "Deductions", render: (p) => money(p.gross - p.net), className: "right" },
         { label: "Net Pay", render: (p) => `<b>${money(p.net)}</b>`, className: "right" },
