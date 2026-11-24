@@ -49,6 +49,8 @@
     "View": "देखें", "Print": "प्रिंट", "Back": "वापस", "Add": "जोड़ें", "Delete": "हटाएं", "Delete this student? All data, including fee receipts, will be deleted.": "इस विद्यार्थी का सारा डेटा, फीस रसीद सहित, हटा दिया जाएगा।", "Delete this teacher? All data, including salary slips, will be deleted.": "इस शिक्षक का सारा डेटा, वेतन पर्ची सहित, हटा दिया जाएगा।", "Delete this principal? All data for this principal will be deleted.": "इस प्रधानाचार्य का सारा डेटा हटा दिया जाएगा।", "Left school": "स्कूल छोड़ चुके", "Mark this student as left school?": "इस विद्यार्थी को स्कूल छोड़ चुका मानें?", "Mark this teacher as left school?": "इस शिक्षक को स्कूल छोड़ चुका मानें?", "Mark this principal as left school?": "इस प्रधानाचार्य को स्कूल छोड़ चुका मानें?", "Approve": "स्वीकृत करें", "Reject": "अस्वीकार करें",
     "PRESENT": "उपस्थित", "ABSENT": "अनुपस्थित", "Present": "उपस्थित", "Present on Time": "समय पर उपस्थित", "Absent": "अनुपस्थित", "Late": "देर से", "Half day": "आधा दिन", "Leave": "छुट्टी",
     "Mark All Present": "सभी को उपस्थित करें", "Submit Attendance": "उपस्थिति जमा करें", "All classes": "सभी कक्षाएं", "Not marked": "दर्ज नहीं",
+    "Absent for continuous days": "लगातार अनुपस्थित दिन", "Continuous absent": "लगातार अनुपस्थित",
+    "No student has been absent that many days in a row.": "कोई विद्यार्थी इतने दिन लगातार अनुपस्थित नहीं है।",
     "Tap the same button again to leave a student unmarked.": "उसी बटन को फिर दबाएँ तो विद्यार्थी अचिह्नित रह जाएगा।",
     "Tap the same button again to leave a teacher unmarked.": "उसी बटन को फिर दबाएँ तो शिक्षक अचिह्नित रह जाएगा।",
     "Marked": "दर्ज", "Not posted": "नहीं भेजा", "Posted": "भेजा गया", "My class": "मेरी कक्षा", "Date": "तारीख", "Month": "महीना", "Class": "कक्षा",

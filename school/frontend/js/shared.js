@@ -579,53 +579,60 @@
     const title = `${d.class_label} · ${monthLabel}`;
     let sortKey = "";
     let sortDir = "asc";
+    let absentDays = String(state.absentDays || "").replace(/\D/g, "").slice(0, 2);
     const byName = (a, b) => String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
+    const minDays = () => {
+      const n = parseInt(absentDays, 10);
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    };
     const sortedStudents = () => {
-      const list = [...d.students];
+      const least = minDays();
+      const list = d.students.filter((s) => !least || (Number(s.absent_streak) || 0) >= least);
       if (sortKey !== "percentage") return list;
       const dir = sortDir === "desc" ? -1 : 1;
       list.sort((a, b) => dir * ((Number(a.percentage) || 0) - (Number(b.percentage) || 0)) || byName(a, b));
       return list;
     };
-    const paint = () => {
-      let hint;
+    const hintHtml = () => {
+      const least = minDays();
+      if (least) {
+        const count = d.students.filter((s) => (Number(s.absent_streak) || 0) >= least).length;
+        return count
+          ? badge(`${count} absent for ${least}+ days in a row`, "danger")
+          : badge(`None absent for ${least} days in a row`, "success");
+      }
       if (state.month) {
         const low = d.students.filter((s) => s.working_days && s.percentage < 75).length;
-        hint = low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success");
-      } else {
-        hint = d.summary ? badge(d.summary, "neutral") : "";
+        return low ? badge(`${low} student(s) below 75%`, "danger") : badge("All students above 75%", "success");
       }
-      const columns = state.month
-        ? [
-            ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
-            { label: "Roll", key: "roll_no" },
-            { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
-            { label: "Days", key: "working_days", className: "right" },
-            { label: "Present on Time", key: "present", className: "right" },
-            { label: "Late", key: "late", className: "right" },
-            { label: "Absent", key: "absent", className: "right" },
-            { label: "Half day", key: "half_day", className: "right" },
-            { label: "Leave", key: "leave", className: "right" },
-            { label: "Not marked", render: (s) => (s.not_marked ? `<b style="color:var(--danger)">${s.not_marked}</b>` : "0"), className: "right" },
-            { label: "Attendance", sort: "percentage", render: (s) => `<div style="min-width:120px"><b>${s.percentage}%</b>${UI.progress(s.percentage)}</div>` },
-          ]
-        : [
-            ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
-            { label: "Roll", key: "roll_no" },
-            { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
-            { label: "Status", render: (s) => (s.status ? badge(CODE_LABEL[s.status] || s.status, statusTone(s.status)) : badge("Not marked", "warn")) },
-          ];
-      view.innerHTML = `
-        <div class="toolbar"><div class="filters">
-          <select id="month"><option value="">Single day</option>${option("all", "All months", state.month)}${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
-          ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
-          <select id="cls"><option value="">All classes</option>${classes.map((c) => option(c.id, c.label, classId)).join("")}</select>
-        </div>${hint}</div>
-        ${card(title, table(columns, sortedStudents(), { empty: "No students to show.", sort: { key: sortKey, dir: sortDir } }), { icon: "fa-bar-chart", flush: true })}`;
-      const reload = (change) => UI.runScreen(view, () => attendanceReport(view, ctx, { ...state, date: day, classId, ...change }));
-      view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
-      view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
-      view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
+      return d.summary ? badge(d.summary, "neutral") : "";
+    };
+    const streakColumn = () => (minDays()
+      ? [{ label: "Continuous absent", className: "right", render: (s) => `<b>${s.absent_streak || 0}</b>` }]
+      : []);
+    const columns = () => (state.month
+      ? [
+          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
+          { label: "Roll", key: "roll_no" },
+          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
+          { label: "Days", key: "working_days", className: "right" },
+          { label: "Present on Time", key: "present", className: "right" },
+          { label: "Late", key: "late", className: "right" },
+          { label: "Absent", key: "absent", className: "right" },
+          { label: "Half day", key: "half_day", className: "right" },
+          { label: "Leave", key: "leave", className: "right" },
+          { label: "Not marked", render: (s) => (s.not_marked ? `<b style="color:var(--danger)">${s.not_marked}</b>` : "0"), className: "right" },
+          ...streakColumn(),
+          { label: "Attendance", sort: "percentage", render: (s) => `<div style="min-width:120px"><b>${s.percentage}%</b>${UI.progress(s.percentage)}</div>` },
+        ]
+      : [
+          ...(allClasses ? [{ label: "Class", render: (s) => esc(s.class_label) }] : []),
+          { label: "Roll", key: "roll_no" },
+          { label: "Student", render: (s) => `<b>${esc(s.name)}</b>` },
+          { label: "Status", render: (s) => (s.status ? badge(CODE_LABEL[s.status] || s.status, statusTone(s.status)) : badge("Not marked", "warn")) },
+          ...streakColumn(),
+        ]);
+    const bindSort = () => {
       view.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
         const key = btn.dataset.sort;
         if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -633,10 +640,40 @@
           sortKey = key;
           sortDir = "desc";
         }
-        paint();
+        fillTable();
       }));
     };
-    paint();
+    const fillTable = () => {
+      const least = minDays();
+      view.querySelector("#hint").innerHTML = hintHtml();
+      view.querySelector("#reportCard").innerHTML = card(
+        title,
+        table(columns(), sortedStudents(), {
+          empty: least ? "No student has been absent that many days in a row." : "No students to show.",
+          sort: { key: sortKey, dir: sortDir },
+        }),
+        { icon: "fa-bar-chart", flush: true }
+      );
+      bindSort();
+    };
+    view.innerHTML = `
+      <div class="toolbar"><div class="filters">
+        <select id="month"><option value="">Single day</option>${option("all", "All months", state.month)}${d.months.map((m) => option(m, fmtMonth(m), state.month)).join("")}</select>
+        ${state.month ? "" : `<input type="date" id="day" value="${day}" max="${todayIso()}">`}
+        <select id="cls"><option value="">All classes</option>${classes.map((c) => option(c.id, c.label, classId)).join("")}</select>
+        <label for="absentDays">Absent for continuous days</label>
+        <input id="absentDays" type="number" min="1" max="99" inputmode="numeric" placeholder="days" value="${esc(absentDays)}" style="width:5rem">
+      </div><span id="hint"></span></div>
+      <div id="reportCard"></div>`;
+    const reload = (change) => UI.runScreen(view, () => attendanceReport(view, ctx, { ...state, date: day, classId, absentDays, ...change }));
+    view.querySelector("#month").addEventListener("change", (e) => reload({ month: e.target.value, date: e.target.value ? undefined : day }));
+    view.querySelector("#day")?.addEventListener("change", (e) => reload({ date: e.target.value, month: "" }));
+    view.querySelector("#cls").addEventListener("change", (e) => reload({ classId: e.target.value }));
+    view.querySelector("#absentDays").addEventListener("input", (e) => {
+      absentDays = e.target.value.replace(/\D/g, "").slice(0, 2);
+      fillTable();
+    });
+    fillTable();
   }
 
   // ---------- Office staff accounts (admin -> accountants, accountant -> principals) ----------
