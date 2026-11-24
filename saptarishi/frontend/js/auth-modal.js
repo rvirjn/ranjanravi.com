@@ -132,6 +132,9 @@
               <button type="button" class="auth-modal__forgot-link" id="auth-modal-otp-resend" data-i18n="auth.otpResend">Send a new code</button>
             </p>
             <p class="auth-modal__forgot-wrap">
+              <button type="button" class="auth-modal__forgot-link" id="auth-modal-otp-edit" data-i18n="auth.otpEdit">Wrong email or mobile? Edit details</button>
+            </p>
+            <p class="auth-modal__forgot-wrap">
               <button type="button" class="auth-modal__forgot-link" id="auth-modal-otp-back" data-i18n="auth.backSignIn">Back to sign in</button>
             </p>
           </form>
@@ -173,6 +176,11 @@
     overlay.querySelector("#auth-modal-otp-back").addEventListener("click", () => {
       if (authBusy) return;
       setActiveTab("login");
+    });
+    overlay.querySelector("#auth-modal-otp-edit").addEventListener("click", () => {
+      if (authBusy) return;
+      // Register form keeps what the user typed; resubmitting replaces the pending sign-up.
+      setActiveTab("register");
     });
     overlay.querySelector("#auth-modal-otp-resend").addEventListener("click", async () => {
       if (authBusy || !pendingVerify) return;
@@ -315,10 +323,12 @@
     const forgotBack = overlay.querySelector("#auth-modal-forgot-back");
     const otpResend = overlay.querySelector("#auth-modal-otp-resend");
     const otpBack = overlay.querySelector("#auth-modal-otp-back");
+    const otpEdit = overlay.querySelector("#auth-modal-otp-edit");
     if (forgotLink) forgotLink.disabled = busy;
     if (forgotBack) forgotBack.disabled = busy;
     if (otpResend) otpResend.disabled = busy;
     if (otpBack) otpBack.disabled = busy;
+    if (otpEdit) otpEdit.disabled = busy;
     const closeBtn = overlay.querySelector("#auth-modal-close");
     if (closeBtn) closeBtn.disabled = busy;
   }
