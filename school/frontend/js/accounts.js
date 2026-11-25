@@ -122,7 +122,11 @@ const Accounts = (() => {
       tuition.push({ label: `Tuition Fee${who} (${months} * ${monthly})`, amount: months * monthly });
       if (bus) transport.push({ label: `Transport Fee${who} (${months} * ${bus})`, amount: months * bus });
     });
-    return [...tuition, ...transport];
+    const items = (Array.isArray(parts.other_items) ? parts.other_items : [])
+      .filter((item) => Number(item.amount))
+      .map((item) => ({ label: item.label || "Other", amount: Number(item.amount) || 0 }));
+    if (Number(parts.billed_late)) items.push({ label: "Late Fee", amount: Number(parts.billed_late) || 0 });
+    return [...tuition, ...transport, ...items];
   }
 
   function chargedFormula(parts) {
@@ -220,6 +224,20 @@ const Accounts = (() => {
     const s = d.student;
     const pendingInt = d.intimations.filter((i) => i.status === "Pending");
     const family = d.family_fees || [];
+    const parts = (d.summary && d.summary.charged_parts) || {};
+    const feeLines = Array.isArray(parts.lines) ? parts.lines : [];
+    const paidFor = (head, ids) => d.charges
+      .filter((c) => c.head === head && ids.has(c.student_id))
+      .reduce((total, c) => total + (Number(c.paid) || 0), 0);
+    const classCount = new Set(feeLines.map((line) => line.class_id)).size;
+    const tuitionDue = (row) => {
+      const inClass = feeLines.filter((line) => line.class_id === row.class_id);
+      const ids = new Set((classCount <= 1 ? feeLines : inClass).map((line) => line.id));
+      ids.add(row.fee_holder_id);
+      const owed = inClass.reduce((total, line) => total + (Number(line.tuition_amount) || 0), 0);
+      const sheetPaid = row.current || !family.length ? Number(parts.sheet_paid) || 0 : 0;
+      return Math.max(0, owed - paidFor("Tuition Fee", ids) - sheetPaid);
+    };
     const tuitionChoices = (family.length ? family : [{
       class_id: s.class_id, class_label: d.class_label, names: [s.name], monthly_tuition: d.tuition_rate || 0,
       rebate: 0, fee_holder_id: s.id, current: true,
@@ -230,9 +248,11 @@ const Accounts = (() => {
         : "Tuition Fee",
       rate: (Number(row.class_fee) || 0) * Math.max((row.names || []).length, 1),
       holderId: row.fee_holder_id,
-      due: d.charges
-        .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === row.fee_holder_id)
-        .reduce((t, c) => t + c.due, 0),
+      due: feeLines.length
+        ? tuitionDue(row)
+        : d.charges
+          .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === row.fee_holder_id)
+          .reduce((t, c) => t + c.due, 0),
     }));
     const transportPeople = [
       { id: s.id, name: s.name, transport_rate: d.transport_rate },
@@ -241,11 +261,15 @@ const Accounts = (() => {
     const transportChoices = transportPeople.map((person) => {
       const charges = d.charges.filter((c) => c.head === "Transport Fee" && c.student_id === person.id);
       const latest = charges.slice().sort((a, b) => String(b.month || "").localeCompare(String(a.month || "")))[0];
+      const line = feeLines.find((row) => row.id === person.id);
+      const owed = line ? Number(line.transport_amount) || 0 : 0;
       return {
         id: person.id,
         name: person.name,
         rate: Number(person.transport_rate) || (latest ? Number(latest.amount) || 0 : 0),
-        due: charges.reduce((total, c) => total + (Number(c.due) || 0), 0),
+        due: feeLines.length
+          ? Math.max(0, owed - paidFor("Transport Fee", new Set([person.id])))
+          : charges.reduce((total, c) => total + (Number(c.due) || 0), 0),
       };
     }).filter((row) => row.id === s.id || row.due || row.rate).map((row, _index, list) => ({
       value: list.length > 1 ? `Transport Fee|${row.id}` : "Transport Fee",
@@ -260,7 +284,6 @@ const Accounts = (() => {
     const familyNote = familyPeople.length > 1
       ? `<p class="small" style="padding:12px 18px 0">${familyPeople.map((person) => `<b>${esc(person.name)}</b> (${esc(person.classLabel)})`).join(", ")}</p>`
       : "";
-    const parts = (d.summary && d.summary.charged_parts) || {};
     const breakdown = chargedBreakdownRows(parts);
     const chargedTotal = breakdown.chargedTotal;
     const paidTotal = Number(d.summary.paid) || 0;
@@ -333,18 +356,24 @@ const Accounts = (() => {
       .sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
     const allocateMonthly = (rows, choices, headName) => {
       const lines = [];
+      const extras = [];
       let overflow = "";
       choices.forEach((choice) => {
-        let left = rows.filter((row) => row.head === choice.value).reduce((t, row) => t + row.paid, 0);
+        const paying = rows.filter((row) => row.head === choice.value).reduce((t, row) => t + row.paid, 0);
+        if (paying > choice.due) {
+          overflow = `${choice.label} PAID is more than the due of ${money(choice.due)}`;
+          return;
+        }
+        let left = paying;
         chargesFor(choice, headName).forEach((c) => {
           if (left <= 0) return;
           const amount = Math.min(left, c.due);
           lines.push({ charge_id: c.id, amount });
           left -= amount;
         });
-        if (left > 0) overflow = `${choice.label} PAID is more than the due of ${money(choice.due)}`;
+        if (left > 0) extras.push({ head: headName, description: choice.label, amount: left, paid: left });
       });
-      return { lines, overflow };
+      return { lines, extras, overflow };
     };
     const recalc = () => {
       const rows = readRows();
@@ -469,12 +498,12 @@ const Accounts = (() => {
         ...values,
         lines: allocated.lines,
         entries,
-        items: itemRows.map((row) => ({
+        items: [...itemRows.map((row) => ({
           head: row.head,
           description: row.description,
           amount: row.rate > 0 ? row.rate : row.paid,
           paid: row.paid,
-        })),
+        })), ...tuitionAlloc.extras, ...transportAlloc.extras],
         intimation_id: pendingInt[0] ? pendingInt[0].id : null,
       };
       if (!payload.lines.length && !payload.items.length) {
@@ -541,7 +570,7 @@ const Accounts = (() => {
         })),
         summary: {
           paid: Number(d.summary.paid || 0) + total,
-          due: dues.reduce((sum, group) => sum + group.amount, 0),
+          due: balanceDue - total + itemRows.reduce((sum, row) => sum + (row.rate > 0 ? row.rate : row.paid), 0),
         },
       };
       const box = UI.modal("Receipt preview", `${UI.receiptHtml(preview)}<div class="modal-actions"><button type="button" class="btn btn-light" data-close>Back</button><button type="button" class="btn" id="confirmReceipt"><i class="fa fa-check"></i> Submit &amp; Generate Receipt</button></div>`, { wide: true });
