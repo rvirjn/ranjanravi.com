@@ -184,7 +184,7 @@ const Accounts = (() => {
             return due > 0 ? `<b style="color:var(--danger)">${money(due)}</b>` : money(due);
           }, className: "right" },
           { label: "Transport", className: "right nowrap", render: (s) => (
-            `${money(Number(s.transport_total) || 0)}${Number(s.transport_due) ? `<div class="small" style="color:var(--danger)">Due ${money(Number(s.transport_due) || 0)}</div>` : ""}`
+            money(Number(s.transport_total) || 0)
           ) },
           { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
