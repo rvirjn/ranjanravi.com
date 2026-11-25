@@ -109,6 +109,28 @@ const Accounts = (() => {
     });
   }
 
+  function chargedFormula(parts) {
+    const bits = [`Tuition ${money(parts.billed_tuition || 0)}`];
+    if (Number(parts.billed_transport)) bits.push(`Transport ${money(parts.billed_transport)}`);
+    const otherItems = (Array.isArray(parts.other_items) ? parts.other_items : []).filter((item) => Number(item.amount));
+    if (otherItems.length) otherItems.forEach((item) => bits.push(`${item.label || "Other"} ${money(item.amount)}`));
+    else if (Number(parts.other)) bits.push(`Other ${money(parts.other)}`);
+    if (Number(parts.billed_late)) bits.push(`Late Fee ${money(parts.billed_late)}`);
+    return bits.join(" + ");
+  }
+
+  function chargedBreakdownRows(parts) {
+    const otherItems = (Array.isArray(parts.other_items) ? parts.other_items : []).filter((item) => Number(item.amount));
+    const rows = [{ label: "Tuition Fee", amount: Number(parts.billed_tuition) || 0 }];
+    if (Number(parts.billed_transport)) rows.push({ label: "Transport Fee", amount: Number(parts.billed_transport) || 0 });
+    if (otherItems.length) otherItems.forEach((item) => rows.push({ label: esc(item.label || "Other"), amount: Number(item.amount) || 0 }));
+    else if (Number(parts.other)) rows.push({ label: "Other", amount: Number(parts.other) || 0 });
+    if (Number(parts.billed_late)) rows.push({ label: "Late Fee", amount: Number(parts.billed_late) || 0 });
+    const chargedTotal = rows.reduce((total, row) => total + row.amount, 0);
+    rows.push({ label: "Total Charged", amount: Number(parts.charged != null ? parts.charged : chargedTotal) || chargedTotal });
+    return { chargedTotal: Number(parts.charged != null ? parts.charged : chargedTotal) || chargedTotal, rows };
+  }
+
   async function classStudents(view, ctx, state) {
     const d = await MPS.get(`/accounts/class/${state.classId}`);
     let sortKey = "";
@@ -140,13 +162,7 @@ const Accounts = (() => {
             const paid = Number(s.paid) || 0;
             const due = Number(s.due) || 0;
             const mismatch = charged !== paid + due;
-            const p = s.charged_parts || {};
-            const tip = [
-              p.months
-                ? `${p.months} × (Transport ${money(p.transport_fee || 0)} + Monthly ${money(p.monthly_fee || 0)}) + Other ${money(p.other || 0)} − Rebate ${money(p.rebate || 0)}`
-                : "",
-              mismatch ? `Charged ${money(charged)} ≠ Paid ${money(paid)} + Dues ${money(due)}` : "",
-            ].filter(Boolean).join(" · ");
+            const tip = [chargedFormula(s.charged_parts || {}), mismatch ? `Charged ${money(charged)} ≠ Paid ${money(paid)} + Dues ${money(due)}` : ""].filter(Boolean).join(" · ");
             return `<span title="${esc(tip)}"${mismatch ? ' style="color:var(--danger);font-weight:600"' : ""}>${money(charged)}</span>`;
           } },
           { label: "Last paid", render: (s) => money(Number(s.last_paid_amount) || 0), className: "right nowrap" },
@@ -203,8 +219,8 @@ const Accounts = (() => {
         .reduce((t, c) => t + c.due, 0),
     }));
     const transportPeople = [
-      { id: s.id, name: s.name },
-      ...(d.siblings || []).map((sib) => ({ id: sib.id, name: sib.name })),
+      { id: s.id, name: s.name, transport_rate: d.transport_rate },
+      ...(d.siblings || []).map((sib) => ({ id: sib.id, name: sib.name, transport_rate: sib.transport_rate })),
     ];
     const transportChoices = transportPeople.map((person) => {
       const charges = d.charges.filter((c) => c.head === "Transport Fee" && c.student_id === person.id);
@@ -212,7 +228,7 @@ const Accounts = (() => {
       return {
         id: person.id,
         name: person.name,
-        rate: latest ? Number(latest.amount) || 0 : 0,
+        rate: Number(person.transport_rate) || (latest ? Number(latest.amount) || 0 : 0),
         due: charges.reduce((total, c) => total + (Number(c.due) || 0), 0),
       };
     }).filter((row) => row.id === s.id || row.due || row.rate).map((row, _index, list) => ({
@@ -229,26 +245,16 @@ const Accounts = (() => {
       ? `<p class="small" style="padding:12px 18px 0">${familyPeople.map((person) => `<b>${esc(person.name)}</b> (${esc(person.classLabel)})`).join(", ")}</p>`
       : "";
     const parts = (d.summary && d.summary.charged_parts) || {};
-    const months = Number(parts.months) || 0;
-    const monthlyFee = Number(parts.monthly_fee) || 0;
-    const transportFee = Number(parts.transport_fee) || 0;
-    const otherFee = Number(parts.other) || 0;
-    const rebateFee = Number(parts.rebate) || 0;
-    const monthBlock = (Number(parts.tuition_amount) || 0) + (Number(parts.transport_amount) || 0);
-    const chargedTotal = Number(parts.charged != null ? parts.charged : d.summary.total) || 0;
+    const breakdown = chargedBreakdownRows(parts);
+    const chargedTotal = breakdown.chargedTotal;
     const chargedBreakdown = `${table(
       [
         { label: "Part", render: (r) => r.label },
         { label: "Amount", render: (r) => (r.neg ? `− ${money(r.amount)}` : money(r.amount)), className: "right nowrap" },
       ],
-      [
-        { label: `${months} months × (Transport ${money(transportFee)} + Monthly ${money(monthlyFee)})`, amount: monthBlock },
-        { label: "Other", amount: otherFee },
-        { label: "Total Rebate", amount: rebateFee, neg: true },
-        { label: "Total Charged", amount: chargedTotal },
-      ]
-    )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Paid ${money(Number(d.summary.paid) || 0)} · Due <b style="color:var(--danger)">${money(Number(d.summary.due) || 0)}</b></p>
-      <p class="small muted" style="padding:0 18px 14px;margin:0">${months} × (Transport ${money(transportFee)} + Monthly ${money(monthlyFee)}) + Other ${money(otherFee)} − Rebate ${money(rebateFee)} = <b>${money(chargedTotal)}</b></p>`;
+      breakdown.rows
+    )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Charged ${money(chargedTotal)} − Paid ${money(Number(d.summary.paid) || 0)} = Dues <b style="color:var(--danger)">${money(Number(d.summary.due) || 0)}</b></p>
+      <p class="small muted" style="padding:0 18px 14px;margin:0">${esc(chargedFormula(parts))} = <b>${money(chargedTotal)}</b></p>`;
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
         <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
