@@ -246,6 +246,7 @@ const Accounts = (() => {
       label: family.length > 1 || (row.names || []).length > 1
         ? `Tuition Fee — ${row.class_label} (${(row.names || []).join(", ")})`
         : "Tuition Fee",
+      fullLabel: `Tuition Fee — ${row.class_label} (${(row.names || []).join(", ")})`,
       rate: (Number(row.class_fee) || 0) * Math.max((row.names || []).length, 1),
       holderId: row.fee_holder_id,
       due: feeLines.length
@@ -274,11 +275,19 @@ const Accounts = (() => {
     }).filter((row) => row.id === s.id || row.due || row.rate).map((row, _index, list) => ({
       value: list.length > 1 ? `Transport Fee|${row.id}` : "Transport Fee",
       label: list.length > 1 ? `Transport Fee — ${row.name}` : "Transport Fee",
+      fullLabel: `Transport Fee — ${row.name}`,
       rate: row.rate,
       holderId: row.id,
       due: row.due,
     }));
     const familyRebate = family.reduce((total, row) => total + (Number(row.rebate) || 0), 0);
+    const allParts = [...tuitionChoices, ...transportChoices.filter((choice) => choice.rate || choice.due)];
+    const allChoice = allParts.length > 1 ? {
+      value: "__all__",
+      label: allParts.length > tuitionChoices.length ? "For All (Tuition Fee + Transport Fee)" : "For All (Tuition Fee)",
+      rate: allParts.reduce((total, choice) => total + (Number(choice.rate) || 0), 0),
+      due: allParts.reduce((total, choice) => total + choice.due, 0),
+    } : null;
     const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": tuitionChoices[0].rate };
     const familyPeople = family.flatMap((row) => (row.names || []).map((name) => ({ name, classLabel: row.class_label })));
     const familyNote = familyPeople.length > 1
@@ -350,7 +359,38 @@ const Accounts = (() => {
       }));
     const tuitionChoice = (head) => tuitionChoices.find((choice) => choice.value === head);
     const transportChoice = (head) => transportChoices.find((choice) => choice.value === head);
-    const monthlyChoice = (head) => tuitionChoice(head) || transportChoice(head);
+    const monthlyChoice = (head) => tuitionChoice(head) || transportChoice(head) || (allChoice && head === allChoice.value ? allChoice : null);
+    const splitAll = (rows) => {
+      const room = new Map(allParts.map((choice) => [choice.value, choice.due]));
+      rows.filter((row) => row.head !== "__all__" && room.has(row.head))
+        .forEach((row) => room.set(row.head, Math.max(0, room.get(row.head) - row.paid)));
+      const out = [];
+      let overflow = "";
+      rows.forEach((row) => {
+        if (row.head !== "__all__") {
+          out.push(row);
+          return;
+        }
+        let left = row.paid;
+        allParts.forEach((choice, index) => {
+          const amount = Math.min(left, room.get(choice.value));
+          room.set(choice.value, room.get(choice.value) - amount);
+          left -= amount;
+          if (!amount && !choice.due) return;
+          out.push({
+            head: choice.value,
+            item: choice.fullLabel,
+            entryItem: choice.fullLabel,
+            description: row.description,
+            rate: choice.rate,
+            rebate: index === 0 ? row.rebate : 0,
+            paid: amount,
+          });
+        });
+        if (left > 0) overflow = `${allChoice.label} PAID is more than the due of ${money(allChoice.due)}`;
+      });
+      return { rows: out, overflow };
+    };
     const chargesFor = (choice, headName) => d.charges
       .filter((c) => c.head === headName && c.due > 0 && c.student_id === choice.holderId)
       .sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
@@ -397,6 +437,7 @@ const Accounts = (() => {
       tr.className = "fee-item";
       tr.setAttribute("data-fee-item", "");
       const itemOptions = [
+        ...(allChoice ? [`<option value="${esc(allChoice.value)}">${esc(allChoice.label)}</option>`] : []),
         ...tuitionChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
         ...transportChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
         ...d.other_heads.filter((h) => h !== "Tuition Fee" && h !== "Transport Fee").map((h) => `<option value="${esc(h)}">${esc(h)}</option>`),
@@ -419,7 +460,10 @@ const Accounts = (() => {
       }));
       const fillRate = () => {
         const choice = monthlyChoice(head.value);
-        if (tuitionChoice(head.value)) {
+        if (allChoice && choice === allChoice) {
+          rate.value = choice.rate || "";
+          rebate.value = familyRebate || "";
+        } else if (tuitionChoice(head.value)) {
           rate.value = choice.rate || "";
           rebate.value = familyRebate || "";
         } else if (transportChoice(head.value)) {
@@ -466,7 +510,12 @@ const Accounts = (() => {
       const form = view.querySelector("#payForm");
       if (!form.reportValidity()) return;
       const values = Object.fromEntries(new FormData(form).entries());
-      const rows = readRows().filter((row) => row.rate > 0 || row.paid > 0);
+      const split = splitAll(readRows().filter((row) => row.rate > 0 || row.paid > 0));
+      if (split.overflow) {
+        UI.toast(split.overflow, "error");
+        return;
+      }
+      const rows = split.rows;
       const tuitionAlloc = allocateMonthly(rows, tuitionChoices, "Tuition Fee");
       const transportAlloc = allocateMonthly(rows, transportChoices, "Transport Fee");
       if (tuitionAlloc.overflow || transportAlloc.overflow) {
@@ -482,7 +531,7 @@ const Accounts = (() => {
       const entries = rows.map((row) => {
         const choice = monthlyChoice(row.head);
         const tuitionRow = family.find((person) => (person.current ? "Tuition Fee" : `Tuition Fee|${person.class_id}`) === row.head);
-        const item = tuitionChoice(row.head)
+        const item = row.entryItem ? row.entryItem : tuitionChoice(row.head)
           ? (family.length > 1 && tuitionRow ? `Tuition Fee — ${tuitionRow.class_label}` : "Tuition Fee")
           : row.item;
         return {
