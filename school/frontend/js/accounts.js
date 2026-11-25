@@ -109,26 +109,31 @@ const Accounts = (() => {
     });
   }
 
+  function standardFeeRows(parts) {
+    const lines = Array.isArray(parts.lines) ? parts.lines : [];
+    const tuition = [];
+    const transport = [];
+    lines.forEach((line) => {
+      const months = Number(line.months) || 0;
+      const monthly = Number(line.monthly_fee) || 0;
+      const bus = Number(line.transport_fee) || 0;
+      if (!months) return;
+      const who = lines.length > 1 && line.name ? ` — ${line.name}` : "";
+      tuition.push({ label: `Tuition Fee${who} (${months} * ${monthly})`, amount: months * monthly });
+      if (bus) transport.push({ label: `Transport Fee${who} (${months} * ${bus})`, amount: months * bus });
+    });
+    return [...tuition, ...transport];
+  }
+
   function chargedFormula(parts) {
-    const bits = [`Tuition ${money(parts.billed_tuition || 0)}`];
-    if (Number(parts.billed_transport)) bits.push(`Transport ${money(parts.billed_transport)}`);
-    const otherItems = (Array.isArray(parts.other_items) ? parts.other_items : []).filter((item) => Number(item.amount));
-    if (otherItems.length) otherItems.forEach((item) => bits.push(`${item.label || "Other"} ${money(item.amount)}`));
-    else if (Number(parts.other)) bits.push(`Other ${money(parts.other)}`);
-    if (Number(parts.billed_late)) bits.push(`Late Fee ${money(parts.billed_late)}`);
-    return bits.join(" + ");
+    return standardFeeRows(parts).map((row) => row.label).join(" + ");
   }
 
   function chargedBreakdownRows(parts) {
-    const otherItems = (Array.isArray(parts.other_items) ? parts.other_items : []).filter((item) => Number(item.amount));
-    const rows = [{ label: "Tuition Fee", amount: Number(parts.billed_tuition) || 0 }];
-    if (Number(parts.billed_transport)) rows.push({ label: "Transport Fee", amount: Number(parts.billed_transport) || 0 });
-    if (otherItems.length) otherItems.forEach((item) => rows.push({ label: esc(item.label || "Other"), amount: Number(item.amount) || 0 }));
-    else if (Number(parts.other)) rows.push({ label: "Other", amount: Number(parts.other) || 0 });
-    if (Number(parts.billed_late)) rows.push({ label: "Late Fee", amount: Number(parts.billed_late) || 0 });
+    const rows = standardFeeRows(parts).map((row) => ({ label: esc(row.label), amount: row.amount }));
     const chargedTotal = rows.reduce((total, row) => total + row.amount, 0);
-    rows.push({ label: "Total Charged", amount: Number(parts.charged != null ? parts.charged : chargedTotal) || chargedTotal });
-    return { chargedTotal: Number(parts.charged != null ? parts.charged : chargedTotal) || chargedTotal, rows };
+    rows.push({ label: "Total Charged", amount: chargedTotal });
+    return { chargedTotal, rows };
   }
 
   async function classStudents(view, ctx, state) {
