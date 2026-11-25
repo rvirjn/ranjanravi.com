@@ -136,6 +136,10 @@ const Accounts = (() => {
     return { chargedTotal, rows };
   }
 
+  function shownDue(charged, paid) {
+    return (Number(charged) || 0) - (Number(paid) || 0);
+  }
+
   async function classStudents(view, ctx, state) {
     const d = await MPS.get(`/accounts/class/${state.classId}`);
     let sortKey = "";
@@ -151,7 +155,7 @@ const Accounts = (() => {
       } else if (sortKey === "name") {
         list.sort((a, b) => dir * byName(a, b) || String(a.roll_no ?? "").localeCompare(String(b.roll_no ?? ""), undefined, { numeric: true }));
       } else if (sortKey === "due") {
-        list.sort((a, b) => dir * ((Number(a.due) || 0) - (Number(b.due) || 0)) || byName(a, b));
+        list.sort((a, b) => dir * (shownDue(a.charged, a.paid) - shownDue(b.charged, b.paid)) || byName(a, b));
       }
       return list;
     }
@@ -165,24 +169,31 @@ const Accounts = (() => {
           { label: "Total Charged", className: "right nowrap", render: (s) => {
             const charged = Number(s.charged) || 0;
             const paid = Number(s.paid) || 0;
-            const due = Number(s.due) || 0;
-            const mismatch = charged !== paid + due;
-            const tip = [chargedFormula(s.charged_parts || {}), mismatch ? `Charged ${money(charged)} ≠ Paid ${money(paid)} + Dues ${money(due)}` : ""].filter(Boolean).join(" · ");
-            return `<span title="${esc(tip)}"${mismatch ? ' style="color:var(--danger);font-weight:600"' : ""}>${money(charged)}</span>`;
+            const due = shownDue(charged, paid);
+            const tip = `${chargedFormula(s.charged_parts || {})} − Paid ${money(paid)} = Dues ${money(due)}`;
+            return `<span title="${esc(tip)}">${money(charged)}</span>`;
           } },
           { label: "Last paid", render: (s) => money(Number(s.last_paid_amount) || 0), className: "right nowrap" },
           { label: "Total Rebate", className: "right nowrap", render: (s) => money(Number(s.rebate_total) || 0) },
-          { label: "Dues", sort: "due", render: (s) => (Number(s.due)
-            ? `<b style="color:var(--danger)">${money(Number(s.due) || 0)}</b>`
-            : money(0)), className: "right" },
+          { label: "Dues", sort: "due", render: (s) => {
+            const due = shownDue(s.charged, s.paid);
+            return due > 0 ? `<b style="color:var(--danger)">${money(due)}</b>` : money(due);
+          }, className: "right" },
           { label: "Transport", className: "right nowrap", render: (s) => (
             `${money(Number(s.transport_total) || 0)}${Number(s.transport_due) ? `<div class="small" style="color:var(--danger)">Due ${money(Number(s.transport_due) || 0)}</div>` : ""}`
           ) },
           { label: "Last paid date", render: (s) => (s.last_payment ? fmtDate(s.last_payment) : '<span class="muted">-</span>'), className: "nowrap" },
           { label: "", className: "right", render: (s) => `<button class="btn btn-sm" data-student="${s.id}"><i class="fa fa-inr"></i> Record Fee</button>` },
       );
+      const seenFamilies = new Set();
+      const classDue = d.students.reduce((total, s) => {
+        const key = [s.name, ...(s.sibling_names || [])].map((name) => String(name || "").trim().toLowerCase()).filter(Boolean).sort().join("|") + "|" + String(s.father_name || "").trim().toLowerCase();
+        if (seenFamilies.has(key)) return total;
+        seenFamilies.add(key);
+        return total + shownDue(s.charged, s.paid);
+      }, 0);
       view.innerHTML = `<div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> All classes</button>
-        ${badge(`${state.classId === "all" ? "Dues" : "Class dues"} ${money(d.due_total != null ? d.due_total : d.students.reduce((t, s) => t + s.due, 0))}`, "warn")}</div>
+        ${badge(`${state.classId === "all" ? "Dues" : "Class dues"} ${money(classDue)}`, "warn")}</div>
       ${card(`${d.class_label} · Students`, table(
         columns,
         sortedStudents(),
@@ -252,17 +263,19 @@ const Accounts = (() => {
     const parts = (d.summary && d.summary.charged_parts) || {};
     const breakdown = chargedBreakdownRows(parts);
     const chargedTotal = breakdown.chargedTotal;
+    const paidTotal = Number(d.summary.paid) || 0;
+    const balanceDue = shownDue(chargedTotal, paidTotal);
     const chargedBreakdown = `${table(
       [
         { label: "Part", render: (r) => r.label },
         { label: "Amount", render: (r) => (r.neg ? `− ${money(r.amount)}` : money(r.amount)), className: "right nowrap" },
       ],
       breakdown.rows
-    )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Charged ${money(chargedTotal)} − Paid ${money(Number(d.summary.paid) || 0)} = Dues <b style="color:var(--danger)">${money(Number(d.summary.due) || 0)}</b></p>
+    )}<p class="small" style="padding:10px 18px 14px;margin:0;border-top:1px solid var(--line)">Charged ${money(chargedTotal)} − Paid ${money(paidTotal)} = Dues <b style="color:var(--danger)">${money(balanceDue)}</b></p>
       <p class="small muted" style="padding:0 18px 14px;margin:0">${esc(chargedFormula(parts))} = <b>${money(chargedTotal)}</b></p>`;
     view.innerHTML = `
       <div class="toolbar"><button class="btn btn-light btn-sm" id="back"><i class="fa fa-arrow-left"></i> ${state.classId === "all" ? "All students" : `${esc(d.class_label)} students`}</button>
-        <span>${badge(`Balance ${money(d.summary.due)}`, d.summary.due ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
+        <span>${badge(`Balance ${money(balanceDue)}`, balanceDue > 0 ? "danger" : "success")}${(d.siblings || []).length ? ` <span class="small muted">Combined with ${d.siblings.map((sib) => `<a href="#" data-sibling="${esc(sib.id)}" data-sibling-class="${esc(sib.class_id || "")}" title="${esc(sib.class_label || "")}">${esc(sib.name)}</a>`).join(", ")}. Same due on each sibling.</span>` : ""}</span></div>
       ${pendingInt.length ? `<div class="form-ok">Parent says paid: ${pendingInt.map((i) => `<b>${money(i.amount)}</b> on ${fmtDate(i.paid_on)} via ${esc(i.method)} ${i.reference ? `(${esc(i.reference)})` : ""}${i.screenshot ? ` <a href="${esc(UI.fileUrl(i.screenshot))}" target="_blank">screenshot</a>` : ""}`).join("; ")}</div>` : ""}
       <div class="grid grid-side">
         <div class="stack">
@@ -340,14 +353,13 @@ const Accounts = (() => {
         const rowDue = choice ? Math.max(0, choice.due - row.paid) : Math.max(0, row.rate - row.paid);
         row.tr.querySelector("[data-row-due]").textContent = money(rowDue);
       });
-      const monthlyPaid = [...tuitionChoices, ...transportChoices].reduce((t, choice) => {
-        const paid = rows.filter((row) => row.head === choice.value).reduce((sum, row) => sum + row.paid, 0);
-        return t + Math.min(paid, choice.due);
-      }, 0);
+      const monthlyEntered = rows
+        .filter((row) => monthlyChoice(row.head))
+        .reduce((total, row) => total + row.paid, 0);
       const addedDue = rows
         .filter((row) => !monthlyChoice(row.head))
         .reduce((t, row) => t + Math.max(0, (row.rate || row.paid) - row.paid), 0);
-      const remaining = Math.max(0, d.summary.due - monthlyPaid) + addedDue;
+      const remaining = balanceDue - monthlyEntered + addedDue;
       titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(remaining)})`;
       view.querySelector("#total").textContent = money(rows.reduce((t, row) => t + row.paid, 0));
     };
@@ -413,7 +425,7 @@ const Accounts = (() => {
     };
     view.querySelector("#addItem").addEventListener("click", addItem);
     addItem();
-    titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(d.summary.due)})`;
+    titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(balanceDue)})`;
     bindReceipts(view, () => studentFee(view, ctx, state));
     view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
     view.querySelectorAll("[data-sibling]").forEach((a) => a.addEventListener("click", (e) => {
@@ -741,6 +753,20 @@ const Accounts = (() => {
     const none = '<span class="muted">-</span>';
     const option = (value, label, current) => `<option value="${esc(value)}" ${String(value) === String(current) ? "selected" : ""}>${esc(label)}</option>`;
     const byName = (a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base", numeric: true });
+    const studentDue = (s) => shownDue(s.charged, s.paid);
+    const dueTotals = (() => {
+      const seen = new Set();
+      const totals = { charged: 0, paid: 0, due: 0 };
+      du.students.forEach((s) => {
+        const key = s.fee_holder_id || s.id;
+        if (seen.has(key)) return;
+        seen.add(key);
+        totals.charged += Number(s.charged) || 0;
+        totals.paid += Number(s.paid) || 0;
+        totals.due += studentDue(s);
+      });
+      return totals;
+    })();
     let sortKey = "";
     let sortDir = "asc";
 
@@ -782,7 +808,7 @@ const Accounts = (() => {
       if (sortKey === "class") list.sort((a, b) => dir * ((a.order - b.order) || ((Number(a.roll_no) || 0) - (Number(b.roll_no) || 0))) || byName(a, b));
       else if (sortKey === "name") list.sort((a, b) => dir * byName(a, b));
       else if (sortKey === "months") list.sort((a, b) => dir * (a.pending_months.length - b.pending_months.length) || byName(a, b));
-      else if (sortKey === "due") list.sort((a, b) => dir * (a.due - b.due) || byName(a, b));
+      else if (sortKey === "due") list.sort((a, b) => dir * (studentDue(a) - studentDue(b)) || byName(a, b));
       else if (sortKey === "last") list.sort((a, b) => dir * String(a.last_payment || "").localeCompare(String(b.last_payment || "")) || byName(a, b));
       return list;
     }
@@ -800,15 +826,15 @@ const Accounts = (() => {
           : none) },
         { label: "Charged", render: (s) => money(Number(s.charged) || 0), className: "right nowrap" },
         { label: "Paid", render: (s) => money(Number(s.paid) || 0), className: "right nowrap" },
-        { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (Number(s.due) ? `<b style="color:var(--danger)">${money(Number(s.due) || 0)}</b>` : money(0)) },
+        { label: "Dues", sort: "due", className: "right nowrap", render: (s) => (studentDue(s) > 0 ? `<b style="color:var(--danger)">${money(studentDue(s))}</b>` : money(studentDue(s))) },
         { label: "Last paid", sort: "last", className: "nowrap", render: (s) => (s.last_payment ? `${money(Number(s.last_paid_amount) || 0)}<div class="small muted">${fmtDate(s.last_payment)}</div>` : money(0)) },
       ];
-      if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => (s.due ? `<button class="btn btn-sm" data-remind="${esc(s.id)}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` : "") });
+      if (withActions) columns.push({ label: "", className: "right nowrap", render: (s) => (studentDue(s) > 0 ? `<button class="btn btn-sm" data-remind="${esc(s.id)}"><i class="fa fa-whatsapp"></i> View &amp; Send reminder</button>` : "") });
       return table(withActions ? columns : columns.map((c) => ({ ...c, sort: "" })), sortedStudents(), {
         sort: withActions ? { key: sortKey, dir: sortDir } : {},
         empty: "No students match these filters.",
         emptyIcon: "fa-smile-o",
-        footer: du.students.length ? `<td colspan="4">Total (each family once)</td><td class="right">${money(du.total_charged)}</td><td class="right">${money(du.total_paid)}</td><td class="right"><b>${money(du.total_due)}</b></td><td colspan="${withActions ? 2 : 1}"></td>` : "",
+        footer: du.students.length ? `<td colspan="4">Total (each family once)</td><td class="right">${money(dueTotals.charged)}</td><td class="right">${money(dueTotals.paid)}</td><td class="right"><b>${money(dueTotals.due)}</b></td><td colspan="${withActions ? 2 : 1}"></td>` : "",
       });
     };
 
@@ -816,7 +842,7 @@ const Accounts = (() => {
       const box = view.querySelector("#duesStudents");
       box.innerHTML = card("Student-wise Dues", studentTable(true), {
         icon: "fa-users", flush: true,
-        actions: badge(`${du.student_count} students · ${money(du.total_due)}`, du.total_due ? "danger" : "success"),
+        actions: badge(`${du.student_count} students · ${money(dueTotals.due)}`, dueTotals.due ? "danger" : "success"),
       });
       box.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
         const key = btn.dataset.sort;
@@ -856,9 +882,9 @@ const Accounts = (() => {
         <button class="btn btn-light btn-sm" id="clear">Clear filters</button>
       </div></div>
       <div class="grid grid-3">
-        ${stat("Total Dues", money(du.total_due), { icon: "fa-exclamation-circle", tone: du.total_due ? "danger" : "ok", sub: `Overdue ${money(du.total_overdue)}` })}
+        ${stat("Total Dues", money(dueTotals.due), { icon: "fa-exclamation-circle", tone: dueTotals.due ? "danger" : "ok", sub: `Overdue ${money(du.total_overdue)}` })}
         ${stat("Students with dues", du.with_dues, { icon: "fa-users", tone: du.with_dues ? "warn" : "ok", sub: `${du.families} families · ${du.student_count} shown` })}
-        ${stat("Paid against charges", money(du.total_paid), { icon: "fa-check-circle", tone: "info", sub: `Charged ${money(du.total_charged)}` })}
+        ${stat("Paid against charges", money(dueTotals.paid), { icon: "fa-check-circle", tone: "info", sub: `Charged ${money(dueTotals.charged)}` })}
       </div>
       ${card("Dues Summary", duesSummaryHtml, { icon: "fa-pie-chart" })}
       <div id="duesStudents"></div>`;
@@ -900,7 +926,7 @@ const Accounts = (() => {
     view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>
       <h4 style="margin:12px 0 6px">Collections</h4>${printFilters(collectionFilterText)}${collectionsHtml}
       <h4 style="margin:16px 0 6px">Dues Summary</h4>${printFilters(duesFilterText)}${duesSummaryHtml}
-      <h4 style="margin:16px 0 6px">Student-wise Dues (${du.student_count} students &middot; ${money(du.total_due)})</h4>${studentTable(false)}`));
+      <h4 style="margin:16px 0 6px">Student-wise Dues (${du.student_count} students &middot; ${money(dueTotals.due)})</h4>${studentTable(false)}`));
   }
 
   // ---------- Teacher salary ----------
