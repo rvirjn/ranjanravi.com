@@ -257,9 +257,19 @@
       <div class="print-sign"><span>Parent's signature</span><span>Received by: ${esc(p.received_by)}</span></div></div>`;
   }
 
-  function showReceipt(r) {
-    const m = modal(`Receipt ${r.payment.receipt_no}`, `${receiptHtml(r)}<div class="modal-actions"><button class="btn" id="printReceipt"><i class="fa fa-print"></i> Print</button></div>`, { wide: true });
+  function showReceipt(r, opts = {}) {
+    const remove = opts.onDelete
+      ? `<button type="button" class="btn btn-light" id="deleteReceipt"><i class="fa fa-trash"></i> Delete</button>`
+      : "";
+    const m = modal(`Receipt ${r.payment.receipt_no}`, `${receiptHtml(r)}<div class="modal-actions">${remove}<button class="btn" id="printReceipt"><i class="fa fa-print"></i> Print</button></div>`, { wide: true });
     m.body.querySelector("#printReceipt").addEventListener("click", () => printDoc("Fee Receipt", receiptHtml(r)));
+    if (opts.onDelete) {
+      m.body.querySelector("#deleteReceipt").addEventListener("click", async () => {
+        const no = r.payment.receipt_no || "this receipt";
+        if (!confirm(`Delete receipt ${no}? The amount goes back to the student's dues.`)) return;
+        if (await opts.onDelete()) m.close();
+      });
+    }
   }
 
   // =====================================================================

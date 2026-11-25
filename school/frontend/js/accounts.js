@@ -25,7 +25,7 @@ const Accounts = (() => {
       sessionStorage.setItem("school_collect_class", a.dataset.class);
       location.hash = "collect";
     }));
-    bindReceipts(view);
+    bindReceipts(view, () => dashboard(view));
   }
 
   const receiptTable = (items) =>
@@ -36,14 +36,27 @@ const Accounts = (() => {
         { label: "Paid by", key: "paid_by" },
         { label: "Mode", key: "method" },
         { label: "Amount", render: (p) => `<b>${money(p.total)}</b>`, className: "right" },
-        { label: "", className: "right", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${p.id}"><i class="fa fa-print"></i> View</button>` },
+        { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${esc(p.id)}"><i class="fa fa-print"></i> View</button> <button class="btn btn-light btn-sm" data-receipt-del="${esc(p.id)}" data-receipt-no="${esc(p.receipt_no || "")}" title="Delete"><i class="fa fa-trash"></i></button>` },
       ],
       items,
       { empty: "No receipts yet.", emptyIcon: "fa-file-text-o" }
     );
 
-  function bindReceipts(view) {
-    view.querySelectorAll("[data-receipt]").forEach((b) => b.addEventListener("click", async () => UI.showReceipt(await MPS.get(`/accounts/receipts/${b.dataset.receipt}`))));
+  function bindReceipts(view, onChanged) {
+    const remove = async (id) => {
+      const ok = await run(() => MPS.del(`/accounts/receipts/${id}`));
+      if (ok && onChanged) onChanged();
+      return !!ok;
+    };
+    view.querySelectorAll("[data-receipt]").forEach((b) => b.addEventListener("click", async () => {
+      const receipt = await MPS.get(`/accounts/receipts/${b.dataset.receipt}`);
+      UI.showReceipt(receipt, { onDelete: () => remove(b.dataset.receipt) });
+    }));
+    view.querySelectorAll("[data-receipt-del]").forEach((b) => b.addEventListener("click", async () => {
+      const no = b.dataset.receiptNo || "this receipt";
+      if (!confirm(`Delete receipt ${no}? The amount goes back to the student's dues.`)) return;
+      remove(b.dataset.receiptDel);
+    }));
   }
 
   // ---------- Fee collection: class -> student -> collect ----------
@@ -242,7 +255,7 @@ const Accounts = (() => {
               { label: "Paid by", key: "paid_by" },
               { label: "Received by", key: "received_by" },
               { label: "Amount", render: (p) => `<b>${money(p.total)}</b>`, className: "right nowrap" },
-              { label: "", className: "right", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${p.id}"><i class="fa fa-print"></i> View</button>` },
+              { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-receipt="${esc(p.id)}"><i class="fa fa-print"></i> View</button> <button class="btn btn-light btn-sm" data-receipt-del="${esc(p.id)}" data-receipt-no="${esc(p.receipt_no || "")}" title="Delete"><i class="fa fa-trash"></i></button>` },
             ],
             d.payments,
             { empty: "No payments yet.", emptyIcon: "fa-history" }
@@ -364,7 +377,7 @@ const Accounts = (() => {
     view.querySelector("#addItem").addEventListener("click", addItem);
     addItem();
     titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(d.summary.due)})`;
-    bindReceipts(view);
+    bindReceipts(view, () => studentFee(view, ctx, state));
     view.querySelector("#back").addEventListener("click", () => collect(view, ctx, { classId: state.classId || s.class_id }));
     view.querySelectorAll("[data-sibling]").forEach((a) => a.addEventListener("click", (e) => {
       e.preventDefault();
@@ -507,7 +520,7 @@ const Accounts = (() => {
         <input type="date" id="date" value="${esc(state.date || "")}"><button class="btn btn-light btn-sm" id="clear">Clear</button></div>
         ${badge(`${d.receipts.length} receipt(s) · ${money(d.receipts.reduce((t, p) => t + p.total, 0))}`, "neutral")}</div>
       ${card("Fee Receipts", receiptTable(d.receipts), { icon: "fa-file-text-o", flush: true })}`;
-    bindReceipts(view);
+    bindReceipts(view, () => receipts(view, ctx, state));
     let timer;
     view.querySelector("#q").addEventListener("input", (e) => {
       clearTimeout(timer);
@@ -843,7 +856,7 @@ const Accounts = (() => {
       const day = d.days.find((x) => x.date === a.dataset.day);
       if (!day) return;
       const box = UI.modal(`Receipts on ${fmtDate(day.date)} · ${day.receipts} receipt(s) · ${money(day.amount)}`, receiptTable(day.items), { wide: true });
-      bindReceipts(box.body);
+      bindReceipts(box.body, () => { box.close(); reload(read()); });
     }));
     view.querySelector("#print").addEventListener("click", () => printDoc("Fee Report", `<h3 style="text-align:center">Fee Report</h3>
       <h4 style="margin:12px 0 6px">Collections</h4>${printFilters(collectionFilterText)}${collectionsHtml}
@@ -894,26 +907,40 @@ const Accounts = (() => {
     m.body.querySelector("#printSlip").addEventListener("click", () => printDoc("Salary Slip", salarySlipHtml(slip, teacher)));
   }
 
-  async function salarySlips(teacherId) {
-    let d;
-    try {
-      d = await MPS.get(`/accounts/salaries/${teacherId}/slips`);
-    } catch (e) {
-      UI.toast(e.message, "error");
-      return;
-    }
-    const m = UI.modal(`Salary slips · ${d.teacher.name}`, table(
-      [
-        { label: "Month", render: (p) => `<b>${esc(slipMonthLabel(p))}</b><div class="small muted">${esc(p.slip_no || "")}</div>` },
-        { label: "Paid on", render: (p) => fmtDate(p.paid_on), className: "nowrap" },
-        { label: "Mode", render: (p) => `${esc(p.method || "-")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
-        { label: "Net Pay", render: (p) => `<b>${money(p.net)}</b>`, className: "right nowrap" },
-        { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-slip="${esc(p.id)}"><i class="fa fa-print"></i> View</button>` },
-      ],
-      d.slips,
-      { empty: "No salary slips yet.", emptyIcon: "fa-money" }
-    ), { wide: true });
-    m.body.querySelectorAll("[data-slip]").forEach((b) => b.addEventListener("click", () => showSalarySlip(d.slips.find((p) => p.id === b.dataset.slip), d.teacher)));
+  async function salarySlips(teacherId, onChange) {
+    const m = UI.modal("Salary slips", UI.loading(), { wide: true });
+    const paint = async () => {
+      let d;
+      try {
+        d = await MPS.get(`/accounts/salaries/${teacherId}/slips`);
+      } catch (e) {
+        m.body.innerHTML = UI.errorBox(e.message);
+        return;
+      }
+      const title = m.el.querySelector(".modal-head h3");
+      if (title) title.textContent = `Salary slips · ${d.teacher.name}`;
+      m.body.innerHTML = table(
+        [
+          { label: "Month", render: (p) => `<b>${esc(slipMonthLabel(p))}</b><div class="small muted">${esc(p.slip_no || "")}</div>` },
+          { label: "Paid on", render: (p) => fmtDate(p.paid_on), className: "nowrap" },
+          { label: "Mode", render: (p) => `${esc(p.method || "-")}${p.reference ? `<div class="small muted">${esc(p.reference)}</div>` : ""}` },
+          { label: "Net Pay", render: (p) => `<b>${money(p.net)}</b>`, className: "right nowrap" },
+          { label: "", className: "right nowrap", render: (p) => `<button class="btn btn-light btn-sm" data-slip="${esc(p.id)}"><i class="fa fa-print"></i> View</button> <button class="btn btn-light btn-sm" data-slip-del="${esc(p.id)}" data-slip-no="${esc(p.slip_no || "")}" title="Delete"><i class="fa fa-trash"></i></button>` },
+        ],
+        d.slips,
+        { empty: "No salary slips yet.", emptyIcon: "fa-money" }
+      );
+      m.body.querySelectorAll("[data-slip]").forEach((b) => b.addEventListener("click", () => showSalarySlip(d.slips.find((p) => p.id === b.dataset.slip), d.teacher)));
+      m.body.querySelectorAll("[data-slip-del]").forEach((b) => b.addEventListener("click", async () => {
+        const no = b.dataset.slipNo || "this slip";
+        if (!confirm(`Delete salary slip ${no}? The amount goes back to dues.`)) return;
+        if (await run(() => MPS.del(`/accounts/payslips/${b.dataset.slipDel}`))) {
+          if (onChange) onChange();
+          paint();
+        }
+      }));
+    };
+    await paint();
   }
 
   function monthOwing(month) {
@@ -1016,7 +1043,7 @@ const Accounts = (() => {
       const person = [...(pay.teachers || []), ...(pay.other_staff || [])].find((t) => t.id === b.dataset.salaryPay);
       if (person) paySalary(person, pay.payment_methods, reload);
     }));
-    view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips)));
+    view.querySelectorAll("[data-salary-slips]").forEach((b) => b.addEventListener("click", () => salarySlips(b.dataset.salarySlips, reload)));
     view.querySelectorAll("[data-staff-edit]").forEach((b) => b.addEventListener("click", () => {
       const person = (pay.other_staff || []).find((t) => t.id === b.dataset.staffEdit);
       if (person) staffForm(person, reload);
@@ -1288,7 +1315,7 @@ const Accounts = (() => {
         <label style="margin:0">Month</label>
         <select id="expenseMonth">${option("all", "All months", d.month)}${d.months.map((m) => option(m, fmtMonth(m), d.month)).join("")}</select>
       </div><button class="btn" id="printExpenses"><i class="fa fa-print"></i> Print</button></div>
-      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other expenses. Other expenses (monthly) are fixed bills such as modem, electric bill and bus EMI, counted every month from the start month. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense is also sent to the expenses WhatsApp group.</p>
+      <p class="small muted">Record petrol, diesel and other bus costs, school infrastructure costs, event costs, and other expenses. Other expenses (monthly) are fixed bills such as modem, electric bill and bus EMI, counted every month from the start month. People Expense is salary paid to teachers, the guard, the driver and the sweeper. Those totals follow the month above. Each new expense, each change, and each salary payment is sent to the expenses WhatsApp group.</p>
       <div class="grid grid-4">
         ${stat("Total dues", money((pay.due_total || 0) + (pay.other_due_total || 0)), { icon: "fa-exclamation-circle", tone: (pay.due_total || pay.other_due_total) ? "warn" : "ok", sub: `Teachers ${money(pay.due_total || 0)} · Other staff ${money(pay.other_due_total || 0)}` })}
         ${d.categories.map((c) => stat(c.label, money(d.totals[c.id] || 0), { icon: icons[c.id] || "fa-inr" })).join("")}
@@ -1304,7 +1331,7 @@ const Accounts = (() => {
           actions: `<button class="btn btn-sm" data-add="${esc(c.id)}"><i class="fa fa-plus"></i> Add</button>`,
         });
       }).join("")}
-      ${card("Other expenses (monthly)", `<p class="small muted" style="margin:0;${monthlyRows.length ? "padding:12px 18px 8px" : "margin-bottom:8px"}">Fixed bills such as modem, electric bill and bus EMI. Each amount is counted every month from its start month. Adding one sends it to the expenses WhatsApp group.</p>${monthlyRows.length ? monthlyTable(monthlyRows, monthlyStanding, false) : empty(monthlyBlank || "No monthly expenses yet.", "fa-refresh")}`, { icon: "fa-refresh", flush: !!monthlyRows.length, actions: `<button class="btn btn-sm" id="addMonthly"><i class="fa fa-plus"></i> Add</button>` })}
+      ${card("Other expenses (monthly)", `<p class="small muted" style="margin:0;${monthlyRows.length ? "padding:12px 18px 8px" : "margin-bottom:8px"}">Fixed bills such as modem, electric bill and bus EMI. Each amount is counted every month from its start month. Adding or changing one sends it to the expenses WhatsApp group.</p>${monthlyRows.length ? monthlyTable(monthlyRows, monthlyStanding, false) : empty(monthlyBlank || "No monthly expenses yet.", "fa-refresh")}`, { icon: "fa-refresh", flush: !!monthlyRows.length, actions: `<button class="btn btn-sm" id="addMonthly"><i class="fa fa-plus"></i> Add</button>` })}
       ${card("Teacher Salary (monthly)", salaryTable(pay), { icon: "fa-money", flush: true, actions: badge(`Dues ${money(pay.due_total)}`, pay.due_total ? "warn" : "success") })}
       ${card("Other staff", `<p class="small muted" style="margin:0 0 8px">Driver, guard, sweeper and other staff log in with the User ID shown here. Starting passwords are d@123 for a driver, g@123 for a guard, sw@123 for a sweeper and o@123 for other staff, until they change it. Their check-in and check-out go to the teachers WhatsApp group.</p>${salaryTable(pay, pay.other_staff || [], "Name", true)}`, { icon: "fa-users", flush: true, actions: `<button class="btn btn-sm" id="addOtherStaff"><i class="fa fa-plus"></i> Add</button> ${badge(`Dues ${money(pay.other_due_total || 0)}`, pay.other_due_total ? "warn" : "success")}` })}`;
 
