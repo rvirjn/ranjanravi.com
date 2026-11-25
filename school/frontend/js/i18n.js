@@ -248,7 +248,7 @@
     "Earnings": "आय", "Deductions": "कटौतियां", "Head": "मद",
     "All classes": "सभी कक्षाएं", "When": "कब", "Frequency": "आवृत्ति", "Quarterly": "तिमाही", "Diary": "डायरी",
     "Date given by parent": "अभिभावक द्वारा भुगतान तिथि", "Paid by": "भुगतानकर्ता", "Mode": "माध्यम", "Given to (received by)": "प्राप्तकर्ता",
-    "Note": "टिप्पणी", "Previous Receipts": "पिछली रसीदें", "Pending months": "बाकी महीने", "Last paid": "अंतिम भुगतान", "Dues": "बकाया",
+    "Note": "टिप्पणी", "Previous Receipts": "पिछली रसीदें", "Pending months": "बाकी महीने", "Last paid": "अंतिम भुगतान", "Dues": "बकाया", "Item Dues": "मद का बकाया",
     "Father": "पिता", "Mother": "माता", "Mobile": "मोबाइल",
     "10 digit mobile": "10 अंकों का मोबाइल",
     "Enter a 10 digit mobile number, without +91": "बिना +91 के 10 अंकों का मोबाइल नंबर लिखें",

@@ -202,6 +202,26 @@ const Accounts = (() => {
         .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === row.fee_holder_id)
         .reduce((t, c) => t + c.due, 0),
     }));
+    const transportPeople = [
+      { id: s.id, name: s.name },
+      ...(d.siblings || []).map((sib) => ({ id: sib.id, name: sib.name })),
+    ];
+    const transportChoices = transportPeople.map((person) => {
+      const charges = d.charges.filter((c) => c.head === "Transport Fee" && c.student_id === person.id);
+      const latest = charges.slice().sort((a, b) => String(b.month || "").localeCompare(String(a.month || "")))[0];
+      return {
+        id: person.id,
+        name: person.name,
+        rate: latest ? Number(latest.amount) || 0 : 0,
+        due: charges.reduce((total, c) => total + (Number(c.due) || 0), 0),
+      };
+    }).filter((row) => row.id === s.id || row.due || row.rate).map((row, _index, list) => ({
+      value: list.length > 1 ? `Transport Fee|${row.id}` : "Transport Fee",
+      label: list.length > 1 ? `Transport Fee — ${row.name}` : "Transport Fee",
+      rate: row.rate,
+      holderId: row.id,
+      due: row.due,
+    }));
     const familyRebate = family.reduce((total, row) => total + (Number(row.rebate) || 0), 0);
     const feeRates = { ...(d.other_fee_rates || {}), "Tuition Fee": tuitionChoices[0].rate };
     const familyPeople = family.flatMap((row) => (row.names || []).map((name) => ({ name, classLabel: row.class_label })));
@@ -282,15 +302,17 @@ const Accounts = (() => {
         paid: Number(tr.querySelector("[data-paid]").value || 0),
       }));
     const tuitionChoice = (head) => tuitionChoices.find((choice) => choice.value === head);
-    const tuitionChargesFor = (choice) => d.charges
-      .filter((c) => c.head === "Tuition Fee" && c.due > 0 && c.student_id === choice.holderId)
+    const transportChoice = (head) => transportChoices.find((choice) => choice.value === head);
+    const monthlyChoice = (head) => tuitionChoice(head) || transportChoice(head);
+    const chargesFor = (choice, headName) => d.charges
+      .filter((c) => c.head === headName && c.due > 0 && c.student_id === choice.holderId)
       .sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
-    const allocateTuition = (rows) => {
+    const allocateMonthly = (rows, choices, headName) => {
       const lines = [];
       let overflow = "";
-      tuitionChoices.forEach((choice) => {
+      choices.forEach((choice) => {
         let left = rows.filter((row) => row.head === choice.value).reduce((t, row) => t + row.paid, 0);
-        tuitionChargesFor(choice).forEach((c) => {
+        chargesFor(choice, headName).forEach((c) => {
           if (left <= 0) return;
           const amount = Math.min(left, c.due);
           lines.push({ charge_id: c.id, amount });
@@ -303,18 +325,18 @@ const Accounts = (() => {
     const recalc = () => {
       const rows = readRows();
       rows.forEach((row) => {
-        const choice = tuitionChoice(row.head);
+        const choice = monthlyChoice(row.head);
         const rowDue = choice ? Math.max(0, choice.due - row.paid) : Math.max(0, row.rate - row.paid);
         row.tr.querySelector("[data-row-due]").textContent = money(rowDue);
       });
-      const tuitionPaid = tuitionChoices.reduce((t, choice) => {
+      const monthlyPaid = [...tuitionChoices, ...transportChoices].reduce((t, choice) => {
         const paid = rows.filter((row) => row.head === choice.value).reduce((sum, row) => sum + row.paid, 0);
         return t + Math.min(paid, choice.due);
       }, 0);
       const addedDue = rows
-        .filter((row) => !tuitionChoice(row.head))
+        .filter((row) => !monthlyChoice(row.head))
         .reduce((t, row) => t + Math.max(0, (row.rate || row.paid) - row.paid), 0);
-      const remaining = Math.max(0, d.summary.due - tuitionPaid) + addedDue;
+      const remaining = Math.max(0, d.summary.due - monthlyPaid) + addedDue;
       titleNode.nodeValue = ` ${s.name} (${duesWord} : ${money(remaining)})`;
       view.querySelector("#total").textContent = money(rows.reduce((t, row) => t + row.paid, 0));
     };
@@ -324,14 +346,15 @@ const Accounts = (() => {
       tr.setAttribute("data-fee-item", "");
       const itemOptions = [
         ...tuitionChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
-        ...d.other_heads.filter((h) => h !== "Tuition Fee").map((h) => `<option value="${esc(h)}">${esc(h)}</option>`),
+        ...transportChoices.map((choice) => `<option value="${esc(choice.value)}">${esc(choice.label)}</option>`),
+        ...d.other_heads.filter((h) => h !== "Tuition Fee" && h !== "Transport Fee").map((h) => `<option value="${esc(h)}">${esc(h)}</option>`),
       ];
       tr.innerHTML = `<label>Item</label><select data-head>${itemOptions.join("")}</select>
         <label>Description</label><input data-desc placeholder="e.g. 2 sets, size 28">
         <label>Rate</label><input type="text" inputmode="numeric" class="amount-input" data-rate placeholder="0" autocomplete="off">
         <label>Rebate</label><input type="text" inputmode="numeric" class="amount-input" data-rebate placeholder="0" autocomplete="off">
         <label>PAID</label><input type="text" inputmode="numeric" class="amount-input" data-paid placeholder="0" autocomplete="off">
-        <label>Dues</label><b class="fee-item-due" data-row-due>${money(0)}</b>
+        <label>Item Dues</label><b class="fee-item-due" data-row-due>${money(0)}</b>
         <button type="button" class="btn btn-light btn-sm" data-remove><i class="fa fa-times"></i> Remove</button>`;
       itemsBox.appendChild(tr);
       const head = tr.querySelector("[data-head]");
@@ -343,10 +366,13 @@ const Accounts = (() => {
         if (input.value !== next) input.value = next;
       }));
       const fillRate = () => {
-        const choice = tuitionChoice(head.value);
-        if (choice) {
+        const choice = monthlyChoice(head.value);
+        if (tuitionChoice(head.value)) {
           rate.value = choice.rate || "";
           rebate.value = familyRebate || "";
+        } else if (transportChoice(head.value)) {
+          rate.value = choice.rate || "";
+          rebate.value = "";
         } else if (feeRates[head.value] != null) {
           rate.value = feeRates[head.value];
           rebate.value = "";
@@ -360,7 +386,7 @@ const Accounts = (() => {
         recalc();
       });
       rate.addEventListener("input", () => {
-        if (!tuitionChoice(head.value) && !paid.dataset.touched) paid.value = rate.value;
+        if (!monthlyChoice(head.value) && !paid.dataset.touched) paid.value = rate.value;
         recalc();
       });
       paid.addEventListener("input", (e) => {
@@ -389,20 +415,22 @@ const Accounts = (() => {
       if (!form.reportValidity()) return;
       const values = Object.fromEntries(new FormData(form).entries());
       const rows = readRows().filter((row) => row.rate > 0 || row.paid > 0);
-      const allocated = allocateTuition(rows);
-      if (allocated.overflow) {
-        UI.toast(allocated.overflow, "error");
+      const tuitionAlloc = allocateMonthly(rows, tuitionChoices, "Tuition Fee");
+      const transportAlloc = allocateMonthly(rows, transportChoices, "Transport Fee");
+      if (tuitionAlloc.overflow || transportAlloc.overflow) {
+        UI.toast(tuitionAlloc.overflow || transportAlloc.overflow, "error");
         return;
       }
-      const itemRows = rows.filter((row) => !tuitionChoice(row.head));
+      const allocated = { lines: [...tuitionAlloc.lines, ...transportAlloc.lines] };
+      const itemRows = rows.filter((row) => !monthlyChoice(row.head));
       if (itemRows.some((row) => row.paid > (row.rate || row.paid))) {
         UI.toast("PAID cannot be more than Rate", "error");
         return;
       }
       const entries = rows.map((row) => {
-        const choice = tuitionChoice(row.head);
+        const choice = monthlyChoice(row.head);
         const tuitionRow = family.find((person) => (person.current ? "Tuition Fee" : `Tuition Fee|${person.class_id}`) === row.head);
-        const item = choice
+        const item = tuitionChoice(row.head)
           ? (family.length > 1 && tuitionRow ? `Tuition Fee — ${tuitionRow.class_label}` : "Tuition Fee")
           : row.item;
         return {
